@@ -1,19 +1,40 @@
 #!/usr/bin/python3
+#
+# Bookmark management utility
+#
+# Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with markit.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
 
 # Main starts here
 # ----------------
-conn = sqlite3.connect('example.db')
+# Create a connection
+conn = sqlite3.connect('bookmarks.db')
 c = conn.cursor()
 
+# Create table if it doesn't exist
 #c.execute('''DROP TABLE if exists stocks''')
-c.execute('''CREATE TABLE if not exists stocks
+c.execute('''CREATE TABLE if not exists bookmarks
             (URL text NOT NULL, tags text, metadata text)''')
 
+# Insert values
 c.execute("INSERT INTO stocks VALUES ('www.google.com','search engine','')")
 conn.commit()
 
+# Search the table
 t = ('search',)
 for row in c.execute("SELECT * FROM stocks WHERE tags LIKE ('%' || ? || '%')", t):
     print(row)
