@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+
+import sqlite3
+
+# Main starts here
+# ----------------
+conn = sqlite3.connect('example.db')
+c = conn.cursor()
+
+#c.execute('''DROP TABLE if exists stocks''')
+c.execute('''CREATE TABLE if not exists stocks
+            (URL text NOT NULL, tags text, metadata text)''')
+
+c.execute("INSERT INTO stocks VALUES ('www.google.com','search engine','')")
+conn.commit()
+
+t = ('search',)
+for row in c.execute("SELECT * FROM stocks WHERE tags LIKE ('%' || ? || '%')", t):
+    print(row)
+
+conn.close()
