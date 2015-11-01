@@ -1,5 +1,5 @@
 # MarkIt
-Bookmark management utility written using Python3 and Sqlite3. Currently under development.
+Cmdline bookmark management utility written using Python3 and Sqlite3. Currently under development.
 
 #License
 GPL v3  
