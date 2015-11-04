@@ -21,6 +21,10 @@ import sys
 import sqlite3
 from getopt import getopt, GetoptError
 
+# Globals
+url = ''
+tags = ''
+
 def usage():
     print("Usage: markit [OPTIONS] KEYWORDS...")
     print("Bookmark manager.\n")
@@ -88,8 +92,14 @@ except GetoptError as e:
     print("markit:", e)
     sys.exit(1)
 
-for key in keywords:
-    print("key: %s" % key)
+print("key: [%s]" % keywords[0])
+url = keywords[0]
+for tag in keywords[1:]:
+    print("tag: [%s]" % tag)
+    tags += tag + " "
+
+tags = tags[0:-1]
+print("tags: [%s]" % tags)
 
 # Create a connection
 conn = sqlite3.connect('bookmarks.db')
@@ -101,12 +111,12 @@ c.execute('''CREATE TABLE if not exists bookmarks
             (id integer PRIMARY KEY AUTOINCREMENT, URL text NOT NULL UNIQUE, tags text, metadata text)''')
 
 # Insert values
-c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('www.google.com','search engine','')")
-c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('www.google.com','search engine','')")
+c.execute('INSERT INTO bookmarks(URL, tags, metadata) VALUES (?, ?, ?)', (url, tags, ''))
+#c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('www.google.com','search engine','')")
 conn.commit()
 
 # Search the table
-t = ('search',)
+t = ('hello',)
 for row in c.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%')", t):
     print(row)
 
