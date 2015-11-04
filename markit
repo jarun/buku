@@ -17,10 +17,80 @@
 # You should have received a copy of the GNU General Public License
 # along with markit.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import sqlite3
+from getopt import getopt, GetoptError
+
+def usage():
+    print("Usage: markit [OPTIONS] KEYWORDS...")
+    print("Bookmark manager.\n")
+    print("Options")
+    print("  -p       print all bookmarks")
+    print("  -u N     update index number")
+    print("           any other input exits markit\n")
+    print("Version 0.1")
+    print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
+    print("Webpage: https://github.com/jarun/markit")
+    sys.exit(1)
 
 # Main starts here
 # ----------------
+optlist = None
+keywords = None
+
+if len(sys.argv) < 2:
+    usage()
+
+try:
+    optlist, keywords = getopt(sys.argv[1:], "s:n:c:l:t:NCjd")
+    for opt in optlist:
+        if opt[0] == "-s":
+            # Option -s N
+            if not opt[1].isdigit():
+                print("markit: option -s needs an integer")
+                sys.exit(1)
+            start = opt[1]
+        elif opt[0] == "-n":
+            # Option -n N
+            if not opt[1].isdigit():
+                print("markit: option -n needs an integer")
+                sys.exit(1)
+            num = opt[1]
+        elif opt[0] == "-N":
+            news = True
+        elif opt[0] == "-c":
+            server = serverURL(opt[1])
+        elif opt[0] == "-l":
+            # Option -l LANG
+            lang = opt[1]
+        elif opt[0] == "-C":
+            # Option -C
+            colorize = False
+        elif opt[0] == "-j":
+            # Option -j
+            openUrl = True
+            if num is None:
+                num = "1"
+        elif opt[0] == "-t":
+            # Option -t dN
+            duration = opt[1]
+            if not opt[1][0] in ("h", "d","w","m","y",):
+                usage()
+                sys.exit(1)
+            if not opt[1][1].isdigit():
+                usage()
+                sys.exit(1)
+        elif opt[0] == "-d":
+            debug = True
+    if len(keywords) < 1:
+        usage()
+except GetoptError as e:
+    print("markit:", e)
+    sys.exit(1)
+
+for key in keywords:
+    print("key: %s" % key)
+
 # Create a connection
 conn = sqlite3.connect('bookmarks.db')
 c = conn.cursor()
@@ -32,7 +102,7 @@ c.execute('''CREATE TABLE if not exists bookmarks
 
 # Insert values
 c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('www.google.com','search engine','')")
-c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('http://www.google.com/','search engine','')")
+c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('www.google.com','search engine','')")
 conn.commit()
 
 # Search the table
