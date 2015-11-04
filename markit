@@ -26,17 +26,18 @@ conn = sqlite3.connect('bookmarks.db')
 c = conn.cursor()
 
 # Create table if it doesn't exist
-#c.execute('''DROP TABLE if exists stocks''')
+c.execute('''DROP TABLE if exists bookmarks''')
 c.execute('''CREATE TABLE if not exists bookmarks
-            (URL text NOT NULL, tags text, metadata text)''')
+            (id integer PRIMARY KEY AUTOINCREMENT, URL text NOT NULL UNIQUE, tags text, metadata text)''')
 
 # Insert values
-c.execute("INSERT INTO stocks VALUES ('www.google.com','search engine','')")
+c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('www.google.com','search engine','')")
+c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('http://www.google.com/','search engine','')")
 conn.commit()
 
 # Search the table
 t = ('search',)
-for row in c.execute("SELECT * FROM stocks WHERE tags LIKE ('%' || ? || '%')", t):
+for row in c.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%')", t):
     print(row)
 
 conn.close()
