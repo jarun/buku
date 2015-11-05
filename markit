@@ -31,6 +31,7 @@ def usage():
     print("Bookmark manager.\n")
     print("Options")
     print("  -a URL tag entry1, tag entry2, ...    print all bookmarks")
+    print("  -d                                    delete ALL bookamrks")
     print("  -p                                    print all bookmarks")
     print("  -u N                                  update index number")
     print("                                        any other input exits markit\n")
