@@ -23,7 +23,7 @@ from getopt import getopt, GetoptError
 
 # Globals
 url = ''
-tags = ''
+tags = ','
 
 def usage():
     print("Usage: markit [OPTIONS] KEYWORDS...")
@@ -96,9 +96,16 @@ print("key: [%s]" % keywords[0])
 url = keywords[0]
 for tag in keywords[1:]:
     print("tag: [%s]" % tag)
-    tags += tag + " "
+    if tags[-1] == ",":
+        tags += tag
+    else:
+        tags += " " + tag
 
-tags = tags[0:-1]
+#tags += tag + " "
+#tags = tags[0:-1]
+
+if tags[-1] != ",":
+    tags += ","
 print("tags: [%s]" % tags)
 
 # Create a connection
@@ -106,7 +113,7 @@ conn = sqlite3.connect('bookmarks.db')
 c = conn.cursor()
 
 # Create table if it doesn't exist
-c.execute('''DROP TABLE if exists bookmarks''')
+#c.execute('''DROP TABLE if exists bookmarks''')
 c.execute('''CREATE TABLE if not exists bookmarks
             (id integer PRIMARY KEY AUTOINCREMENT, URL text NOT NULL UNIQUE, tags text, metadata text)''')
 
@@ -115,9 +122,12 @@ c.execute('INSERT INTO bookmarks(URL, tags, metadata) VALUES (?, ?, ?)', (url, t
 #c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('www.google.com','search engine','')")
 conn.commit()
 
-# Search the table
-t = ('hello',)
-for row in c.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%')", t):
+for row in c.execute('SELECT * FROM bookmarks'):
     print(row)
+
+# Search the table
+#t = ('hello',)
+#for row in c.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%')", t):
+#    print(row)
 
 conn.close()
