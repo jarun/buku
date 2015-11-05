@@ -25,6 +25,7 @@ from getopt import getopt, GetoptError
 addurl = False
 deletedb = False
 printdb = False
+search = False
 
 def usage():
     print("Usage: markit [OPTIONS] KEYWORDS...")
@@ -33,6 +34,7 @@ def usage():
     print("  -a URL tag entry1, tag entry2, ...    print all bookmarks")
     print("  -d                                    delete ALL bookamrks")
     print("  -p                                    print all bookmarks")
+    print("  -s string(s)                          search all bookmarks for a tag or string")
     print("  -u N                                  update index number")
     print("                                        any other input exits markit\n")
     print("Version 0.1")
@@ -69,6 +71,17 @@ def addentry(conn, cur, keywords):
     except sqlite3.IntegrityError:
         print("URL already exists")
 
+def searchdb(cur, keywords):
+    searchtag = ''
+    searchkey = keywords[0]
+    for token in keywords:
+        searchtag += token + " "
+
+    searchtag = ',' + searchtag[0:-1] + ','
+
+    for row in cur.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%')", (searchtag, searchkey)):
+        print(row)
+
 def cleardb(conn, cur):
     cur.execute('DROP TABLE if exists bookmarks')
     conn.commit()
@@ -86,7 +99,7 @@ if len(sys.argv) < 2:
     usage()
 
 try:
-    optlist, keywords = getopt(sys.argv[1:], "s:n:c:l:t:NCjdap")
+    optlist, keywords = getopt(sys.argv[1:], "adps")
     for opt in optlist:
         if opt[0] == "-a":
             addurl = True
@@ -94,6 +107,8 @@ try:
             deletedb = True
         elif opt[0] == "-p":
             printdb = True
+        elif opt[0] == "-s":
+            search = True
 except GetoptError as e:
     print("markit:", e)
     sys.exit(1)
@@ -105,6 +120,12 @@ if addurl == True:
         usage()
 
     addentry(conn, cur, keywords)
+
+if search == True:
+    if len(keywords) < 1:
+        usage()
+
+    searchdb(cur, keywords)
 
 if deletedb == True:
     cleardb(conn, cur)
