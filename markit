@@ -22,20 +22,59 @@ import sqlite3
 from getopt import getopt, GetoptError
 
 # Globals
-url = ''
-tags = ','
+addurl = False
+deletedb = False
+printdb = False
 
 def usage():
     print("Usage: markit [OPTIONS] KEYWORDS...")
     print("Bookmark manager.\n")
     print("Options")
-    print("  -p       print all bookmarks")
-    print("  -u N     update index number")
-    print("           any other input exits markit\n")
+    print("  -a URL tag entry1, tag entry2, ...    print all bookmarks")
+    print("  -p                                    print all bookmarks")
+    print("  -u N                                  update index number")
+    print("                                        any other input exits markit\n")
     print("Version 0.1")
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
     print("Webpage: https://github.com/jarun/markit")
     sys.exit(1)
+
+def initdb():
+    # Create a connection
+    conn = sqlite3.connect('bookmarks.db')
+    cur = conn.cursor()
+
+    # Create table if it doesn't exist
+    cur.execute('''CREATE TABLE if not exists bookmarks
+               (id integer PRIMARY KEY AUTOINCREMENT, URL text NOT NULL UNIQUE, tags text, metadata text)''')
+    conn.commit()
+    return (conn, cur)
+
+def addentry(conn, cur, keywords):
+    tags = ','
+    url = keywords[0]
+    for tag in keywords[1:]:
+        if tags[-1] == ",":
+            tags += tag
+        else:
+            tags += " " + tag
+
+    if tags[-1] != ",":
+        tags += ","
+
+    try:
+        cur.execute('INSERT INTO bookmarks(URL, tags, metadata) VALUES (?, ?, ?)', (url, tags, ''))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        print("URL already exists")
+
+def cleardb(conn, cur):
+    cur.execute('DROP TABLE if exists bookmarks')
+    conn.commit()
+
+def printtable(cur):
+    for row in cur.execute('SELECT * FROM bookmarks'):
+        print("%s. %s\t%s\t%s" % (row[0], row[1], row[2][1:-1], row[3]))
 
 # Main starts here
 # ----------------
@@ -46,88 +85,30 @@ if len(sys.argv) < 2:
     usage()
 
 try:
-    optlist, keywords = getopt(sys.argv[1:], "s:n:c:l:t:NCjd")
+    optlist, keywords = getopt(sys.argv[1:], "s:n:c:l:t:NCjdap")
     for opt in optlist:
-        if opt[0] == "-s":
-            # Option -s N
-            if not opt[1].isdigit():
-                print("markit: option -s needs an integer")
-                sys.exit(1)
-            start = opt[1]
-        elif opt[0] == "-n":
-            # Option -n N
-            if not opt[1].isdigit():
-                print("markit: option -n needs an integer")
-                sys.exit(1)
-            num = opt[1]
-        elif opt[0] == "-N":
-            news = True
-        elif opt[0] == "-c":
-            server = serverURL(opt[1])
-        elif opt[0] == "-l":
-            # Option -l LANG
-            lang = opt[1]
-        elif opt[0] == "-C":
-            # Option -C
-            colorize = False
-        elif opt[0] == "-j":
-            # Option -j
-            openUrl = True
-            if num is None:
-                num = "1"
-        elif opt[0] == "-t":
-            # Option -t dN
-            duration = opt[1]
-            if not opt[1][0] in ("h", "d","w","m","y",):
-                usage()
-                sys.exit(1)
-            if not opt[1][1].isdigit():
-                usage()
-                sys.exit(1)
+        if opt[0] == "-a":
+            addurl = True
         elif opt[0] == "-d":
-            debug = True
-    if len(keywords) < 1:
-        usage()
+            deletedb = True
+        elif opt[0] == "-p":
+            printdb = True
 except GetoptError as e:
     print("markit:", e)
     sys.exit(1)
 
-print("key: [%s]" % keywords[0])
-url = keywords[0]
-for tag in keywords[1:]:
-    print("tag: [%s]" % tag)
-    if tags[-1] == ",":
-        tags += tag
-    else:
-        tags += " " + tag
+conn, cur = initdb()
 
-#tags += tag + " "
-#tags = tags[0:-1]
+if addurl == True:
+    if len(keywords) < 1:
+        usage()
 
-if tags[-1] != ",":
-    tags += ","
-print("tags: [%s]" % tags)
+    addentry(conn, cur, keywords)
 
-# Create a connection
-conn = sqlite3.connect('bookmarks.db')
-c = conn.cursor()
+if deletedb == True:
+    cleardb(conn, cur)
 
-# Create table if it doesn't exist
-#c.execute('''DROP TABLE if exists bookmarks''')
-c.execute('''CREATE TABLE if not exists bookmarks
-            (id integer PRIMARY KEY AUTOINCREMENT, URL text NOT NULL UNIQUE, tags text, metadata text)''')
-
-# Insert values
-c.execute('INSERT INTO bookmarks(URL, tags, metadata) VALUES (?, ?, ?)', (url, tags, ''))
-#c.execute("INSERT INTO bookmarks(URL, tags, metadata) VALUES ('www.google.com','search engine','')")
-conn.commit()
-
-for row in c.execute('SELECT * FROM bookmarks'):
-    print(row)
-
-# Search the table
-#t = ('hello',)
-#for row in c.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%')", t):
-#    print(row)
+if printdb == True:
+    printtable(cur)
 
 conn.close()
