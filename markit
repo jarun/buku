@@ -79,8 +79,10 @@ def searchdb(cur, keywords):
 
     searchtag = ',' + searchtag[0:-1] + ','
 
+    count = 0
     for row in cur.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%')", (searchtag, searchkey)):
-        print(row)
+        count += 1
+        print("%d. %s" % (count, row[1]))
 
 def cleardb(conn, cur):
     cur.execute('DROP TABLE if exists bookmarks')
