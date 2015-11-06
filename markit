@@ -24,8 +24,10 @@ from getopt import getopt, GetoptError
 # Globals
 addurl = False
 deletedb = False
-printdb = False
+showdb = False
 search = False
+entry = "0"
+updatedb = False
 
 def usage():
     print("Usage: markit [OPTIONS] KEYWORDS...")
@@ -35,7 +37,7 @@ def usage():
     print("  -d                                    delete ALL bookamrks")
     print("  -p                                    print all bookmarks")
     print("  -s string(s)                          search all bookmarks for a tag or string")
-    print("  -u N                                  update index number")
+    print("  -u N                                  update index number (from output of -p)")
     print("                                        any other input exits markit\n")
     print("Version 0.1")
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
@@ -84,6 +86,24 @@ def searchdb(cur, keywords):
         count += 1
         print("%d. %s" % (count, row[1]))
 
+def updateentry(conn, cur, entry, keywords):
+    tags = ','
+    url = keywords[0]
+    for tag in keywords[1:]:
+        if tags[-1] == ",":
+            tags += tag
+        else:
+            tags += " " + tag
+
+    if tags[-1] != ",":
+        tags += ","
+
+    try:
+        cur.execute("UPDATE bookmarks SET URL = ?, tags = ?, metadata = '' WHERE id = ?", (url, tags, int(entry)))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        print("URL already exists")
+
 def cleardb(conn, cur):
     cur.execute('DROP TABLE if exists bookmarks')
     conn.commit()
@@ -101,16 +121,32 @@ if len(sys.argv) < 2:
     usage()
 
 try:
-    optlist, keywords = getopt(sys.argv[1:], "adps")
+    optlist, keywords = getopt(sys.argv[1:], "u:adps")
     for opt in optlist:
         if opt[0] == "-a":
+            if updatedb == True:
+                print("You can either add or update in one instance\n")
+                usage()
+
             addurl = True
         elif opt[0] == "-d":
             deletedb = True
         elif opt[0] == "-p":
-            printdb = True
+            showdb = True
         elif opt[0] == "-s":
             search = True
+        elif opt[0] == "-u":
+            if addurl == True:
+                print("You can either add or update in one instance\n")
+                usage()
+            if not opt[1].isdigit():
+                usage()
+
+            entry = opt[1]
+            if int(entry) <= 0:
+                usage()
+
+            updatedb = True
 except GetoptError as e:
     print("markit:", e)
     sys.exit(1)
@@ -129,10 +165,13 @@ if search == True:
 
     searchdb(cur, keywords)
 
+if updatedb == True:
+    updateentry(conn, cur, entry, keywords)
+
+if showdb == True:
+    printtable(cur)
+
 if deletedb == True:
     cleardb(conn, cur)
-
-if printdb == True:
-    printtable(cur)
 
 conn.close()
