@@ -23,6 +23,8 @@ import sqlite3
 from getopt import getopt, GetoptError
 import readline
 import webbrowser
+import html.parser as HTMLParser
+#from http.client import HTTPSConnection
 
 # Globals
 addurl = False
@@ -70,8 +72,17 @@ def addentry(conn, cur, keywords):
     if tags[-1] != ",":
         tags += ","
 
+    meta = ''
+    #urlconn = HTTPSConnection("tuxdiary.com", timeout=45)
+    #urlconn.request("GET", url)
+    #resp = urlconn.getresponse()
+    #parser = BMHTMLParser()
+    #parser.feed(resp.read().decode('utf-8'))
+    #meta = parser.data
+    #urlconn.close()
+
     try:
-        cur.execute('INSERT INTO bookmarks(URL, tags, metadata) VALUES (?, ?, ?)', (url, tags, ''))
+        cur.execute('INSERT INTO bookmarks(URL, tags, metadata) VALUES (?, ?, ?)', (url, tags, meta))
         conn.commit()
     except sqlite3.IntegrityError:
         print("URL already exists")
@@ -156,6 +167,28 @@ def is_int(string):
         return True
     except:
         return False
+
+class BMHTMLParser(HTMLParser.HTMLParser):
+    def __init__(self):
+        HTMLParser.HTMLParser.__init__(self)
+        self.inTitle = False
+        self.data = ""
+        self.lasttag = None
+
+    def handle_starttag(self, tag, attrs):
+        self.inTitle = False
+        if tag == "title":
+            self.inTitle = True
+            self.lasttag = tag
+
+    def handle_endtag(self, tag):
+        if tag == "title":
+            self.inTitle = False
+
+    def handle_data(self, data):
+        if self.lasttag == "title" and self.inTitle == True:
+            self.data = data
+
 
 # Main starts here
 # ----------------
