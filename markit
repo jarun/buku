@@ -21,6 +21,7 @@ import sys
 import sqlite3
 from getopt import getopt, GetoptError
 import readline
+import webbrowser
 
 # Globals
 addurl = False
@@ -39,7 +40,7 @@ def usage():
     print("  -p                                    print all bookmarks")
     print("  -s string(s)                          search all bookmarks for a tag or string")
     print("  -u N                                  update index number (from output of -p)")
-    print("                                        any other input exits markit\n")
+    print("                                        any other input shows help and exits markit\n")
     print("Version 0.1")
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
     print("Webpage: https://github.com/jarun/markit")
@@ -83,11 +84,26 @@ def searchdb(cur, keywords):
     searchtag = ',' + searchtag[0:-1] + ','
 
     count = 0
+    results = []
     for row in cur.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%') \
                             OR tags LIKE ('%' || ? || '%') \
                             OR URL LIKE ('%' || ? || '%')", (searchtag, searchkey, searchkey)):
+        results.append(row[1])
         count += 1
         print("%d. %s" % (count, row[1]))
+
+    if count == 0:
+        return
+
+    while True:
+        nav = input("Enter index number to open: ")
+        if is_int(nav):
+            try:
+                webbrowser.open(results[int(nav) - 1])
+            except IndexError:
+                print("Index out of bound.")
+        else:
+            break
 
 def updateentry(conn, cur, entry, keywords):
     tags = ','
@@ -116,6 +132,13 @@ def printtable(cur):
     for row in cur.execute('SELECT * FROM bookmarks'):
         print("%s. %s\n\t[TAGS] %s\n\t[META] %s" % (row[0], row[1], row[2][1:-1], row[3]))
 
+def is_int(string):
+    try:
+        int(string)
+        return True
+    except:
+        return False
+
 # Main starts here
 # ----------------
 optlist = None
@@ -126,6 +149,9 @@ if len(sys.argv) < 2:
 
 try:
     optlist, keywords = getopt(sys.argv[1:], "u:adps")
+    if len(optlist) < 1:
+        usage()
+
     for opt in optlist:
         if opt[0] == "-a":
             if updatedb == True:
