@@ -18,6 +18,7 @@
 # along with markit.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import os
 import sqlite3
 from getopt import getopt, GetoptError
 import readline
@@ -98,8 +99,25 @@ def searchdb(cur, keywords):
     while True:
         nav = input("Enter index number to open: ")
         if is_int(nav):
+            index = int(nav) - 1
+            if index < 0:
+                print("Index out of bound.")
+                continue
+
             try:
-                webbrowser.open(results[int(nav) - 1])
+                _stderr = os.dup(2)
+                os.close(2)
+                _stdout = os.dup(1)
+                os.close(1)
+                fd = os.open(os.devnull, os.O_RDWR)
+                os.dup2(fd, 2)
+                os.dup2(fd, 1)
+                try:
+                    webbrowser.open(results[int(nav) - 1])
+                finally:
+                    os.close(fd)
+                    os.dup2(_stderr, 2)
+                    os.dup2(_stdout, 1)
             except IndexError:
                 print("Index out of bound.")
         else:
