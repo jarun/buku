@@ -82,7 +82,9 @@ def searchdb(cur, keywords):
     searchtag = ',' + searchtag[0:-1] + ','
 
     count = 0
-    for row in cur.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%')", (searchtag, searchkey)):
+    for row in cur.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%') \
+                            OR tags LIKE ('%' || ? || '%') \
+                            OR URL LIKE ('%' || ? || '%')", (searchtag, searchkey, searchkey)):
         count += 1
         print("%d. %s" % (count, row[1]))
 
@@ -98,11 +100,12 @@ def updateentry(conn, cur, entry, keywords):
     if tags[-1] != ",":
         tags += ","
 
-    try:
-        cur.execute("UPDATE bookmarks SET URL = ?, tags = ?, metadata = '' WHERE id = ?", (url, tags, int(entry)))
-        conn.commit()
-    except sqlite3.IntegrityError:
-        print("URL already exists")
+    cur.execute("UPDATE bookmarks SET URL = ?, tags = ?, metadata = '' WHERE id = ?", (url, tags, int(entry)))
+    conn.commit()
+    if cur.rowcount == 1:
+        print("Updated")
+    else:
+        print("No matching index")
 
 def cleardb(conn, cur):
     cur.execute('DROP TABLE if exists bookmarks')
