@@ -24,7 +24,7 @@ from getopt import getopt, GetoptError
 import readline
 import webbrowser
 import html.parser as HTMLParser
-#from http.client import HTTPSConnection
+from http.client import HTTPSConnection
 
 # Globals
 addurl = False
@@ -73,13 +73,26 @@ def addentry(conn, cur, keywords):
         tags += ","
 
     meta = ''
-    #urlconn = HTTPSConnection("tuxdiary.com", timeout=45)
-    #urlconn.request("GET", url)
-    #resp = urlconn.getresponse()
-    #parser = BMHTMLParser()
-    #parser.feed(resp.read().decode('utf-8'))
-    #meta = parser.data
-    #urlconn.close()
+    http = True
+    if url.find("https://") >= 0:
+        server = url[8:]
+    elif url.find("http://") >= 0:
+        server = url[7:]
+    else:
+        http = False
+
+    if http == True:
+        marker = server.find("/")
+        if marker > 0:
+            server = server[:marker]
+
+        urlconn = HTTPSConnection(server, timeout=45)
+        urlconn.request("GET", url)
+        resp = urlconn.getresponse()
+        parser = BMHTMLParser()
+        parser.feed(resp.read().decode('utf-8'))
+        meta = parser.data
+        urlconn.close()
 
     try:
         cur.execute('INSERT INTO bookmarks(URL, tags, metadata) VALUES (?, ?, ?)', (url, tags, meta))
