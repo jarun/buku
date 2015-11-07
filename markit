@@ -26,6 +26,7 @@ import webbrowser
 import html.parser as HTMLParser
 from http.client import HTTPConnection
 from http.client import HTTPSConnection
+from urllib.parse import urljoin, quote_plus, unquote
 
 # Globals
 addurl = False
@@ -60,8 +61,8 @@ def initdb():
     cur = conn.cursor()
 
     # Create table if it doesn't exist
-    cur.execute('''CREATE TABLE if not exists bookmarks
-               (id integer PRIMARY KEY AUTOINCREMENT, URL text NOT NULL UNIQUE, tags text, metadata text)''')
+    cur.execute('''CREATE TABLE if not exists bookmarks \
+               (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, tags text, metadata text)''')
     conn.commit()
     return (conn, cur)
 
@@ -178,6 +179,8 @@ def searchdb(cur, keywords):
                 os.dup2(fd, 2)
                 os.dup2(fd, 1)
                 try:
+                    openurl = unquote(results[int(nav) - 1])
+                    openurl = openurl.replace("%22", "\"")
                     webbrowser.open(results[int(nav) - 1])
                 finally:
                     os.close(fd)
