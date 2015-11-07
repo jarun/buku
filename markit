@@ -28,6 +28,7 @@ from http.client import HTTPSConnection
 
 # Globals
 addurl = False
+online = False
 deletedb = False
 showdb = False
 search = False
@@ -40,6 +41,7 @@ def usage():
     print("Options")
     print("  -a URL tag entry1, tag entry2, ...    print all bookmarks")
     print("  -d                                    delete ALL bookamrks")
+    print("  -o                                    fetch title info from web")
     print("  -p                                    print all bookmarks")
     print("  -s string(s)                          search all bookmarks for a tag or string")
     print("  -u N                                  update index number (from output of -p)")
@@ -61,6 +63,8 @@ def initdb():
     return (conn, cur)
 
 def addentry(conn, cur, keywords):
+    global online
+
     tags = ','
     url = keywords[0]
     for tag in keywords[1:]:
@@ -73,26 +77,41 @@ def addentry(conn, cur, keywords):
         tags += ","
 
     meta = ''
-    http = True
-    if url.find("https://") >= 0:
-        server = url[8:]
-    elif url.find("http://") >= 0:
-        server = url[7:]
-    else:
-        http = False
 
-    if http == True:
-        marker = server.find("/")
-        if marker > 0:
-            server = server[:marker]
+    if online == True:
+        if url.find("https://") >= 0:
+            server = url[8:]
+        elif url.find("http://") >= 0:
+            server = url[7:]
+        else:
+            online = False
 
-        urlconn = HTTPSConnection(server, timeout=45)
-        urlconn.request("GET", url)
-        resp = urlconn.getresponse()
-        parser = BMHTMLParser()
-        parser.feed(resp.read().decode('utf-8'))
-        meta = parser.data
-        urlconn.close()
+        if online == True:
+            marker = server.find("/")
+            if marker > 0:
+                server = server[:marker]
+
+            try:
+                print("server: [%s]" % server)
+                urlconn = HTTPSConnection(server, timeout=30)
+                print("URL: [%s]" % url)
+                urlconn.request("GET", url)
+                resp = urlconn.getresponse()
+                if resp.status != 200:
+                    print("ERROR:", str(resp.status), ": ", resp.reason)
+                    meta = ''
+                else:
+                    parser = BMHTMLParser()
+                    parser.feed(resp.read().decode('utf-8'))
+                    if parser.data != None and parser.data.find("Error") < 0:
+                        meta = parser.data
+            except:
+                print("Caught exception. Skipping metadata")
+                meta = ''
+            finally:
+                urlconn.close()
+
+    print("meta: [%s]" % meta)
 
     try:
         cur.execute('INSERT INTO bookmarks(URL, tags, metadata) VALUES (?, ?, ?)', (url, tags, meta))
@@ -212,7 +231,7 @@ if len(sys.argv) < 2:
     usage()
 
 try:
-    optlist, keywords = getopt(sys.argv[1:], "u:adps")
+    optlist, keywords = getopt(sys.argv[1:], "u:adops")
     if len(optlist) < 1:
         usage()
 
@@ -225,6 +244,8 @@ try:
             addurl = True
         elif opt[0] == "-d":
             deletedb = True
+        elif opt[0] == "-o":
+            online = True
         elif opt[0] == "-p":
             showdb = True
         elif opt[0] == "-s":
