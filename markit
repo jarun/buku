@@ -159,6 +159,8 @@ def searchdb(cur, keywords):
     if count == 0:
         return
 
+    print("")
+
     while True:
         nav = input("Index number to open: ")
         if is_int(nav):
