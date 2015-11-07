@@ -109,8 +109,47 @@ def AddUpdateEntry(conn, cur, keywords, entry):
                 urlconn.request("GET", url)
                 resp = urlconn.getresponse()
                 if resp.status != 200:
-                    print("ERROR:", str(resp.status), ": ", resp.reason)
-                    meta = ''
+                    if resp.status in (301,302,):
+                        redirurl = urljoin(url, resp.getheader('location', ''))
+                        if redirurl.find("sorry/IndexRedirect?") >= 0:
+                            print("ERROR: Connection blocked due to unusual activity.")
+                        else:
+                            urlconn.close()
+
+                            secure = False
+                            if url.find("https://") >= 0:
+                               secure = True
+
+                            if secure == True:
+                                server = redirurl[8:]
+                                marker = server.find("/")
+                                if marker > 0:
+                                    server = server[:marker]
+                                urlconn = HTTPSConnection(server, timeout=30)
+                            else:
+                                server = redirurl[7:]
+                                marker = server.find("/")
+                                if marker > 0:
+                                    server = server[:marker]
+                                urlconn = HTTPConnection(server, timeout=30)
+
+                            print("Redir server [%s]" % server)
+                            print("Redir URL [%s]" % redirurl)
+
+                            urlconn.request("GET", redirurl)
+                            resp = urlconn.getresponse()
+                            if resp.status != 200:
+                                print("ERROR on retry:", str(resp.status), ": ", resp.reason)
+                                meta = ''
+                            else:
+                                parser = BMHTMLParser()
+                                parser.feed(resp.read().decode('utf-8'))
+                                if parser.data != None and parser.data.find("Error") < 0:
+                                    meta = parser.data
+                                    print("Title: [%s]" % meta)
+                    else:
+                        print("ERROR:", str(resp.status), ": ", resp.reason)
+                        meta = ''
                 else:
                     parser = BMHTMLParser()
                     parser.feed(resp.read().decode('utf-8'))
@@ -132,7 +171,7 @@ def AddUpdateEntry(conn, cur, keywords, entry):
                 cur.execute('INSERT INTO bookmarks(id, URL, tags, metadata) VALUES (?, ?, ?, ?)', (int(addindex), url, tags, meta,))
             conn.commit()
         except sqlite3.IntegrityError:
-            print("URL already exists")
+            print("Index or URL already exists")
     else: # Update an existing entry
         try:
             cur.execute("UPDATE bookmarks SET URL = ?, tags = ?, metadata = ? WHERE id = ?", (url, tags, meta, int(entry),))
