@@ -129,12 +129,13 @@ def searchdb(cur, keywords):
 
     count = 0
     results = []
-    for row in cur.execute("SELECT * FROM bookmarks WHERE tags LIKE ('%' || ? || '%') \
+    for row in cur.execute("SELECT url, metadata FROM bookmarks WHERE tags LIKE ('%' || ? || '%') \
                             OR tags LIKE ('%' || ? || '%') \
-                            OR URL LIKE ('%' || ? || '%')", (searchtag, searchkey, searchkey)):
-        results.append(row[1])
+                            OR URL LIKE ('%' || ? || '%') \
+                            OR metadata LIKE ('%' || ? || '%')", (searchtag, searchkey, searchkey, searchkey)):
+        results.append(row[0])
         count += 1
-        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m" % (count, row[1]))
+        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s" % (count, row[0], row[1]))
 
     if count == 0:
         return
