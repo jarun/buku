@@ -181,7 +181,7 @@ def searchdb(cur, keywords):
                 try:
                     openurl = unquote(results[int(nav) - 1])
                     openurl = openurl.replace("%22", "\"")
-                    webbrowser.open(results[int(nav) - 1])
+                    webbrowser.open(openurl)
                 finally:
                     os.close(fd)
                     os.dup2(_stderr, 2)
