@@ -26,7 +26,7 @@ import webbrowser
 import html.parser as HTMLParser
 from http.client import HTTPConnection
 from http.client import HTTPSConnection
-from urllib.parse import urljoin, quote_plus, unquote
+from urllib.parse import urljoin, unquote
 
 # Globals
 addurl = False
@@ -58,8 +58,9 @@ def usage():
     sys.exit(1)
 
 def initdb():
+    user = os.environ.get('USER')
     # Create a connection
-    conn = sqlite3.connect('bookmarks.db')
+    conn = sqlite3.connect('/home/' + user + '/.cache/bookmarks.db')
     cur = conn.cursor()
 
     # Create table if it doesn't exist
