@@ -1,0 +1,74 @@
+.TH "MARKIT" "1" "November 2015" "Version 0.1" "User Commands"
+.SH NAME
+markit \- Bookmark manager. Your private Google.
+.SH SYNOPSIS
+.B markit
+.RI [ OPTIONS ]
+.I KEYWORDS...
+.SH DESCRIPTION
+.B markit
+is a command line tool to save and search bookmarks.
+.SH OPTIONS
+.TP
+.BI \-s " N"
+Start at the
+.I Nth
+result.
+.TP
+.BI \-n " N"
+Show
+.I N
+results (default 10).
+.TP
+.BI \-N
+Show results from news section.
+.TP
+.BI \-c " SERV"
+Country-specific search [added TLDs: ar, au, be, br, ca, ch, cz, de, es, fi, fr, id, in, it, jp, kr, mx, nl, ph, pl, pt, ro, ru, se, tw, ua, uk].
+.TP
+.BI \-l " LANG"
+Search for the language LANG, such as
+.I fi
+for Finnish.
+.TP
+.B \-j
+Open the first result in a web browser.
+.TP
+.B \-C
+Enable color output.
+.TP
+.BI \-t " dN"
+Time limit search [h5 (5 hrs), d5 (5 days), w5 (5 weeks), m5 (5 months), y5 (5 years)].
+.TP
+.BI \-d
+Enable debugging.
+.SH KEYS
+.TP
+.BI g " terms"
+Enter 'g' followed by keywords to initiate a new search (with original options).
+.TP
+.BI "n, p"
+Enter 'n' or 'p' to navigate forward or backward.
+.TP
+.BI "1-N"
+Enter a number to open that result in browser.
+.TP
+.BI ""
+Any other input exits googler.
+.SH ENVIRONMENT
+.TP
+.BI BROWSER
+Overrides the default browser. For full details, see
+.I http://docs.python.org/library/webbrowser.html
+.SH AUTHOR
+Written by Arun Prakash Jana <engineerarun@gmail.com>.
+.SH HOME
+.I https://github.com/jarun/markit
+.SH REPORTING BUGS
+.I https://github.com/jarun/markit/issues
+.SH COPYRIGHT
+Copyright \(co 2015 Arun Prakash Jana <engineerarun@gmail.com>.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+.PP
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
