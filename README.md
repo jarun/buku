@@ -53,6 +53,26 @@ Download the <a href="https://github.com/jarun/markit/archive/master.zip">develo
 If you do not want to install, `markit` is standalone:
 <pre>$ chmod +x markit
 $ ./markit ...</pre>
+
+# Usage
+<pre>Usage: markit [OPTIONS] KEYWORDS...
+Bookmark manager. Your private Google.
+
+Options
+  -a URL tag 1, tag 2, ...   add a bookmark with comma separated tags
+  -d N                       delete entry at index N
+  -D                         delete ALL bookmarks
+  -i N                       add entry at index N, works with -a, use to fill deleted index
+  -o                         fetch title info from web, works with -a or -u
+  -p                         show all bookmarks along with real index from database
+  -s keyword(s)              search all bookmarks for a (partial) tag or keywords
+  -u N                       update entry at index N (from output of -p)
+  -z                         show debug information
+                             you can either add or update or delete in one instance
+                             any other option shows help and exits markit
+
+Keys
+  1-N                        open Nth search result in browser. Enter exits markit.</pre>
   
 Goals
 -
