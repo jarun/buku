@@ -51,7 +51,7 @@ def usage():
     print("  -D                         delete ALL bookmarks")
     print("  -i N                       add entry at index N, works with -a, use to fill deleted index")
     print("  -o                         fetch title info from web, works with -a or -u")
-    print("  -p                         print all bookmarks, shows real index from database")
+    print("  -p                         show all bookmarks along with real index from database")
     print("  -s keyword(s)              search all bookmarks for a (partial) tag or keywords")
     print("  -u N                       update entry at index N (from output of -p)")
     print("  -z                         show debug information")
