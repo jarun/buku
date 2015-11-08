@@ -48,7 +48,7 @@ def usage():
     print("  -i N                       add entry at index N, works with -a, use to fill deleted index")
     print("  -o                         fetch title info from web, works with -a or -u")
     print("  -p                         print all bookmarks, shows real index from database")
-    print("  -s string(s)               search all bookmarks for a (partial) tag or keyword")
+    print("  -s keyword(s)              search all bookmarks for a (partial) tag or keywords")
     print("  -u N                       update entry at index N (from output of -p)")
     print("                             you can either add or update or delete in one instance")
     print("                             any other input shows help and exits markit\n")
@@ -186,18 +186,23 @@ def AddUpdateEntry(conn, cur, keywords, entry):
 
 def searchdb(cur, keywords):
     searchtag = ''
-    searchkey = keywords[0]
     for token in keywords:
         searchtag += token + " "
+    searchtag = searchtag[0:-1]
 
-    searchtag = ',' + searchtag[0:-1] + ','
+    arguments = []
+    arguments.append(searchtag)
+    placeholder = "'%' || ? || '%'"
+    query = "SELECT url, metadata FROM bookmarks WHERE tags LIKE (%s)" % placeholder
+    for token in keywords:
+        query += " OR URL LIKE (%s) OR metadata LIKE (%s)" % (placeholder, placeholder)
+        arguments.append(token)
+        arguments.append(token)
+    print("%s, (%s)" % (query, arguments))
 
     count = 0
     results = []
-    for row in cur.execute("SELECT url, metadata FROM bookmarks WHERE tags LIKE ('%' || ? || '%') \
-                            OR tags LIKE ('%' || ? || '%') \
-                            OR URL LIKE ('%' || ? || '%') \
-                            OR metadata LIKE ('%' || ? || '%')", (searchtag, searchkey, searchkey, searchkey,)):
+    for row in cur.execute(query, arguments):
         results.append(row[0])
         count += 1
         print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s" % (count, row[0], row[1]))
