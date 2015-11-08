@@ -11,7 +11,7 @@ is a command line tool to save and search bookmarks.
 .PP
 The Sqlite3 database file is stored in $HOME/.cache/bookmarks.db of the user.
 .PP
-It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `htts://` token. markit looks up title data from the web only for fully-formed HTTP or HTTPS URLs.
+It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `htts://` token. markit looks up title data (found within <title></title> tags of HTML) from the web only for fully-formed HTTP or HTTPS URLs.
 .PP
 You can either add or update or delete record(s) in one instance. A combination of these operations are not supported in a single instance.
 .PP
@@ -37,13 +37,13 @@ Add a new record at index
 of the database. Works only if `-a` option is used. Use this option to fill blank indexes left by deleted bookmarks.
 .TP
 .BI \-o
-Fetch Title information from the web. Works only with `-a` or `-u` options.
+Fetch title data from the web. Works only with `-a` or `-u` options.
 .TP
 .B \-p
-Show all bookmark records from the database along with actual index.
+Show all bookmark records from the database along with actual index. Shows URL, tags and title data.
 .TP
 .BI \-s " keywords"
-Search bookmarks for a (partial) tag or keywords and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database.
+Search bookmarks for a (partial) tag or keywords and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. The results show URL and title data (tags are not shown).
 .TP
 .BI \-u " N"
 Update bookmark at index
