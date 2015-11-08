@@ -46,7 +46,7 @@ def usage():
     print("Usage: markit [OPTIONS] KEYWORDS...")
     print("Bookmark manager. Your private Google.\n")
     print("Options")
-    print("  -a URL tag 1, tag 2, ...   add a bookmark with comma separated tags")
+    print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
     print("  -d N                       delete entry at index N")
     print("  -D                         delete ALL bookmarks")
     print("  -i N                       add entry at index N, works with -a, use to fill deleted index")

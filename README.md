@@ -5,7 +5,7 @@ The SQLite3 database file is stored in `$HOME/.cache/bookmarks.db` for each user
   
 It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web only for fully-formed HTTP or HTTPS URLs.  
   
-You can either add or update or delete record(s) in one instance. A combination of these operations are not supported in a single instance.  
+You can either add or update or delete record(s) in one instance. A combination of these operations are not supported in a single instance. The same URL cannot be added twice. You can update tags and title data or delete it.  
   
 Search works in mysterious ways. All the keywords are treated as a single tag together. Partial sequential tag matches are shown in results. The same keywords are separately searched as unique tokens so that entries with matching URL or title data are also shown in results.  
   
@@ -59,7 +59,7 @@ $ ./markit ...</pre>
 Bookmark manager. Your private Google.
 
 Options
-  -a URL tag 1, tag 2, ...   add a bookmark with comma separated tags
+  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags
   -d N                       delete entry at index N
   -D                         delete ALL bookmarks
   -i N                       add entry at index N, works with -a, use to fill deleted index
