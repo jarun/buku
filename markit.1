@@ -8,57 +8,63 @@ markit \- Bookmark manager. Your private Google.
 .SH DESCRIPTION
 .B markit
 is a command line tool to save and search bookmarks.
+.PP
+The Sqlite3 database file is stored in $HOME/.cache/bookmarks.db of the user.
+.PP
+It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `htts://` token. markit looks up title data from the web only for fully-formed HTTP or HTTPS URLs.
+.PP
+You can either add or update or delete record(s) in one instance. A combination of these operations are not supported in a single instance.
+.PP
+Search works in mysterious ways. All the keywords are treated as a single tag together. Partial sequential tag matches are shown in results. The same keywords are separately searched as unique tokens so that entries with matching URL or title data are also shown in results.
 .SH OPTIONS
 .TP
-.BI \-s " N"
-Start at the
-.I Nth
-result.
+.BI \-a " URL" " " "tag 1", " tag 2", " ..."
+Bookmark
+.I URL
+along with comma separated tags. A tag can have multiple words.
 .TP
-.BI \-n " N"
-Show
+.BI \-d " N"
+Delete bookmark at index
 .I N
-results (default 10).
+(as shown in `-p` output).
 .TP
-.BI \-N
-Show results from news section.
+.B \-D
+Delete ALL bookmarks.
 .TP
-.BI \-c " SERV"
-Country-specific search [added TLDs: ar, au, be, br, ca, ch, cz, de, es, fi, fr, id, in, it, jp, kr, mx, nl, ph, pl, pt, ro, ru, se, tw, ua, uk].
+.BI \-i " N"
+Add a new record at index
+.I N
+of the database. Works only if `-a` option is used. Use this option to fill blank indexes left by deleted bookmarks.
 .TP
-.BI \-l " LANG"
-Search for the language LANG, such as
-.I fi
-for Finnish.
+.BI \-o
+Fetch Title information from the web. Works only with `-a` or `-u` options.
 .TP
-.B \-j
-Open the first result in a web browser.
+.B \-p
+Show all bookmark records from the database along with actual index.
 .TP
-.B \-C
-Enable color output.
+.BI \-s " keywords"
+Search bookmarks for a (partial) tag or keywords and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database.
 .TP
-.BI \-t " dN"
-Time limit search [h5 (5 hrs), d5 (5 days), w5 (5 weeks), m5 (5 months), y5 (5 years)].
+.BI \-u " N"
+Update bookmark at index
+.I N
+(as shown in `-p` output).
 .TP
-.BI \-d
+.BI \-z
 Enable debugging.
-.SH KEYS
-.TP
-.BI g " terms"
-Enter 'g' followed by keywords to initiate a new search (with original options).
-.TP
-.BI "n, p"
-Enter 'n' or 'p' to navigate forward or backward.
-.TP
-.BI "1-N"
-Enter a number to open that result in browser.
 .TP
 .BI ""
-Any other input exits googler.
+Any other option shows help and exits markit.
+.SH KEYS
+.TP
+.BI "1-N"
+Open
+.I Nth
+search result in browser. Pressing `Enter` exits markit.
 .SH ENVIRONMENT
 .TP
 .BI BROWSER
-Overrides the default browser. For full details, see
+Overrides the default browser. Ref:
 .I http://docs.python.org/library/webbrowser.html
 .SH AUTHOR
 Written by Arun Prakash Jana <engineerarun@gmail.com>.
