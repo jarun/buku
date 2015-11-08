@@ -39,6 +39,9 @@ entry = None
 update = False
 debug = False
 
+
+
+# Show usage of markit and exit
 def usage():
     print("Usage: markit [OPTIONS] KEYWORDS...")
     print("Bookmark manager. Your private Google.\n")
@@ -59,6 +62,10 @@ def usage():
     print("Webpage: https://github.com/jarun/markit")
     sys.exit(1)
 
+
+
+# Initialize the database connection
+# Create bookmarks table is not existing
 def initdb():
     user = os.environ.get('USER')
     # Create a connection
@@ -71,6 +78,9 @@ def initdb():
     conn.commit()
     return (conn, cur)
 
+
+
+# Add a new bookmark or update an existing record
 def AddUpdateEntry(conn, cur, keywords, entry):
     global online
 
@@ -115,6 +125,7 @@ def AddUpdateEntry(conn, cur, keywords, entry):
                 urlconn.request("GET", url)
                 resp = urlconn.getresponse()
                 if resp.status != 200:
+                    # Handle first redirection
                     if resp.status in (301,302,):
                         redirurl = urljoin(url, resp.getheader('location', ''))
                         if redirurl.find("sorry/IndexRedirect?") >= 0:
@@ -153,10 +164,10 @@ def AddUpdateEntry(conn, cur, keywords, entry):
                                 parser.feed(resp.read().decode('utf-8'))
                                 if parser.data != None and parser.data.find("Error") < 0:
                                     meta = parser.data
-                    else:
+                    else: # if resp.status in (301,302,):
                         print("ERROR:", str(resp.status), ": ", resp.reason)
                         meta = ''
-                else:
+                else: # if resp.status != 200:
                     parser = BMHTMLParser()
                     parser.feed(resp.read().decode('utf-8'))
                     if parser.data != None and parser.data.find("Error") < 0:
@@ -189,6 +200,9 @@ def AddUpdateEntry(conn, cur, keywords, entry):
         except sqlite3.IntegrityError:
             print("URL already exists")
 
+
+
+# Search the database for a tag or mathcing URL or Title info
 def searchdb(cur, keywords):
     searchtag = ''
     for token in keywords:
@@ -247,6 +261,9 @@ def searchdb(cur, keywords):
         else:
             break
 
+
+
+# Delete a single record or remove the table
 def cleardb(conn, cur, entry):
     if entry == None: # Remove the table
         cur.execute('DROP TABLE if exists bookmarks')
@@ -262,10 +279,16 @@ def cleardb(conn, cur, entry):
         except IndexError:
                 print("Index out of bound.")
 
+
+
+# Print all records in the table
 def printdb(cur):
     for row in cur.execute('SELECT * FROM bookmarks'):
         print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t[TAGS] %s\n\t[META] %s" % (row[0], row[1], row[2][1:-1], row[3]))
 
+
+
+# Check if a value is a digit
 def is_int(string):
     try:
         int(string)
@@ -273,6 +296,9 @@ def is_int(string):
     except:
         return False
 
+
+
+# Parse HTML page for Title info
 class BMHTMLParser(HTMLParser.HTMLParser):
     def __init__(self):
         HTMLParser.HTMLParser.__init__(self)
@@ -295,6 +321,7 @@ class BMHTMLParser(HTMLParser.HTMLParser):
             self.data += data
 
 
+
 # Main starts here
 # ----------------
 optlist = None
@@ -303,6 +330,7 @@ keywords = None
 if len(sys.argv) < 2:
     usage()
 
+# Check cmdline options
 try:
     optlist, keywords = getopt(sys.argv[1:], "d:i:u:aDopsz")
     if len(optlist) < 1:
@@ -366,12 +394,15 @@ except GetoptError as e:
     print("markit:", e)
     sys.exit(1)
 
+# Initilize the database and get handles
 conn, cur = initdb()
 
+# To insert (-i) a new record at user-defined index, -a option is must
 if addindex != None and addurl == False:
     conn.close()
     usage()
 
+# Call add or update record
 if addurl == True or update == True:
     if len(keywords) < 1:
         conn.close()
@@ -379,6 +410,7 @@ if addurl == True or update == True:
 
     AddUpdateEntry(conn, cur, keywords, entry)
 
+# Search tags, URLs, Title info
 if search == True:
     if len(keywords) < 1:
         conn.close()
@@ -386,10 +418,13 @@ if search == True:
 
     searchdb(cur, keywords)
 
+# Print all records
 if show == True:
     printdb(cur)
 
+# Remove a single record of all records
 if delete == True:
     cleardb(conn, cur, entry)
 
+# Close the connection before exiting
 conn.close()
