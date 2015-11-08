@@ -15,7 +15,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - Browser (Chromium and Firefox based) errors and warnings suppression
 - Show all bookmarks in a go
 - Delete all bookmarks
-- Add a bookmark at N<sup>th</sub> index, to fill deleted bookmark indexes
+- Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indexes
 - Secure SQLite3 queries to access database
 - Handle first level of redirections (reports IP blocking)
 - Unicode in URL works
