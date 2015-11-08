@@ -74,6 +74,9 @@ Options
 Keys
   1-N                        open Nth search result in browser. Enter exits markit.</pre>
   
+# Examples
+To be added soon!
+
 Goals
 -
 - Parse full page data??? Not sure, might end up writing a search engine like Google. ;)
