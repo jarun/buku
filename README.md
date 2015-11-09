@@ -3,7 +3,7 @@ Cmdline bookmark management utility written using Python3 and SQLite3. Currently
   
 The SQLite3 database file is stored in `$HOME/.cache/bookmarks.db` for each user.  
   
-It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web only for fully-formed HTTP or HTTPS URLs. If the URL contains characters like ';' or '&' they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.  
+It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web only for fully-formed HTTP or HTTPS URLs. If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.  
   
 You can either add or update or delete record(s) in one instance. A combination of these operations are not supported in a single instance. The same URL cannot be added twice. You can update tags and title data or delete it.  
   
