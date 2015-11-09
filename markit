@@ -76,7 +76,7 @@ def initdb():
 
     # Create table if it doesn't exist
     cur.execute('''CREATE TABLE if not exists bookmarks \
-               (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, tags text, metadata text)''')
+               (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text, tags text)''')
     conn.commit()
     return (conn, cur)
 
@@ -88,11 +88,12 @@ def AddUpdateEntry(conn, cur, keywords, entry):
 
     tags = ','
     url = keywords[0]
-    for tag in keywords[1:]:
-        if tags[-1] == ",":
-            tags += tag
-        else:
-            tags += " " + tag
+    if len(keywords) > 1:
+        for tag in keywords[1:]:
+            if tags[-1] == ",":
+                tags += tag
+            else:
+                tags += " " + tag
 
     if tags[-1] != ",":
         tags += ","
@@ -185,9 +186,9 @@ def AddUpdateEntry(conn, cur, keywords, entry):
     if entry == None: # Add a new entry
         try:
             if addindex == None:
-                cur.execute('INSERT INTO bookmarks(URL, tags, metadata) VALUES (?, ?, ?)', (url, tags, meta,))
+                cur.execute('INSERT INTO bookmarks(URL, metadata, tags) VALUES (?, ?, ?)', (url, meta, tags,))
             else:
-                cur.execute('INSERT INTO bookmarks(id, URL, tags, metadata) VALUES (?, ?, ?, ?)', (int(addindex), url, tags, meta,))
+                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (int(addindex), url, meta, tags,))
             conn.commit()
         except sqlite3.IntegrityError:
             for row in cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
@@ -197,7 +198,7 @@ def AddUpdateEntry(conn, cur, keywords, entry):
             print("Index %s exists" % addindex)
     else: # Update an existing entry
         try:
-            cur.execute("UPDATE bookmarks SET URL = ?, tags = ?, metadata = ? WHERE id = ?", (url, tags, meta, int(entry),))
+            cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, int(entry),))
             conn.commit()
             if cur.rowcount == 1:
                 print("Updated")
@@ -218,7 +219,7 @@ def searchdb(cur, keywords):
     arguments = []
     arguments.append(searchtag)
     placeholder = "'%' || ? || '%'"
-    query = "SELECT url, tags, metadata FROM bookmarks WHERE tags LIKE (%s)" % placeholder
+    query = "SELECT url, metadata, tags FROM bookmarks WHERE tags LIKE (%s)" % placeholder
     for token in keywords:
         query += " OR URL LIKE (%s) OR metadata LIKE (%s)" % (placeholder, placeholder)
         arguments.append(token)
@@ -231,7 +232,7 @@ def searchdb(cur, keywords):
     for row in cur.execute(query, arguments):
         results.append(row[0])
         count += 1
-        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (count, row[0], row[2], row[1][1:-1]))
+        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (count, row[0], row[1], row[2][1:-1]))
 
     if count == 0:
         return
@@ -290,7 +291,7 @@ def cleardb(conn, cur, entry):
 # Print all records in the table
 def printdb(cur):
     for row in cur.execute('SELECT * FROM bookmarks'):
-        print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (row[0], row[1], row[3], row[2][1:-1]))
+        print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (row[0], row[1], row[2], row[3][1:-1]))
 
 
 
