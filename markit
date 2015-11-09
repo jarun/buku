@@ -115,6 +115,8 @@ def AddUpdateEntry(conn, cur, keywords, entry):
             if marker > 0:
                 fetchurl = server[marker:]
                 server = server[:marker]
+            else:
+                fetchurl = url
 
             try:
                 if debug:
@@ -166,16 +168,30 @@ def AddUpdateEntry(conn, cur, keywords, entry):
                                 print("ERROR on retry:", str(resp.status), ": ", resp.reason)
                                 meta = ''
                             else:
+                                charset = ''
+                                charset = resp.headers.get_content_charset()
+                                if charset == None:
+                                    charset = 'utf-8'
+                                if debug:
+                                    print(charset)
+
                                 parser = BMHTMLParser()
-                                parser.feed(resp.read().decode('utf-8'))
+                                parser.feed(resp.read().decode(charset))
                                 if parser.data != None and parser.data.find("Error") < 0:
                                     meta = parser.data
                     else: # if resp.status in (301,302,):
                         print("ERROR:", str(resp.status), ": ", resp.reason)
                         meta = ''
                 else: # if resp.status != 200:
+                    charset = ''
+                    charset = resp.headers.get_content_charset()
+                    if charset == None:
+                        charset = 'utf-8'
+                    if debug:
+                        print(charset)
+
                     parser = BMHTMLParser()
-                    parser.feed(resp.read().decode('utf-8'))
+                    parser.feed(resp.read().decode(charset))
                     if parser.data != None and parser.data.find("Error") < 0:
                         meta = parser.data
             except Exception as e:
