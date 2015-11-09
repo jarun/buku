@@ -19,6 +19,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - Add tags to bookmarks
 - Optionally fetch page title data from the web (default: disabled, use `-o`)
 - Use (partial) tags or keywords to search bookmarks
+- Unique URLs to avoid duplicates, show index if URL already exists
 - Open search results in browser
 - Browser (Chromium and Firefox based) errors and warnings suppression
 - Show all bookmarks in a go
@@ -27,7 +28,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - Secure SQLite3 queries to access database
 - Handle first level of redirections (reports IP blocking)
 - Unicode in URL works
-- UTF-8 request and response
+- UTF-8 request and response, page character set detection
 - Works with Python 3.x
 - Coloured output for clarity
 - Manpage for quick reference
