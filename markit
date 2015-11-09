@@ -113,6 +113,7 @@ def AddUpdateEntry(conn, cur, keywords, entry):
         if online == True:
             marker = server.find("/")
             if marker > 0:
+                fetchurl = server[marker:]
                 server = server[:marker]
 
             try:
@@ -124,12 +125,14 @@ def AddUpdateEntry(conn, cur, keywords, entry):
                     urlconn = HTTPConnection(server, timeout=30)
 
                 if debug:
-                    print("URL: [%s]" % url)
-                urlconn.request("GET", url)
+                    print("URL: [%s]" % fetchurl)
+                urlconn.request("GET", fetchurl)
                 resp = urlconn.getresponse()
                 if resp.status != 200:
                     # Handle first redirection
                     if resp.status in (301,302,):
+                        if debug:
+                            print(resp.getheader('location', ''))
                         redirurl = urljoin(url, resp.getheader('location', ''))
                         if redirurl.find("sorry/IndexRedirect?") >= 0:
                             print("ERROR: Connection blocked due to unusual activity.")
