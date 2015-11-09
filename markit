@@ -52,7 +52,7 @@ def usage():
     print("  -i N                       add entry at index N, works with -a, use to fill deleted index")
     print("  -o                         fetch title info from web, works with -a or -u")
     print("  -p                         show all bookmarks along with real index from database")
-    print("  -s keyword(s)              search all bookmarks for a (partial) tag or keywords")
+    print("  -s keyword(s)              search all bookmarks for a (partial) tag or each keyword")
     print("  -u N                       update entry at index N (from output of -p)")
     print("  -z                         show debug information")
     print("                             you can either add or update or delete in one instance")
