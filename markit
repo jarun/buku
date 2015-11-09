@@ -34,6 +34,7 @@ addindex = None
 online = False
 delete = False
 show = False
+showindex = None
 search = False
 entry = None
 update = False
@@ -51,7 +52,8 @@ def usage():
     print("  -D                         delete ALL bookmarks")
     print("  -i N                       add entry at index N, works with -a, use to fill deleted index")
     print("  -o                         fetch title info from web, works with -a or -u")
-    print("  -p                         show all bookmarks along with real index from database")
+    print("  -p N                       show details of bookmark record at index N")
+    print("  -P                         show all bookmarks along with real index from database")
     print("  -s keyword(s)              search all bookmarks for a (partial) tag or each keyword")
     print("  -u N                       update entry at index N (from output of -p)")
     print("  -z                         show debug information")
@@ -264,7 +266,7 @@ def searchdb(cur, keywords):
         if is_int(nav):
             index = int(nav) - 1
             if index < 0:
-                print("Index out of bound.")
+                print("Index out of bound")
                 continue
 
             try:
@@ -284,7 +286,7 @@ def searchdb(cur, keywords):
                     os.dup2(_stderr, 2)
                     os.dup2(_stdout, 1)
             except IndexError:
-                print("Index out of bound.")
+                print("Index out of bound")
         else:
             break
 
@@ -304,14 +306,23 @@ def cleardb(conn, cur, entry):
             else:
                 print("No matching index")
         except IndexError:
-                print("Index out of bound.")
+            print("Index out of bound")
 
 
 
 # Print all records in the table
-def printdb(cur):
-    for row in cur.execute('SELECT * FROM bookmarks'):
-        print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (row[0], row[1], row[2], row[3][1:-1]))
+def printdb(cur, showindex):
+    if showindex == None: # Show all entries
+        for row in cur.execute('SELECT * FROM bookmarks'):
+            print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (row[0], row[1], row[2], row[3][1:-1]))
+    else: # Show record at index showindex
+        try:
+            for row in cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(showindex),)):
+                print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (row[0], row[1], row[2], row[3][1:-1]))
+                return
+            print("No matching index")
+        except IndexError:
+            print("Index out of bound")
 
 
 
@@ -359,7 +370,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:u:aDopsz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:p:u:aDoPsz")
     if len(optlist) < 1:
         usage()
 
@@ -399,6 +410,15 @@ try:
         elif opt[0] == "-o":
             online = True
         elif opt[0] == "-p":
+            if not opt[1].isdigit():
+                usage()
+
+            showindex = opt[1]
+            if int(showindex) <= 0:
+                usage()
+
+            show = True
+        elif opt[0] == "-P":
             show = True
         elif opt[0] == "-s":
             search = True
@@ -447,7 +467,7 @@ if search == True:
 
 # Print all records
 if show == True:
-    printdb(cur)
+    printdb(cur, showindex)
 
 # Remove a single record of all records
 if delete == True:
