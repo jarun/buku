@@ -218,7 +218,7 @@ def searchdb(cur, keywords):
     arguments = []
     arguments.append(searchtag)
     placeholder = "'%' || ? || '%'"
-    query = "SELECT url, metadata FROM bookmarks WHERE tags LIKE (%s)" % placeholder
+    query = "SELECT url, tags, metadata FROM bookmarks WHERE tags LIKE (%s)" % placeholder
     for token in keywords:
         query += " OR URL LIKE (%s) OR metadata LIKE (%s)" % (placeholder, placeholder)
         arguments.append(token)
@@ -231,7 +231,7 @@ def searchdb(cur, keywords):
     for row in cur.execute(query, arguments):
         results.append(row[0])
         count += 1
-        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s" % (count, row[0], row[1]))
+        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (count, row[0], row[2], row[1][1:-1]))
 
     if count == 0:
         return
@@ -290,7 +290,7 @@ def cleardb(conn, cur, entry):
 # Print all records in the table
 def printdb(cur):
     for row in cur.execute('SELECT * FROM bookmarks'):
-        print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t[TAGS] %s\n\t[META] %s" % (row[0], row[1], row[2][1:-1], row[3]))
+        print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (row[0], row[1], row[3], row[2][1:-1]))
 
 
 

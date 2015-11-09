@@ -7,7 +7,7 @@ It's  advisable  to copy URLs directly from the browser address bar, i.e., along
   
 You can either add or update or delete record(s) in one instance. A combination of these operations are not supported in a single instance. The same URL cannot be added twice. You can update tags and title data or delete it.  
   
-Search works in mysterious ways. All the keywords are treated as a single tag together. Partial sequential tag matches are shown in results. The same keywords are separately searched as unique tokens so that entries with matching URL or title data are also shown in results.  
+Search works in mysterious ways. All the keywords are treated as a single tag together. Bookmarks with partial sequential tag matches are shown in results. The same keywords are separately searched as unique tokens so that entries with matching URL or title data are also shown in results.  
   
 `markit` is GPLv3 licensed.
 
