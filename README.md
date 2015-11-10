@@ -14,7 +14,7 @@ If you find `markit` useful, please consider donating via PayPal.
 # Features
 - Add, update or remove a bookmark
 - Add tags to bookmarks
-- Optionally fetch page title data from the web (default: disabled, use `-o`)
+- Optionally fetch page title data from the web (default: disabled, use `-w`)
 - Use (partial) tags or keywords to search bookmarks
 - Unique URLs to avoid duplicates, show index if URL already exists
 - Open search results in browser
@@ -73,11 +73,11 @@ Options
   -d N                       delete entry at index N
   -D                         delete ALL bookmarks
   -i N                       add entry at index N, works with -a, use to fill deleted index
-  -o                         fetch title info from web, works with -a or -u
   -p N                       show details of bookmark record at index N
   -P                         show all bookmarks along with real index from database
   -s keyword(s)              search all bookmarks for a (partial) tag or each keyword
   -u N                       update entry at index N (from output of -p)
+  -w                         fetch title info from web, works with -a or -u
   -z                         show debug information
                              you can either add or update or delete in one instance
                              any other option shows help and exits markit
@@ -91,11 +91,11 @@ Keys
 Added at index 15012014</pre>
 The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
 2. Add a bookmark, fetch page Title information from web:
-<pre>$ markit -a -o http://tuxdiary.com linux news, open source
+<pre>$ markit -a -w http://tuxdiary.com linux news, open source
 Title: [TuxDiary | Linux, open source and a pinch of leisure.]
 Added at index 15012014</pre>
 3. Update existing bookmark at index 15012014 with a new tag:
-<pre>$ markit -u 15012014 -o http://tuxdiary.com linux news, open source, magazine
+<pre>$ markit -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
 Title: [TuxDiary | Linux, open source and a pinch of leisure.]
 Updated</pre>
 4. Delete bookmark at index 15012014:
@@ -103,7 +103,7 @@ Updated</pre>
 5. Delete all bookmarks:
 <pre>$ markit -D</pre>
 6. Insert a bookmark at deleted index 15012014 (fails if index or URL exists in database):
-<pre>$ markit -i 15012014 -a -o http://tuxdiary.com/about linux news, open source
+<pre>$ markit -i 15012014 -a -w http://tuxdiary.com/about linux news, open source
 Title: [A journey with WordPress | TuxDiary]
 Added at index 15012014</pre>
 This option is useful in filling deleted indices from database manually.
