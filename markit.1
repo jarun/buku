@@ -10,12 +10,19 @@ markit \- Bookmark manager. Your private Google.
 is a command line tool to save and search bookmarks.
 .PP
 The SQLite3 database file is stored in $HOME/.cache/bookmarks.db for each user.
+.SH OPERATIONAL NOTES
+It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading 'http://' or 'https://' token. markit looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 .PP
-It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. markit looks up title data (found within <title></title> tags of HTML) from the web only for fully-formed HTTP or HTTPS URLs.
+If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.
 .PP
-You can either add or update or delete record(s) in one instance. A combination of these operations are not supported in a single instance.
+The same URL cannot be added twice. You can update tags and re-fetch title data. You can also delete it and insert at the same index.
 .PP
-Search works in mysterious ways. All the keywords are treated as a single tag together. Partial sequential tag matches are shown in results. The same keywords are separately searched as unique tokens so that entries with matching URL or title data are also shown in results.
+You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
+.PP
+Search works in mysterious ways:
+  - Substrings match ('match' matches 'rematched') for URL, tags and title data.
+  - All the keywords are treated together as a 'single' tag in the same order. Bookmarks with partial or complete tag matches are shown in results.
+  - The same keywords are treated 'separately' as unique tokens. Hence, entries with matching URL or title data are also shown in the results. Order is irrelevant in this case.
 .SH OPTIONS
 .TP
 .BI \-a " URL" " " "tag 1", " tag 2", " ..."

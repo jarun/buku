@@ -60,8 +60,8 @@ $ ./markit ...</pre>
 - You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
 - Search works in mysterious ways:
   - Substrings match (`match` matches `rematched`) for URL, tags and title data.
-  - All the keywords are treated as a `single` tag together in the same order. Bookmarks with partial or complete tag matches are shown in results.
-  - The same keywords are searched `separately` as unique tokens so that entries with matching URL or title data are also shown in the results. Order is irrelevant in this case.
+  - All the keywords are treated together as a `single` tag in the same order. Bookmarks with partial or complete tag matches are shown in results.
+  - The same keywords are treated `separately` as unique tokens. Hence, entries with matching URL or title data are also shown in the results. Order is irrelevant in this case.
   
 <b>Cmdline help:</b>
   
