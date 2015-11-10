@@ -23,7 +23,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - Show single bookmark by ID or all bookmarks in a go
 - Delete all bookmarks
 - Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indices
-- Secure SQLite3 queries to access database
+- Secure parameterized SQLite3 queries to access database
 - Handle first level of redirections (reports IP blocking)
 - Unicode in URL works
 - UTF-8 request and response, page character set detection
