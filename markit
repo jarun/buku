@@ -205,8 +205,9 @@ def AddUpdateEntry(conn, cur, keywords, entry):
             finally:
                 urlconn.close()
 
-    meta = meta.strip().replace("\n","")
-    print("Title: [%s]" % meta)
+    if online == True:
+        meta = meta.strip().replace("\n","")
+        print("Title: [%s]" % meta)
 
     if entry == None: # Add a new entry
         try:
