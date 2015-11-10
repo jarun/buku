@@ -5,11 +5,14 @@
   
 The SQLite3 database file is stored in `$HOME/.cache/markit/bookmarks.db` for each user.  
   
-It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web only for fully-formed HTTP or HTTPS URLs. If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.  
+It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web only for fully-formed HTTP or HTTPS URLs. If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.  
   
 You can either add or update or delete record(s) in one instance. A combination of these operations are not supported in a single instance. The same URL cannot be added twice. You can update tags and title data or delete it.  
   
-Search works in mysterious ways. All the keywords are treated as a single tag together. Bookmarks with partial sequential tag matches are shown in results. The same keywords are separately searched as unique tokens so that entries with matching URL or title data are also shown in results.  
+Search works in mysterious ways:
+- Substrings match (`match` matches `rematched`).
+- All the keywords are treated as a `single` tag together (order maintained). Bookmarks with partial or complete tag matches are shown in results.
+- The same keywords are `separately` searched as unique tokens so that entries with matching URL or title data are also shown in results. Order is irrelevant in this case.
   
 `markit` is GPLv3 licensed.
 
@@ -79,16 +82,49 @@ Keys
   1-N                        open Nth search result in browser. Enter exits markit.</pre>
   
 # Examples
-To be added soon!
-
-Goals
--
-- Parse full page data??? Not sure, might end up writing a search engine like Google. ;)
-- Optional password protection
+1. Add a new bookmark with tags `linux news` and `open source`:
+<pre>$ markit -a http://tuxdiary.com linux news, open source
+Added at index 15012014</pre>
+The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
+2. Add a bookmark, fetch page Title information from web:
+<pre>$ markit -a -o http://tuxdiary.com linux news, open source
+Title: [TuxDiary | Linux, open source and a pinch of leisure.]
+Added at index 15012014</pre>
+3. Update existing bookmark at index 15012014 with a new tag:
+<pre>$ markit -u 15012014 -o http://tuxdiary.com linux news, open source, magazine
+Title: [TuxDiary | Linux, open source and a pinch of leisure.]
+Updated</pre>
+4. Delete bookmark at index 15012014:
+<pre>$ markit -d 15012014</pre>
+5. Delete all bookmarks:
+<pre>$ markit -D</pre>
+6. Insert a bookmark at deleted index 15012014 (fails if index or URL exists in database):
+<pre>$ markit -i 15012014 -a -o http://tuxdiary.com/about linux news, open source
+Title: [A journey with WordPress | TuxDiary]
+Added at index 15012014</pre>
+This option is useful in filling deleted indices from database manually.
+7. Show info on bookmark at index 15012014:
+<pre>$ markit -p 15012014</pre>
+8. Show all bookmarks with real index from database:
+<pre>$ markit -P</pre>
+9. Search bookmarks:
+<pre>$ markit -s kernel debugging</pre>
+10. Show debug info:
+<pre>$ markit -z</pre>
+11. Show help:
+<pre>$ markit</pre>
+12. Show markit manpage:
+<pre>$ man markit</pre>
 
 #License
 GPL v3  
 Copyright (C) 2015 by Arun Prakash Jana &lt;engineerarun@gmail.com&gt;
 
+# Contributions
+I would love to see pull requests with the following features:
+- Exact word match (against substring in a word as it works currently. Hint: REGEXP)
+- Parse full page data??? Might end up writing a search engine like Google. ;)
+- Optional password protection
+
 # Developer(s)
-Arun PraKash Jana &lt;engineerarun@gmail.com&gt;
+Arun Prakash Jana &lt;engineerarun@gmail.com&gt;
