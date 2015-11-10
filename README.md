@@ -72,12 +72,12 @@ Options
   -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags
   -d N                       delete entry at index N
   -D                         delete ALL bookmarks
-  -i N                       add entry at index N, works with -a, use to fill deleted index
+  -i N                       insert entry at index N, useful to fill deleted index
   -p N                       show details of bookmark record at index N
   -P                         show all bookmarks along with real index from database
   -s keyword(s)              search all bookmarks for a (partial) tag or each keyword
-  -u N                       update entry at index N (from output of -p)
-  -w                         fetch title info from web, works with -a or -u
+  -u N                       update entry at index N (from output of -P)
+  -w                         fetch title info from web, works with -a, -i, -u
   -z                         show debug information
                              you can either add or update or delete in one instance
                              any other option shows help and exits markit
@@ -103,7 +103,7 @@ Updated</pre>
 5. Delete all bookmarks:
 <pre>$ markit -D</pre>
 6. Insert a bookmark at deleted index 15012014 (fails if index or URL exists in database):
-<pre>$ markit -i 15012014 -a -w http://tuxdiary.com/about linux news, open source
+<pre>$ markit -i 15012014 -w http://tuxdiary.com/about linux news, open source
 Title: [A journey with WordPress | TuxDiary]
 Added at index 15012014</pre>
 This option is useful in filling deleted indices from database manually.

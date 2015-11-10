@@ -50,12 +50,12 @@ def usage():
     print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
     print("  -d N                       delete entry at index N")
     print("  -D                         delete ALL bookmarks")
-    print("  -i N                       add entry at index N, works with -a, use to fill deleted index")
+    print("  -i N                       insert entry at index N, useful to fill deleted index")
     print("  -p N                       show details of bookmark record at index N")
     print("  -P                         show all bookmarks along with real index from database")
     print("  -s keyword(s)              search all bookmarks for a (partial) tag or each keyword")
-    print("  -u N                       update entry at index N (from output of -p)")
-    print("  -w                         fetch title info from web, works with -a or -u")
+    print("  -u N                       update entry at index N (from output of -P)")
+    print("  -w                         fetch title info from web, works with -a, -i, -u")
     print("  -z                         show debug information")
     print("                             you can either add or update or delete in one instance")
     print("                             any other option shows help and exits markit\n")
@@ -275,21 +275,9 @@ def searchdb(cur, keywords):
                 continue
 
             try:
-                _stderr = os.dup(2)
-                os.close(2)
-                _stdout = os.dup(1)
-                os.close(1)
-                fd = os.open(os.devnull, os.O_RDWR)
-                os.dup2(fd, 2)
-                os.dup2(fd, 1)
-                try:
-                    openurl = unquote(results[int(nav) - 1])
-                    openurl = openurl.replace("%22", "\"")
-                    webbrowser.open(openurl)
-                finally:
-                    os.close(fd)
-                    os.dup2(_stderr, 2)
-                    os.dup2(_stdout, 1)
+                openurl = unquote(results[int(nav) - 1])
+                openurl = openurl.replace("%22", "\"")
+                browser_open(openurl)
             except IndexError:
                 print("Index out of bound")
         else:
@@ -365,6 +353,26 @@ class BMHTMLParser(HTMLParser.HTMLParser):
 
 
 
+# Open a URL in browser
+def browser_open(url):
+    _stderr = os.dup(2)
+    os.close(2)
+    _stdout = os.dup(1)
+    os.close(1)
+    fd = os.open(os.devnull, os.O_RDWR)
+    os.dup2(fd, 2)
+    os.dup2(fd, 1)
+    try:
+        webbrowser.open(url)
+    except Exception as e:
+        print("Browser Exception: %s" % e)
+    finally:
+        os.close(fd)
+        os.dup2(_stderr, 2)
+        os.dup2(_stdout, 1)
+
+
+
 # Main starts here
 # ----------------
 optlist = None
@@ -406,14 +414,18 @@ try:
 
             delete = True
         elif opt[0] == "-i":
+            if update == True or delete == True:
+                print("You can either add or update or delete in one instance\n")
+                usage()
+
             if not opt[1].isdigit():
                 usage()
 
             addindex = opt[1]
             if int(addindex) <= 0:
                 usage()
-        elif opt[0] == "-w":
-            online = True
+
+            addurl = True
         elif opt[0] == "-p":
             if not opt[1].isdigit():
                 usage()
@@ -440,6 +452,8 @@ try:
                 usage()
 
             update = True
+        elif opt[0] == "-w":
+            online = True
         elif opt[0] == "-z":
             debug = True
 except GetoptError as e:
