@@ -216,6 +216,7 @@ def AddUpdateEntry(conn, cur, keywords, entry):
             else:
                 cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (int(addindex), url, meta, tags,))
             conn.commit()
+            print("Added at index %d" % cur.lastrowid)
         except sqlite3.IntegrityError:
             for row in cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
                 print("URL already exists at index %s" % row[0])
