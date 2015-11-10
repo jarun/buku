@@ -1,18 +1,10 @@
 # MarkIt
-`markit` is a cmdline bookmark management utility written using Python3 and SQLite3. Currently under development with implemented options working.  
-  
-`markit` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find any equally flexible solution. Hence, `MarkIt`!  
+
+![Screenshot](markit.png)
+
+`markit` is a cmdline bookmark management utility written using Python3 and SQLite3. `markit` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find any equally flexible solution. Hence, `MarkIt`!  
   
 The SQLite3 database file is stored in `$HOME/.cache/markit/bookmarks.db` for each user.  
-  
-It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web only for fully-formed HTTP or HTTPS URLs. If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.  
-  
-You can either add or update or delete record(s) in one instance. A combination of these operations are not supported in a single instance. The same URL cannot be added twice. You can update tags and title data or delete it.  
-  
-Search works in mysterious ways:
-- Substrings match (`match` matches `rematched`).
-- All the keywords are treated as a `single` tag together (order maintained). Bookmarks with partial or complete tag matches are shown in results.
-- The same keywords are `separately` searched as unique tokens so that entries with matching URL or title data are also shown in results. Order is irrelevant in this case.
   
 `markit` is GPLv3 licensed.
 
@@ -61,6 +53,18 @@ If you do not want to install, `markit` is standalone:
 $ ./markit ...</pre>
 
 # Usage
+<b>Operational notes:</b>
+- It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
+- If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` qoutes.
+- The same URL cannot be added twice. You can update tags and re-fetch title data. You can also delete it and insert at the same index. 
+- You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
+- Search works in mysterious ways:
+  - Substrings match (`match` matches `rematched`) for URL, tags and title data.
+  - All the keywords are treated as a `single` tag together in the same order. Bookmarks with partial or complete tag matches are shown in results.
+  - The same keywords are searched `separately` as unique tokens so that entries with matching URL or title data are also shown in the results. Order is irrelevant in this case.
+  
+<b>Cmdline help:</b>
+  
 <pre>Usage: markit [OPTIONS] KEYWORDS...
 Bookmark manager. Your private Google.
 
