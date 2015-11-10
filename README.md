@@ -74,9 +74,9 @@ Options
   -D                         delete ALL bookmarks
   -i N                       add entry at index N, works with -a, use to fill deleted index
   -o                         fetch title info from web, works with -a or -u
-  -p N                       show details of bookmark record at index N"
+  -p N                       show details of bookmark record at index N
   -P                         show all bookmarks along with real index from database
-  -s keyword(s)              search all bookmarks for a (partial) tag or keywords
+  -s keyword(s)              search all bookmarks for a (partial) tag or each keyword
   -u N                       update entry at index N (from output of -p)
   -z                         show debug information
                              you can either add or update or delete in one instance
