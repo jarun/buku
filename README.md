@@ -113,7 +113,7 @@ This option is useful in filling deleted indices from database manually.
 <pre>$ markit -z</pre>
 11. Show help:
 <pre>$ markit</pre>
-12. Show markit manpage:
+12. Show manpage:
 <pre>$ man markit</pre>
 
 #License
