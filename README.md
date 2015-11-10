@@ -1,5 +1,6 @@
 # MarkIt
 `markit` is a cmdline bookmark management utility written using Python3 and SQLite3. Currently under development with implemented options working.  
+  
 `markit` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find any equally flexible solution. Hence, `MarkIt`!  
   
 The SQLite3 database file is stored in `$HOME/.cache/markit/bookmarks.db` for each user.  
@@ -23,7 +24,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - Unique URLs to avoid duplicates, show index if URL already exists
 - Open search results in browser
 - Browser (Chromium and Firefox based) errors and warnings suppression
-- Show all bookmarks in a go
+- Show single bookmark by ID or all bookmarks in a go
 - Delete all bookmarks
 - Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indexes
 - Secure SQLite3 queries to access database
