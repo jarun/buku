@@ -2,7 +2,7 @@
 
 ![Screenshot](markit.png)
 
-`markit` is a cmdline bookmark management utility written using Python3 and SQLite3. `markit` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find any equally flexible solution. Hence, `MarkIt`!  
+`markit` is a cmdline bookmark management utility written using Python3 and SQLite3. `markit` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `MarkIt`!  
   
 The SQLite3 database file is stored in `$HOME/.cache/markit/bookmarks.db` for each user.  
   
