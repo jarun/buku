@@ -71,9 +71,12 @@ def usage():
 # Initialize the database connection
 # Create bookmarks table is not existing
 def initdb():
-    user = os.environ.get('USER')
+    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'markit')
+    if not os.path.exists(dbpath):
+        os.makedirs(dbpath)
+
     # Create a connection
-    conn = sqlite3.connect('/home/' + user + '/.cache/bookmarks.db')
+    conn = sqlite3.connect(os.path.join(dbpath, 'bookmarks.db'))
     cur = conn.cursor()
 
     # Create table if it doesn't exist

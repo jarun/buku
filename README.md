@@ -1,7 +1,8 @@
 # MarkIt
-Cmdline bookmark management utility written using Python3 and SQLite3. Currently under development with implemented options working.  
+`markit` is a cmdline bookmark management utility written using Python3 and SQLite3. Currently under development with implemented options working.  
+`markit` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find any equally flexible solution. Hence, `MarkIt`!  
   
-The SQLite3 database file is stored in `$HOME/.cache/bookmarks.db` for each user.  
+The SQLite3 database file is stored in `$HOME/.cache/markit/bookmarks.db` for each user.  
   
 It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web only for fully-formed HTTP or HTTPS URLs. If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.  
   
