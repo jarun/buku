@@ -14,14 +14,15 @@ If you find `markit` useful, please consider donating via PayPal.
 # Features
 - Add, update or remove a bookmark
 - Add tags to bookmarks
-- Optionally fetch page title data from the web (default: disabled, use `-w`)
+- Optionally fetch page title data from the web (default: disabled)
 - Use (partial) tags or keywords to search bookmarks
 - Unique URLs to avoid duplicates, show index if URL already exists
+- Open bookmark in browser using index
 - Open search results in browser
 - Browser (Chromium and Firefox based) errors and warnings suppression
 - Show single bookmark by ID or all bookmarks in a go
 - Delete all bookmarks
-- Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indexes
+- Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indices
 - Secure SQLite3 queries to access database
 - Handle first level of redirections (reports IP blocking)
 - Unicode in URL works
@@ -62,6 +63,7 @@ $ ./markit ...</pre>
   - Substrings match (`match` matches `rematched`) for URL, tags and title data.
   - All the keywords are treated together as a `single` tag in the same order. Bookmarks with partial or complete tag matches are shown in results.
   - The same keywords are treated `separately` as unique tokens. Hence, entries with matching URL or title data are also shown in the results. Order is irrelevant in this case.
+  - Search results are indexed serially. The index is different from actual database index of a bookmark record. Use `-P` option to get DB index.
   
 <b>Cmdline help:</b>
   
@@ -70,13 +72,14 @@ Bookmark manager. Your private Google.
 
 Options
   -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags
-  -d N                       delete entry at index N
+  -d N                       delete entry at DB index N (from -P output)
   -D                         delete ALL bookmarks
-  -i N                       insert entry at index N, useful to fill deleted index
-  -p N                       show details of bookmark record at index N
-  -P                         show all bookmarks along with real index from database
+  -i N                       insert entry at DB index N, useful to fill deleted index
+  -o N                       open URL at DB index N in browser
+  -p N                       show details of bookmark record at DB index N
+  -P                         show all bookmarks along with index from DB
   -s keyword(s)              search all bookmarks for a (partial) tag or each keyword
-  -u N                       update entry at index N (from output of -P)
+  -u N                       update entry at DB index N
   -w                         fetch title info from web, works with -a, -i, -u
   -z                         show debug information
                              you can either add or update or delete in one instance
@@ -90,7 +93,7 @@ Keys
 <pre>$ markit -a http://tuxdiary.com linux news, open source
 Added at index 15012014</pre>
 The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
-2. Add a bookmark, fetch page Title information from web:
+2. Add a bookmark, fetch page title information from web:
 <pre>$ markit -a -w http://tuxdiary.com linux news, open source
 Title: [TuxDiary | Linux, open source and a pinch of leisure.]
 Added at index 15012014</pre>
@@ -111,13 +114,15 @@ This option is useful in filling deleted indices from database manually.
 <pre>$ markit -p 15012014</pre>
 8. Show all bookmarks with real index from database:
 <pre>$ markit -P</pre>
-9. Search bookmarks:
+9. Open URL at index 15012014 in browser:
+<pre>$ markit -o 15012014</pre>
+10. Search bookmarks:
 <pre>$ markit -s kernel debugging</pre>
-10. Show debug info:
+11. Show debug info:
 <pre>$ markit -z</pre>
-11. Show help:
+12. Show help:
 <pre>$ markit</pre>
-12. Show manpage:
+or,
 <pre>$ man markit</pre>
 
 #License

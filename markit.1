@@ -23,6 +23,7 @@ Search works in mysterious ways:
   - Substrings match ('match' matches 'rematched') for URL, tags and title data.
   - All the keywords are treated together as a 'single' tag in the same order. Bookmarks with partial or complete tag matches are shown in results.
   - The same keywords are treated 'separately' as unique tokens. Hence, entries with matching URL or title data are also shown in the results. Order is irrelevant in this case.
+  - Search results are indexed serially. The index is different from actual database index of a bookmark record. Use '-P' option to get DB index.
 .SH OPTIONS
 .TP
 .BI \-a " URL" " " "tag 1", " tag 2", " ..."
@@ -33,7 +34,7 @@ along with comma separated tags. A tag can have multiple words. The same URL can
 .BI \-d " N"
 Delete bookmark at index
 .I N
-(as shown in `-p` output).
+in DB (from `-P` output).
 .TP
 .B \-D
 Delete ALL bookmarks.
@@ -41,15 +42,20 @@ Delete ALL bookmarks.
 .BI \-i " N"
 Add a new record at index
 .I N
-of the database. Use this option to fill blank indexes left by deleted bookmarks.
+in DB. Use this option to fill blank indices left by deleted bookmarks.
+.TP
+.BI \-o " N"
+Open URL at DB index
+.I N
+in browser.
 .TP
 .BI \-p " N"
-Show details of bookmark record stored at
-.I Nth
-index in database.
+Show details of bookmark record stored at index
+.I N
+in DB.
 .TP
 .B \-P
-Show all bookmark records from the database along with actual index. Shows URL, title data and tags.
+Show all bookmark records from the DB along with actual index. Shows URL, title data and tags.
 .TP
 .BI \-s " keywords"
 Search bookmarks for a (partial) tag or keywords and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. Shows URL, title data and tags.
@@ -57,7 +63,7 @@ Search bookmarks for a (partial) tag or keywords and show the results. Prompts t
 .BI \-u " N"
 Update bookmark at index
 .I N
-(as shown in `-P` output).
+in DB.
 .TP
 .BI \-w
 Fetch title data from the web. Works with `-a`, `-i` or `-u` options.

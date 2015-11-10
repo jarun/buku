@@ -33,6 +33,7 @@ addurl = False
 addindex = None
 online = False
 delete = False
+openurl = None
 show = False
 showindex = None
 search = False
@@ -48,13 +49,14 @@ def usage():
     print("Bookmark manager. Your private Google.\n")
     print("Options")
     print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
-    print("  -d N                       delete entry at index N")
+    print("  -d N                       delete entry at DB index N (from -P output)")
     print("  -D                         delete ALL bookmarks")
-    print("  -i N                       insert entry at index N, useful to fill deleted index")
-    print("  -p N                       show details of bookmark record at index N")
-    print("  -P                         show all bookmarks along with real index from database")
+    print("  -i N                       insert entry at DB index N, useful to fill deleted index")
+    print("  -o N                       open URL at DB index N in browser")
+    print("  -p N                       show details of bookmark record at DB index N")
+    print("  -P                         show all bookmarks along with index from DB")
     print("  -s keyword(s)              search all bookmarks for a (partial) tag or each keyword")
-    print("  -u N                       update entry at index N (from output of -P)")
+    print("  -u N                       update entry at DB index N")
     print("  -w                         fetch title info from web, works with -a, -i, -u")
     print("  -z                         show debug information")
     print("                             you can either add or update or delete in one instance")
@@ -87,8 +89,8 @@ def initdb():
 
 
 
-# Add a new bookmark or update an existing record
-def AddUpdateEntry(conn, cur, keywords, entry):
+# Add a new bookmark or update an existing record at index
+def AddUpdateEntry(conn, cur, keywords, index):
     global online
 
     tags = ','
@@ -209,9 +211,9 @@ def AddUpdateEntry(conn, cur, keywords, entry):
         meta = meta.strip().replace("\n","")
         print("Title: [%s]" % meta)
 
-    if entry == None: # Add a new entry
+    if index == None: # Insert a new entry
         try:
-            if addindex == None:
+            if addindex == None: # addindex is index number to insert record at
                 cur.execute('INSERT INTO bookmarks(URL, metadata, tags) VALUES (?, ?, ?)', (url, meta, tags,))
             else:
                 cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (int(addindex), url, meta, tags,))
@@ -225,7 +227,7 @@ def AddUpdateEntry(conn, cur, keywords, entry):
             print("Index %s exists" % addindex)
     else: # Update an existing entry
         try:
-            cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, int(entry),))
+            cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, int(index),))
             conn.commit()
             if cur.rowcount == 1:
                 print("Updated")
@@ -276,7 +278,6 @@ def searchdb(cur, keywords):
 
             try:
                 openurl = unquote(results[int(nav) - 1])
-                openurl = openurl.replace("%22", "\"")
                 browser_open(openurl)
             except IndexError:
                 print("Index out of bound")
@@ -286,13 +287,13 @@ def searchdb(cur, keywords):
 
 
 # Delete a single record or remove the table
-def cleardb(conn, cur, entry):
-    if entry == None: # Remove the table
+def cleardb(conn, cur, index):
+    if index == None: # Remove the table
         cur.execute('DROP TABLE if exists bookmarks')
         conn.commit()
     else: # Remove a single entry
         try:
-            cur.execute("DELETE FROM bookmarks WHERE id = ?", (int(entry),))
+            cur.execute("DELETE FROM bookmarks WHERE id = ?", (int(index),))
             conn.commit()
             if cur.rowcount == 1:
                 print("Removed")
@@ -304,17 +305,30 @@ def cleardb(conn, cur, entry):
 
 
 # Print all records in the table
-def printdb(cur, showindex):
-    if showindex == None: # Show all entries
+def printdb(cur, index):
+    if index == None: # Show all entries
         for row in cur.execute('SELECT * FROM bookmarks'):
             print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
-    else: # Show record at index showindex
+    else: # Show record at index
         try:
-            for row in cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(showindex),)):
+            for row in cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),)):
                 print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
                 return
             print("No matching index")
         except IndexError:
+            print("Index out of bound")
+
+
+
+# Fetch index and open URL in browser
+def fetchopen(index):
+    try:
+        for row in cur.execute("SELECT URL FROM bookmarks WHERE id = ?", (int(index),)):
+            url = unquote(row[0])
+            browser_open(url)
+            return
+        print("No matching index")
+    except IndexError:
             print("Index out of bound")
 
 
@@ -355,6 +369,8 @@ class BMHTMLParser(HTMLParser.HTMLParser):
 
 # Open a URL in browser
 def browser_open(url):
+    url = url.replace("%22", "\"")
+
     _stderr = os.dup(2)
     os.close(2)
     _stdout = os.dup(1)
@@ -383,7 +399,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:p:u:aDPswz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:aDPswz")
     if len(optlist) < 1:
         usage()
 
@@ -426,6 +442,13 @@ try:
                 usage()
 
             addurl = True
+        elif opt[0] == "-o":
+            if not opt[1].isdigit():
+                usage()
+
+            openurl = opt[1]
+            if int(openurl) <= 0:
+                usage()
         elif opt[0] == "-p":
             if not opt[1].isdigit():
                 usage()
@@ -487,6 +510,10 @@ if search == True:
 # Print all records
 if show == True:
     printdb(cur, showindex)
+
+# Open URL in browser
+if openurl != None:
+    fetchopen(openurl)
 
 # Remove a single record of all records
 if delete == True:
