@@ -23,7 +23,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - Unique URLs to avoid duplicates, show index if URL already exists
 - Open search results in browser
 - Browser (Chromium and Firefox based) errors and warnings suppression
-- Show all bookmarks in a go
+- Show single bookmark by ID or all bookmarks in a go
 - Delete all bookmarks
 - Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indexes
 - Secure SQLite3 queries to access database
