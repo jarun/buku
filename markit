@@ -64,7 +64,7 @@ def usage():
     print("                             any other option shows help and exits markit\n")
     print("Keys")
     print("  1-N                        open Nth search result in browser. Enter exits markit.\n")
-    print("Version 1.0")
+    print("Version 1.2")
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
     print("Webpage: https://github.com/jarun/markit")
     sys.exit(1)
