@@ -183,7 +183,10 @@ def AddUpdateEntry(conn, cur, keywords, index):
                                     print(charset)
 
                                 parser = BMHTMLParser()
-                                parser.feed(resp.read().decode(charset))
+                                if charset == 'utf-8':
+                                    parser.feed(resp.read().decode(charset, "replace"))
+                                else:
+                                    parser.feed(resp.read().decode(charset))
                                 if parser.data != None and parser.data.find("Error") < 0:
                                     meta = parser.data
                     else: # if resp.status in (301,302,):
@@ -198,7 +201,10 @@ def AddUpdateEntry(conn, cur, keywords, index):
                         print(charset)
 
                     parser = BMHTMLParser()
-                    parser.feed(resp.read().decode(charset))
+                    if charset == 'utf-8':
+                        parser.feed(resp.read().decode(charset, "replace"))
+                    else:
+                        parser.feed(resp.read().decode(charset))
                     if parser.data != None and parser.data.find("Error") < 0:
                         meta = parser.data
             except Exception as e:
