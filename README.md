@@ -54,7 +54,7 @@ To remove, run:
 <pre>$ sudo make uninstall</pre>
 
 2. If you do not have git installed:  
-Download the <a href="https://github.com/jarun/markit/archive/master.zip">development version</a> source code. Extract, cd into the directory and run:
+Download the <a href="https://github.com/jarun/markit/releases/latest">latest stable release</a> or <a href="https://github.com/jarun/markit/archive/master.zip">development version</a> source code. Extract, cd into the directory and run:
 <pre>$ sudo make install</pre>
 If you do not want to install, `markit` is standalone:
 <pre>$ chmod +x markit

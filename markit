@@ -61,7 +61,7 @@ def usage():
     print("                             any other option shows help and exits markit\n")
     print("Keys")
     print("  1-N                        open Nth search result in browser. Enter exits markit.\n")
-    print("Version 0.1")
+    print("Version 1.0")
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
     print("Webpage: https://github.com/jarun/markit")
     sys.exit(1)
@@ -259,7 +259,7 @@ def searchdb(cur, keywords):
     for row in cur.execute(query, arguments):
         results.append(row[0])
         count += 1
-        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (count, row[0], row[1], row[2][1:-1]))
+        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (count, row[0], row[1], row[2][1:-1]))
 
     if count == 0:
         return
@@ -319,11 +319,11 @@ def cleardb(conn, cur, entry):
 def printdb(cur, showindex):
     if showindex == None: # Show all entries
         for row in cur.execute('SELECT * FROM bookmarks'):
-            print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (row[0], row[1], row[2], row[3][1:-1]))
+            print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
     else: # Show record at index showindex
         try:
             for row in cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(showindex),)):
-                print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t[TAGS] %s" % (row[0], row[1], row[2], row[3][1:-1]))
+                print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
                 return
             print("No matching index")
         except IndexError:
