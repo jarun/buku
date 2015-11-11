@@ -283,7 +283,7 @@ def cleardb(conn, cur, index):
             cur.execute("DELETE FROM bookmarks WHERE id = ?", (int(index),))
             conn.commit()
             if cur.rowcount == 1:
-                print("Removed")
+                print("Removed index %d" % int(index))
             else:
                 print("No matching index")
         except IndexError:
