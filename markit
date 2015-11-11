@@ -378,7 +378,7 @@ class BMHTMLParser(HTMLParser.HTMLParser):
 
         if tag == "title":
             self.inTitle = False
-            if self.data != None:
+            if self.data != "":
                 titleData = self.data
                 self.reset() # We have received title data, exit parsing
 
