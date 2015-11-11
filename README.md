@@ -132,7 +132,7 @@ This option is useful in filling deleted indices from database manually.
 <pre>$ markit</pre>
 14. Check <b>manpage</b>:
 <pre>$ man markit</pre>
-15. MarkIt doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
+15. `markit` doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
 <pre>#!/bin/bash
 markit -aw https://wireless.wiki.kernel.org/ networking, device drivers
 markit -aw https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
