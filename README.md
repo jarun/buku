@@ -16,6 +16,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - Add tags to bookmarks
 - Optionally fetch page title data from the web (default: disabled)
 - Use (partial) tags or keywords to search bookmarks
+- Any or all search keyword match options
 - Unique URLs to avoid duplicates, show index if URL already exists
 - Open bookmark in browser using index
 - Open search results in browser
@@ -29,6 +30,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - UTF-8 request and response, page character set detection
 - Works with Python 3.x
 - Coloured output for clarity
+- Unformatted selective output (for creating batch update scripts)
 - Manpage for quick reference
 - Optional debug information
 - Fast and clean (no ads or clutter)
@@ -60,10 +62,11 @@ $ ./markit ...</pre>
 - The same URL cannot be added twice. You can update tags and re-fetch title data. You can also delete it and insert at the same index. 
 - You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
 - Search works in mysterious ways:
-  - Substrings match (`match` matches `rematched`) for URL, tags and title data.
-  - All the keywords are treated together as a `single` tag in the same order. Bookmarks with partial or complete tag matches are shown in results.
-  - The same keywords are treated `separately` as unique tokens. Hence, entries with matching URL or title data are also shown in the results. Order is irrelevant in this case.
-  - Search results are indexed serially. The index is different from actual database index of a bookmark record. Use `-P` option to get DB index.
+  - Substrings match (`match` matches `rematched`) for URL, tags and title.
+  - All the keywords are treated together as a `single` tag in the `same order`. Bookmarks with partial or complete tag matches are shown in results.
+  - `-s` : match any of the keywords in URL or title. Order is irrelevant.
+  - `-S` : match all the keywords in URL or title. Order is irrelevant.
+  - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within `()` after the URL.
   
 <b>Cmdline help:</b>
   
@@ -118,15 +121,17 @@ This option is useful in filling deleted indices from database manually.
 <pre>$ markit -P</pre>
 9. <b>Open URL</b> at index 15012014 in browser:
 <pre>$ markit -o 15012014</pre>
-10. <b>Search</b> bookmarks:
+10. <b>Search</b> bookmarks for a tag matching `*kernel debugging*` or any of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 <pre>$ markit -s kernel debugging</pre>
-11. Show <b>debug info</b>:
+10. <b>Search</b> bookmarks for a tag matching `*kernel debugging*` or all the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+<pre>$ markit -S kernel debugging</pre>
+12. Show <b>debug info</b>:
 <pre>$ markit -z</pre>
-12. Show <b>help</b>:
+13. Show <b>help</b>:
 <pre>$ markit</pre>
-13. Check <b>manpage</b>:
+14. Check <b>manpage</b>:
 <pre>$ man markit</pre>
-14. MarkIt doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
+15. MarkIt doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
 <pre>#!/bin/bash
 markit -aw https://wireless.wiki.kernel.org/ networking, device drivers
 markit -aw https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
@@ -135,7 +140,7 @@ markit -aw http://www.mikroe.com/chapters/view/65/ electronics
 markit -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
 markit -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
 Make the script executbale and run to batch add bookmarks.
-15. To <b>update all URLs</b> along with your tags, first get the unformatted selective output with URL and tags:
+16. To <b>update all URLs</b> along with your tags, first get the unformatted selective output with URL and tags:
 <pre>$ markit -P -x 2 | tee myurls</pre>
 Add `markit -wu ` in front of all the lines (check TIP below). Should look like:
 <pre>#!/bin/bash
