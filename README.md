@@ -148,10 +148,14 @@ Run the script:
 <pre>$ chmod +x myurls
 $ ./myurls</pre>
   
-<b>TIP:</b> To add the same text at the beginning of multiple lines using vim editor:  
-  - Press `Ctrl-v` to select the first column of text in the lines you want to change (visual mode).  
-  - Press `Shift-i` and type the text you want to insert.  
-  - Hit `Esc`, wait 1 second and the inserted text will appear on every line. 
+<b>TIP:</b>  
+To add the same text at the beginning of multiple lines using vim editor:  
+  - Press `Ctrl-v` to select the first column of text in the lines you want to change (visual mode).
+  - Press `Shift-i` and type the text you want to insert.
+  - Hit `Esc`, wait 1 second and the inserted text will appear on every line.
+  
+Using sed:
+<pre>$ sed -i 's/^/markit -wu /' filename</pre>
 
 #License
 GPL v3  
