@@ -38,6 +38,7 @@ show = False
 showindex = None
 showOpt = 0
 search = False
+searchAll = False
 entry = None
 update = False
 debug = False
@@ -57,7 +58,8 @@ def usage():
     print("  -o N                       open URL at DB index N in browser")
     print("  -p N                       show details of bookmark record at DB index N")
     print("  -P                         show all bookmarks along with index from DB")
-    print("  -s keyword(s)              search all bookmarks for a (partial) tag or each keyword")
+    print("  -s keyword(s)              search all bookmarks for a (partial) tag or any keyword")
+    print("  -S keyword(s)              search all bookmarks for a (partial) tag or all keywords")
     print("  -u N                       update entry at DB index N")
     print("  -w                         fetch title info from web, works with -a, -i, -u")
     print("  -x N                       works with -P, N=1: show only URL, N=2: show URL and tag")
@@ -236,12 +238,28 @@ def searchdb(cur, keywords):
     arguments.append(searchtag)
     placeholder = "'%' || ? || '%'"
     query = "SELECT url, metadata, tags FROM bookmarks WHERE tags LIKE (%s)" % placeholder
-    for token in keywords:
-        query += " OR URL LIKE (%s) OR metadata LIKE (%s)" % (placeholder, placeholder)
-        arguments.append(token)
-        arguments.append(token)
+    if searchAll == True: # Match all keywords in URL or Title
+        query += " OR ("
+        for token in keywords:
+            query += "URL LIKE (%s) AND " % (placeholder)
+            arguments.append(token)
+
+        query = query[:-5] + ") OR ("
+
+        for token in keywords:
+            query += "metadata LIKE (%s) AND " % (placeholder)
+            arguments.append(token)
+
+        query = query[:-5] + ")"
+
+    else: # Match any keyword in URL or Title
+        for token in keywords:
+            query += " OR URL LIKE (%s) OR metadata LIKE (%s)" % (placeholder, placeholder)
+            arguments.append(token)
+            arguments.append(token)
+
     if debug:
-        print("%s, (%s)" % (query, arguments))
+        print("\"%s\", (%s)" % (query, arguments))
 
     count = 0
     results = []
@@ -339,6 +357,9 @@ def is_int(string):
 
 # Fetch titleData from GET response
 def getTitleData(resp):
+    global titleData
+    titleData = None
+
     charset = ''
     charset = resp.headers.get_content_charset()
     if charset == None:
@@ -346,7 +367,6 @@ def getTitleData(resp):
     if debug:
         print(charset)
 
-    titleData = None
     parser = BMHTMLParser()
     try:
         if charset == 'utf-8':
@@ -420,7 +440,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:x:aDPswz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:x:aDPsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -482,6 +502,9 @@ try:
         elif opt[0] == "-P":
             show = True
         elif opt[0] == "-s":
+            search = True
+        elif opt[0] == "-S":
+            searchAll = True
             search = True
         elif opt[0] == "-u":
             if addurl == True or delete == True:

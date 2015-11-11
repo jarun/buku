@@ -78,7 +78,8 @@ Options
   -o N                       open URL at DB index N in browser
   -p N                       show details of bookmark record at DB index N
   -P                         show all bookmarks along with index from DB
-  -s keyword(s)              search all bookmarks for a (partial) tag or each keyword
+  -s keyword(s)              search all bookmarks for a (partial) tag or any keyword
+  -S keyword(s)              search all bookmarks for a (partial) tag or all keywords
   -u N                       update entry at DB index N
   -w                         fetch title info from web, works with -a, -i, -u
   -x N                       works with -P, N=1: show only URL, N=2: show URL and tag
