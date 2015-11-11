@@ -20,10 +20,11 @@ The same URL cannot be added twice. You can update tags and re-fetch title data.
 You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
 .PP
 Search works in mysterious ways:
-  - Substrings match ('match' matches 'rematched') for URL, tags and title data.
-  - All the keywords are treated together as a 'single' tag in the same order. Bookmarks with partial or complete tag matches are shown in results.
-  - The same keywords are treated 'separately' as unique tokens. Hence, entries with matching URL or title data are also shown in the results. Order is irrelevant in this case.
-  - Search results are indexed serially. The index is different from actual database index of a bookmark record. Use '-P' option to get DB index.
+  - Substrings match ('match' matches 'rematched') for URL, tags and title.
+  - All the keywords are treated together as a 'single' tag in the 'same order'. Bookmarks with partial or complete tag matches are shown in results.
+  - '-s' : match any of the keywords in URL or title. Order is irrelevant.
+  - '-S' : match all the keywords in URL or title. Order is irrelevant. 
+  - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within '()' after the URL.
 .SH OPTIONS
 .TP
 .BI \-a " URL" " " "tag 1", " tag 2", " ..."
@@ -34,7 +35,7 @@ along with comma separated tags. A tag can have multiple words. The same URL can
 .BI \-d " N"
 Delete bookmark at index
 .I N
-in DB (from `-P` output).
+in DB (from '-P' output).
 .TP
 .B \-D
 Delete ALL bookmarks.
@@ -55,13 +56,13 @@ Show details of bookmark record stored at index
 in DB.
 .TP
 .B \-P
-Show all bookmark records from the DB along with actual index. Shows URL, title data and tags.
+Show all bookmark records from the DB along with actual index. Shows URL, title and tags.
 .TP
 .BI \-s " keywords"
-Search bookmarks for a (partial) tag or any keyword and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within `()`.
+Search bookmarks for a (partial) tag or any keyword and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within '()'.
 .TP
 .BI \-S " keywords"
-Search bookmarks for a (partial) tag or occurrence of all keywords in URL or title data and show the results. Rest same as `-s`.
+Search bookmarks for a (partial) tag or occurrence of all keywords in URL or title and show the results. Rest same as '-s'.
 .TP
 .BI \-u " N"
 Update bookmark at index
@@ -69,10 +70,10 @@ Update bookmark at index
 in DB.
 .TP
 .BI \-w
-Fetch title data from the web. Works with `-a`, `-i` or `-u` options.
+Fetch title data from the web. Works with '-a', '-i' or '-u' options.
 .TP
 .BI \-x " N"
-Show selective monochrome output. Works with `-P`. If
+Show selective monochrome output. Works with '-P'. If
 .I N
 = 1, only URL is shown. If
 .I N
@@ -88,7 +89,7 @@ Any other option shows help and exits markit.
 .BI "1-N"
 Open
 .I Nth
-search result in browser. Pressing `Enter` exits markit.
+search result in browser. Pressing 'Enter' exits markit.
 .SH ENVIRONMENT
 .TP
 .BI BROWSER
