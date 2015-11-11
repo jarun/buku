@@ -30,6 +30,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - UTF-8 request and response, page character set detection
 - Works with Python 3.x
 - Coloured output for clarity
+- Easily create batch add or update (refresh) scripts
 - Unformatted selective output (for creating batch update scripts)
 - Manpage for quick reference
 - Optional debug information
@@ -140,7 +141,7 @@ markit -aw http://www.mikroe.com/chapters/view/65/ electronics
 markit -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
 markit -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
 Make the script executbale and run to batch add bookmarks.
-16. To <b>update all URLs</b> along with your tags, first get the unformatted selective output with URL and tags:
+16. To <b>update all URLs</b> (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 <pre>$ markit -P -x 2 | tee myurls</pre>
 Add `markit -wu ` in front of all the lines (check TIP below). Should look like:
 <pre>#!/bin/bash
