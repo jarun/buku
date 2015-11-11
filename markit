@@ -217,7 +217,7 @@ def AddUpdateEntry(conn, cur, keywords, index):
             cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, int(index),))
             conn.commit()
             if cur.rowcount == 1:
-                print("Updated")
+                print("Updated index %d" % int(index))
             else:
                 print("No matching index")
         except sqlite3.IntegrityError:
