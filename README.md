@@ -90,42 +90,42 @@ Keys
   1-N                        open Nth search result in browser. Enter exits markit.</pre>
   
 # Examples
-1. Add a new bookmark with tags `linux news` and `open source`:
+1. <b>Add</b> a new bookmark with tags `linux news` and `open source`:
 <pre>$ markit -a http://tuxdiary.com linux news, open source
 Added at index 15012014</pre>
 The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
-2. Add a bookmark, fetch page title information from web:
+2. Add a bookmark, <b>fetch page title</b> information from web:
 <pre>$ markit -a -w http://tuxdiary.com linux news, open source
 Title: [TuxDiary | Linux, open source and a pinch of leisure.]
 Added at index 15012014</pre>
-3. Update existing bookmark at index 15012014 with a new tag:
+3. <b>Update</b> existing bookmark at index 15012014 with a new tag:
 <pre>$ markit -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
 Title: [TuxDiary | Linux, open source and a pinch of leisure.]
 Updated</pre>
-4. Delete bookmark at index 15012014:
+4. <b>Delete</b> bookmark at index 15012014:
 <pre>$ markit -d 15012014</pre>
-5. Delete all bookmarks:
+5. <b>Delete all</b> bookmarks:
 <pre>$ markit -D</pre>
-6. Insert a bookmark at deleted index 15012014 (fails if index or URL exists in database):
+6. <b>Insert</b> a bookmark at index 15012014 (fails if index or URL exists in database):
 <pre>$ markit -i 15012014 -w http://tuxdiary.com/about linux news, open source
 Title: [A journey with WordPress | TuxDiary]
 Added at index 15012014</pre>
 This option is useful in filling deleted indices from database manually.
-7. Show info on bookmark at index 15012014:
+7. <b>Show info</b> on bookmark at index 15012014:
 <pre>$ markit -p 15012014</pre>
-8. Show all bookmarks with real index from database:
+8. <b>Show all</b> bookmarks with real index from database:
 <pre>$ markit -P</pre>
-9. Open URL at index 15012014 in browser:
+9. <b>Open URL</b> at index 15012014 in browser:
 <pre>$ markit -o 15012014</pre>
-10. Search bookmarks:
+10. <b>Search</b> bookmarks:
 <pre>$ markit -s kernel debugging</pre>
-11. Show debug info:
+11. Show <b>debug info</b>:
 <pre>$ markit -z</pre>
-12. Show help:
+12. Show <b>help</b>:
 <pre>$ markit</pre>
-13. Check manpage:
+13. Check <b>manpage</b>:
 <pre>$ man markit</pre>
-14. MarkIt doesn't have any import feature of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
+14. MarkIt doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
 <pre>#!/bin/bash
 markit -aw https://wireless.wiki.kernel.org/ networking, device drivers
 markit -aw https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
@@ -134,7 +134,7 @@ markit -aw http://www.mikroe.com/chapters/view/65/ electronics
 markit -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
 markit -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
 Make the script executbale and run to batch add bookmarks.
-15. To update all URLs along with your tags, first get the unformatted selective output with URL and tags:
+15. To <b>update all URLs</b> along with your tags, first get the unformatted selective output with URL and tags:
 <pre>$ markit -P -x 2 | tee myurls</pre>
 Add `markit -wu ` in front of all the lines (check TIP below). Should look like:
 <pre>#!/bin/bash
