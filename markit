@@ -337,6 +337,7 @@ def getTitleData(resp):
     if debug:
         print(charset)
 
+    titleData = None
     parser = BMHTMLParser()
     try:
         if charset == 'utf-8':
