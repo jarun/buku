@@ -81,6 +81,7 @@ Options
   -s keyword(s)              search all bookmarks for a (partial) tag or each keyword
   -u N                       update entry at DB index N
   -w                         fetch title info from web, works with -a, -i, -u
+  -x N                       works with -P, N=1: show only URL, N=2: show URL and tag
   -z                         show debug information
                              you can either add or update or delete in one instance
                              any other option shows help and exits markit

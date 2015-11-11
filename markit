@@ -36,6 +36,7 @@ delete = False
 openurl = None
 show = False
 showindex = None
+showOpt = 0
 search = False
 entry = None
 update = False
@@ -59,6 +60,7 @@ def usage():
     print("  -s keyword(s)              search all bookmarks for a (partial) tag or each keyword")
     print("  -u N                       update entry at DB index N")
     print("  -w                         fetch title info from web, works with -a, -i, -u")
+    print("  -x N                       works with -P, N=1: show only URL, N=2: show URL and tag")
     print("  -z                         show debug information")
     print("                             you can either add or update or delete in one instance")
     print("                             any other option shows help and exits markit\n")
@@ -291,9 +293,16 @@ def cleardb(conn, cur, index):
 
 # Print all records in the table
 def printdb(cur, index):
+    global showOpt
+
     if index == None: # Show all entries
         for row in cur.execute('SELECT * FROM bookmarks'):
-            print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
+            if showOpt == 1:
+                print("%s %s" % (row[0], row[1]))
+            elif showOpt == 2:
+                print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
+            else:
+                print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
     else: # Show record at index
         try:
             for row in cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),)):
@@ -411,7 +420,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:aDPswz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:x:aDPswz")
     if len(optlist) < 1:
         usage()
 
@@ -489,6 +498,13 @@ try:
             update = True
         elif opt[0] == "-w":
             online = True
+        elif opt[0] == "-x":
+            if not opt[1].isdigit():
+                usage()
+
+            showOpt = int(opt[1])
+            if showOpt < 1 or showOpt > 2:
+                usage()
         elif opt[0] == "-z":
             debug = True
 except GetoptError as e:
