@@ -123,8 +123,34 @@ This option is useful in filling deleted indices from database manually.
 <pre>$ markit -z</pre>
 12. Show help:
 <pre>$ markit</pre>
-or,
+13. Check manpage:
 <pre>$ man markit</pre>
+14. MarkIt doesn't have any import feature of its own. To import URLs in bulk, create a script with URLs and tags like the following:
+<pre>#!/bin/bash
+markit -aw https://wireless.wiki.kernel.org/ networking, device drivers
+markit -aw https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
+markit -aw http://www.tittbit.in/
+markit -aw http://www.mikroe.com/chapters/view/65/ electronics
+markit -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
+markit -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
+Make the script executbale and run to batch add.  
+TIP: To add the same text at the beginning of multiple lines in a text file:  
+Press `Ctrl-v` to select the first column of text in the lines you want to change (visual mode).  
+Press `Shift-i` and type the text you want to insert.  
+Hit `Esc`, wait 1 second and the inserted text will appear on every line.  
+15. To update all URLs along with your tags, first get the unformatted selective output with URL and tags:
+<pre>$ markit -P -x 2 | tee myurls</pre>
+Add `markit -wu ` in front of all the lines (as explained in example 14 above). Should look like:
+<pre>#!/bin/bash
+markit -wu 50 https://wireless.wiki.kernel.org/ networking, device drivers
+markit -wu 51 https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
+markit -wu 52 http://www.tittbit.in/
+markit -wu 53 http://www.mikroe.com/chapters/view/65/ electronics
+markit -wu 54 "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
+markit -wu 55 http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
+Run the script:
+<pre>$ chmod +x myurls
+$ ./myurls</pre>
 
 #License
 GPL v3  
