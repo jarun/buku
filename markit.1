@@ -58,7 +58,10 @@ in DB.
 Show all bookmark records from the DB along with actual index. Shows URL, title data and tags.
 .TP
 .BI \-s " keywords"
-Search bookmarks for a (partial) tag or keywords and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. Shows URL, title data and tags.
+Search bookmarks for a (partial) tag or any keyword and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within `()`.
+.TP
+.BI \-S " keywords"
+Search bookmarks for a (partial) tag or occurrence of all keywords in URL or title data and show the results. Rest same as `-s`.
 .TP
 .BI \-u " N"
 Update bookmark at index
