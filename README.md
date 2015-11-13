@@ -22,6 +22,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - Open search results in browser
 - Browser (Chromium and Firefox based) errors and warnings suppression
 - Show single bookmark by ID or all bookmarks in a go
+- Refresh all bookmarks online
 - Delete all bookmarks
 - Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indices
 - Secure parameterized SQLite3 queries to access database
@@ -30,7 +31,7 @@ If you find `markit` useful, please consider donating via PayPal.
 - UTF-8 request and response, page character set detection
 - Works with Python 3.x
 - Coloured output for clarity
-- Easily create batch add or update (refresh) scripts
+- Easily create compatible batch add or update scripts
 - Unformatted selective output (for creating batch update scripts)
 - Manpage for quick reference
 - Optional debug information
@@ -108,32 +109,34 @@ Added at index 15012014</pre>
 <pre>$ markit -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
 Title: [TuxDiary | Linux, open source and a pinch of leisure.]
 Updated</pre>
-4. <b>Delete</b> bookmark at index 15012014:
+4. Update (refresh) full DB:
+<pre>$ markit -R</pre>
+5. <b>Delete</b> bookmark at index 15012014:
 <pre>$ markit -d 15012014</pre>
-5. <b>Delete all</b> bookmarks:
+6. <b>Delete all</b> bookmarks:
 <pre>$ markit -D</pre>
-6. <b>Insert</b> a bookmark at index 15012014 (fails if index or URL exists in database):
+7. <b>Insert</b> a bookmark at index 15012014 (fails if index or URL exists in database):
 <pre>$ markit -i 15012014 -w http://tuxdiary.com/about linux news, open source
 Title: [A journey with WordPress | TuxDiary]
 Added at index 15012014</pre>
 This option is useful in filling deleted indices from database manually.
-7. <b>Show info</b> on bookmark at index 15012014:
+8. <b>Show info</b> on bookmark at index 15012014:
 <pre>$ markit -p 15012014</pre>
-8. <b>Show all</b> bookmarks with real index from database:
+9. <b>Show all</b> bookmarks with real index from database:
 <pre>$ markit -P</pre>
-9. <b>Open URL</b> at index 15012014 in browser:
+10. <b>Open URL</b> at index 15012014 in browser:
 <pre>$ markit -o 15012014</pre>
-10. <b>Search</b> bookmarks for a tag matching `*kernel debugging*` or any of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+11. <b>Search</b> bookmarks for a tag matching `*kernel debugging*` or any of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 <pre>$ markit -s kernel debugging</pre>
-10. <b>Search</b> bookmarks for a tag matching `*kernel debugging*` or all the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+12. <b>Search</b> bookmarks for a tag matching `*kernel debugging*` or all the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 <pre>$ markit -S kernel debugging</pre>
-12. Show <b>debug info</b>:
+13. Show <b>debug info</b>:
 <pre>$ markit -z</pre>
-13. Show <b>help</b>:
+14. Show <b>help</b>:
 <pre>$ markit</pre>
-14. Check <b>manpage</b>:
+15. Check <b>manpage</b>:
 <pre>$ man markit</pre>
-15. `markit` doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
+16. `markit` doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
 <pre>#!/bin/bash
 markit -aw https://wireless.wiki.kernel.org/ networking, device drivers
 markit -aw https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
@@ -142,9 +145,9 @@ markit -aw http://www.mikroe.com/chapters/view/65/ electronics
 markit -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
 markit -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
 Make the script executbale and run to batch add bookmarks.
-16. To <b>update all URLs</b> (refresh) along with your tags, first get the unformatted selective output with URL and tags:
+17. To <b>update selected URLs</b> (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 <pre>$ markit -P -x 2 | tee myurls</pre>
-Add `markit -wu ` in front of all the lines (check TIP below). Should look like:
+Remove the lines you don't need. Add `markit -wu ` in front of all the other lines (check TIP below). Should look like:
 <pre>#!/bin/bash
 markit -wu 50 https://wireless.wiki.kernel.org/ networking, device drivers
 markit -wu 51 https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
