@@ -198,7 +198,10 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
     if online == True:
         meta = meta.strip().replace("\n","")
-        print("Title: [%s]" % meta)
+        if meta == '':
+            print("\x1B[91mTitle: []\x1B[0m")
+        else:
+            print("Title: [%s]" % meta)
 
     if index == None: # Insert a new entry
         try:
