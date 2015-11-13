@@ -109,7 +109,7 @@ Added at index 15012014</pre>
 <pre>$ markit -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
 Title: [TuxDiary | Linux, open source and a pinch of leisure.]
 Updated</pre>
-4. Update (refresh) full DB:
+4. Update or <b>refresh full DB</b>:
 <pre>$ markit -R</pre>
 5. <b>Delete</b> bookmark at index 15012014:
 <pre>$ markit -d 15012014</pre>
