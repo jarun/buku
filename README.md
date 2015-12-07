@@ -60,7 +60,7 @@ $ ./markit ...</pre>
 # Usage
 <b>Operational notes:</b>
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
-- If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` qoutes.
+- If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` quotes.
 - The same URL cannot be added twice. You can update tags and re-fetch title data. You can also delete it and insert at the same index. 
 - You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
 - Search works in mysterious ways:
@@ -144,7 +144,7 @@ markit -aw http://www.tittbit.in/
 markit -aw http://www.mikroe.com/chapters/view/65/ electronics
 markit -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
 markit -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
-Make the script executbale and run to batch add bookmarks.
+Make the script executable and run to batch add bookmarks.
 17. To <b>update selected URLs</b> (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 <pre>$ markit -P -x 2 | tee myurls</pre>
 Remove the lines you don't need. Add `markit -wu ` in front of all the other lines (check TIP below). Should look like:
