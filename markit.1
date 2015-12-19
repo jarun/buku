@@ -25,6 +25,8 @@ Search works in mysterious ways:
   - '-s' : match any of the keywords in URL or title. Order is irrelevant.
   - '-S' : match all the keywords in URL or title. Order is irrelevant. 
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within '()' after the URL.
+.PP
+Encryption support is manual. Database file should be unlocked ('-k') before using markit and locked ('-l') afterwards. Note that the database file is unecrypted on creation. AES256 is used for encryption.
 .SH OPTIONS
 .TP
 .BI \-a " URL" " " "tag 1", " tag 2", " ..."
@@ -44,6 +46,12 @@ Delete ALL bookmarks.
 Add a new record at index
 .I N
 in DB. Use this option to fill blank indices left by deleted bookmarks.
+.TP
+.B \-k
+Decrypt (unlock) the DB file.
+.TP
+.B \-l
+Encrypt (lock) the DB file.
 .TP
 .BI \-o " N"
 Open URL at DB index

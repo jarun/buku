@@ -14,6 +14,7 @@ If you find `markit` useful, please consider donating via PayPal.
 # Features
 - Add, update or remove a bookmark
 - Add tags to bookmarks
+- Manually encrypt and decrypt database (AES256 algorithm)
 - Optionally fetch page title data from the web (default: disabled)
 - Use (partial) tags or keywords to search bookmarks
 - Any or all search keyword match options
@@ -57,6 +58,11 @@ If you do not want to install, `markit` is standalone:
 <pre>$ chmod +x markit
 $ ./markit ...</pre>
 
+3. You need PyCrypto module for encryption support. To install it, run:
+<pre>$ pip3 install pycrypto</pre>
+OR, on Ubuntu,
+<pre>$ sudo apt-get install python3-crypto</pre>
+
 # Usage
 <b>Operational notes:</b>
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `markit` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
@@ -69,6 +75,7 @@ $ ./markit ...</pre>
   - `-s` : match any of the keywords in URL or title. Order is irrelevant.
   - `-S` : match all the keywords in URL or title. Order is irrelevant.
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within `()` after the URL.
+- Encryption support is manual. Database file should be unlocked (`-k`) before using markit and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption.
   
 <b>Cmdline help:</b>
   
@@ -80,6 +87,8 @@ Options
   -d N                       delete entry at DB index N (from -P output)
   -D                         delete ALL bookmarks
   -i N                       insert entry at DB index N, useful to fill deleted index
+  -k                         decrypt (unlock) database file
+  -l                         encrypt (lock) database file
   -o N                       open URL at DB index N in browser
   -p N                       show details of bookmark record at DB index N
   -P                         show all bookmarks along with index from DB
