@@ -1,17 +1,17 @@
-.TH "MARKIT" "1" "December 2015" "Version 1.5" "User Commands"
+.TH "BUKU" "1" "December 2015" "Version 1.5" "User Commands"
 .SH NAME
-markit \- Bookmark manager. Your private Google.
+buku \- Bookmark manager. Your private Google.
 .SH SYNOPSIS
-.B markit
+.B buku
 .RI [ OPTIONS ]
 .I KEYWORDS...
 .SH DESCRIPTION
-.B markit
+.B buku
 is a command line tool to save and search bookmarks.
 .PP
 The SQLite3 database file is stored in $HOME/.cache/bookmarks.db for each user.
 .SH OPERATIONAL NOTES
-It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading 'http://' or 'https://' token. markit looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
+It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading 'http://' or 'https://' token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 .PP
 If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.
 .PP
@@ -26,7 +26,7 @@ Search works in mysterious ways:
   - '-S' : match all the keywords in URL or title. Order is irrelevant. 
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within '()' after the URL.
 .PP
-Encryption support is manual. Database file should be unlocked ('-k') before using markit and locked ('-l') afterwards. Note that the database file is unecrypted on creation. AES256 is used for encryption.
+Encryption support is manual. Database file should be unlocked ('-k') before using buku and locked ('-l') afterwards. Note that the database file is unecrypted on creation. AES256 is used for encryption.
 .SH OPTIONS
 .TP
 .BI \-a " URL" " " "tag 1", " tag 2", " ..."
@@ -94,13 +94,13 @@ Show selective monochrome output. Works with '-P'. If
 Enable debugging.
 .TP
 .BI ""
-Any other option shows help and exits markit.
+Any other option shows help and exits buku.
 .SH KEYS
 .TP
 .BI "1-N"
 Open
 .I Nth
-search result in browser. Pressing 'Enter' exits markit.
+search result in browser. Pressing 'Enter' exits buku.
 .SH ENVIRONMENT
 .TP
 .BI BROWSER
@@ -109,9 +109,9 @@ Overrides the default browser. Ref:
 .SH AUTHOR
 Written by Arun Prakash Jana <engineerarun@gmail.com>.
 .SH HOME
-.I https://github.com/jarun/markit
+.I https://github.com/jarun/buku
 .SH REPORTING BUGS
-.I https://github.com/jarun/markit/issues
+.I https://github.com/jarun/buku/issues
 .SH COPYRIGHT
 Copyright \(co 2015 Arun Prakash Jana <engineerarun@gmail.com>.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
