@@ -86,7 +86,7 @@ def usage():
     print("                             any other option shows help and exits markit\n")
     print("Keys")
     print("  1-N                        open Nth search result in browser. Enter exits markit.\n")
-    print("Version 1.4")
+    print("Version 1.5")
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
     print("Webpage: https://github.com/jarun/markit")
     sys.exit(1)
@@ -99,6 +99,11 @@ def initdb():
     dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'markit')
     if not os.path.exists(dbpath):
         os.makedirs(dbpath)
+
+    encpath = os.path.join(dbpath, 'bookmarks.db.enc')
+    if os.path.exists(encpath) and not os.path.exists(os.path.join(dbpath, 'bookmarks.db')):
+        print("Unlock database first")
+        sys.exit(1)
 
     # Create a connection
     conn = sqlite3.connect(os.path.join(dbpath, 'bookmarks.db'))
@@ -455,7 +460,7 @@ def browser_open(url):
 def encrypt_file():
     dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'markit', 'bookmarks.db')
     if not os.path.exists(dbpath):
-        print("Error: %s missing" % dbpath)
+        print("%s missing. Already encrypted?" % dbpath)
         sys.exit(1)
 
     password = ''
@@ -528,7 +533,6 @@ def decrypt_file():
 
             outfile.truncate(origsize)
 
-    os.remove(encpath)
     print("File decrypted")
     sys.exit(0)
 
