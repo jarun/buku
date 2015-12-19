@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with markit.  If not, see <http://www.gnu.org/licenses/>.
+# along with buku.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import os
@@ -62,9 +62,9 @@ refresh = False
 
 
 
-# Show usage of markit and exit
+# Show usage of buku and exit
 def usage():
-    print("Usage: markit [OPTIONS] KEYWORDS...")
+    print("Usage: buku [OPTIONS] KEYWORDS...")
     print("Bookmark manager. Your private Google.\n")
     print("Options")
     print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
@@ -84,12 +84,12 @@ def usage():
     print("  -x N                       works with -P, N=1: show only URL, N=2: show URL and tag")
     print("  -z                         show debug information")
     print("                             you can either add or update or delete in one instance")
-    print("                             any other option shows help and exits markit\n")
+    print("                             any other option shows help and exits buku\n")
     print("Keys")
-    print("  1-N                        open Nth search result in browser. Enter exits markit.\n")
+    print("  1-N                        open Nth search result in browser. Enter exits buku.\n")
     print("Version 1.5")
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
-    print("Webpage: https://github.com/jarun/markit")
+    print("Webpage: https://github.com/jarun/buku")
     sys.exit(1)
 
 
@@ -97,7 +97,7 @@ def usage():
 # Initialize the database connection
 # Create bookmarks table is not existing
 def initdb():
-    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'markit')
+    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
     if not os.path.exists(dbpath):
         os.makedirs(dbpath)
 
@@ -472,7 +472,7 @@ def get_filehash(filepath):
 
 # Encrypt the bookmarks database file
 def encrypt_file():
-    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'markit', 'bookmarks.db')
+    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
     if not os.path.exists(dbpath):
         print("%s missing. Already encrypted?" % dbpath)
         sys.exit(1)
@@ -523,7 +523,7 @@ def encrypt_file():
 
 # Decrypt the bookmarks database file
 def decrypt_file():
-    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'markit', 'bookmarks.db')
+    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
         print("Error: %s missing" % encpath)
@@ -689,7 +689,7 @@ try:
         elif opt[0] == "-z":
             debug = True
 except GetoptError as e:
-    print("markit:", e)
+    print("buku:", e)
     sys.exit(1)
 
 # Initilize the database and get handles
