@@ -28,15 +28,19 @@ from http.client import HTTPConnection
 from http.client import HTTPSConnection
 from urllib.parse import urljoin, unquote
 
+# Import libraries needed for encryption
 try:
-    import base64
+    import getpass
     import hashlib
     from Crypto.Cipher import AES
     from Crypto import Random
+    import struct
 
     no_crypto = False
 except ImportError:
     no_crypto = True
+
+
 
 # Globals
 addurl = False
@@ -56,6 +60,7 @@ titleData = None
 refresh = False
 
 
+
 # Show usage of markit and exit
 def usage():
     print("Usage: markit [OPTIONS] KEYWORDS...")
@@ -64,6 +69,7 @@ def usage():
     print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
     print("  -d N                       delete entry at DB index N (from -P output)")
     print("  -D                         delete ALL bookmarks")
+    print("  -e                         encrypt database file (needs PyCrypto)")
     print("  -i N                       insert entry at DB index N, useful to fill deleted index")
     print("  -o N                       open URL at DB index N in browser")
     print("  -p N                       show details of bookmark record at DB index N")
@@ -444,6 +450,50 @@ def browser_open(url):
 
 
 
+# Encrypt the bookmarks database file
+def encrypt_file():
+    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'markit', 'bookmarks.db')
+    if not os.path.exists(dbpath):
+        print("Error: %s missing" % dbpath)
+        sys.exit(1)
+
+    password = ''
+    password = getpass.getpass()
+    passconfirm = getpass.getpass()
+    if password == '':
+        print("Empty password");
+        sys.exit(1)
+    if password != passconfirm:
+        print("Passwords don't match");
+        sys.exit(1)
+
+    key = hashlib.sha256(password.encode('utf-8')).digest()
+    chunksize = 512 * 1024
+    encpath = dbpath + '.enc'
+
+    iv = Random.new().read(AES.block_size)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    filesize = os.path.getsize(dbpath)
+
+    with open(dbpath, 'rb') as infile:
+        with open(encpath, 'wb') as outfile:
+            outfile.write(struct.pack('<Q', filesize))
+            outfile.write(iv)
+
+            while True:
+                chunk = infile.read(chunksize)
+                if len(chunk) == 0:
+                    break
+                elif len(chunk) % 16 != 0:
+                    chunk += ' ' * (16 - len(chunk) % 16)
+
+                outfile.write(cipher.encrypt(chunk))
+
+    print("File encrypted")
+    sys.exit(0)
+
+
+
 # Main starts here
 # ----------------
 optlist = None
@@ -454,7 +504,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:x:aDPRsSwz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:x:aDePRsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -484,6 +534,13 @@ try:
                 usage()
 
             delete = True
+        elif opt[0] == "-e":
+            if no_crypto == True:
+                print("Error: PyCrypto missing")
+                sys.exit(0)
+
+            encrypt_file()
+
         elif opt[0] == "-i":
             if update == True or delete == True:
                 print("You can either add or update or delete in one instance\n")
