@@ -69,8 +69,9 @@ def usage():
     print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
     print("  -d N                       delete entry at DB index N (from -P output)")
     print("  -D                         delete ALL bookmarks")
-    print("  -e                         encrypt database file (needs PyCrypto)")
     print("  -i N                       insert entry at DB index N, useful to fill deleted index")
+    print("  -k                         decrypt database file (needs PyCrypto)")
+    print("  -l                         encrypt database file (needs PyCrypto)")
     print("  -o N                       open URL at DB index N in browser")
     print("  -p N                       show details of bookmark record at DB index N")
     print("  -P                         show all bookmarks along with index from DB")
@@ -489,7 +490,46 @@ def encrypt_file():
 
                 outfile.write(cipher.encrypt(chunk))
 
+    os.remove(dbpath)
     print("File encrypted")
+    sys.exit(0)
+
+
+
+# Decrypt the bookmarks database file
+def decrypt_file():
+    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'markit', 'bookmarks.db')
+    encpath = dbpath + '.enc'
+    if not os.path.exists(encpath):
+        print("Error: %s missing" % encpath)
+        sys.exit(1)
+
+    password = ''
+    password = getpass.getpass()
+    if password == '':
+        print("Decryption failed");
+        sys.exit(1)
+
+    key = hashlib.sha256(password.encode('utf-8')).digest()
+    chunksize = 512 * 1024
+
+    with open(encpath, 'rb') as infile:
+        origsize = struct.unpack('<Q', infile.read(struct.calcsize('Q')))[0]
+        iv = infile.read(16)
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+
+        with open(dbpath, 'wb') as outfile:
+            while True:
+                chunk = infile.read(chunksize)
+                if len(chunk) == 0:
+                    break;
+
+                outfile.write(cipher.decrypt(chunk))
+
+            outfile.truncate(origsize)
+
+    os.remove(encpath)
+    print("File decrypted")
     sys.exit(0)
 
 
@@ -504,7 +544,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:x:aDePRsSwz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:x:aDklPRsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -534,13 +574,6 @@ try:
                 usage()
 
             delete = True
-        elif opt[0] == "-e":
-            if no_crypto == True:
-                print("Error: PyCrypto missing")
-                sys.exit(0)
-
-            encrypt_file()
-
         elif opt[0] == "-i":
             if update == True or delete == True:
                 print("You can either add or update or delete in one instance\n")
@@ -554,6 +587,18 @@ try:
                 usage()
 
             addurl = True
+        elif opt[0] == "-k":
+            if no_crypto == True:
+                print("Error: PyCrypto missing")
+                sys.exit(0)
+
+            decrypt_file()
+        elif opt[0] == "-l":
+            if no_crypto == True:
+                print("Error: PyCrypto missing")
+                sys.exit(0)
+
+            encrypt_file()
         elif opt[0] == "-o":
             if not opt[1].isdigit():
                 usage()
