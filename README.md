@@ -2,7 +2,7 @@
 
 ![Screenshot](buku.png)
 
-`buku` (formerly `MarkIt`) is a cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku`!  
+`buku` (formerly `markit`) is a cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku`!  
   
 The SQLite3 database file is stored in `$HOME/.cache/buku/bookmarks.db` for each user.  
   
