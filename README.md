@@ -8,7 +8,7 @@ The SQLite3 database file is stored in `$HOME/.cache/buku/bookmarks.db` for each
   
 `buku` is GPLv3 licensed.
 
-There was a possible licensing issue with the original project name. Hence, I changed the name to my son's nickname.
+There was a possible copyright conflict with the original project name. Hence, I changed the name to my son's nickname.
 
 If you find `buku` useful, please consider donating via PayPal.  
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate Button with Credit Cards" /></a>
