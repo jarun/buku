@@ -75,7 +75,7 @@ OR, on Ubuntu,
   - `-s` : match any of the keywords in URL or title. Order is irrelevant.
   - `-S` : match all the keywords in URL or title. Order is irrelevant.
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within `()` after the URL.
-- Encryption support is manual. Database file should be unlocked (`-k`) before using markit and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption. Even a wrong password leads to (mathematically) successful decryption. So keep your encrypted database file safe i.e. do not overwrite it without verifying the file is decrypted correctly.
+- Encryption support is manual. Database file should be unlocked (`-k`) before using markit and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption.
   
 <b>Cmdline help:</b>
   

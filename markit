@@ -37,6 +37,7 @@ try:
     import struct
 
     no_crypto = False
+    BLOCKSIZE = 65536
 except ImportError:
     no_crypto = True
 
@@ -456,6 +457,19 @@ def browser_open(url):
 
 
 
+# Get the SHA256 hash of a file
+def get_filehash(filepath):
+    with open(filepath, 'rb') as f:
+        hasher = hashlib.sha256()
+        buf = f.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = f.read(BLOCKSIZE)
+
+        return hasher.digest()
+
+
+
 # Encrypt the bookmarks database file
 def encrypt_file():
     dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'markit', 'bookmarks.db')
@@ -477,6 +491,9 @@ def encrypt_file():
     chunksize = 512 * 1024
     encpath = dbpath + '.enc'
 
+    # Get SHA256 hash of DB file
+    dbhash = get_filehash(dbpath)
+
     iv = Random.new().read(AES.block_size)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     filesize = os.path.getsize(dbpath)
@@ -485,6 +502,9 @@ def encrypt_file():
         with open(encpath, 'wb') as outfile:
             outfile.write(struct.pack('<Q', filesize))
             outfile.write(iv)
+
+            # Embed DB file hash in encrypted file
+            outfile.write(dbhash)
 
             while True:
                 chunk = infile.read(chunksize)
@@ -523,6 +543,9 @@ def decrypt_file():
         iv = infile.read(16)
         cipher = AES.new(key, AES.MODE_CBC, iv)
 
+        # Get original DB file's SHA256 hash from encrypted file
+        enchash = infile.read(32)
+
         with open(dbpath, 'wb') as outfile:
             while True:
                 chunk = infile.read(chunksize)
@@ -533,7 +556,15 @@ def decrypt_file():
 
             outfile.truncate(origsize)
 
-    print("File decrypted")
+    # Match hash of generated file with that of original DB file
+    dbhash = get_filehash(dbpath)
+    if dbhash != enchash:
+        os.remove(dbpath)
+        print("Wrong password")
+    else:
+        os.remove(encpath)
+        print("File decrypted")
+
     sys.exit(0)
 
 
