@@ -28,6 +28,16 @@ from http.client import HTTPConnection
 from http.client import HTTPSConnection
 from urllib.parse import urljoin, unquote
 
+try:
+    import base64
+    import hashlib
+    from Crypto.Cipher import AES
+    from Crypto import Random
+
+    no_crypto = False
+except ImportError:
+    no_crypto = True
+
 # Globals
 addurl = False
 addindex = None
@@ -44,7 +54,6 @@ update = False
 debug = False
 titleData = None
 refresh = False
-
 
 
 # Show usage of markit and exit
