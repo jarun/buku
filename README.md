@@ -187,7 +187,6 @@ Copyright (C) 2015 by Arun Prakash Jana &lt;engineerarun@gmail.com&gt;
 I would love to see pull requests with the following features:
 - Exact word match (against substring in a word as it works currently. Hint: REGEXP)
 - Parse full page data??? Might end up writing a search engine like Google. ;)
-- Optional password protection
 
 # Developer(s)
 Arun Prakash Jana &lt;engineerarun@gmail.com&gt;
