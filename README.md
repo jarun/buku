@@ -16,7 +16,7 @@ If you find `buku` useful, please consider donating via PayPal.
 # Features
 - Add, update or remove a bookmark
 - Add tags to bookmarks
-- Manually encrypt and decrypt database (AES256 algorithm)
+- Manual password protection using AES256 encryption algorithm
 - Optionally fetch page title data from the web (default: disabled)
 - Use (partial) tags or keywords to search bookmarks
 - Any or all search keyword match options
