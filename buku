@@ -38,6 +38,9 @@ try:
 
     no_crypto = False
     BLOCKSIZE = 65536
+    SALT_SIZE = 32
+    NUMBER_OF_ITERATIONS = 8
+    CHUNKSIZE = 0x80000 # Read/write 512 KB chunks
 except ImportError:
     no_crypto = True
 
@@ -487,27 +490,32 @@ def encrypt_file():
         print("Passwords don't match");
         sys.exit(1)
 
-    key = hashlib.sha256(password.encode('utf-8')).digest()
-    chunksize = 512 * 1024
     encpath = dbpath + '.enc'
 
     # Get SHA256 hash of DB file
     dbhash = get_filehash(dbpath)
 
-    iv = Random.new().read(AES.block_size)
+    # Generate randon 256-bit salt and key
+    salt = Random.get_random_bytes(SALT_SIZE) 
+    key = (password + salt.decode('utf-8', "replace")).encode('utf-8')
+    for i in range(NUMBER_OF_ITERATIONS):
+        key = hashlib.sha256(key).digest()
+
+    iv = Random.get_random_bytes(16)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     filesize = os.path.getsize(dbpath)
 
     with open(dbpath, 'rb') as infile:
         with open(encpath, 'wb') as outfile:
             outfile.write(struct.pack('<Q', filesize))
+            outfile.write(salt)
             outfile.write(iv)
 
             # Embed DB file hash in encrypted file
             outfile.write(dbhash)
 
             while True:
-                chunk = infile.read(chunksize)
+                chunk = infile.read(CHUNKSIZE)
                 if len(chunk) == 0:
                     break
                 elif len(chunk) % 16 != 0:
@@ -535,11 +543,15 @@ def decrypt_file():
         print("Decryption failed");
         sys.exit(1)
 
-    key = hashlib.sha256(password.encode('utf-8')).digest()
-    chunksize = 512 * 1024
-
     with open(encpath, 'rb') as infile:
         origsize = struct.unpack('<Q', infile.read(struct.calcsize('Q')))[0]
+
+        # Read 256-bit salt and generate key
+        salt = infile.read(32)
+        key = (password + salt.decode('utf-8', "replace")).encode('utf-8')
+        for i in range(NUMBER_OF_ITERATIONS):
+            key = hashlib.sha256(key).digest()
+
         iv = infile.read(16)
         cipher = AES.new(key, AES.MODE_CBC, iv)
 
@@ -548,7 +560,7 @@ def decrypt_file():
 
         with open(dbpath, 'wb') as outfile:
             while True:
-                chunk = infile.read(chunksize)
+                chunk = infile.read(CHUNKSIZE)
                 if len(chunk) == 0:
                     break;
 
