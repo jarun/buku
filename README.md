@@ -77,7 +77,7 @@ OR, on Ubuntu,
   - `-s` : match any of the keywords in URL or title. Order is irrelevant.
   - `-S` : match all the keywords in URL or title. Order is irrelevant.
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within `()` after the URL.
-- Encryption support is manual. Database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption. User can specify (`-t`) the number of hash iterations to use to generate key.
+- Encryption support is manual. Database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
   
 <b>Cmdline help:</b>
   
@@ -97,7 +97,7 @@ Options
   -R                         refresh all bookmarks, tags retained
   -s keyword(s)              search all bookmarks for a (partial) tag or any keyword
   -S keyword(s)              search all bookmarks for a (partial) tag or all keywords
-  -t N                       use N (> 0) iterations to generate key, works with -k, -l
+  -t N                       use N (> 0) hash iterations to generate key, works with -k, -l
   -u N                       update entry at DB index N
   -w                         fetch title info from web, works with -a, -i, -u
   -x N                       works with -P, N=1: show only URL, N=2: show URL and tag

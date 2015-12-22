@@ -26,7 +26,7 @@ Search works in mysterious ways:
   - '-S' : match all the keywords in URL or title. Order is irrelevant. 
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within '()' after the URL.
 .PP
-Encryption support is manual. Database file should be unlocked ('-k') before using buku and locked ('-l') afterwards. Note that the database file is unecrypted on creation. AES256 is used for encryption.
+Encryption support is manual. Database file should be unlocked ('-k') before using buku and locked ('-l') afterwards. Note that the database file is unecrypted on creation. AES256 is used for encryption. Optionally specify ('-t') the number of hash iterations to use to generate key. Default is 8 iterations.
 .SH OPTIONS
 .TP
 .BI \-a " URL" " " "tag 1", " tag 2", " ..."
@@ -74,6 +74,11 @@ Search bookmarks for a (partial) tag or any keyword and show the results. Prompt
 .TP
 .BI \-S " keywords"
 Search bookmarks for a (partial) tag or occurrence of all keywords in URL or title and show the results. Rest same as '-s'.
+.TP
+.BI \-t " N"
+Use
+.I N
+(> 0) hash iterations to generate key, works with '-k', '-l'.
 .TP
 .BI \-u " N"
 Update bookmark at index
