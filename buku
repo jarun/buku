@@ -39,7 +39,6 @@ try:
     no_crypto = False
     BLOCKSIZE = 65536
     SALT_SIZE = 32
-    NUMBER_OF_ITERATIONS = 8
     CHUNKSIZE = 0x80000 # Read/write 512 KB chunks
 except ImportError:
     no_crypto = True
@@ -62,6 +61,9 @@ update = False
 debug = False
 titleData = None
 refresh = False
+encrypt = False
+decrypt = False
+iterations = int(8)
 
 
 
@@ -82,6 +84,7 @@ def usage():
     print("  -R                         refresh all bookmarks, tags retained")
     print("  -s keyword(s)              search all bookmarks for a (partial) tag or any keyword")
     print("  -S keyword(s)              search all bookmarks for a (partial) tag or all keywords")
+    print("  -t N                       use N (> 0) iterations to generate key, works with -k, -l")
     print("  -u N                       update entry at DB index N")
     print("  -w                         fetch title info from web, works with -a, -i, -u")
     print("  -x N                       works with -P, N=1: show only URL, N=2: show URL and tag")
@@ -498,7 +501,7 @@ def encrypt_file():
     # Generate randon 256-bit salt and key
     salt = Random.get_random_bytes(SALT_SIZE) 
     key = (password + salt.decode('utf-8', "replace")).encode('utf-8')
-    for i in range(NUMBER_OF_ITERATIONS):
+    for i in range(iterations):
         key = hashlib.sha256(key).digest()
 
     iv = Random.get_random_bytes(16)
@@ -549,7 +552,7 @@ def decrypt_file():
         # Read 256-bit salt and generate key
         salt = infile.read(32)
         key = (password + salt.decode('utf-8', "replace")).encode('utf-8')
-        for i in range(NUMBER_OF_ITERATIONS):
+        for i in range(iterations):
             key = hashlib.sha256(key).digest()
 
         iv = infile.read(16)
@@ -591,7 +594,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:u:x:aDklPRsSwz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:t:u:x:aDklPRsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -639,13 +642,13 @@ try:
                 print("Error: PyCrypto missing")
                 sys.exit(0)
 
-            decrypt_file()
+            decrypt = True
         elif opt[0] == "-l":
             if no_crypto == True:
                 print("Error: PyCrypto missing")
                 sys.exit(0)
 
-            encrypt_file()
+            encrypt = True
         elif opt[0] == "-o":
             if not opt[1].isdigit():
                 usage()
@@ -676,6 +679,13 @@ try:
         elif opt[0] == "-S":
             searchAll = True
             search = True
+        elif opt[0] == "-t":
+            if not opt[1].isdigit():
+                usage()
+
+            iterations = int(opt[1])
+            if iterations <= 0:
+                usage()
         elif opt[0] == "-u":
             if addurl == True or delete == True:
                 print("You can either add or update or delete in one instance\n")
@@ -703,6 +713,13 @@ try:
 except GetoptError as e:
     print("buku:", e)
     sys.exit(1)
+
+# Handle encrypt/decrypt options at top priority
+if encrypt == True:
+    encrypt_file()
+
+if decrypt == True:
+    decrypt_file()
 
 # Initilize the database and get handles
 conn, cur = initdb()
