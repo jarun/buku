@@ -77,7 +77,7 @@ OR, on Ubuntu,
   - `-s` : match any of the keywords in URL or title. Order is irrelevant.
   - `-S` : match all the keywords in URL or title. Order is irrelevant.
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within `()` after the URL.
-- Encryption support is manual. Database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption.
+- Encryption support is manual. Database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption. User can specify (`-t`) the number of hash iterations to use to generate key.
   
 <b>Cmdline help:</b>
   
@@ -97,6 +97,7 @@ Options
   -R                         refresh all bookmarks, tags retained
   -s keyword(s)              search all bookmarks for a (partial) tag or any keyword
   -S keyword(s)              search all bookmarks for a (partial) tag or all keywords
+  -t N                       use N (> 0) iterations to generate key, works with -k, -l
   -u N                       update entry at DB index N
   -w                         fetch title info from web, works with -a, -i, -u
   -x N                       works with -P, N=1: show only URL, N=2: show URL and tag
@@ -141,13 +142,17 @@ This option is useful in filling deleted indices from database manually.
 <pre>$ buku -s kernel debugging</pre>
 12. <b>Search</b> bookmarks for a tag matching `*kernel debugging*` or all the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 <pre>$ buku -S kernel debugging</pre>
-13. Show <b>debug info</b>:
+13. Encrypt/decrypt DB with <b>custom number of iterations</b> to generate key:
+<pre>$ buku -l -t 15
+$ buku -k -t 15</pre>
+The same number of iterations must be used for one lock & unlock instance.
+14. Show <b>debug info</b>:
 <pre>$ buku -z</pre>
-14. Show <b>help</b>:
+15. Show <b>help</b>:
 <pre>$ buku</pre>
-15. Check <b>manpage</b>:
+16. Check <b>manpage</b>:
 <pre>$ man buku</pre>
-16. `buku` doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
+17. `buku` doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
 <pre>#!/bin/bash
 buku -aw https://wireless.wiki.kernel.org/ networking, device drivers
 buku -aw https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
@@ -156,7 +161,7 @@ buku -aw http://www.mikroe.com/chapters/view/65/ electronics
 buku -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
 buku -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
 Make the script executable and run to batch add bookmarks.
-17. To <b>update selected URLs</b> (refresh) along with your tags, first get the unformatted selective output with URL and tags:
+18. To <b>update selected URLs</b> (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 <pre>$ buku -P -x 2 | tee myurls</pre>
 Remove the lines you don't need. Add `buku -wu ` in front of all the other lines (check TIP below). Should look like:
 <pre>#!/bin/bash
