@@ -188,7 +188,7 @@ Using sed:
 
 #License
 GPL v3  
-Copyright (C) 2015 by Arun Prakash Jana &lt;engineerarun@gmail.com&gt;
+Copyright (C) 2015 by [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 
 # Contributions
 I would love to see pull requests with the following features:
@@ -196,4 +196,4 @@ I would love to see pull requests with the following features:
 - Parse full page data??? Might end up writing a search engine like Google. ;)
 
 # Developer(s)
-Arun Prakash Jana &lt;engineerarun@gmail.com&gt;
+[Arun Prakash Jana](mailto:engineerarun@gmail.com)
