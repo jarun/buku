@@ -68,6 +68,8 @@ OR, on Ubuntu,
 <pre>$ sudo apt-get install python3-crypto</pre>
 
 4. `buku` is also available on [AUR](https://aur.archlinux.org/packages/buku/).
+5. To install `buku` on Void Linux, run:
+<pre>$ sudo xbps-install -S buku</pre>
 
 # Usage
 <b>Operational notes:</b>
