@@ -67,6 +67,8 @@ $ ./buku ...</pre>
 OR, on Ubuntu,
 <pre>$ sudo apt-get install python3-crypto</pre>
 
+4. `buku` is also available on [AUR](https://aur.archlinux.org/packages/buku/).
+
 # Usage
 <b>Operational notes:</b>
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
