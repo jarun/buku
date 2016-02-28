@@ -89,7 +89,6 @@ def usage():
     print("  -w                         fetch title info from web, works with -a, -i, -u")
     print("  -x N                       works with -P, N=1: show only URL, N=2: show URL and tag")
     print("  -z                         show debug information")
-    print("                             you can either add or update or delete in one instance")
     print("                             any other option shows help and exits buku\n")
     print("Keys")
     print("  1-N                        open Nth search result in browser. Enter exits buku.\n")
