@@ -11,7 +11,7 @@ The SQLite3 database file is stored in `$HOME/.cache/buku/bookmarks.db` for each
 `buku` is **GPLv3** licensed. Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 If you find `buku` useful, please consider donating via PayPal.
-[![Donate Button with Credit Cards](https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q)
+[![Donate Button](https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q)
 
 # Table of Contents
 
