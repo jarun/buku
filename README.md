@@ -2,15 +2,13 @@
 
 ![Screenshot](buku.png)
 
-`buku` (formerly `markit`) is a cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku`!
+`buku` (formerly `markit`) is a cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku` (after my son's nickname).
 
 You can add bookmarks to `buku` with tags, optionally fetch page title from web, search by keywords for matching tags or title or URL, update and remove bookmarks. You can open the URLs from search results directly in the browser. You can encrypt or decrypt the database file manually, optionally with custom number of hash passes for key generation.  
 
 The SQLite3 database file is stored in `$HOME/.cache/buku/bookmarks.db` for each user.  
 
 `buku` is GPLv3 licensed. Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
-
-Changed the original project name to my son's nickname due to a possible copyright conflict.
 
 If you find `buku` useful, please consider donating via PayPal.
 [![Donate Button with Credit Cards](https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q)
@@ -19,7 +17,13 @@ If you find `buku` useful, please consider donating via PayPal.
 
 - [Features](#features)
 - [Installation](#installation)
+  - [Dependencies](#dependencies)
+  - [Installating from source](#installing-from-source)
+  - [Running as a standalone utility](#running-as-a-standalone-utility)
+  - [Installing with a package manager](#installing-with-a-package-manager)
 - [Usage](#usage)
+  - [Operational notes](#operational-notes)
+  - [Cmdline help](#cmdline-help)
 - [Examples](#examples)
 - [Contributions](#contributions)
 - [Developers](#developers)
@@ -55,33 +59,47 @@ If you find `buku` useful, please consider donating via PayPal.
 
 # Installation
 
+## Dependencies
 `buku` requires Python 3.x to work.
 
-1. If you have git installed (the steps are tested on Ubuntu 14.04.3 x64_64):  
-<pre>$ git clone https://github.com/jarun/buku/  
-$ cd buku
-$ sudo make install</pre>  
+For optional encryption support, install PyCrypto module. Run:
+
+    $ sudo pip3 install pycrypto
+or on Ubuntu:
+
+    $ sudo apt-get install python3-crypto
+## Installing from source
+If you have git installed, run:
+
+    $ git clone https://github.com/jarun/buku/
+or download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/buku/archive/master.zip).
+
+Install to default location:
+
+    $ sudo make install  
+or, a custom location (PREFIX):
+
+    $ PREFIX=/path/to/prefix make install
+    
 To remove, run:  
-<pre>$ sudo make uninstall</pre>
 
-2. If you do not have git installed:  
-Download the <a href="https://github.com/jarun/buku/releases/latest">latest stable release</a> or <a href="https://github.com/jarun/buku/archive/master.zip">development version</a> source code. Extract, cd into the directory and run:
-<pre>$ sudo make install</pre>
-If you do not want to install, `buku` is standalone:
-<pre>$ chmod +x buku
-$ ./buku ...</pre>
+    $ sudo make uninstall
+or, if you have installed to a custom location (PREFIX):
 
-3. You need PyCrypto module for encryption support. To install it, run:
-<pre>$ pip3 install pycrypto</pre>
-OR, on Ubuntu,
-<pre>$ sudo apt-get install python3-crypto</pre>
+    $ PREFIX=/path/to/prefix make uninstall
+You may need to use `sudo` with `PREFIX` depending on your permissions on destination directory.
 
-4. `buku` is also available on [AUR](https://aur.archlinux.org/packages/buku/).
-5. To install `buku` on Void Linux, run:
-<pre>$ sudo xbps-install -S buku</pre>
+## Running as a standalone utility
+`buku` is a standalone utility. From the containing directory, run:
+
+    $ ./buku
+## Installing with a package manager
+`buku` is also available on
+ - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux;
+ - Void Linux repos. Run: `$ sudo xbps-install -S buku`
 
 # Usage
-<b>Operational notes:</b>
+## Operational notes
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` quotes.
 - The same URL cannot be added twice. You can update tags and re-fetch title data. You can also delete it and insert at the same index. 
@@ -94,34 +112,33 @@ OR, on Ubuntu,
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within `()` after the URL.
 - Encryption support is manual. Database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
 
-<b>Cmdline help:</b>
+##Cmdline help
 
-<pre>Usage: buku [OPTIONS] KEYWORDS...
-Bookmark manager. Your private Google.
+    Usage: buku [OPTIONS] KEYWORDS...
+    Bookmark manager. Your private Google.
 
-Options
-  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags
-  -d N                       delete entry at DB index N (from -P output)
-  -D                         delete ALL bookmarks
-  -i N                       insert entry at DB index N, useful to fill deleted index
-  -k                         decrypt (unlock) database file
-  -l                         encrypt (lock) database file
-  -o N                       open URL at DB index N in browser
-  -p N                       show details of bookmark record at DB index N
-  -P                         show all bookmarks along with index from DB
-  -R                         refresh all bookmarks, tags retained
-  -s keyword(s)              search all bookmarks for a (partial) tag or any keyword
-  -S keyword(s)              search all bookmarks for a (partial) tag or all keywords
-  -t N                       use N (> 0) hash iterations to generate key, works with -k, -l
-  -u N                       update entry at DB index N
-  -w                         fetch title info from web, works with -a, -i, -u
-  -x N                       works with -P, N=1: show only URL, N=2: show URL and tag
-  -z                         show debug information
-                             you can either add or update or delete in one instance
-                             any other option shows help and exits buku
+    Options
+      -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags
+      -d N                       delete entry at DB index N (from -P output)
+      -D                         delete ALL bookmarks
+      -i N                       insert entry at DB index N, useful to fill deleted index
+      -k                         decrypt (unlock) database file
+      -l                         encrypt (lock) database file
+      -o N                       open URL at DB index N in browser
+      -p N                       show details of bookmark record at DB index N
+      -P                         show all bookmarks along with index from DB
+      -R                         refresh all bookmarks, tags retained
+      -s keyword(s)              search all bookmarks for a (partial) tag or any keyword
+      -S keyword(s)              search all bookmarks for a (partial) tag or all keywords
+      -t N                       use N (> 0) hash iterations to generate key, works with -k, -l
+      -u N                       update entry at DB index N
+      -w                         fetch title info from web, works with -a, -i, -u
+      -x N                       works with -P, N=1: show only URL, N=2: show URL and tag
+      -z                         show debug information
+                                 any other option shows help and exits buku
 
-Keys
-  1-N                        open Nth search result in browser. Enter exits buku.</pre>
+    Keys
+      1-N                        open Nth search result in browser. Enter exits buku.
 
 # Examples
 1. <b>Add</b> a new bookmark with tags `linux news` and `open source`:
@@ -190,14 +207,15 @@ Run the script:
 <pre>$ chmod +x myurls
 $ ./myurls</pre>
 
-<b>TIP:</b>  
+**TIP:**  
 To add the same text at the beginning of multiple lines using vim editor:  
   - Press `Ctrl-v` to select the first column of text in the lines you want to change (visual mode).
   - Press `Shift-i` and type the text you want to insert.
   - Hit `Esc`, wait 1 second and the inserted text will appear on every line.
 
 Using sed:
-<pre>$ sed -i 's/^/buku -wu /' filename</pre>
+
+    $ sed -i 's/^/buku -wu /' filename
 
 # Contributions
 I would love to see pull requests with the following features:
