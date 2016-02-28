@@ -2,18 +2,27 @@
 
 ![Screenshot](buku.png)
 
-`buku` (formerly `markit`) is a cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku`!  
-  
+`buku` (formerly `markit`) is a cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku`!
+
 You can add bookmarks to `buku` with tags, optionally fetch page title from web, search by keywords for matching tags or title or URL, update and remove bookmarks. You can open the URLs from search results directly in the browser. You can encrypt or decrypt the database file manually, optionally with custom number of hash passes for key generation.  
-  
+
 The SQLite3 database file is stored in `$HOME/.cache/buku/bookmarks.db` for each user.  
-  
-`buku` is GPLv3 licensed.
+
+`buku` is GPLv3 licensed. Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 Changed the original project name to my son's nickname due to a possible copyright conflict.
 
-If you find `buku` useful, please consider donating via PayPal.  
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate Button with Credit Cards" /></a>
+If you find `buku` useful, please consider donating via PayPal.
+[![Donate Button with Credit Cards](https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q)
+
+# Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Contributions](#contributions)
+- [Developers](#developers)
 
 # Features
 - Add, update or remove a bookmark
@@ -67,6 +76,10 @@ $ ./buku ...</pre>
 OR, on Ubuntu,
 <pre>$ sudo apt-get install python3-crypto</pre>
 
+4. `buku` is also available on [AUR](https://aur.archlinux.org/packages/buku/).
+5. To install `buku` on Void Linux, run:
+<pre>$ sudo xbps-install -S buku</pre>
+
 # Usage
 <b>Operational notes:</b>
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
@@ -80,9 +93,9 @@ OR, on Ubuntu,
   - `-S` : match all the keywords in URL or title. Order is irrelevant.
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within `()` after the URL.
 - Encryption support is manual. Database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
-  
+
 <b>Cmdline help:</b>
-  
+
 <pre>Usage: buku [OPTIONS] KEYWORDS...
 Bookmark manager. Your private Google.
 
@@ -109,7 +122,7 @@ Options
 
 Keys
   1-N                        open Nth search result in browser. Enter exits buku.</pre>
-  
+
 # Examples
 1. <b>Add</b> a new bookmark with tags `linux news` and `open source`:
 <pre>$ buku -a http://tuxdiary.com linux news, open source
@@ -176,24 +189,22 @@ buku -wu 55 http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.ht
 Run the script:
 <pre>$ chmod +x myurls
 $ ./myurls</pre>
-  
+
 <b>TIP:</b>  
 To add the same text at the beginning of multiple lines using vim editor:  
   - Press `Ctrl-v` to select the first column of text in the lines you want to change (visual mode).
   - Press `Shift-i` and type the text you want to insert.
   - Hit `Esc`, wait 1 second and the inserted text will appear on every line.
-  
+
 Using sed:
 <pre>$ sed -i 's/^/buku -wu /' filename</pre>
-
-#License
-GPL v3  
-Copyright (C) 2015 by [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 
 # Contributions
 I would love to see pull requests with the following features:
 - Exact word match (against substring in a word as it works currently. Hint: REGEXP)
 - Parse full page data??? Might end up writing a search engine like Google. ;)
 
-# Developer(s)
+# Developers
 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
+
+Special thanks to the community for valuable suggestions and ideas.
