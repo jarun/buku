@@ -8,7 +8,7 @@ You can add bookmarks to `buku` with tags, optionally fetch page title from web,
 
 The SQLite3 database file is stored in `$HOME/.cache/buku/bookmarks.db` for each user.  
 
-`buku` is GPLv3 licensed. Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
+`buku` is **GPLv3** licensed. Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 If you find `buku` useful, please consider donating via PayPal.
 [![Donate Button with Credit Cards](https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q)
@@ -23,7 +23,7 @@ If you find `buku` useful, please consider donating via PayPal.
   - [Installing with a package manager](#installing-with-a-package-manager)
 - [Usage](#usage)
   - [Operational notes](#operational-notes)
-  - [Cmdline help](#cmdline-help)
+  - [cmdline help](#cmdline-help)
 - [Examples](#examples)
 - [Contributions](#contributions)
 - [Developers](#developers)
@@ -112,7 +112,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within `()` after the URL.
 - Encryption support is manual. Database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Note that the database file is <i>unecrypted on creation</i>. AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
 
-##Cmdline help
+## cmdline help
 
     Usage: buku [OPTIONS] KEYWORDS...
     Bookmark manager. Your private Google.
@@ -141,71 +141,92 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       1-N                        open Nth search result in browser. Enter exits buku.
 
 # Examples
-1. <b>Add</b> a new bookmark with tags `linux news` and `open source`:
-<pre>$ buku -a http://tuxdiary.com linux news, open source
-Added at index 15012014</pre>
+1. **Add** a new bookmark with tags `linux news` and `open source`:
+
+        $ buku -a http://tuxdiary.com linux news, open source
+        Added at index 15012014
 The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
-2. Add a bookmark, <b>fetch page title</b> information from web:
-<pre>$ buku -a -w http://tuxdiary.com linux news, open source
-Title: [TuxDiary | Linux, open source and a pinch of leisure.]
-Added at index 15012014</pre>
-3. <b>Update</b> existing bookmark at index 15012014 with a new tag:
-<pre>$ buku -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
-Title: [TuxDiary | Linux, open source and a pinch of leisure.]
-Updated</pre>
-4. Update or <b>refresh full DB</b>:
-<pre>$ buku -R</pre>
-5. <b>Delete</b> bookmark at index 15012014:
-<pre>$ buku -d 15012014</pre>
-6. <b>Delete all</b> bookmarks:
-<pre>$ buku -D</pre>
-7. <b>Insert</b> a bookmark at index 15012014 (fails if index or URL exists in database):
-<pre>$ buku -i 15012014 -w http://tuxdiary.com/about linux news, open source
-Title: [A journey with WordPress | TuxDiary]
-Added at index 15012014</pre>
+2. Add a bookmark, **fetch page title** information from web:
+
+        $ buku -a -w http://tuxdiary.com linux news, open source
+        Title: [TuxDiary | Linux, open source and a pinch of leisure.]
+        Added at index 15012014
+3. **Update** existing bookmark at index 15012014 with a new tag:
+
+        $ buku -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
+        Title: [TuxDiary | Linux, open source and a pinch of leisure.]
+        Updated
+4. Update or **refresh full DB**:
+
+        $ buku -R
+5. **Delete** bookmark at index 15012014:
+
+        $ buku -d 15012014
+6. **Delete all** bookmarks:
+
+        $ buku -D
+7. **Insert** a bookmark at index 15012014 (fails if index or URL exists in database):
+
+        $ buku -i 15012014 -w http://tuxdiary.com/about linux news, open source
+        Title: [A journey with WordPress | TuxDiary]
+        Added at index 15012014
 This option is useful in filling deleted indices from database manually.
-8. <b>Show info</b> on bookmark at index 15012014:
-<pre>$ buku -p 15012014</pre>
-9. <b>Show all</b> bookmarks with real index from database:
-<pre>$ buku -P</pre>
-10. <b>Open URL</b> at index 15012014 in browser:
-<pre>$ buku -o 15012014</pre>
-11. <b>Search</b> bookmarks for a tag matching `*kernel debugging*` or any of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
-<pre>$ buku -s kernel debugging</pre>
-12. <b>Search</b> bookmarks for a tag matching `*kernel debugging*` or all the keywords `*kernel*` and `*debugging*` in URL or title (separately):
-<pre>$ buku -S kernel debugging</pre>
-13. Encrypt/decrypt DB with <b>custom number of iterations</b> to generate key:
-<pre>$ buku -l -t 15
-$ buku -k -t 15</pre>
+8. **Show info** on bookmark at index 15012014:
+
+        $ buku -p 15012014
+9. **Show all** bookmarks with real index from database:
+
+        $ buku -P
+10. **Open URL** at index 15012014 in browser:
+
+        $ buku -o 15012014
+11. **Search** bookmarks for a tag matching `*kernel debugging*` or any of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+
+        $ buku -s kernel debugging
+12. **Search** bookmarks for a tag matching `*kernel debugging*` or all the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+
+        $ buku -S kernel debugging
+
+13. Encrypt/decrypt DB with **custom number of iterations** to generate key:
+
+        $ buku -l -t 15
+        $ buku -k -t 15
 The same number of iterations must be used for one lock & unlock instance.
-14. Show <b>debug info</b>:
-<pre>$ buku -z</pre>
-15. Show <b>help</b>:
-<pre>$ buku</pre>
-16. Check <b>manpage</b>:
-<pre>$ man buku</pre>
-17. `buku` doesn't have any <b>import feature</b> of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
-<pre>#!/bin/bash
-buku -aw https://wireless.wiki.kernel.org/ networking, device drivers
-buku -aw https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
-buku -aw http://www.tittbit.in/
-buku -aw http://www.mikroe.com/chapters/view/65/ electronics
-buku -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
-buku -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
+14. Show **debug info**:
+
+        $ buku -z ...
+15. Show **help**:
+
+        $ buku
+16. Check **manpage**:
+
+        $ man buku
+17. `buku` doesn't have any **import feature** of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
+
+        #!/bin/bash
+        buku -aw https://wireless.wiki.kernel.org/ networking, device drivers
+        buku -aw https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
+        buku -aw http://www.tittbit.in/
+        buku -aw http://www.mikroe.com/chapters/view/65/ electronics
+        buku -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
+        buku -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
 Make the script executable and run to batch add bookmarks.
-18. To <b>update selected URLs</b> (refresh) along with your tags, first get the unformatted selective output with URL and tags:
-<pre>$ buku -P -x 2 | tee myurls</pre>
+18. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
+
+        $ buku -P -x 2 | tee myurls
 Remove the lines you don't need. Add `buku -wu ` in front of all the other lines (check TIP below). Should look like:
-<pre>#!/bin/bash
-buku -wu 50 https://wireless.wiki.kernel.org/ networking, device drivers
-buku -wu 51 https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
-buku -wu 52 http://www.tittbit.in/
-buku -wu 53 http://www.mikroe.com/chapters/view/65/ electronics
-buku -wu 54 "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
-buku -wu 55 http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process</pre>
+
+        #!/bin/bash
+        buku -wu 50 https://wireless.wiki.kernel.org/ networking, device drivers
+        buku -wu 51 https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
+        buku -wu 52 http://www.tittbit.in/
+        buku -wu 53 http://www.mikroe.com/chapters/view/65/ electronics
+        buku -wu 54 "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
+        buku -wu 55 http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
 Run the script:
-<pre>$ chmod +x myurls
-$ ./myurls</pre>
+
+        $ chmod +x myurls
+        $ ./myurls
 
 **TIP:**  
 To add the same text at the beginning of multiple lines using vim editor:  
