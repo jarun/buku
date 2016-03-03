@@ -60,6 +60,7 @@ entry = None
 update = False
 debug = False
 titleData = None
+titleManual = None
 refresh = False
 encrypt = False
 decrypt = False
@@ -125,6 +126,7 @@ def initdb():
 
 # Add a new bookmark or update an existing record at index
 def AddUpdateEntry(conn, cur, keywords, index):
+    global titleManual
     global online
 
     tags = ','
@@ -141,7 +143,9 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
     meta = ''
 
-    if online == True:
+    if titleManual != None:
+        meta = titleManual
+    elif online == True:
         secure = True
         if url.find("https://") >= 0:
             server = url[8:]
@@ -225,12 +229,11 @@ def AddUpdateEntry(conn, cur, keywords, index):
             finally:
                 urlconn.close()
 
-    if online == True:
-        meta = meta.strip().replace("\n","")
-        if meta == '':
-            print("\x1B[91mTitle: []\x1B[0m")
-        else:
-            print("Title: [%s]" % meta)
+                meta = meta.strip().replace("\n","")
+                if meta == '':
+                    print("\x1B[91mTitle: []\x1B[0m")
+                else:
+                    print("Title: [%s]" % meta)
 
     if index == None: # Insert a new entry
         try:
@@ -593,7 +596,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:o:p:t:u:x:aDklPRsSwz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDklPRsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -648,6 +651,8 @@ try:
                 sys.exit(0)
 
             encrypt = True
+        elif opt[0] == "-m":
+            titleManual = opt[1]
         elif opt[0] == "-o":
             if not opt[1].isdigit():
                 usage()
@@ -713,6 +718,16 @@ except GetoptError as e:
     print("buku:", e)
     sys.exit(1)
 
+# Update and full DB refresh are mutually exclusive
+if update == True and refresh == True:
+    print("You can either update a single index or refresh full DB at once.\n")
+    usage()
+
+# Online title update conflicts with manual title option
+if online == True and titleManual != None:
+    print("You can either fetch title from web or add/update title manually.\n")
+    usage()
+
 # Handle encrypt/decrypt options at top priority
 if encrypt == True:
     encrypt_file()
@@ -722,11 +737,6 @@ if decrypt == True:
 
 # Initilize the database and get handles
 conn, cur = initdb()
-
-if update == True and refresh == True:
-    print("You can either update a single index or refresh full DB at once.")
-    conn.close()
-    usage()
 
 # Call add or update record
 if addurl == True or update == True:
