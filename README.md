@@ -4,7 +4,7 @@
 
 `buku` (formerly `markit`) is a cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku` (after my son's nickname).
 
-You can add bookmarks to `buku` with tags, optionally fetch page title from web, search by keywords for matching tags or title or URL, update and remove bookmarks. You can open the URLs from search results directly in the browser. You can encrypt or decrypt the database file manually, optionally with custom number of hash passes for key generation.  
+You can add bookmarks to `buku` with title and tags, optionally fetch page title from web, search by keywords for matching tags or title or URL, update and remove bookmarks. You can open the URLs from search results directly in the browser. You can encrypt or decrypt the database file manually, optionally with custom number of hash passes for key generation.  
 
 The SQLite3 database file is stored in `$HOME/.cache/buku/bookmarks.db` for each user.  
 
@@ -33,6 +33,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - Add tags to bookmarks
 - Manual password protection using AES256 encryption algorithm
 - Optionally fetch page title data from the web (default: disabled)
+- Add or update page title offline manually
 - Use (partial) tags or keywords to search bookmarks
 - Any or all search keyword match options
 - Unique URLs to avoid duplicates, show index if URL already exists
@@ -124,6 +125,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -i N                       insert entry at DB index N, useful to fill deleted index
       -k                         decrypt (unlock) database file
       -l                         encrypt (lock) database file
+      -m                         manually add or update the title offline
       -o N                       open URL at DB index N in browser
       -p N                       show details of bookmark record at DB index N
       -P                         show all bookmarks along with index from DB
@@ -141,10 +143,11 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       1-N                        open Nth search result in browser. Enter exits buku.
 
 # Examples
-1. **Add** a new bookmark with tags `linux news` and `open source`:
+1. **Add** a new bookmark with title `Linux magazine` & tags `linux news` and `open source`:
 
-        $ buku -a http://tuxdiary.com linux news, open source
+        $ buku -a -m 'Linux magazine' http://tuxdiary.com linux news, open source
         Added at index 15012014
+Note that URL must precede tags. Multiple words in title must be within quotes.
 The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
 2. Add a bookmark, **fetch page title** information from web:
 

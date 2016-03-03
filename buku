@@ -79,6 +79,7 @@ def usage():
     print("  -i N                       insert entry at DB index N, useful to fill deleted index")
     print("  -k                         decrypt (unlock) database file")
     print("  -l                         encrypt (lock) database file")
+    print("  -m                         manually add or update the title offline")
     print("  -o N                       open URL at DB index N in browser")
     print("  -p N                       show details of bookmark record at DB index N")
     print("  -P                         show all bookmarks along with index from DB")
