@@ -206,9 +206,9 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
                             if debug:
                                 print("Redir server: [%s]" % server)
-                                print("Redir URL: [%s]" % redirurl)
+                                print("Redir URL: [%s]" % unquote(redirurl))
 
-                            urlconn.request("GET", redirurl)
+                            urlconn.request("GET", unquote(redirurl))
                             resp = urlconn.getresponse()
                             if resp.status != 200:
                                 print("ERROR on retry:", str(resp.status), ": ", resp.reason)
@@ -401,7 +401,7 @@ def getTitleData(resp):
     if charset == None:
         charset = 'utf-8'
     if debug:
-        print(charset)
+        print("charset: %s" % charset)
 
     parser = BMHTMLParser()
     try:
