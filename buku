@@ -263,7 +263,7 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
 
 
-# Search the database for a tag or mathcing URL or Title info
+# Search the database for a tag or matching URL or Title info
 def searchdb(cur, keywords):
     searchtag = ''
     for token in keywords:
