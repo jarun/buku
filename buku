@@ -131,7 +131,9 @@ def AddUpdateEntry(conn, cur, keywords, index):
     global online
 
     tags = ','
+    meta = ''
     url = keywords[0]
+
     if len(keywords) > 1:
         for tag in keywords[1:]:
             if tags[-1] == ",":
@@ -141,8 +143,6 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
     if tags[-1] != ",":
         tags += ","
-
-    meta = ''
 
     if titleManual != None:
         meta = titleManual
@@ -181,17 +181,14 @@ def AddUpdateEntry(conn, cur, keywords, index):
                     if resp.status in (301,302,):
                         if debug:
                             print(resp.getheader('location', ''))
+
                         redirurl = urljoin(url, resp.getheader('location', ''))
                         if redirurl.find("sorry/IndexRedirect?") >= 0:
                             print("ERROR: Connection blocked due to unusual activity.")
                         else:
                             urlconn.close()
 
-                            secure = False
-                            if url.find("https://") >= 0:
-                               secure = True
-
-                            if secure == True:
+                            if url.find("https://") >= 0: # Secure connection
                                 server = redirurl[8:]
                                 marker = server.find("/")
                                 if marker > 0:
