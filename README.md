@@ -1,6 +1,6 @@
 # Buku
 
-![Screenshot](http://i.imgur.com/NIQlgDC.png)
+![Screenshot](http://i.imgur.com/xN6NVVK.png)
 
 `buku` (formerly `markit`) is a cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku` (after my son's nickname).
 
