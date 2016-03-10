@@ -307,7 +307,11 @@ def searchdb(cur, keywords):
     print("")
 
     while True:
-        nav = input("Result number to open: ")
+        try:
+            nav = input("Result number to open: ")
+        except EOFError:
+            return
+
         if is_int(nav):
             index = int(nav) - 1
             if index < 0:
