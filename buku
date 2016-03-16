@@ -137,13 +137,18 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
     if len(keywords) > 1:
         for tag in keywords[1:]:
-            if tags[-1] == ",":
+            if tag[-1] == ',':
+                tag = tag.strip(',') + ','
+            else:
+                tag = tag.strip(',')
+
+            if tags[-1] == ',':
                 tags += tag
             else:
-                tags += " " + tag
+                tags += ' ' + tag
 
-    if tags[-1] != ",":
-        tags += ","
+    if tags[-1] != ',':
+        tags += ','
 
     if titleManual != None:
         meta = titleManual
