@@ -39,6 +39,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - Unique URLs to avoid duplicates, show index if URL already exists
 - Open bookmark in browser using index
 - Open search results in browser
+- Show all unique tags sorted alphabetically
 - Browser (Chromium and Firefox based) errors and warnings suppression
 - Show single bookmark by ID or all bookmarks in a go
 - Refresh all bookmarks online
@@ -122,6 +123,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags
       -d N                       delete entry at DB index N (from -P output)
       -D                         delete ALL bookmarks
+      -g                         show all tags (sorted alphabetically)
       -i N                       insert entry at DB index N, useful to fill deleted index
       -k                         decrypt (unlock) database file
       -l                         encrypt (lock) database file

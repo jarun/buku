@@ -55,6 +55,7 @@ openurl = None
 show = False
 showindex = None
 showOpt = 0
+showTags = False
 search = False
 searchAll = False
 entry = None
@@ -77,6 +78,7 @@ def usage():
     print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
     print("  -d N                       delete entry at DB index N (from -P output)")
     print("  -D                         delete ALL bookmarks")
+    print("  -g                         show all tags (sorted alphabetically)")
     print("  -i N                       insert entry at DB index N, useful to fill deleted index")
     print("  -k                         decrypt (unlock) database file")
     print("  -l                         encrypt (lock) database file")
@@ -375,6 +377,28 @@ def printdb(cur, index):
 
 
 
+# Show all unique tags
+def showUniqueTags(cur):
+    count = 1
+    Tags = []
+    uniqueTags = []
+    for row in cur.execute('SELECT DISTINCT tags FROM bookmarks'):
+        if row[0] == ',':
+            continue
+
+        Tags.extend(row[0].strip(',').split(','))
+
+    for tag in Tags:
+        if tag not in uniqueTags:
+            uniqueTags.append(tag)
+
+    Tags = sorted(uniqueTags, key=str.lower)
+    for tag in Tags:
+        print("%6d. %s" % (count, tag))
+        count += 1
+
+
+
 # Fetch index and open URL in browser
 def fetchopen(index):
     try:
@@ -613,7 +637,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDklPRsSwz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDgklPRsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -643,6 +667,8 @@ try:
                 usage()
 
             delete = True
+        elif opt[0] == "-g":
+            showTags = True
         elif opt[0] == "-i":
             if update == True or delete == True:
                 print("You can either add or update or delete in one instance\n")
@@ -787,6 +813,10 @@ if search == True:
 # Print all records
 if show == True:
     printdb(cur, showindex)
+
+# Show all unique tags
+if showTags == True:
+    showUniqueTags(cur)
 
 # Open URL in browser
 if openurl != None:
