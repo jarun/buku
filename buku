@@ -144,6 +144,9 @@ def AddUpdateEntry(conn, cur, keywords, index):
             else:
                 tag = tag.strip(',')
 
+            if tag == ',':
+                continue
+
             if tags[-1] == ',':
                 tags += tag
             else:
