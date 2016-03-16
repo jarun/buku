@@ -27,6 +27,7 @@ import html.parser as HTMLParser
 from http.client import HTTPConnection
 from http.client import HTTPSConnection
 from urllib.parse import urljoin, unquote
+import signal
 
 # Import libraries needed for encryption
 try:
@@ -585,6 +586,15 @@ def decrypt_file():
         print("File decrypted")
 
     sys.exit(0)
+
+
+
+# SIGINT handler
+def sigint_handler(signum, frame):
+    print('\nInterrupted.', file=sys.stderr)
+    sys.exit(1)
+
+signal.signal(signal.SIGINT, sigint_handler)
 
 
 
