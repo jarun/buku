@@ -171,43 +171,46 @@ The assigned automatic index 15012014 is unique, one greater than highest index 
 6. **Delete all** bookmarks:
 
         $ buku -D
-7. **Insert** a bookmark at index 15012014 (fails if index or URL exists in database):
+7. List **all unique tags** alphabetically:
+
+        $ buku -g
+8. **Insert** a bookmark at index 15012014 (fails if index or URL exists in database):
 
         $ buku -i 15012014 -w http://tuxdiary.com/about linux news, open source
         Title: [A journey with WordPress | TuxDiary]
         Added at index 15012014
 This option is useful in filling deleted indices from database manually.
-8. **Show info** on bookmark at index 15012014:
+9. **Show info** on bookmark at index 15012014:
 
         $ buku -p 15012014
-9. **Show all** bookmarks with real index from database:
+10. **Show all** bookmarks with real index from database:
 
         $ buku -P
-10. **Open URL** at index 15012014 in browser:
+11. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-11. **Search** bookmarks for a tag matching `*kernel debugging*` or any of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+12. **Search** bookmarks for a tag matching `*kernel debugging*` or any of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 
         $ buku -s kernel debugging
-12. **Search** bookmarks for a tag matching `*kernel debugging*` or all the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+13. **Search** bookmarks for a tag matching `*kernel debugging*` or all the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 
         $ buku -S kernel debugging
 
-13. Encrypt/decrypt DB with **custom number of iterations** to generate key:
+14. Encrypt/decrypt DB with **custom number of iterations** to generate key:
 
         $ buku -l -t 15
         $ buku -k -t 15
 The same number of iterations must be used for one lock & unlock instance.
-14. Show **debug info**:
+15. Show **debug info**:
 
         $ buku -z ...
-15. Show **help**:
+16. Show **help**:
 
         $ buku
-16. Check **manpage**:
+17. Check **manpage**:
 
         $ man buku
-17. `buku` doesn't have any **import feature** of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
+18. `buku` doesn't have any **import feature** of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
 
         #!/bin/bash
         buku -aw https://wireless.wiki.kernel.org/ networking, device drivers
@@ -217,7 +220,7 @@ The same number of iterations must be used for one lock & unlock instance.
         buku -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
         buku -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
 Make the script executable and run to batch add bookmarks.
-18. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
+19. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 
         $ buku -P -x 2 | tee myurls
 Remove the lines you don't need. Add `buku -wu ` in front of all the other lines (check TIP below). Should look like:
