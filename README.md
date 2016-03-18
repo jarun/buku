@@ -189,10 +189,10 @@ This option is useful in filling deleted indices from database manually.
 11. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-12. **Search** bookmarks for a tag matching `*kernel debugging*` or any of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+12. **Search** bookmarks for a tag matching `*kernel debugging*` or **ANY** of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 
         $ buku -s kernel debugging
-13. **Search** bookmarks for a tag matching `*kernel debugging*` or all the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+13. **Search** bookmarks for a tag matching `*kernel debugging*` or **ALL** the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 
         $ buku -S kernel debugging
 
