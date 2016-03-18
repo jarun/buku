@@ -120,6 +120,128 @@ search result in browser. Pressing 'Enter' exits buku.
 .BI BROWSER
 Overrides the default browser. Ref:
 .I http://docs.python.org/library/webbrowser.html
+.SH EXAMPLES
+.PP
+.IP 1. 4
+\fBAdd\fR a new bookmark with title \fBLinux magazine\fR & tags \fBlinux news\fR and \fBopen source\fR:
+.PP
+.EX
+.IP
+.B buku -a -m 'Linux magazine' http://tuxdiary.com linux news, open source
+.EE
+.PP
+.IP "" 4
+Note that URL must precede tags. Multiple words in title must be within quotes. The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
+.PP
+.IP 2. 4
+Add a bookmark, \fBfetch page title\fR information from web:
+.PP
+.EX
+.IP
+.B buku -a -w http://tuxdiary.com linux news, open source
+.PP
+.IP 3. 4
+\fBUpdate\fR existing bookmark at index 15012014 with a new tag:
+.PP
+.EX
+.IP
+.B buku -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
+.PP
+.IP 4. 4
+Update or \fBrefresh full DB\fR:
+.PP
+.EX
+.IP
+.B buku -R
+.PP
+.IP 5. 4
+\fBDelete\fR bookmark at index 15012014:
+.PP
+.EX
+.IP
+.B buku -d 15012014
+.PP
+.IP 6. 4
+\fBDelete all\fR bookmarks:
+.PP
+.EX
+.IP
+.B buku -D
+.PP
+.IP 7. 4
+List \fBall unique tags\fR alphabetically:
+.PP
+.EX
+.IP
+.B buku -g
+.PP
+.IP 8. 4
+\fBInsert\fR a bookmark at index 15012014 (fails if index or URL exists in database):
+.PP
+.EX
+.IP
+.B buku -i 15012014 -w http://tuxdiary.com/about linux news, open source
+.EE
+.PP
+.IP "" 4
+This option is useful in filling deleted indices from database manually.
+.PP
+.IP 9. 4
+\fBShow info\fR on bookmark at index 15012014:
+.PP
+.EX
+.IP
+.B buku -p 15012014
+.PP
+.IP 10. 4
+\fBShow all\fR bookmarks with real index from database:
+.PP
+.EX
+.IP
+.B buku -P
+.PP
+.IP 11.4
+\fBOpen URL\fR at index 15012014 in browser:
+.PP
+.EX
+.IP
+.B buku -o 15012014
+.PP
+.IP 12. 4
+\fBSearch\fR bookmarks for a tag matching \fBkernel debugging\fR or \fBANY\fR of the keywords \fBkernel\fR and \fBdebugging\fR in URL or title (separately):
+.PP
+.EX
+.IP
+.B buku -s kernel debugging
+.PP
+.IP 13.4
+\fBSearch\fR bookmarks for a tag matching \fBkernel debugging\fR or \fBALL\fR the keywords \fBkernel\fR and \fBdebugging\fR in URL or title (separately):
+.PP
+.EX
+.IP
+.B buku -S kernel debugging
+.PP
+.IP 14. 4
+Encrypt/decrypt DB with \fBcustom number of iteration\fR to generate key:
+.PP
+.EX
+.IP
+.B buku -l -t 15
+.PP
+.EX
+.IP
+.B buku -k -t 15
+.EE
+.PP
+.IP "" 4
+The same number of iterations must be used for one lock & unlock instance.
+.PP
+.IP 15. 4
+Show \fBdebug info\fR:
+.PP
+.EX
+.IP
+.B buku -z ...
 .SH AUTHOR
 Written by Arun Prakash Jana <engineerarun@gmail.com>.
 .SH HOME
