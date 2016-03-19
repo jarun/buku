@@ -417,6 +417,10 @@ def replaceTags(conn, cur, orig, new):
     else:
         new = ',' + new + ','
 
+    if orig == new:
+        print("Tags are same.")
+        return
+
     cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE ?", ('%' + orig + '%',))
     results = cur.fetchall()
 
