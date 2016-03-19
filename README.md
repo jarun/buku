@@ -163,7 +163,7 @@ The assigned automatic index 15012014 is unique, one greater than highest index 
 
         $ buku -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
         Title: [TuxDiary | Linux, open source and a pinch of leisure.]
-        Updated
+        Updated index 15012014
 4. Update or **refresh full DB**:
 
         $ buku -R
