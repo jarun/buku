@@ -406,10 +406,14 @@ def showUniqueTags(cur):
 
 # Replace or delete tags in DB
 def replaceTags(conn, cur, orig, new):
+    update = False
+    delete = False
+
     orig = ',' + orig + ','
     new = new.strip(',')
     if new == '':
         new = ','
+        delete = True
     else:
         new = ',' + new + ','
 
@@ -417,11 +421,17 @@ def replaceTags(conn, cur, orig, new):
     results = cur.fetchall()
 
     for row in results:
-        print("Updating index %d" % row[0])
+        if delete == False:
+            if row[1].find(new) >= 0:
+                new = ','
+
         newtags = row[1].replace(orig, new)
         cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
+        print("Updated index %d" % row[0])
+        update = True
 
-    conn.commit()
+    if update:
+        conn.commit()
 
 
 
