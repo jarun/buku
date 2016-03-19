@@ -64,6 +64,7 @@ debug = False
 titleData = None
 titleManual = None
 refresh = False
+replace = False
 encrypt = False
 decrypt = False
 iterations = int(8)
@@ -87,6 +88,7 @@ def usage():
     print("  -p N                       show details of bookmark record at DB index N")
     print("  -P                         show all bookmarks along with index from DB")
     print("  -R                         refresh all bookmarks, tags retained")
+    print("  -r oldtag [newtag]         replace oldtag with newtag in DB, deletes oldtag if newtag empty")
     print("  -s keyword(s)              search all bookmarks for a (partial) tag or any keyword")
     print("  -S keyword(s)              search all bookmarks for a (partial) tag or all keywords")
     print("  -t N                       use N (> 0) hash iterations to generate key, works with -k, -l")
@@ -402,6 +404,27 @@ def showUniqueTags(cur):
 
 
 
+# Replace or delete tags in DB
+def replaceTags(conn, cur, orig, new):
+    orig = ',' + orig + ','
+    new = new.strip(',')
+    if new == '':
+        new = ','
+    else:
+        new = ',' + new + ','
+
+    cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE ?", ('%' + orig + '%',))
+    results = cur.fetchall()
+
+    for row in results:
+        print("Updating index %d" % row[0])
+        newtags = row[1].replace(orig, new)
+        cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
+
+    conn.commit()
+
+
+
 # Fetch index and open URL in browser
 def fetchopen(index):
     try:
@@ -640,7 +663,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDgklPRsSwz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDgklPRrsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -724,6 +747,8 @@ try:
 
             online = True
             refresh = True
+        elif opt[0] == "-r":
+            replace = True
         elif opt[0] == "-s":
             search = True
         elif opt[0] == "-S":
@@ -783,6 +808,23 @@ if decrypt == True:
 
 # Initilize the database and get handles
 conn, cur = initdb()
+
+# Replace a tag in DB
+if replace == True:
+    numargs = len(keywords)
+
+    if addurl == True or update == True or delete == True:
+        print("Tag replace doesn't work with add or update or delete.\n")
+        conn.close()
+        usage()
+    elif numargs < 1 or numargs > 2:
+        print("Tag replace accepts 1 or 2 arguments\n")
+        conn.close()
+        usage()
+    elif numargs == 1:
+        replaceTags(conn, cur, keywords[0], "")
+    else:
+        replaceTags(conn, cur, keywords[0], keywords[1])
 
 # Call add or update record
 if addurl == True or update == True:
