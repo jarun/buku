@@ -146,6 +146,10 @@ Add a bookmark, \fBfetch page title\fR information from web:
 .EX
 .IP
 .B buku -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
+.EE
+.PP
+.IP "" 4
+Tags are updated too. Original tags are removed.
 .PP
 .IP 4. 4
 Update or \fBrefresh full DB\fR:
@@ -153,6 +157,10 @@ Update or \fBrefresh full DB\fR:
 .EX
 .IP
 .B buku -R
+.EE
+.PP
+.IP "" 4
+This operation does not modify the existing tags. Only titles are refreshed.
 .PP
 .IP 5. 4
 \fBDelete\fR bookmark at index 15012014:
