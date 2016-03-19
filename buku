@@ -851,7 +851,8 @@ if addurl == True or update == True:
 # Refresh full DB
 if refresh == True:
     cur.execute("SELECT id, url, tags FROM bookmarks")
-    for row in cur.fetchall():
+    results = cur.fetchall()
+    for row in results:
         olddata = []
         olddata.append(row[1])
         if row[2] != '':
