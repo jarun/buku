@@ -382,7 +382,7 @@ def printdb(cur, index):
 
 
 
-# Show all unique tags
+# Show all unique tags ordered alphabetically
 def showUniqueTags(cur):
     count = 1
     Tags = []
