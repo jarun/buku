@@ -39,6 +39,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - Unique URLs to avoid duplicates, show index if URL already exists
 - Open bookmark in browser using index
 - Open search results in browser
+- Modify or delete tags in DB
 - Show all unique tags sorted alphabetically
 - Browser (Chromium and Firefox based) errors and warnings suppression
 - Show single bookmark by ID or all bookmarks in a go
@@ -133,6 +134,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -p N                       show details of bookmark record at DB index N
       -P                         show all bookmarks along with index from DB
       -R                         refresh all bookmarks, tags retained
+      -r oldtag [newtag]         replace oldtag with newtag in DB, deletes oldtag if newtag empty
       -s keyword(s)              search all bookmarks for a (partial) tag or any keyword
       -S keyword(s)              search all bookmarks for a (partial) tag or all keywords
       -t N                       use N (> 0) hash iterations to generate key, works with -k, -l
@@ -180,35 +182,41 @@ The assigned automatic index 15012014 is unique, one greater than highest index 
         Title: [A journey with WordPress | TuxDiary]
         Added at index 15012014
 This option is useful in filling deleted indices from database manually.
-9. **Show info** on bookmark at index 15012014:
+9. **Replace a tag** with new one:
+
+        $ buku -r "old tag" "new tag"
+10. **Delete a tag** from DB:
+
+        $ buku -r "old tag"
+11. **Show info** on bookmark at index 15012014:
 
         $ buku -p 15012014
-10. **Show all** bookmarks with real index from database:
+12. **Show all** bookmarks with real index from database:
 
         $ buku -P
-11. **Open URL** at index 15012014 in browser:
+13. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-12. **Search** bookmarks for a tag matching `*kernel debugging*` or **ANY** of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+14. **Search** bookmarks for a tag matching `*kernel debugging*` or **ANY** of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 
         $ buku -s kernel debugging
-13. **Search** bookmarks for a tag matching `*kernel debugging*` or **ALL** the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+15. **Search** bookmarks for a tag matching `*kernel debugging*` or **ALL** the keywords `*kernel*` and `*debugging*` in URL or title (separately):
 
         $ buku -S kernel debugging
 
-14. Encrypt/decrypt DB with **custom number of iterations** to generate key:
+16. Encrypt/decrypt DB with **custom number of iterations** to generate key:
 
         $ buku -l -t 15
         $ buku -k -t 15
 The same number of iterations must be used for one lock & unlock instance.
-15. Show **debug info**:
+17. Show **debug info**:
 
         $ buku -z ...
-16. More **help**:
+18. More **help**:
 
         $ buku
         $ man buku
-17. `buku` doesn't have any **import feature** of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
+19. `buku` doesn't have any **import feature** of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
 
         #!/bin/bash
         buku -aw https://wireless.wiki.kernel.org/ networking, device drivers
@@ -218,7 +226,7 @@ The same number of iterations must be used for one lock & unlock instance.
         buku -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
         buku -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
 Make the script executable and run to batch add bookmarks.
-18. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
+20. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 
         $ buku -P -x 2 | tee myurls
 Remove the lines you don't need. Add `buku -wu ` in front of all the other lines (check TIP below). Should look like:
