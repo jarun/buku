@@ -99,7 +99,7 @@ def usage():
     print("                             any other option shows help and exits buku\n")
     print("Keys")
     print("  1-N                        open Nth search result in browser. Enter exits buku.\n")
-    print("Version 1.7")
+    print("Version 1.8")
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
     print("Webpage: https://github.com/jarun/buku")
     sys.exit(1)
