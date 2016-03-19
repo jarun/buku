@@ -184,10 +184,10 @@ The assigned automatic index 15012014 is unique, one greater than highest index 
 This option is useful in filling deleted indices from database manually.
 9. **Replace a tag** with new one:
 
-        $ buku -r "old tag" "new tag"
+        $ buku -r 'old tag' 'new tag'
 10. **Delete a tag** from DB:
 
-        $ buku -r "old tag"
+        $ buku -r 'old tag'
 11. **Show info** on bookmark at index 15012014:
 
         $ buku -p 15012014
