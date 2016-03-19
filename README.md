@@ -164,9 +164,11 @@ The assigned automatic index 15012014 is unique, one greater than highest index 
         $ buku -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
         Title: [TuxDiary | Linux, open source and a pinch of leisure.]
         Updated index 15012014
+Tags are updated too. Original tags are lost if no new tags are provided.
 4. Update or **refresh full DB**:
 
         $ buku -R
+This operation does not modify the existing tags. Only titles are refreshed.
 5. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
