@@ -138,7 +138,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -s keyword(s)              search all bookmarks for a (partial) tag or any keyword
       -S keyword(s)              search all bookmarks for a (partial) tag or all keywords
       -t N                       use N (> 0) hash iterations to generate key, works with -k, -l
-      -u N                       update entry at DB index N
+      -u N                       update all fields of entry at DB index N
       -w                         fetch title info from web, works with -a, -i, -u
       -x N                       works with -P, N=1: show only URL, N=2: show URL and tag
       -z                         show debug information
