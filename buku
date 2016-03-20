@@ -73,7 +73,7 @@ iterations = int(8)
 
 # Show usage of buku and exit
 def usage():
-    print("Usage: buku [OPTIONS] KEYWORDS...")
+    print("Usage: OPTIONS [URL] [TAGS] [KEYWORDS ...]\n")
     print("Bookmark manager. Your private Google.\n")
     print("Options")
     print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
@@ -101,6 +101,7 @@ def usage():
     print("  1-N                        open Nth search result in browser. Enter exits buku.\n")
     print("Version 1.8")
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
+    print("License: GPLv3")
     print("Webpage: https://github.com/jarun/buku")
     sys.exit(1)
 

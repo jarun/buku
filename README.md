@@ -120,7 +120,8 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
 ## cmdline help
 
-    Usage: buku [OPTIONS] KEYWORDS...
+    Usage: buku OPTIONS [URL] [TAGS] [KEYWORDS ...]
+
     Bookmark manager. Your private Google.
 
     Options
