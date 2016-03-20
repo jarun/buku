@@ -344,8 +344,14 @@ def searchdb(cur, keywords):
 # Delete a single record or remove the table
 def cleardb(conn, cur, index):
     if index == None: # Remove the table
+        resp = input("ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ")
+        if resp != 'y':
+            print("No bookmarks deleted")
+            return
+
         cur.execute('DROP TABLE if exists bookmarks')
         conn.commit()
+        print("All bookmarks deleted")
     else: # Remove a single entry
         try:
             cur.execute("DELETE FROM bookmarks WHERE id = ?", (int(index),))
