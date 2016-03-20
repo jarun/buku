@@ -44,7 +44,8 @@ If you find `buku` useful, please consider donating via PayPal.
 - Browser (Chromium and Firefox based) errors and warnings suppression
 - Show single bookmark by ID or all bookmarks in a go
 - Refresh all bookmarks online
-- Delete all bookmarks
+- Auto-compact DB on a single bookmark removal
+- Delete all bookmarks from DB
 - Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indices
 - Secure parameterized SQLite3 queries to access database
 - Handle first level of redirections (reports IP blocking)
@@ -123,7 +124,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
     Options
       -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags
-      -d N                       delete entry at DB index N (from -P output)
+      -d N                       delete entry at DB index N (from -P), move last entry to N
       -D                         delete ALL bookmarks
       -g                         show all tags (sorted alphabetically)
       -i N                       insert entry at DB index N, useful to fill deleted index
@@ -172,6 +173,8 @@ This operation does not modify the existing tags. Only titles are refreshed.
 5. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
+        Index 15012020 moved to 15012014
+The last index is moved to the deleted index to keep the DB compact.
 6. **Delete all** bookmarks:
 
         $ buku -D
