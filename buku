@@ -77,7 +77,7 @@ def usage():
     print("Bookmark manager. Your private Google.\n")
     print("Options")
     print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
-    print("  -d N                       delete entry at DB index N (from -P output)")
+    print("  -d N                       delete entry at DB index N (from -P), move last entry to N")
     print("  -D                         delete ALL bookmarks")
     print("  -g                         show all tags (sorted alphabetically)")
     print("  -i N                       insert entry at DB index N, useful to fill deleted index")
