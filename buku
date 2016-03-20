@@ -113,14 +113,20 @@ def initdb():
     if not os.path.exists(dbpath):
         os.makedirs(dbpath)
 
+    dbfile = os.path.join(dbpath, 'bookmarks.db')
+
     encpath = os.path.join(dbpath, 'bookmarks.db.enc')
     # Notify if DB file needs to be decrypted first
-    if os.path.exists(encpath) and not os.path.exists(os.path.join(dbpath, 'bookmarks.db')):
+    if os.path.exists(encpath) and not os.path.exists(dbfile):
         print("Unlock database first")
         sys.exit(1)
 
+    # Show info on first creation
+    if no_crypto == False and not os.path.exists(dbfile):
+        print("DB file is being created. You may want to encrypt it later.")
+
     # Create a connection
-    conn = sqlite3.connect(os.path.join(dbpath, 'bookmarks.db'))
+    conn = sqlite3.connect(dbfile)
     cur = conn.cursor()
 
     # Create table if it doesn't exist
