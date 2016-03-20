@@ -115,8 +115,8 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
   - `-s` : match any of the keywords in URL or title. Order is irrelevant.
   - `-S` : match all the keywords in URL or title. Order is irrelevant.
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within `()` after the URL.
-- Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unecrypted on creation</i>.
 - AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
+- Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unecrypted on creation</i>.
 
 ## cmdline help
 
