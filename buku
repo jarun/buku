@@ -673,7 +673,7 @@ def decrypt_file():
     dbhash = get_filehash(dbpath)
     if dbhash != enchash:
         os.remove(dbpath)
-        print("Wrong password")
+        print("Decryption failed");
     else:
         os.remove(encpath)
         print("File decrypted")
