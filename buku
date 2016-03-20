@@ -341,6 +341,23 @@ def searchdb(cur, keywords):
 
 
 
+# Move last row to empty position to compact DB
+def compactDB(conn, cur, index):
+    cur.execute('SELECT MAX(id) from bookmarks')
+    results = cur.fetchall()
+    for row in results:
+        if row[0] > index:
+            cur.execute('SELECT id, URL, metadata, tags FROM bookmarks WHERE id = ?', (row[0],))
+            results = cur.fetchall()
+            for row in results:
+                cur.execute('DELETE FROM bookmarks WHERE id = ?', (row[0],))
+                conn.commit()
+                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (index, row[1], row[2], row[3],))
+                conn.commit()
+                print("Index %d moved to %d" % (row[0], index))
+
+
+
 # Delete a single record or remove the table
 def cleardb(conn, cur, index):
     if index == None: # Remove the table
@@ -354,10 +371,11 @@ def cleardb(conn, cur, index):
         print("All bookmarks deleted")
     else: # Remove a single entry
         try:
-            cur.execute("DELETE FROM bookmarks WHERE id = ?", (int(index),))
+            cur.execute('DELETE FROM bookmarks WHERE id = ?', (int(index),))
             conn.commit()
             if cur.rowcount == 1:
                 print("Removed index %d" % int(index))
+                compactDB(conn, cur, int(index))
             else:
                 print("No matching index")
         except IndexError:
