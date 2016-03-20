@@ -4,7 +4,7 @@
 
 `buku` (formerly `markit`) is a cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku` (after my son's nickname).
 
-You can add bookmarks to `buku` with title and tags, optionally fetch page title from web, search by keywords for matching tags or title or URL, update and remove bookmarks. You can open the URLs from search results directly in the browser. You can encrypt or decrypt the database file manually, optionally with custom number of hash passes for key generation.  
+You can add bookmarks to `buku` with title and tags, optionally fetch page title from web, search by keywords for matching tags or title or URL, update and remove bookmarks, title or tags. You can open the URLs from search results directly in the browser. You can encrypt or decrypt the database file manually, optionally with custom number of hash passes for key generation.  
 
 The SQLite3 database file is stored in `$HOME/.cache/buku/bookmarks.db` for each user.  
 
