@@ -67,6 +67,7 @@ titleManual = None
 refresh = False
 encrypt = False
 decrypt = False
+jsonOutput = False
 iterations = int(8)
 
 
@@ -81,6 +82,7 @@ def usage():
     print("  -D                         delete ALL bookmarks")
     print("  -g                         show all tags (sorted alphabetically)")
     print("  -i N                       insert entry at DB index N, useful to fill deleted index")
+    print("  -j                         Output data formatted as json")
     print("  -k                         decrypt (unlock) database file")
     print("  -l                         encrypt (lock) database file")
     print("  -m                         manually add or update the title offline")
@@ -641,7 +643,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDgklPRsSwz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDgjklPRsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -686,6 +688,8 @@ try:
                 usage()
 
             addurl = True
+        elif opt[0] == "-j":
+            jsonOutput = True
         elif opt[0] == "-k":
             if no_crypto == True:
                 print("Error: PyCrypto missing")
