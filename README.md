@@ -102,7 +102,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
  - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux;
  - Void Linux repos.
  
-         $ sudo xbps-install -S buku
+        $ sudo xbps-install -S buku
  - [Homebrew](http://braumeister.org/formula/buku) for OS X, or its Linux fork, [Linuxbrew](https://github.com/Linuxbrew/linuxbrew/blob/master/Library/Formula/buku.rb).
 
 # Usage
