@@ -363,15 +363,16 @@ def cleardb(conn, cur, index):
 # Print all records in the table
 def printdb(cur, index):
     global showOpt
+    global jsonOutput
 
     if index == None: # Show all entries
-        for row in cur.execute('SELECT * FROM bookmarks'):
-            if showOpt == 1:
-                print("%s %s" % (row[0], row[1]))
-            elif showOpt == 2:
-                print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
+        resultSet = cur.execute('SELECT * FROM bookmarks')
+        for row in resultSet:
+            if jsonOutput == True:
+                data = formatJson(resultSet)
             else:
-                print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
+                data = formatRaw(resultSet)
+
     else: # Show record at index
         try:
             for row in cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),)):
@@ -381,7 +382,33 @@ def printdb(cur, index):
         except IndexError:
             print("Index out of bound")
 
+    print(data)
 
+def formatRaw(resultSet):
+    marks = []
+    for row in resultSet:
+        if showOpt == 1:
+            marks.append(str(row[0]) + " " +  row[1]);
+        elif showOpt == 2:
+            marks.append(str(row[0]) + " " +  row[1] + "        " + row[3][1:-1]);
+        else:
+            marks.append(str(row[0]) + "." +  row[1] + "\n\t" + row[2] + "\n\t" + row[3][1:-1]);
+
+    return "\n".join(marks)
+
+def formatJson(resultSet):
+    marks = []
+    for row in resultSet:
+        if showOpt == 1:
+            record = { 'url': row[1] }
+        elif showOpt == 2:
+            record = { 'url': row[1], 'tags': row[3][1:-1] }
+        else:
+            record = { 'url': row[1], 'title': row[2], 'tags': row[3][1:-1]}
+
+        marks.append(record)
+
+    return json.dumps(marks, sort_keys=True, indent=4)
 
 # Show all unique tags
 def showUniqueTags(cur):
