@@ -28,6 +28,7 @@ from http.client import HTTPConnection
 from http.client import HTTPSConnection
 from urllib.parse import urljoin, unquote
 import signal
+import json
 
 # Import libraries needed for encryption
 try:
