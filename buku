@@ -363,6 +363,7 @@ def cleardb(conn, cur, index):
 # Print all records in the table
 def printdb(cur, index):
     global showOpt
+    global jsonOutput
 
     if index == None: # Show all entries
         for row in cur.execute('SELECT * FROM bookmarks'):
