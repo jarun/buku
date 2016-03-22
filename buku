@@ -276,6 +276,8 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
 # Search the database for a tag or matching URL or Title info
 def searchdb(cur, keywords):
+    global jsonOutput
+
     searchtag = ''
     for token in keywords:
         searchtag += token + " "
@@ -310,35 +312,43 @@ def searchdb(cur, keywords):
 
     count = 0
     results = []
-    for row in cur.execute(query, arguments):
-        results.append(row[1])
-        count += 1
-        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m        (%d)\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (count, row[1], row[0], row[2], row[3][1:-1]))
+    resultset = cur.execute(query, arguments)
 
-    if count == 0:
-        return
+    if jsonOutput == True:
+        results = cur.fetchall();
+        if len(results) > 0:
+            print(formatJson(results))
 
-    print("")
+    else:
+        for row in resultset:
+            results.append(row[1])
+            count += 1
+            print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m        (%d)\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (count, row[1], row[0], row[2], row[3][1:-1]))
 
-    while True:
-        try:
-            nav = input("Result number to open: ")
-        except EOFError:
+        if count == 0:
             return
 
-        if is_int(nav):
-            index = int(nav) - 1
-            if index < 0:
-                print("Index out of bound")
-                continue
+        print("")
 
+        while True:
             try:
-                openurl = unquote(results[int(nav) - 1])
-                browser_open(openurl)
-            except IndexError:
-                print("Index out of bound")
-        else:
-            break
+                nav = input("Result number to open: ")
+            except EOFError:
+                return
+
+            if is_int(nav):
+                index = int(nav) - 1
+                if index < 0:
+                    print("Index out of bound")
+                    continue
+
+                try:
+                    openurl = unquote(results[int(nav) - 1])
+                    browser_open(openurl)
+                except IndexError:
+                    print("Index out of bound")
+            else:
+                break
 
 
 
