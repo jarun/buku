@@ -366,21 +366,32 @@ def printdb(cur, index):
     global jsonOutput
 
     if index == None: # Show all entries
-        for row in cur.execute('SELECT * FROM bookmarks'):
-            if showOpt == 1:
-                print("%s %s" % (row[0], row[1]))
-            elif showOpt == 2:
-                print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
-            else:
-                print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
+        resultset = cur.execute('SELECT * FROM bookmarks')
+        if jsonOutput == False:
+            for row in resultset:
+                if showOpt == 1:
+                    print("%s %s" % (row[0], row[1]))
+                elif showOpt == 2:
+                    print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
+                else:
+                    print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
+        else:
+            print(formatJson(resultset))
+
     else: # Show record at index
         try:
-            for row in cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),)):
+            resultset = cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),))
+        except IndexError:
+            print("Index out of bound")
+
+        if jsonOutput == False:
+            for row in resultset:
                 print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
                 return
             print("No matching index")
-        except IndexError:
-            print("Index out of bound")
+        else:
+            print(formatJson(resultset, True))
+
 def formatJson(resultset, single=False):
     global showOpt
 
