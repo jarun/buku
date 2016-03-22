@@ -107,6 +107,92 @@ def usage():
 
 
 
+# Fetch title from URL
+def fetchTitle(url):
+    meta = ''
+    secure = True
+
+    if url.find("https://") >= 0:
+        server = url[8:]
+    elif url.find("http://") >= 0:
+        secure = False
+        server = url[7:]
+    else:
+        return meta
+
+    marker = server.find("/")
+    if marker > 0:
+        fetchurl = server[marker:]
+        server = server[:marker]
+    else:
+        fetchurl = url
+
+    try:
+        if debug:
+            print("server: [%s]" % server)
+        if secure == True:
+            urlconn = HTTPSConnection(server, timeout=30)
+        else:
+            urlconn = HTTPConnection(server, timeout=30)
+
+        if debug:
+            print("URL: [%s]" % fetchurl)
+        urlconn.request("GET", fetchurl)
+        resp = urlconn.getresponse()
+        if resp.status != 200:
+            # Handle first redirection
+            if resp.status in (301,302,):
+                if debug:
+                    print(resp.getheader('location', ''))
+
+                redirurl = urljoin(url, resp.getheader('location', ''))
+                if redirurl.find("sorry/IndexRedirect?") >= 0:
+                    print("ERROR: Connection blocked due to unusual activity.")
+                else:
+                    urlconn.close()
+
+                    if url.find("https://") >= 0: # Secure connection
+                        server = redirurl[8:]
+                        marker = server.find("/")
+                        if marker > 0:
+                            server = server[:marker]
+                        urlconn = HTTPSConnection(server, timeout=30)
+                    else:
+                        server = redirurl[7:]
+                        marker = server.find("/")
+                        if marker > 0:
+                            server = server[:marker]
+                        urlconn = HTTPConnection(server, timeout=30)
+
+                    if debug:
+                        print("Redir server: [%s]" % server)
+                        print("Redir URL: [%s]" % unquote(redirurl))
+
+                    urlconn.request("GET", unquote(redirurl))
+                    resp = urlconn.getresponse()
+                    if resp.status != 200:
+                        print("ERROR on retry:", str(resp.status), ": ", resp.reason)
+                        meta = ''
+                    else:
+                        getTitleData(resp)
+                        if titleData != None:
+                            meta = titleData
+            else: # if resp.status in (301,302,):
+                print("ERROR:", str(resp.status), ": ", resp.reason)
+                meta = ''
+        else: # if resp.status != 200:
+            getTitleData(resp)
+            if titleData != None:
+                meta = titleData
+    except Exception as e:
+        print("Exception: %s" % e)
+        meta = ''
+    finally:
+        urlconn.close()
+        return meta.strip().replace("\n","")
+
+
+
 # Initialize the database connection
 # Create bookmarks table is not existing
 def initdb():
@@ -147,6 +233,7 @@ def AddUpdateEntry(conn, cur, keywords, index):
     meta = ''
     url = keywords[0]
 
+    # Cleanse and get the tags
     if len(keywords) > 1:
         for tag in keywords[1:]:
             if tag[-1] == ',':
@@ -168,91 +255,11 @@ def AddUpdateEntry(conn, cur, keywords, index):
     if titleManual != None:
         meta = titleManual
     elif online == True:
-        secure = True
-        if url.find("https://") >= 0:
-            server = url[8:]
-        elif url.find("http://") >= 0:
-            secure = False
-            server = url[7:]
+        meta = fetchTitle(url)
+        if meta == '':
+            print("\x1B[91mTitle: []\x1B[0m")
         else:
-            online = False
-
-        if online == True:
-            marker = server.find("/")
-            if marker > 0:
-                fetchurl = server[marker:]
-                server = server[:marker]
-            else:
-                fetchurl = url
-
-            try:
-                if debug:
-                    print("server: [%s]" % server)
-                if secure == True:
-                    urlconn = HTTPSConnection(server, timeout=30)
-                else:
-                    urlconn = HTTPConnection(server, timeout=30)
-
-                if debug:
-                    print("URL: [%s]" % fetchurl)
-                urlconn.request("GET", fetchurl)
-                resp = urlconn.getresponse()
-                if resp.status != 200:
-                    # Handle first redirection
-                    if resp.status in (301,302,):
-                        if debug:
-                            print(resp.getheader('location', ''))
-
-                        redirurl = urljoin(url, resp.getheader('location', ''))
-                        if redirurl.find("sorry/IndexRedirect?") >= 0:
-                            print("ERROR: Connection blocked due to unusual activity.")
-                        else:
-                            urlconn.close()
-
-                            if url.find("https://") >= 0: # Secure connection
-                                server = redirurl[8:]
-                                marker = server.find("/")
-                                if marker > 0:
-                                    server = server[:marker]
-                                urlconn = HTTPSConnection(server, timeout=30)
-                            else:
-                                server = redirurl[7:]
-                                marker = server.find("/")
-                                if marker > 0:
-                                    server = server[:marker]
-                                urlconn = HTTPConnection(server, timeout=30)
-
-                            if debug:
-                                print("Redir server: [%s]" % server)
-                                print("Redir URL: [%s]" % unquote(redirurl))
-
-                            urlconn.request("GET", unquote(redirurl))
-                            resp = urlconn.getresponse()
-                            if resp.status != 200:
-                                print("ERROR on retry:", str(resp.status), ": ", resp.reason)
-                                meta = ''
-                            else:
-                                getTitleData(resp)
-                                if titleData != None:
-                                    meta = titleData
-                    else: # if resp.status in (301,302,):
-                        print("ERROR:", str(resp.status), ": ", resp.reason)
-                        meta = ''
-                else: # if resp.status != 200:
-                    getTitleData(resp)
-                    if titleData != None:
-                        meta = titleData
-            except Exception as e:
-                print("Exception: %s" % e)
-                meta = ''
-            finally:
-                urlconn.close()
-
-                meta = meta.strip().replace("\n","")
-                if meta == '':
-                    print("\x1B[91mTitle: []\x1B[0m")
-                else:
-                    print("Title: [%s]" % meta)
+            print("Title: [%s]" % meta)
 
     if index == None: # Insert a new entry
         try:
