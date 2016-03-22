@@ -109,16 +109,16 @@ def usage():
 
 # Fetch title from URL
 def fetchTitle(url):
-    meta = ''
-    secure = True
+    global titleData
 
+    secure = True
     if url.find("https://") >= 0:
         server = url[8:]
     elif url.find("http://") >= 0:
         secure = False
         server = url[7:]
     else:
-        return meta
+        return ''
 
     marker = server.find("/")
     if marker > 0:
@@ -172,24 +172,22 @@ def fetchTitle(url):
                     resp = urlconn.getresponse()
                     if resp.status != 200:
                         print("ERROR on retry:", str(resp.status), ": ", resp.reason)
-                        meta = ''
                     else:
                         getTitleData(resp)
-                        if titleData != None:
-                            meta = titleData
+                        if titleData is None:
+                            titleData = ''
             else: # if resp.status in (301,302,):
                 print("ERROR:", str(resp.status), ": ", resp.reason)
-                meta = ''
         else: # if resp.status != 200:
             getTitleData(resp)
-            if titleData != None:
-                meta = titleData
+            if titleData is None:
+                titleData = ''
     except Exception as e:
         print("Exception: %s" % e)
-        meta = ''
+        titleData = ''
     finally:
         urlconn.close()
-        return meta.strip().replace("\n","")
+        return titleData.strip().replace("\n","")
 
 
 
@@ -503,9 +501,6 @@ def is_int(string):
 
 # Fetch titleData from GET response
 def getTitleData(resp):
-    global titleData
-    titleData = None
-
     charset = ''
     charset = resp.headers.get_content_charset()
     if charset == None:
