@@ -393,6 +393,7 @@ def printdb(cur, index):
             resultset = cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),))
         except IndexError:
             print("Index out of bound")
+            return
 
         if jsonOutput == False:
             for row in resultset:
