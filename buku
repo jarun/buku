@@ -109,8 +109,6 @@ def usage():
 
 # Get page response data
 def getPageResp(url, redir=False):
-    marker = -1
-
     if url.find("https://") >= 0: # Secure connection
         server = url[8:]
         marker = server.find("/")
@@ -334,15 +332,15 @@ def searchdb(cur, keywords):
 
         if is_int(nav):
             index = int(nav) - 1
-            if index < 0:
+            if index < 0 or index >= count:
                 print("Index out of bound")
                 continue
 
             try:
                 openurl = unquote(results[int(nav) - 1])
                 browser_open(openurl)
-            except IndexError:
-                print("Index out of bound")
+            except Exception as e:
+                print("Exception: %s" % e)
         else:
             break
 
