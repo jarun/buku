@@ -402,6 +402,8 @@ def printdb(cur, index):
         else:
             print(formatJson(resultset, True))
 
+
+
 def formatJson(resultset, single=False):
     global showOpt
 
