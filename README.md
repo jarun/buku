@@ -58,6 +58,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - Fast and clean (no ads or clutter)
 - Minimal dependencies
 - Open source and free
+- Json output with -f flag
 
 # Installation
 
@@ -126,6 +127,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -D                         delete ALL bookmarks
       -g                         show all tags (sorted alphabetically)
       -i N                       insert entry at DB index N, useful to fill deleted index
+      -j                         Output data formatted as json (works with -P, -p and -s)
       -k                         decrypt (unlock) database file
       -l                         encrypt (lock) database file
       -m                         manually add or update the title offline

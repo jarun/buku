@@ -82,7 +82,7 @@ def usage():
     print("  -D                         delete ALL bookmarks")
     print("  -g                         show all tags (sorted alphabetically)")
     print("  -i N                       insert entry at DB index N, useful to fill deleted index")
-    print("  -j                         Output data formatted as json")
+    print("  -j                         Output data formatted as json (works with -P, -p and -s)")
     print("  -k                         decrypt (unlock) database file")
     print("  -l                         encrypt (lock) database file")
     print("  -m                         manually add or update the title offline")
