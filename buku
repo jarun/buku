@@ -107,86 +107,80 @@ def usage():
 
 
 
+# Get page response data
+def getPageResp(url, redir=False):
+    marker = -1
+
+    if url.find("https://") >= 0: # Secure connection
+        server = url[8:]
+        marker = server.find("/")
+        if marker > 0:
+            if redir == False:
+                url = server[marker:]
+            server = server[:marker]
+        urlconn = HTTPSConnection(server, timeout=30)
+    elif url.find("http://") >= 0: # Insecure connection
+        server = url[7:]
+        marker = server.find("/")
+        if marker > 0:
+            if redir == False:
+                url = server[marker:]
+            server = server[:marker]
+        urlconn = HTTPConnection(server, timeout=30)
+    else:
+        return (None, None)
+
+    if debug:
+        print("server: [%s]" % server)
+        print("URL: [%s]" % unquote(url))
+
+    urlconn.request("GET", unquote(url))
+    resp = urlconn.getresponse()
+    return (resp, urlconn)
+
+
+
 # Fetch title from URL
 def fetchTitle(url):
     global titleData
 
-    secure = True
-    if url.find("https://") >= 0:
-        server = url[8:]
-    elif url.find("http://") >= 0:
-        secure = False
-        server = url[7:]
-    else:
-        return ''
-
-    marker = server.find("/")
-    if marker > 0:
-        fetchurl = server[marker:]
-        server = server[:marker]
-    else:
-        fetchurl = url
+    urlconn = None
 
     try:
-        if debug:
-            print("server: [%s]" % server)
-        if secure == True:
-            urlconn = HTTPSConnection(server, timeout=30)
-        else:
-            urlconn = HTTPConnection(server, timeout=30)
+        resp, urlconn = getPageResp(url, False)
+        if resp is None:
+            return ''
 
-        if debug:
-            print("URL: [%s]" % fetchurl)
-        urlconn.request("GET", fetchurl)
-        resp = urlconn.getresponse()
         if resp.status != 200:
             # Handle first redirection
             if resp.status in (301,302,):
                 if debug:
-                    print(resp.getheader('location', ''))
+                    print("Location header: %s" % resp.getheader('location', ''))
 
                 redirurl = urljoin(url, resp.getheader('location', ''))
                 if redirurl.find("sorry/IndexRedirect?") >= 0:
                     print("ERROR: Connection blocked due to unusual activity.")
                 else:
-                    urlconn.close()
-
-                    if url.find("https://") >= 0: # Secure connection
-                        server = redirurl[8:]
-                        marker = server.find("/")
-                        if marker > 0:
-                            server = server[:marker]
-                        urlconn = HTTPSConnection(server, timeout=30)
-                    else:
-                        server = redirurl[7:]
-                        marker = server.find("/")
-                        if marker > 0:
-                            server = server[:marker]
-                        urlconn = HTTPConnection(server, timeout=30)
-
                     if debug:
-                        print("Redir server: [%s]" % server)
-                        print("Redir URL: [%s]" % unquote(redirurl))
-
-                    urlconn.request("GET", unquote(redirurl))
-                    resp = urlconn.getresponse()
-                    if resp.status != 200:
-                        print("ERROR on retry:", str(resp.status), ": ", resp.reason)
-                    else:
-                        getTitleData(resp)
-                        if titleData is None:
-                            titleData = ''
+                        print("Trying to fetch redirected URL.")
+                    urlconn.close()
+                    resp, urlconn = getPageResp(redirurl, True)
+                    if resp is not None:
+                        if resp.status != 200:
+                            print("ERROR on retry:", str(resp.status), ": ", resp.reason)
+                        else:
+                            getTitleData(resp)
             else: # if resp.status in (301,302,):
                 print("ERROR:", str(resp.status), ": ", resp.reason)
         else: # if resp.status != 200:
             getTitleData(resp)
-            if titleData is None:
-                titleData = ''
     except Exception as e:
         print("Exception: %s" % e)
-        titleData = ''
     finally:
-        urlconn.close()
+        if urlconn is not None:
+            urlconn.close()
+        if titleData is None:
+            return ''
         return titleData.strip().replace("\n","")
 
 
