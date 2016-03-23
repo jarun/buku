@@ -318,6 +318,8 @@ def searchdb(cur, keywords):
         results = cur.fetchall();
         if len(results) > 0:
             print(formatJson(results))
+        else:
+            return
 
     else:
         for row in resultset:
