@@ -18,7 +18,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - [Features](#features)
 - [Installation](#installation)
   - [Dependencies](#dependencies)
-  - [Installating from source](#installing-from-source)
+  - [Installating from this repository](#installing-from-this-repository)
   - [Running as a standalone utility](#running-as-a-standalone-utility)
   - [Installing with a package manager](#installing-with-a-package-manager)
 - [Usage](#usage)
@@ -72,7 +72,7 @@ For optional encryption support, install PyCrypto module. Run:
 or on Ubuntu:
 
     $ sudo apt-get install python3-crypto
-## Installing from source
+## Installing from this repository
 If you have git installed, run:
 
     $ git clone https://github.com/jarun/buku/
