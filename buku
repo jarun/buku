@@ -252,7 +252,8 @@ def AddUpdateEntry(conn, cur, keywords, index):
             else:
                 cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (int(addindex), url, meta, tags,))
             conn.commit()
-            print("Added at index %d" % cur.lastrowid)
+            print("Added at index %d\n" % cur.lastrowid)
+            printdb(cur, str(cur.lastrowid))
         except sqlite3.IntegrityError:
             for row in cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
                 print("URL already exists at index %s" % row[0])
@@ -264,7 +265,8 @@ def AddUpdateEntry(conn, cur, keywords, index):
             cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, int(index),))
             conn.commit()
             if cur.rowcount == 1:
-                print("Updated index %d" % int(index))
+                print("Updated index %d\n" % int(index))
+                printdb(cur, int(index))
             else:
                 print("No matching index")
         except sqlite3.IntegrityError:
