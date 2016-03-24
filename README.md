@@ -48,7 +48,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - Delete all bookmarks from DB
 - Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indices
 - Secure parameterized SQLite3 queries to access database
-- Handle first level of redirections (reports IP blocking)
+- Handle multiple HTTP redirections (reports redireted URL and IP blocking)
 - Unicode in URL works
 - UTF-8 request and response, page character set detection
 - Works with Python 3.x

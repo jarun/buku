@@ -177,34 +177,27 @@ def fetchTitle(url):
 
     try:
         resp, urlconn = getPageResp(url, False)
-        if resp is None:
-            return ''
 
-        if resp.status != 200:
-            # Handle first redirection
-            while 1:
+        while 1:
+            if resp is None:
+                break
+            if resp.status == 200:
+                getTitleData(resp)
+                break
+            if resp.status in (301,302,):
                 print("\x1b[1mREDIRECTION:\x1b[21m %s" % resp.getheader('location', ''))
 
-                redirurl = urljoin(url, resp.getheader('location', ''))
-                if redirurl.find("sorry/IndexRedirect?") >= 0:          # graecefully handle Google blocks
+                url = urljoin(url, resp.getheader('location', ''))
+                if url.find("sorry/IndexRedirect?") >= 0:          # graecefully handle Google blocks
                     print("ERROR: Connection blocked due to unusual activity.")
-                else:
-                    if debug:
-                        print("Trying to fetch redirected URL.")
-                    urlconn.close()
-                    resp, urlconn = getPageResp(redirurl, True)
-                    if resp is None:
-                        break
-                    if resp.status in (301,302,):
-                        continue
-                    if resp.status != 200:
-                        print("ERROR on retry:", str(resp.status), ": ", resp.reason)
-                    else:
-                        getTitleData(resp)
-
                     break
-        else: # if resp.status != 200:
-            getTitleData(resp)
+                else:
+                    urlconn.close()
+                    resp, urlconn = getPageResp(url, True)
+                    continue
+            else:
+                print("ERROR in response:", str(resp.status), ": ", resp.reason)
+                break
     except Exception as e:
         print("Exception: %s" % e)
     finally:
