@@ -172,7 +172,6 @@ def getPageResp(url, redir=False):
 # Fetch title from URL
 def fetchTitle(url):
     global titleData
-
     titleData = None
     urlconn = None
 
@@ -183,25 +182,27 @@ def fetchTitle(url):
 
         if resp.status != 200:
             # Handle first redirection
-            if resp.status in (301,302,):
-                if debug:
-                    print("Location header: %s" % resp.getheader('location', ''))
+            while 1:
+                print("\x1b[1mREDIRECTION:\x1b[21m %s" % resp.getheader('location', ''))
 
                 redirurl = urljoin(url, resp.getheader('location', ''))
-                if redirurl.find("sorry/IndexRedirect?") >= 0:
+                if redirurl.find("sorry/IndexRedirect?") >= 0:          # graecefully handle Google blocks
                     print("ERROR: Connection blocked due to unusual activity.")
                 else:
                     if debug:
                         print("Trying to fetch redirected URL.")
                     urlconn.close()
                     resp, urlconn = getPageResp(redirurl, True)
-                    if resp is not None:
-                        if resp.status != 200:
-                            print("ERROR on retry:", str(resp.status), ": ", resp.reason)
-                        else:
-                            getTitleData(resp)
-            else: # if resp.status in (301,302,):
-                print("ERROR:", str(resp.status), ": ", resp.reason)
+                    if resp is None:
+                        break
+                    if resp.status in (301,302,):
+                        continue
+                    if resp.status != 200:
+                        print("ERROR on retry:", str(resp.status), ": ", resp.reason)
+                    else:
+                        getTitleData(resp)
+
+                    break
         else: # if resp.status != 200:
             getTitleData(resp)
     except Exception as e:
@@ -219,7 +220,6 @@ def fetchTitle(url):
 def AddUpdateEntry(conn, cur, keywords, index):
     global titleManual
     global online
-
     tags = ','
     meta = ''
     url = keywords[0]
