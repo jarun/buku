@@ -142,6 +142,7 @@ def getPageResp(url, redir=False):
 def fetchTitle(url):
     global titleData
 
+    titleData = None
     urlconn = None
 
     try:
@@ -227,9 +228,9 @@ def AddUpdateEntry(conn, cur, keywords, index):
     if len(keywords) > 1:
         for tag in keywords[1:]:
             if tag[-1] == ',':
-                tag = tag.strip(',') + ','
+                tag = tag.strip(',') + ','      # a last token of a tag ends with a comma
             else:
-                tag = tag.strip(',')
+                tag = tag.strip(',')            # a token in a multi-word tag
 
             if tag == ',':
                 continue
@@ -886,14 +887,11 @@ if addurl == True or update == True:
 # Refresh full DB
 if refresh == True:
     cur.execute("SELECT id, url, tags FROM bookmarks")
-    results = cur.fetchall()
-    for row in results:
+    resultset = cur.fetchall()
+    for row in resultset:
         olddata = []
         olddata.append(row[1])
-        if row[2] != '':
-            olddata.append(row[2][1:]) # Omit the initial ',' already in DB
-        else:
-            olddata.append(row[2])
+        olddata.append(row[2])
         AddUpdateEntry(conn, cur, olddata, row[0])
         print("")
 
