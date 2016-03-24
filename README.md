@@ -173,7 +173,7 @@ Tags are updated too. Original tags are removed.
 4. Update or **refresh full DB**:
 
         $ buku -R
-This operation does not modify the existing tags. Only titles are refreshed.
+This operation does not modify the indexes, URLs or tags. Only titles, if non-empty, are refreshed.
 5. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014

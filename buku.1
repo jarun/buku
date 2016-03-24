@@ -79,7 +79,7 @@ in DB.
 Show all bookmark records from the DB along with actual index. Shows URL, title and tags.
 .TP
 .B \-R
-Refresh all bookmarks. Titles are fetched from the web. Tags are retained.
+Refresh all bookmarks. Titles are fetched from the web and updated if non-empty. Indexes, URLs and tags are retained.
 .TP
 .BI \-s " keywords"
 Search bookmarks for a (partial) tag or any keyword and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within '()'.
@@ -163,7 +163,7 @@ Update or \fBrefresh full DB\fR:
 .EE
 .PP
 .IP "" 4
-This operation does not modify the existing tags. Only titles are refreshed.
+This operation does not modify the indexes, URLs or tags. Only titles, if non-empty, are refreshed.
 .PP
 .IP 5. 4
 \fBDelete\fR bookmark at index 15012014:
