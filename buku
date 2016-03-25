@@ -140,6 +140,13 @@ def initdb():
 
 # Get page response data
 def getPageResp(url, redir=False):
+    if url.find("%20") != -1:
+        url = unquote(url)
+        url = url.replace(" ", "%20")
+    else:
+        url = unquote(url)
+    print("unquote: %s" % url)
+
     if url.find("https://") >= 0: # Secure connection
         server = url[8:]
         marker = server.find("/")
@@ -161,9 +168,9 @@ def getPageResp(url, redir=False):
 
     if debug:
         print("server: [%s]" % server)
-        print("URL: [%s]" % quote(unquote(url)))
+        print("URL: [%s]" % url)
 
-    urlconn.request("GET", quote(unquote(url)))
+    urlconn.request("GET", url)
     resp = urlconn.getresponse()
     return (resp, urlconn)
 
@@ -185,16 +192,25 @@ def fetchTitle(url):
                 getTitleData(resp)
                 break
             if resp.status in (301,302,):
-                print("\x1b[1mREDIRECTION:\x1b[21m %s" % resp.getheader('location', ''))
+                redirurl = urljoin(url, resp.getheader('location', ''))
+                print("\x1b[1mREDIRECTION:\x1b[21m %s" % url)
 
-                url = urljoin(url, resp.getheader('location', ''))
-                if url.find("sorry/IndexRedirect?") >= 0:          # graecefully handle Google blocks
+                if redirurl.find("sorry/IndexRedirect?") >= 0:          # graecefully handle Google blocks
                     print("ERROR: Connection blocked due to unusual activity.")
                     break
-                else:
-                    urlconn.close()
-                    resp, urlconn = getPageResp(url, True)
-                    continue
+
+                marker = redirurl.find("redirectUrl=")
+                if marker != -1:
+                    redirurl = redirurl[marker + 12:]
+
+                # break same URL redirection loop
+                if url == redirurl:
+                    print("ERROR: Detected repeated reirection to same URL")
+                    break
+
+                url = redirurl
+                urlconn.close()
+                resp, urlconn = getPageResp(url, True)
             else:
                 print("ERROR in response:", str(resp.status), ": ", resp.reason)
                 break
