@@ -127,27 +127,29 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
     A private cmdline bookmark manager. Your mini web!
 
-    Options
+    General options
       -a URL [tags]        add URL as bookmark with comma separated tags
       -d N                 delete entry at DB index N (from -P), move last entry to N
+      -g                   list all tags alphabetically
+      -m title             manually specify the title, for -a, -i, -u
+      -s keyword(s)        search all bookmarks for a (partial) tag or any keyword
+      -S keyword(s)        search all bookmarks for a (partial) tag or all keywords
+      -u N URL [tags]      update all fields of entry at DB index N
+      -w                   fetch title from web, for -a, -i, -u
+
+    Power toys
       -D                   delete ALL bookmarks
       -e                   show bookmarks with empty titles or no tags
-      -g                   show all tags (sorted alphabetically)
       -i N                 insert new bookmark at free DB index N
       -k                   decrypt (unlock) database file
       -l                   encrypt (lock) database file
-      -m                   manually add or update the title offline, works with -a, -i, -u
       -o N                 open URL at DB index N in browser
       -p N                 show details of bookmark record at DB index N
       -P                   show all bookmarks along with index from DB
-      -R                   refresh all bookmarks, tags retained
-      -r oldtag [newtag]   replace oldtag with newtag in DB, deletes oldtag if newtag empty
-      -s keyword(s)        search all bookmarks for a (partial) tag or any keyword
-      -S keyword(s)        search all bookmarks for a (partial) tag or all keywords
-      -t N                 use N (> 0) hash iterations to generate key, works with -k, -l
-      -u N URL [tags]      update all fields of entry at DB index N
-      -w                   fetch title info from web, works with -a, -i, -u
-      -x N                 works with -P, N=1: show only URL, N=2: show URL and tag
+      -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty
+      -R                   refresh title from web for all bookmarks, update if non-empty
+      -t N                 use N (> 0) hash iterations to generate key, for -k, -l
+      -x N                 modify -P behaviour, N=1: show only URL, N=2: show URL and tag
       -z                   show debug information
 
     Keys
@@ -191,7 +193,6 @@ The last index is moved to the deleted index to keep the DB compact.
         $ buku -i 15012014 -w http://tuxdiary.com/about linux news, open source
         Title: [A journey with WordPress | TuxDiary]
         Added at index 15012014
-This option is useful in filling deleted indices from database manually.
 9. **Replace a tag** with new one:
 
         $ buku -r 'old tag' 'new tag'
