@@ -26,7 +26,7 @@ import webbrowser
 import html.parser as HTMLParser
 from http.client import HTTPConnection
 from http.client import HTTPSConnection
-from urllib.parse import urljoin, unquote
+from urllib.parse import urljoin, quote, unquote
 import signal
 
 # Import libraries needed for encryption
@@ -161,9 +161,9 @@ def getPageResp(url, redir=False):
 
     if debug:
         print("server: [%s]" % server)
-        print("URL: [%s]" % unquote(url))
+        print("URL: [%s]" % quote(unquote(url)))
 
-    urlconn.request("GET", unquote(url))
+    urlconn.request("GET", quote(unquote(url)))
     resp = urlconn.getresponse()
     return (resp, urlconn)
 
