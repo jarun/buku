@@ -75,7 +75,7 @@ iterations = int(8)
 # Show usage of buku and exit
 def usage():
     print("Usage: OPTIONS [URL] [TAGS] [KEYWORDS ...]\n")
-    print("Bookmark manager. Your private Google.\n")
+    print("A private cmdline bookmark manager.\n")
     print("Options")
     print("  -a URL [tags]        add URL as bookmark with comma separated tags")
     print("  -d N                 delete entry at DB index N (from -P), move last entry to N")

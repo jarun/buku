@@ -125,7 +125,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
     Usage: buku OPTIONS [URL] [TAGS] [KEYWORDS ...]
 
-    Bookmark manager. Your private Google.
+    A private cmdline bookmark manager.
 
     Options
       -a URL [tags]        add URL as bookmark with comma separated tags
