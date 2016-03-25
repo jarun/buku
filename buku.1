@@ -26,16 +26,16 @@ You can either add or update or delete record(s) in one instance. A combination 
 Search works in mysterious ways:
   - Substrings match ('match' matches 'rematched') for URL, tags and title.
   - All the keywords are treated together as a 'single' tag in the 'same order'. Bookmarks with partial or complete tag matches are shown in results.
-  - '-s' : match any of the keywords in URL or title. Order is irrelevant.
-  - '-S' : match all the keywords in URL or title. Order is irrelevant. 
+  - -s : match any of the keywords in URL or title. Order is irrelevant.
+  - -S : match all the keywords in URL or title. Order is irrelevant.
   - Search results are indexed serially. This index is different from actual database index of a bookmark reord which is shown within '()' after the URL.
 .PP
-AES256 is used for encryption. Optionally specify ('-t') the number of hash iterations to use to generate key. Default is 8 iterations.
+AES256 is used for encryption. Optionally specify (-t) the number of hash iterations to use to generate key. Default is 8 iterations.
 .PP
-Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked ('-k') before using buku and locked ('-l') afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is unecrypted on creation.
+Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is unecrypted on creation.
 .SH OPTIONS
 .TP
-.BI \-a " URL" " " "tag 1", " tag 2", " ..."
+.BI \-a " URL" " " "[tags]"
 Bookmark
 .I URL
 along with comma separated tags. A tag can have multiple words. The same URL cannot be added twice.
@@ -43,7 +43,7 @@ along with comma separated tags. A tag can have multiple words. The same URL can
 .BI \-d " N"
 Delete bookmark at index
 .I N
-in DB (from '-P' output).
+in DB (from -P output).
 .TP
 .B \-D
 Delete ALL bookmarks.
@@ -66,7 +66,7 @@ Decrypt (unlock) the DB file.
 Encrypt (lock) the DB file.
 .TP
 .BI \-m " keywords"
-Add or update the title manually.
+Add or update the title manually, works with -a, -i, -u.
 .TP
 .BI \-o " N"
 Open URL at DB index
@@ -88,23 +88,23 @@ Refresh all bookmarks. Titles are fetched from the web and updated if non-empty.
 Search bookmarks for a (partial) tag or any keyword and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within '()'.
 .TP
 .BI \-S " keywords"
-Search bookmarks for a (partial) tag or occurrence of all keywords in URL or title and show the results. Rest same as '-s'.
+Search bookmarks for a (partial) tag or occurrence of all keywords in URL or title and show the results. Rest same as -s.
 .TP
 .BI \-t " N"
 Use
 .I N
-(> 0) hash iterations to generate key, works with '-k', '-l'.
+(> 0) hash iterations to generate key, works with -k, -l.
 .TP
-.BI \-u " N"
+.BI \-u " N" " " "URL" " " "[tags]"
 Update all fields of bookmark at index
 .I N
 in DB.
 .TP
 .BI \-w
-Fetch title data from the web. Works with '-a', '-i' or '-u' options.
+Fetch title data from the web. Works with -a, -i or -u options.
 .TP
 .BI \-x " N"
-Show selective monochrome output. Works with '-P'. If
+Show selective monochrome output. Works with -P. If
 .I N
 = 1, only URL is shown. If
 .I N
