@@ -51,6 +51,7 @@ addurl = False
 addindex = None
 online = False
 delete = False
+empty = False
 openurl = None
 show = False
 showindex = None
@@ -79,6 +80,7 @@ def usage():
     print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
     print("  -d N                       delete entry at DB index N (from -P), move last entry to N")
     print("  -D                         delete ALL bookmarks")
+    print("  -e                         show bookmarks with empty titles or no tags")
     print("  -g                         show all tags (sorted alphabetically)")
     print("  -i N                       insert entry at DB index N, useful to fill deleted index")
     print("  -k                         decrypt (unlock) database file")
@@ -420,11 +422,20 @@ def cleardb(conn, cur, index):
 
 
 # Print all records in the table
-def printdb(cur, index):
+def printdb(cur, index, empty=False):
     global showOpt
+    resultset = None
 
     if index == None: # Show all entries
-        for row in cur.execute('SELECT * FROM bookmarks'):
+        if empty == False:
+            cur.execute('SELECT * FROM bookmarks')
+            resultset = cur.fetchall()
+        else:
+            cur.execute("SELECT * FROM bookmarks WHERE metadata = '' OR tags = ','")
+            resultset = cur.fetchall()
+            print("\x1b[1m%d records found\x1b[21m\n" % len(resultset))
+
+        for row in resultset:
             if showOpt == 1:
                 print("%s %s" % (row[0], row[1]))
             elif showOpt == 2:
@@ -743,7 +754,7 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDgklPRrsSwz")
+    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDegklPRrsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -773,6 +784,8 @@ try:
                 usage()
 
             delete = True
+        elif opt[0] == "-e":
+            empty = True
         elif opt[0] == "-g":
             showTags = True
         elif opt[0] == "-i":
@@ -932,6 +945,9 @@ if show == True:
 # Show all unique tags
 if showTags == True:
     showUniqueTags(cur)
+
+if empty == True:
+    printdb(cur, None, empty)
 
 # Open URL in browser
 if openurl != None:

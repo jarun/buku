@@ -46,6 +46,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - Refresh all bookmarks online
 - Auto-compact DB on a single bookmark removal
 - Delete all bookmarks from DB
+- Show all bookmarks with empty titles or no tags (for bookkeeping)
 - Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indices
 - Secure parameterized SQLite3 queries to access database
 - Handle multiple HTTP redirections (reports redireted URL, loops, IP blocking)
@@ -130,6 +131,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags
       -d N                       delete entry at DB index N (from -P), move last entry to N
       -D                         delete ALL bookmarks
+      -e                         show bookmarks with empty titles or no tags
       -g                         show all tags (sorted alphabetically)
       -i N                       insert entry at DB index N, useful to fill deleted index
       -k                         decrypt (unlock) database file
