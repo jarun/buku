@@ -19,7 +19,7 @@ It's advisable to copy URLs directly from the browser address bar, i.e., along w
 .PP
 If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.
 .PP
-The same URL cannot be added twice. You can update tags and re-fetch title data. You can also delete it and insert at the same index.
+The same URL cannot be added twice. You can update tags and re-fetch title data. You can also insert a new bookmark at a free index.
 .PP
 You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
 .PP
@@ -55,9 +55,9 @@ Show all bookmarks with empty titles or no tags (for bookkeeping).
 Show all unique tags sorted aplhabetically.
 .TP
 .BI \-i " N"
-Add a new record at index
+Add a new record at free index
 .I N
-in DB. Use this option to fill blank indices left by deleted bookmarks.
+in DB.
 .TP
 .B \-k
 Decrypt (unlock) the DB file.

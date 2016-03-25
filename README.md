@@ -110,7 +110,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 ## Operational notes
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` quotes.
-- The same URL cannot be added twice. You can update tags and re-fetch title data. You can also delete it and insert at the same index. 
+- The same URL cannot be added twice. You can update tags and re-fetch title data. You can also insert a new bookmark at a free index.
 - You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
 - Search works in mysterious ways:
   - Substrings match (`match` matches `rematched`) for URL, tags and title.
@@ -133,7 +133,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -D                   delete ALL bookmarks
       -e                   show bookmarks with empty titles or no tags
       -g                   show all tags (sorted alphabetically)
-      -i N                 insert entry at DB index N, useful to fill deleted index
+      -i N                 insert new bookmark at free DB index N
       -k                   decrypt (unlock) database file
       -l                   encrypt (lock) database file
       -m                   manually add or update the title offline, works with -a, -i, -u
