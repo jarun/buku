@@ -149,7 +149,6 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -w                   fetch title info from web, works with -a, -i, -u
       -x N                 works with -P, N=1: show only URL, N=2: show URL and tag
       -z                   show debug information
-                           any other option shows help and exits buku
 
     Keys
       1-N                  open Nth search result in browser. Enter exits buku.
