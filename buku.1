@@ -65,8 +65,8 @@ Decrypt (unlock) the DB file.
 .B \-l
 Encrypt (lock) the DB file.
 .TP
-.BI \-m " keywords"
-Add or update the title manually, works with -a, -i, -u.
+.BI \-m " title"
+Manually specify the title, works with -a, -i, -u.
 .TP
 .BI \-o " N"
 Open URL at DB index
@@ -82,7 +82,7 @@ in DB.
 Show all bookmark records from the DB along with actual index. Shows URL, title and tags.
 .TP
 .B \-R
-Refresh all bookmarks. Titles are fetched from the web and updated if non-empty. Indexes, URLs and tags are retained.
+Refresh titles for all bookmarks from the web. Titles are updated only if non-empty. Indexes, URLs and tags are retained.
 .TP
 .BI \-s " keywords"
 Search bookmarks for a (partial) tag or any keyword and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within '()'.
