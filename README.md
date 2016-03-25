@@ -22,8 +22,8 @@ If you find `buku` useful, please consider donating via PayPal.
   - [Running as a standalone utility](#running-as-a-standalone-utility)
   - [Installing with a package manager](#installing-with-a-package-manager)
 - [Usage](#usage)
+  - [Cmdline options](#cmdline-options)
   - [Operational notes](#operational-notes)
-  - [cmdline help](#cmdline-help)
 - [Examples](#examples)
 - [Contributions](#contributions)
 - [Developers](#developers)
@@ -107,21 +107,8 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
  - [Homebrew](http://braumeister.org/formula/buku) for OS X, or its Linux fork, [Linuxbrew](https://github.com/Linuxbrew/linuxbrew/blob/master/Library/Formula/buku.rb).
 
 # Usage
-## Operational notes
-- It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
-- If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` quotes.
-- The same URL cannot be added twice. You can update tags and re-fetch title data. You can also insert a new bookmark at a free index.
-- You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
-- Search works in mysterious ways:
-  - Substrings match (`match` matches `rematched`) for URL, tags and title.
-  - All the keywords are treated together as a `single` tag in the `same order`. Bookmarks with partial or complete tag matches are shown in results.
-  - `-s` : match any of the keywords in URL or title. Order is irrelevant.
-  - `-S` : match all the keywords in URL or title. Order is irrelevant.
-  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `()` after the URL.
-- AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
-- Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unecrypted on creation</i>.
 
-## cmdline help
+## Cmdline options
 
     Usage: buku OPTIONS [URL] [TAGS] [KEYWORDS ...]
 
@@ -154,6 +141,21 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
     Keys
       1-N                  open Nth search result in browser. Enter exits buku.
+
+## Operational notes
+
+- It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
+- If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` quotes.
+- The same URL cannot be added twice. You can update tags and re-fetch title data. You can also insert a new bookmark at a free index.
+- You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
+- Search works in mysterious ways:
+  - Substrings match (`match` matches `rematched`) for URL, tags and title.
+  - All the keywords are treated together as a `single` tag in the `same order`. Bookmarks with partial or complete tag matches are shown in results.
+  - `-s` : match any of the keywords in URL or title. Order is irrelevant.
+  - `-S` : match all the keywords in URL or title. Order is irrelevant.
+  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `()` after the URL.
+- AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
+- Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unecrypted on creation</i>.
 
 # Examples
 1. **Add** a new bookmark with title `Linux magazine` & tags `linux news` and `open source`:
