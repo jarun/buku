@@ -196,7 +196,7 @@ def fetchTitle(url):
                 print("\x1b[1mREDIRECTION:\x1b[21m %s" % url)
 
                 if redirurl.find("sorry/IndexRedirect?") >= 0:          # graecefully handle Google blocks
-                    print("ERROR: Connection blocked due to unusual activity.")
+                    print("\x1b[1mERROR:\x1b[21m Connection blocked due to unusual activity.")
                     break
 
                 marker = redirurl.find("redirectUrl=")
@@ -205,14 +205,14 @@ def fetchTitle(url):
 
                 # break same URL redirection loop
                 if url == redirurl:
-                    print("ERROR: Detected repeated reirection to same URL")
+                    print("\x1b[1mERROR:\x1b[21m Detected repeated reirection to same URL")
                     break
 
                 url = redirurl
                 urlconn.close()
                 resp, urlconn = getPageResp(url, True)
             else:
-                print("ERROR in response:", str(resp.status), ": ", resp.reason)
+                print("\x1b[1mERROR:\x1b[21m [", str(resp.status), "] ", resp.reason)
                 break
     except Exception as e:
         print("Exception: %s" % e)
@@ -617,7 +617,7 @@ def encrypt_file():
 
     # If both encrypted file and flat file exist, error out
     if os.path.exists(dbpath) and os.path.exists(encpath):
-        print("ERROR: Both encrypted and flat DB files exist!")
+        print("\x1b[1mERROR:\x1b[21m Both encrypted and flat DB files exist!")
         sys.exit(1)
 
     password = ''
@@ -672,12 +672,12 @@ def decrypt_file():
     dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
-        print("Error: %s missing" % encpath)
+        print("\x1b[1mERROR:\x1b[21m %s missing" % encpath)
         sys.exit(1)
 
     # If both encrypted file and flat file exist, error out
     if os.path.exists(dbpath) and os.path.exists(encpath):
-        print("ERROR: Both encrypted and flat DB files exist!")
+        print("\x1b[1mERROR:\x1b[21m Both encrypted and flat DB files exist!")
         sys.exit(1)
 
     password = ''
@@ -790,13 +790,13 @@ try:
             addurl = True
         elif opt[0] == "-k":
             if no_crypto == True:
-                print("Error: PyCrypto missing")
+                print("\x1b[1mERROR:\x1b[21m PyCrypto missing")
                 sys.exit(0)
 
             decrypt = True
         elif opt[0] == "-l":
             if no_crypto == True:
-                print("Error: PyCrypto missing")
+                print("\x1b[1mERROR:\x1b[21m PyCrypto missing")
                 sys.exit(0)
 
             encrypt = True
