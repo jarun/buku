@@ -198,7 +198,7 @@ def fetchTitle(url):
                 break
             if resp.status in (301,302,):
                 redirurl = urljoin(url, resp.getheader('location', ''))
-                print("\x1b[1mREDIRECTION:\x1b[21m %s" % url)
+                print("\x1b[1mREDIRECTION:\x1b[21m %s" % redirurl)
 
                 if redirurl.find("sorry/IndexRedirect?") >= 0:          # graecefully handle Google blocks
                     print("\x1b[1mERROR:\x1b[21m Connection blocked due to unusual activity.")
