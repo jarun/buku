@@ -749,6 +749,24 @@ signal.signal(signal.SIGINT, sigint_handler)
 
 # Main starts here
 # ----------------
+pipeargs = []
+
+def main(argv = sys.argv):
+    # detects whether have pipe line parsing in
+    if not sys.stdin.isatty():
+        pipeargs.extend(sys.argv)
+        for s in sys.stdin.readlines():
+            pipeargs.extend(s.split())
+
+        if debug:
+            print(pipeargs)
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv)
+    except KeyboardInterrupt:
+        pass
+
 optlist = None
 keywords = None
 
@@ -757,7 +775,10 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDegklPRrsSwz")
+    if len(pipeargs) > 0:
+        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aDegklPRrsSwz")
+    else:
+        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDegklPRrsSwz")
     if len(optlist) < 1:
         usage()
 
