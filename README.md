@@ -28,6 +28,7 @@ If you find `buku` useful, please consider donating via PayPal.
   - [Cmdline options](#cmdline-options)
   - [Operational notes](#operational-notes)
 - [Examples](#examples)
+  - [Bookkeeping](#bookkeeping)
 - [Contributions](#contributions)
 - [Developers](#developers)
 
@@ -232,7 +233,13 @@ The same number of iterations must be used for one lock & unlock instance.
 
         $ buku
         $ man buku
-19. `buku` doesn't have any **import feature** of its own. To import URLs in bulk, create a script with URLs and tags like the following (check TIP below):
+
+## Bookkeeping
+
+1. To show bookmarks with **no title or tags**:
+
+        $ buku -e
+2. `buku` doesn't have any **import feature** of its own. To import URLs in **bulk**, create a script with URLs and tags like the following (check TIP below):
 
         #!/bin/bash
         buku -aw https://wireless.wiki.kernel.org/ networking, device drivers
@@ -242,7 +249,7 @@ The same number of iterations must be used for one lock & unlock instance.
         buku -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
         buku -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
 Make the script executable and run to batch add bookmarks.
-20. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
+3. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 
         $ buku -P -x 2 | tee myurls
 Remove the lines you don't need. Add `buku -wu ` in front of all the other lines (check TIP below). Should look like:
