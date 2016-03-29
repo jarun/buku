@@ -236,9 +236,10 @@ The same number of iterations must be used for one lock & unlock instance.
 
 ## Bookkeeping
 
-1. To show bookmarks with **no title or tags**:
+1. To list bookmarks with **no title or tags**:
 
         $ buku -e
+Use the `-u` option to add title or tags to those entries, if you want to.
 2. `buku` doesn't have any **import feature** of its own. To import URLs in **bulk**, create a script with URLs and tags like the following (check TIP below):
 
         #!/bin/bash
