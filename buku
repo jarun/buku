@@ -69,6 +69,7 @@ replace = False
 encrypt = False
 decrypt = False
 iterations = int(8)
+_VERSION_ = 1.8
 
 
 
@@ -101,7 +102,7 @@ def usage():
     print("  -z                   show debug information\n")
     print("Keys")
     print("  1-N                  open Nth search result in browser. Enter exits buku.\n")
-    print("Version 1.8")
+    print("Version %.1f" % _VERSION_)
     print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
     print("License: GPLv3")
     print("Webpage: https://github.com/jarun/buku")
@@ -758,9 +759,6 @@ def main(argv = sys.argv):
         for s in sys.stdin.readlines():
             pipeargs.extend(s.split())
 
-        if debug:
-            print(pipeargs)
-
 if __name__ == "__main__":
     try:
         main(sys.argv)
@@ -904,6 +902,9 @@ try:
 except GetoptError as e:
     print("buku:", e)
     sys.exit(1)
+
+if debug:
+    print("Version %.1f" % _VERSION_)
 
 # Update and full DB refresh are mutually exclusive
 if update == True and refresh == True:
