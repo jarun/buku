@@ -169,7 +169,7 @@ def getPageResp(url, redir=False):
             server = server[:marker]
         urlconn = HTTPConnection(server, timeout=30)
     else:
-        print("\x1b[1mWARNING:\x1b[21m Not a valid HTTP(S) url")
+        printmsg("Not a valid HTTP(S) url", "WARNING")
         return (None, None)
 
     if debug:
@@ -199,10 +199,10 @@ def fetchTitle(url):
                 break
             if resp.status in (301,302,):
                 redirurl = urljoin(url, resp.getheader('location', ''))
-                print("\x1b[1mREDIRECTION:\x1b[21m %s" % redirurl)
+                printmsg(redirurl, "REDIRECTION")
 
                 if redirurl.find("sorry/IndexRedirect?") >= 0:          # graecefully handle Google blocks
-                    print("\x1b[1mERROR:\x1b[21m Connection blocked due to unusual activity.")
+                    printmsg("Connection blocked due to unusual activity", "ERROR")
                     break
 
                 marker = redirurl.find("redirectUrl=")
@@ -211,14 +211,14 @@ def fetchTitle(url):
 
                 # break same URL redirection loop
                 if url == redirurl:
-                    print("\x1b[1mERROR:\x1b[21m Detected repeated redirection to same URL")
+                    printmsg("Detected repeated redirection to same URL", "ERROR")
                     break
 
                 url = redirurl
                 urlconn.close()
                 resp, urlconn = getPageResp(url, True)
             else:
-                print("\x1b[1mERROR:\x1b[21m [", str(resp.status), "] ", resp.reason)
+                printmsg(("[" + str(resp.status) + "] " + resp.reason), "ERROR")
                 break
     except Exception as e:
         print("Exception: %s" % e)
@@ -632,7 +632,7 @@ def encrypt_file():
 
     # If both encrypted file and flat file exist, error out
     if os.path.exists(dbpath) and os.path.exists(encpath):
-        print("\x1b[1mERROR:\x1b[21m Both encrypted and flat DB files exist!")
+        printmsg("Both encrypted and flat DB files exist!", "ERROR")
         sys.exit(1)
 
     password = ''
@@ -687,12 +687,12 @@ def decrypt_file():
     dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
-        print("\x1b[1mERROR:\x1b[21m %s missing" % encpath)
+        printmsg((encpath + " missing"), "ERROR")
         sys.exit(1)
 
     # If both encrypted file and flat file exist, error out
     if os.path.exists(dbpath) and os.path.exists(encpath):
-        print("\x1b[1mERROR:\x1b[21m Both encrypted and flat DB files exist!")
+        printmsg("Both encrypted and flat DB files exist!", "ERROR")
         sys.exit(1)
 
     password = ''
@@ -747,6 +747,12 @@ def sigint_handler(signum, frame):
 signal.signal(signal.SIGINT, sigint_handler)
 
 
+
+def printmsg(msg, level=None):
+    if level is not None:
+        print("\x1b[1m%s:\x1b[21m %s" % (level, msg))
+    else:
+        print("%s" % msg)
 
 # Main starts here
 # ----------------
@@ -825,13 +831,13 @@ try:
             addurl = True
         elif opt[0] == "-k":
             if no_crypto == True:
-                print("\x1b[1mERROR:\x1b[21m PyCrypto missing")
+                printmsg("PyCrypto missing", "ERROR")
                 sys.exit(0)
 
             decrypt = True
         elif opt[0] == "-l":
             if no_crypto == True:
-                print("\x1b[1mERROR:\x1b[21m PyCrypto missing")
+                printmsg("PyCrypto missing", "ERROR")
                 sys.exit(0)
 
             encrypt = True
