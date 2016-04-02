@@ -37,7 +37,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - Add tags to bookmarks
 - Manual password protection using AES256 encryption algorithm
 - Optionally fetch page title data from the web (default: disabled)
-- Add or update page title offline manually
+- Add a custom page title manually
 - Use (partial) tags or keywords to search bookmarks
 - Any or all search keyword match options
 - Unique URLs to avoid duplicates, show index if URL already exists
