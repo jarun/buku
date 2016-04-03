@@ -68,7 +68,7 @@ refresh = False
 replace = False
 encrypt = False
 decrypt = False
-iterations = int(8)
+iterations = 8
 _VERSION_ = 1.8
 
 
