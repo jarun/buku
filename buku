@@ -24,8 +24,7 @@ from getopt import getopt, GetoptError
 import readline
 import webbrowser
 import html.parser as HTMLParser
-from http.client import HTTPConnection
-from http.client import HTTPSConnection
+from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import urljoin, quote, unquote
 import signal
 
