@@ -653,8 +653,13 @@ def is_int(string):
 
 
 
-# Open a URL in browser
 def browser_open(url):
+    """Duplicate stdin, stdout (to suppress showing errors
+    on the terminal) and open URL in default browser
+
+    Params: url to open
+    """
+
     url = url.replace("%22", "\"")
 
     _stderr = os.dup(2)
@@ -675,8 +680,12 @@ def browser_open(url):
 
 
 
-# Get the SHA256 hash of a file
 def get_filehash(filepath):
+    """Get the SHA256 hash of a file
+
+    Params: path to the file
+    """
+
     with open(filepath, 'rb') as f:
         hasher = hashlib.sha256()
         buf = f.read(BLOCKSIZE)
@@ -688,8 +697,9 @@ def get_filehash(filepath):
 
 
 
-# Encrypt the bookmarks database file
 def encrypt_file():
+    """Encrypt the bookmarks database file"""
+
     dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(dbpath):
@@ -748,8 +758,9 @@ def encrypt_file():
 
 
 
-# Decrypt the bookmarks database file
 def decrypt_file():
+    """Decrypt the bookmarks database file"""
+
     dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
@@ -805,8 +816,9 @@ def decrypt_file():
 
 
 
-# SIGINT handler
 def sigint_handler(signum, frame):
+    """Custom SIGINT handler"""
+
     print('\nInterrupted.', file=sys.stderr)
     sys.exit(1)
 
@@ -815,10 +827,17 @@ signal.signal(signal.SIGINT, sigint_handler)
 
 
 def printmsg(msg, level=None):
+    """Print a message in 2 parts, with the level in bold
+
+    Params: msg, level
+    """
+
     if level is not None:
         print("\x1b[1m%s:\x1b[21m %s" % (level, msg))
     else:
         print("%s" % msg)
+
+
 
 # Main starts here
 # ----------------
