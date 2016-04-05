@@ -72,8 +72,38 @@ _VERSION_ = 1.8
 
 
 
-# Show usage of buku and exit
+# Parse HTML page for Title info
+class BMHTMLParser(HTMLParser.HTMLParser):
+    def __init__(self):
+        HTMLParser.HTMLParser.__init__(self)
+        self.inTitle = False
+        self.data = ""
+        self.lasttag = None
+
+    def handle_starttag(self, tag, attrs):
+        self.inTitle = False
+        if tag == "title":
+            self.inTitle = True
+            self.lasttag = tag
+
+    def handle_endtag(self, tag):
+        global titleData
+
+        if tag == "title":
+            self.inTitle = False
+            if self.data != "":
+                titleData = self.data
+                self.reset() # We have received title data, exit parsing
+
+    def handle_data(self, data):
+        if self.lasttag == "title" and self.inTitle == True:
+            self.data += data
+
+
+
 def usage():
+    """Show buku usage, options, general information and exit"""
+
     print("Usage: OPTIONS [URL] [TAGS] [KEYWORDS ...]\n")
     print("A private cmdline bookmark manager. Your mini web!\n")
     print("General options")
@@ -109,9 +139,13 @@ def usage():
 
 
 
-# Initialize the database connection
-# Create bookmarks table is not existing
 def initdb():
+    """Initialize the database connection. Create DB file and/or bookmarks table
+    if they don't exist. Alert on encryption options on first execution.
+
+    Returns: connection, cursor
+    """
+
     dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
     if not os.path.exists(dbpath):
         os.makedirs(dbpath)
@@ -140,8 +174,13 @@ def initdb():
 
 
 
-# Get page response data
 def getPageResp(url, redir=False):
+    """Connect to a server and fetch the requested page data.
+    
+    Params: URL to fetch, redirection status
+    Returns: connection, HTTP(S) GET response
+    """
+
     if url.find("%20") != -1:
         url = unquote(url)
         url = url.replace(" ", "%20")
@@ -181,8 +220,38 @@ def getPageResp(url, redir=False):
 
 
 
-# Fetch title from URL
+def getTitleData(resp):
+    """Invoke HTML parser and extract title from HTTP response
+    
+    Params: GET response
+    """
+
+    charset = ''
+    charset = resp.headers.get_content_charset()
+    if charset == None:
+        charset = 'utf-8'
+    if debug:
+        print("charset: %s" % charset)
+
+    parser = BMHTMLParser()
+    try:
+        if charset == 'utf-8':
+            parser.feed(resp.read().decode(charset, "replace"))
+        else:
+            parser.feed(resp.read().decode(charset))
+    except Exception as e:
+        if debug:
+            print("Exception: %s" % e)
+
+
+
 def fetchTitle(url):
+    """Handle server connection and redirections
+    
+    Params: URL to fetch
+    Returns: page title or empty string, if not found
+    """
+
     global titleData
     titleData = None
     urlconn = None
@@ -230,8 +299,13 @@ def fetchTitle(url):
 
 
 
-# Add a new bookmark or update an existing record at index
 def AddUpdateEntry(conn, cur, keywords, index):
+    """Add a new bookmark or update an existing record at index
+    or insert a new record at addindex (if empty)
+    
+    Params: connection, cursor, index to update
+    """
+
     global titleManual
     global online
     tags = ','
@@ -295,8 +369,15 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
 
 
-# Refresh full DB
 def dbRefresh(conn, cur):
+    """Refresh ALL records in the database. Fetch title for each
+    bookmark from the web and update the records. Doesn't udpate
+    the record if title is empty.
+    This API doesn't change DB index, URL or tags of a bookmark.
+    
+    Params: connection, cursor
+    """
+
     cur.execute("SELECT id, url FROM bookmarks ORDER BY id ASC")
     resultset = cur.fetchall()
     for row in resultset:
@@ -314,8 +395,13 @@ def dbRefresh(conn, cur):
 
 
 
-# Search the database for a tag or matching URL or Title info
 def searchdb(cur, keywords):
+    """Search the database for an entries with tags or URL
+    or title info matching keywords and list those.
+    
+    Params: cursor, keywords to search
+    """
+
     searchtag = ''
     for token in keywords:
         searchtag += token + " "
@@ -382,8 +468,13 @@ def searchdb(cur, keywords):
 
 
 
-# Move last row to empty position to compact DB
 def compactDB(conn, cur, index):
+    """When an entry at index is deleted, move the last
+    entry in DB to index, if index is lesser.
+    
+    Params: connection, cursor, index of deleted entry
+    """
+
     cur.execute('SELECT MAX(id) from bookmarks')
     results = cur.fetchall()
     for row in results:
@@ -399,8 +490,12 @@ def compactDB(conn, cur, index):
 
 
 
-# Delete a single record or remove the table
 def cleardb(conn, cur, index):
+    """Delete a single record or remove the table if index is None
+    
+    Params: connection, cursor, index to delete
+    """
+
     if index == None: # Remove the table
         resp = input("ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ")
         if resp != 'y':
@@ -424,8 +519,13 @@ def cleardb(conn, cur, index):
 
 
 
-# Print all records in the table
 def printdb(cur, index, empty=False):
+    """Print bookmark details at index or all bookmarks if index is None
+    Print only bookmarks with empty title or tags if empty is True
+    
+    Params: cursor, index to print, flag to show only bookmarks with no title or tags
+    """
+
     global showOpt
     resultset = None
 
@@ -456,8 +556,12 @@ def printdb(cur, index, empty=False):
 
 
 
-# Show all unique tags ordered alphabetically
 def showUniqueTags(cur):
+    """Print all unique tags ordered alphabetically
+    
+    Params: cursor
+    """
+
     count = 1
     Tags = []
     uniqueTags = []
@@ -478,8 +582,13 @@ def showUniqueTags(cur):
 
 
 
-# Replace or delete tags in DB
 def replaceTags(conn, cur, orig, new):
+    """Replace orig tags with new tags in DB for all records.
+    Remove orig tag is new tag is empty.
+    
+    Params: connection, cursor, original and new tags
+    """
+
     update = False
     delete = False
 
@@ -513,8 +622,12 @@ def replaceTags(conn, cur, orig, new):
 
 
 
-# Fetch index and open URL in browser
 def fetchopen(index):
+    """Fetch URL at index and open in browser
+    
+    Params: index
+    """
+
     try:
         for row in cur.execute("SELECT URL FROM bookmarks WHERE id = ?", (int(index),)):
             url = unquote(row[0])
@@ -526,63 +639,17 @@ def fetchopen(index):
 
 
 
-# Check if a value is a digit
 def is_int(string):
+    """Check if a string is a digit
+    
+    Params: string
+    """
+
     try:
         int(string)
         return True
     except:
         return False
-
-
-
-# Fetch titleData from GET response
-def getTitleData(resp):
-    charset = ''
-    charset = resp.headers.get_content_charset()
-    if charset == None:
-        charset = 'utf-8'
-    if debug:
-        print("charset: %s" % charset)
-
-    parser = BMHTMLParser()
-    try:
-        if charset == 'utf-8':
-            parser.feed(resp.read().decode(charset, "replace"))
-        else:
-            parser.feed(resp.read().decode(charset))
-    except Exception as e:
-        if debug:
-            print("Exception: %s" % e)
-
-
-
-# Parse HTML page for Title info
-class BMHTMLParser(HTMLParser.HTMLParser):
-    def __init__(self):
-        HTMLParser.HTMLParser.__init__(self)
-        self.inTitle = False
-        self.data = ""
-        self.lasttag = None
-
-    def handle_starttag(self, tag, attrs):
-        self.inTitle = False
-        if tag == "title":
-            self.inTitle = True
-            self.lasttag = tag
-
-    def handle_endtag(self, tag):
-        global titleData
-
-        if tag == "title":
-            self.inTitle = False
-            if self.data != "":
-                titleData = self.data
-                self.reset() # We have received title data, exit parsing
-
-    def handle_data(self, data):
-        if self.lasttag == "title" and self.inTitle == True:
-            self.data += data
 
 
 
