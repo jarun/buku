@@ -25,7 +25,7 @@ import readline
 import webbrowser
 import html.parser as HTMLParser
 from http.client import HTTPConnection, HTTPSConnection
-from urllib.parse import urljoin, quote, unquote
+from urllib.parse import urljoin, unquote
 import signal
 
 # Import libraries needed for encryption
@@ -216,7 +216,7 @@ def getPageResp(url, redir=False):
 
     urlconn.request("GET", url)
     resp = urlconn.getresponse()
-    return (resp, urlconn)
+    return (urlconn, resp)
 
 
 
@@ -257,7 +257,7 @@ def fetchTitle(url):
     urlconn = None
 
     try:
-        resp, urlconn = getPageResp(url, False)
+        urlconn, resp = getPageResp(url, False)
 
         while 1:
             if resp is None:
@@ -284,7 +284,7 @@ def fetchTitle(url):
 
                 url = redirurl
                 urlconn.close()
-                resp, urlconn = getPageResp(url, True)
+                urlconn, resp = getPageResp(url, True)
             else:
                 printmsg(("[" + str(resp.status) + "] " + resp.reason), "ERROR")
                 break
