@@ -267,7 +267,9 @@ Run the script:
         $ chmod +x myurls
         $ ./myurls
 
-**TIP:**  
+
+####TIP
+
 To add the same text at the beginning of multiple lines using vim editor:  
   - Press `Ctrl-v` to select the first column of text in the lines you want to change (visual mode).
   - Press `Shift-i` and type the text you want to insert.
