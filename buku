@@ -46,33 +46,32 @@ except ImportError:
 
 
 # Globals
-addurl = False
-addindex = None
-online = False
-delete = False
-empty = False
-openurl = None
-show = False
-showindex = None
-showOpt = 0
-showTags = False
-search = False
-searchAll = False
-entry = None
-update = False
-debug = False
-titleData = None
-titleManual = None
-refresh = False
-replace = False
-encrypt = False
-decrypt = False
-iterations = 8
-_VERSION_ = 1.8
+addurl = False          # Add a URL
+addindex = None         # DB index to insert URL into
+online = False          # Fetch title from web
+delete = False          # Delete bookmark(s)
+empty = False           # List all bookmarks with no title or tag
+openurl = None          # Open URL in browser
+show = False            # Show all details of a bookmark
+showindex = None        # Index of bookmark to show
+showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
+showTags = False        # List all unique tags
+search = False          # Search for keywords
+searchAll = False       # Match all keywords in search
+entry = None            # DB index to update or delete
+update = False          # Update a bookmark in DB
+debug = False           # Enable debug logs
+titleData = None        # Title fetched from a page
+titleManual = None      # Manually add a title offline
+refresh = False         # Refresh the full DB
+replace = False         # Replace a tag
+encrypt = False         # Lock database file
+decrypt = False         # Unlock database file
+iterations = 8          # Number of hash iteratons to generate key
+pipeargs = []           # Holds arguments piped to the program
+_VERSION_ = 1.8         # Program version
 
 
-
-# Parse HTML page for Title info
 class BMHTMLParser(HTMLParser.HTMLParser):
     """Class to parse and fetch the title from a HTML page, if available"""
 
@@ -100,44 +99,6 @@ class BMHTMLParser(HTMLParser.HTMLParser):
     def handle_data(self, data):
         if self.lasttag == "title" and self.inTitle == True:
             self.data += data
-
-
-
-def usage():
-    """Show buku usage, options, general information and exit"""
-
-    print("Usage: OPTIONS [URL] [TAGS] [KEYWORDS ...]\n")
-    print("A private cmdline bookmark manager. Your mini web!\n")
-    print("General options")
-    print("  -a URL [tags]        add URL as bookmark with comma separated tags")
-    print("  -d N                 delete entry at DB index N (from -P), move last entry to N")
-    print("  -g                   list all tags alphabetically")
-    print("  -m title             manually specify the title, for -a, -i, -u")
-    print("  -s keyword(s)        search all bookmarks for a (partial) tag or any keyword")
-    print("  -S keyword(s)        search all bookmarks for a (partial) tag or all keywords")
-    print("  -u N URL [tags]      update all fields of entry at DB index N")
-    print("  -w                   fetch title from web, for -a, -i, -u\n")
-    print("Power toys")
-    print("  -D                   delete ALL bookmarks")
-    print("  -e                   show bookmarks with empty titles or no tags")
-    print("  -i N                 insert new bookmark at free DB index N")
-    print("  -k                   decrypt (unlock) database file")
-    print("  -l                   encrypt (lock) database file")
-    print("  -o N                 open URL at DB index N in browser")
-    print("  -p N                 show details of bookmark record at DB index N")
-    print("  -P                   show all bookmarks along with index from DB")
-    print("  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty")
-    print("  -R                   refresh title from web for all bookmarks, update if non-empty")
-    print("  -t N                 use N (> 0) hash iterations to generate key, for -k, -l")
-    print("  -x N                 modify -P behaviour, N=1: show only URL, N=2: show URL and tag")
-    print("  -z                   show debug information\n")
-    print("Keys")
-    print("  1-N                  open Nth search result in browser. Enter exits buku.\n")
-    print("Version %.1f" % _VERSION_)
-    print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
-    print("License: GPLv3")
-    print("Webpage: https://github.com/jarun/buku")
-    sys.exit(1)
 
 
 
@@ -841,10 +802,45 @@ def printmsg(msg, level=None):
 
 
 
-# Main starts here
-# ----------------
-pipeargs = []
+def usage():
+    """Show buku usage, options, general information and exit"""
 
+    print("Usage: OPTIONS [URL] [TAGS] [KEYWORDS ...]\n")
+    print("A private cmdline bookmark manager. Your mini web!\n")
+    print("General options")
+    print("  -a URL [tags]        add URL as bookmark with comma separated tags")
+    print("  -d N                 delete entry at DB index N (from -P), move last entry to N")
+    print("  -g                   list all tags alphabetically")
+    print("  -m title             manually specify the title, for -a, -i, -u")
+    print("  -s keyword(s)        search all bookmarks for a (partial) tag or any keyword")
+    print("  -S keyword(s)        search all bookmarks for a (partial) tag or all keywords")
+    print("  -u N URL [tags]      update all fields of entry at DB index N")
+    print("  -w                   fetch title from web, for -a, -i, -u\n")
+    print("Power toys")
+    print("  -D                   delete ALL bookmarks")
+    print("  -e                   show bookmarks with empty titles or no tags")
+    print("  -i N                 insert new bookmark at free DB index N")
+    print("  -k                   decrypt (unlock) database file")
+    print("  -l                   encrypt (lock) database file")
+    print("  -o N                 open URL at DB index N in browser")
+    print("  -p N                 show details of bookmark record at DB index N")
+    print("  -P                   show all bookmarks along with index from DB")
+    print("  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty")
+    print("  -R                   refresh title from web for all bookmarks, update if non-empty")
+    print("  -t N                 use N (> 0) hash iterations to generate key, for -k, -l")
+    print("  -x N                 modify -P behaviour, N=1: show only URL, N=2: show URL and tag")
+    print("  -z                   show debug information\n")
+    print("Keys")
+    print("  1-N                  open Nth search result in browser. Enter exits buku.\n")
+    print("Version %.1f" % _VERSION_)
+    print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
+    print("License: GPLv3")
+    print("Webpage: https://github.com/jarun/buku")
+    sys.exit(1)
+
+
+
+"""main starts here"""
 def main(argv = sys.argv):
     # detects whether have pipe line parsing in
     if not sys.stdin.isatty():
