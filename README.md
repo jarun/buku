@@ -270,12 +270,14 @@ Run the script:
 
 ####TIP
 
-To add the same text at the beginning of multiple lines using vim editor:  
+Add the same text at the beginning of multiple lines:
+
+**vim**  
   - Press `Ctrl-v` to select the first column of text in the lines you want to change (visual mode).
   - Press `Shift-i` and type the text you want to insert.
   - Hit `Esc`, wait 1 second and the inserted text will appear on every line.
 
-Using sed:
+**sed**
 
     $ sed -i 's/^/buku -wu /' filename
 
