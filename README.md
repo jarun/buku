@@ -279,6 +279,8 @@ Using sed:
 
 # Contributions
 I would love to see pull requests with the following features:
+- Support subcommands using argparse
+- Support gzip compression in fetching URLs
 - Exact word match (against substring in a word as it works currently. Hint: REGEXP)
 - Parse full page data??? Might end up writing a search engine like Google. ;)
 
