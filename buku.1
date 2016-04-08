@@ -1,4 +1,4 @@
-.TH "BUKU" "1" "Mar 2016" "Version 1.8" "User Commands"
+.TH "BUKU" "8" "Mar 2016" "Version 1.9" "User Commands"
 .SH NAME
 buku \- A private cmdline bookmark manager. Your mini web!
 .SH SYNOPSIS
@@ -11,7 +11,11 @@ buku \- A private cmdline bookmark manager. Your mini web!
 .B buku
 is a command-line tool to save, tag and search bookmarks.
 .PP
-The SQLite3 database file is stored in \fB$HOME/.cache/bookmarks.db\fR for each user.
+The SQLite3 database file is stored in \fB$HOME/.local/share/buku/bookmarks.db\fR (or \fB$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined) for each user.
+.PP
+Before version 1.9,
+.B buku
+stored database in \fB$HOME/.cache/buku/bookmarks.db\fR. If that location exists, buku automatically moves the database to new location.
 .SH OPERATIONAL NOTES
 URL must precede the tags. Manual title with multiple keywords must be within quotes.
 .PP

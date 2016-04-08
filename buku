@@ -27,6 +27,7 @@ import html.parser as HTMLParser
 from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import urljoin, unquote
 import signal
+import shutil
 
 # Import libraries needed for encryption
 try:
@@ -69,7 +70,7 @@ encrypt = False         # Lock database file
 decrypt = False         # Unlock database file
 iterations = 8          # Number of hash iteratons to generate key
 pipeargs = []           # Holds arguments piped to the program
-_VERSION_ = 1.8         # Program version
+_VERSION_ = 1.9         # Program version
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
@@ -102,6 +103,42 @@ class BMHTMLParser(HTMLParser.HTMLParser):
 
 
 
+def getDataPath():
+    data_home = os.environ.get('XDG_DATA_HOME')
+    if data_home is None:
+        if os.environ.get('HOME') is None:
+            data_home = '.'
+        else:
+            data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
+
+    return os.path.join(data_home, 'buku')
+
+
+
+def moveOldDatabase():
+    olddbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
+    olddbfile = os.path.join(olddbpath, 'bookmarks.db')
+
+    if not os.path.exists(olddbfile):
+        return
+
+    newdbpath = getDataPath()
+    newdbfile = os.path.join(newdbpath, 'bookmarks.db')
+
+    if os.path.exists(newdbfile):
+        print("Both old (%s) and new (%s) databases exist, need manual action" % (olddbfile, newdbfile))
+        sys.exit(1)
+
+    if not os.path.exists(newdbpath):
+        os.makedirs(newdbpath)
+
+    shutil.move(olddbfile, newdbfile)
+    print("Database was moved from old (%s) to new (%s) location" % (olddbfile, newdbfile))
+
+    os.rmdir(olddbpath)
+
+
+
 def initdb():
     """Initialize the database connection. Create DB file and/or bookmarks table
     if they don't exist. Alert on encryption options on first execution.
@@ -109,7 +146,7 @@ def initdb():
     Returns: connection, cursor
     """
 
-    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
+    dbpath = getDataPath()
     if not os.path.exists(dbpath):
         os.makedirs(dbpath)
 
@@ -663,7 +700,7 @@ def get_filehash(filepath):
 def encrypt_file():
     """Encrypt the bookmarks database file"""
 
-    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
+    dbpath = os.path.join(getDataPath(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(dbpath):
         print("%s missing. Already encrypted?" % dbpath)
@@ -724,7 +761,7 @@ def encrypt_file():
 def decrypt_file():
     """Decrypt the bookmarks database file"""
 
-    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
+    dbpath = os.path.join(getDataPath(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
         printmsg((encpath + " missing"), "ERROR")
@@ -1004,6 +1041,9 @@ if update == True and refresh == True:
 if online == True and titleManual != None:
     print("You can either fetch title from web or add/update title manually.\n")
     usage()
+
+# Move database to new location, if needed
+moveOldDatabase()
 
 # Handle encrypt/decrypt options at top priority
 if encrypt == True:
