@@ -11,7 +11,7 @@ Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2
 
 The SQLite3 database file is stored in `$HOME/.local/share/buku/bookmarks.db` (or `$XDG_DATA_HOME/buku/bookmarks.db`, if XDG_DATA_HOME is defined) for each user.
 
-Before version 1.9, buku stored database in `$HOME/.cache/buku/bookmarks.db`. If that location exists, buku automatically moves the database to new location.
+Before version 1.9, buku stored database in `$HOME/.cache/buku/bookmarks.db`. If the file exists, buku automatically moves it to new location.
 
 `buku` is **GPLv3** licensed. Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
