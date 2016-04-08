@@ -133,7 +133,7 @@ def moveOldDatabase():
         os.makedirs(newdbpath)
 
     shutil.move(olddbfile, newdbfile)
-    print("Database was moved from old (%s) to new (%s) location" % (olddbfile, newdbfile))
+    print("Database was moved from old (%s) to new (%s) location.\n" % (olddbfile, newdbfile))
 
     os.rmdir(olddbpath)
 
