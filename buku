@@ -70,7 +70,7 @@ encrypt = False         # Lock database file
 decrypt = False         # Unlock database file
 iterations = 8          # Number of hash iteratons to generate key
 pipeargs = []           # Holds arguments piped to the program
-_VERSION_ = 1.8         # Program version
+_VERSION_ = 1.9         # Program version
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
