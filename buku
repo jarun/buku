@@ -27,6 +27,7 @@ import html.parser as HTMLParser
 from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import urljoin, unquote
 import signal
+import shutil
 
 # Import libraries needed for encryption
 try:
@@ -111,6 +112,30 @@ def getDataPath():
             data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
 
     return os.path.join(data_home, 'buku')
+
+
+
+def moveOldDatabase():
+    olddbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
+    olddbfile = os.path.join(olddbpath, 'bookmarks.db')
+
+    if not os.path.exists(olddbfile):
+        return
+
+    newdbpath = getDataPath()
+    newdbfile = os.path.join(newdbpath, 'bookmarks.db')
+
+    if os.path.exists(newdbfile):
+        print("Both old (%s) and new (%s) databases exist, need manual action" % (olddbfile, newdbfile))
+        sys.exit(1)
+
+    if not os.path.exists(newdbpath):
+        os.makedirs(newdbpath)
+
+    shutil.move(olddbfile, newdbfile)
+    print("Database was moved from old (%s) to new (%s) location" % (olddbfile, newdbfile))
+
+    os.rmdir(olddbpath)
 
 
 
@@ -1016,6 +1041,9 @@ if update == True and refresh == True:
 if online == True and titleManual != None:
     print("You can either fetch title from web or add/update title manually.\n")
     usage()
+
+# Move database to new location, if needed
+moveOldDatabase()
 
 # Handle encrypt/decrypt options at top priority
 if encrypt == True:
