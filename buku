@@ -176,7 +176,7 @@ def initdb():
 
 
 
-def getPageResp(url, redir=False):
+def getPageResp(url, fullurl=False):
     """Connect to a server and fetch the requested page data.
     Supports gzip compression.
     
@@ -197,7 +197,7 @@ def getPageResp(url, redir=False):
         server = url[8:]
         marker = server.find("/")
         if marker > 0:
-            if redir == False:
+            if fullurl == False:
                 url = server[marker:]
             server = server[:marker]
         urlconn = HTTPSConnection(server, timeout=30)
@@ -205,7 +205,7 @@ def getPageResp(url, redir=False):
         server = url[7:]
         marker = server.find("/")
         if marker > 0:
-            if redir == False:
+            if fullurl == False:
                 url = server[marker:]
             server = server[:marker]
         urlconn = HTTPConnection(server, timeout=30)
@@ -301,6 +301,7 @@ def fetchTitle(url):
 
                 url = redirurl
                 urlconn.close()
+                # Try with complete URL on redirection
                 urlconn, resp = getPageResp(url, True)
             if resp.status == 500 and retry == False:
                 """Retry on status 500 (Internal Server Error) with truncated
