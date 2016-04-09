@@ -26,6 +26,8 @@ import webbrowser
 import html.parser as HTMLParser
 from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import urljoin, quote, unquote
+import gzip
+import io
 import signal
 import shutil
 
@@ -176,6 +178,7 @@ def initdb():
 
 def getPageResp(url, redir=False):
     """Connect to a server and fetch the requested page data.
+    Supports gzip compression.
     
     Params: URL to fetch, redirection status
     Returns: connection, HTTP(S) GET response
@@ -220,7 +223,9 @@ def getPageResp(url, redir=False):
     except:
         url = quote(url)
 
-    urlconn.request("GET", url)
+    urlconn.request("GET", url, None, {
+        "Accept-encoding": "gzip",
+    })
     resp = urlconn.getresponse()
     return (urlconn, resp)
 
@@ -232,8 +237,16 @@ def getTitleData(resp):
     Params: GET response
     """
 
+    data = None
     charset = ''
     charset = resp.headers.get_content_charset()
+
+    if resp.headers.get('Content-Encoding') == 'gzip':
+        print("gzip")
+        data = gzip.GzipFile(fileobj=io.BytesIO(resp.read())).read()
+    else:
+        data = resp.read()
+
     if charset == None:
         charset = 'utf-8'
     if debug:
@@ -242,9 +255,9 @@ def getTitleData(resp):
     parser = BMHTMLParser()
     try:
         if charset == 'utf-8':
-            parser.feed(resp.read().decode(charset, "replace"))
+            parser.feed(data.decode(charset, "replace"))
         else:
-            parser.feed(resp.read().decode(charset))
+            parser.feed(data.decode(charset))
     except Exception as e:
         if debug:
             print("Exception [getTitleData]: %s" % e)
