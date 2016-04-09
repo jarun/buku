@@ -55,6 +55,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - Show all bookmarks with empty titles or no tags (for bookkeeping)
 - Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indices
 - Secure parameterized SQLite3 queries to access database
+- Supports HTTP compression
 - Handle multiple HTTP redirections (reports redireted URL, loops, IP blocking)
 - Unicode in URL works
 - UTF-8 request and response, page character set detection
