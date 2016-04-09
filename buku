@@ -271,6 +271,7 @@ def fetchTitle(url):
     global titleData
     titleData = None
     urlconn = None
+    retry = False
 
     try:
         urlconn, resp = getPageResp(url, False)
@@ -301,6 +302,15 @@ def fetchTitle(url):
                 url = redirurl
                 urlconn.close()
                 urlconn, resp = getPageResp(url, True)
+            if resp.status == 500 and retry == False:
+                """Retry on status 500 (Internal Server Error) with truncated
+                URL. Some servers support truncated request URL on redirection.
+                """
+                urlconn.close()
+                if debug:
+                    print("Received status 500: retrying.")
+                urlconn, resp = getPageResp(url, False)
+                retry = True
             else:
                 printmsg(("[" + str(resp.status) + "] " + resp.reason), "ERROR")
                 break
