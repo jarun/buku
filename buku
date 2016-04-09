@@ -226,8 +226,7 @@ def getPageResp(url, redir=False):
     urlconn.request("GET", url, None, {
         "Accept-encoding": "gzip",
     })
-    resp = urlconn.getresponse()
-    return (urlconn, resp)
+    return (urlconn, urlconn.getresponse())
 
 
 
@@ -238,11 +237,9 @@ def getTitleData(resp):
     """
 
     data = None
-    charset = ''
     charset = resp.headers.get_content_charset()
 
     if resp.headers.get('Content-Encoding') == 'gzip':
-        print("gzip")
         data = gzip.GzipFile(fileobj=io.BytesIO(resp.read())).read()
     else:
         data = resp.read()
@@ -260,7 +257,7 @@ def getTitleData(resp):
             parser.feed(data.decode(charset))
     except Exception as e:
         if debug:
-            print("Exception [getTitleData]: %s" % e)
+            print("\x1b[1mEXCEPTION\x1b[21m [getTitleData]: %s" % e)
 
 
 
@@ -308,7 +305,7 @@ def fetchTitle(url):
                 printmsg(("[" + str(resp.status) + "] " + resp.reason), "ERROR")
                 break
     except Exception as e:
-        print("Exception [fetchTitle]: %s" % e)
+        print("\x1b[1mEXCEPTION\x1b[21m [fetchTitle]: %s" % e)
     finally:
         if urlconn is not None:
             urlconn.close()
@@ -481,7 +478,7 @@ def searchdb(cur, keywords):
                 openurl = unquote(results[int(nav) - 1])
                 browser_open(openurl)
             except Exception as e:
-                print("Exception [searchdb]: %s" % e)
+                print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: %s" % e)
         else:
             break
 
@@ -691,7 +688,7 @@ def browser_open(url):
     try:
         webbrowser.open(url)
     except Exception as e:
-        print("Exception [browser_open]: %s" % e)
+        print("\x1b[1mEXCEPTION\x1b[21m [browser_open]: %s" % e)
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
