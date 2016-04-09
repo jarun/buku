@@ -241,7 +241,7 @@ def getTitleData(resp):
             parser.feed(resp.read().decode(charset))
     except Exception as e:
         if debug:
-            printmsg("[getTitleData] " + e, "EXCEPTION")
+            print("Exception [getTitleData]: %s" % e)
 
 
 
@@ -289,7 +289,7 @@ def fetchTitle(url):
                 printmsg(("[" + str(resp.status) + "] " + resp.reason), "ERROR")
                 break
     except Exception as e:
-        printmsg("[fetchTitle] " + e, "EXCEPTION")
+        print("Exception [fetchTitle]: %s" % e)
     finally:
         if urlconn is not None:
             urlconn.close()
@@ -462,7 +462,7 @@ def searchdb(cur, keywords):
                 openurl = unquote(results[int(nav) - 1])
                 browser_open(openurl)
             except Exception as e:
-                printmsg("[searchdb] " + e, "EXCEPTION")
+                print("Exception [searchdb]: %s" % e)
         else:
             break
 
@@ -672,7 +672,7 @@ def browser_open(url):
     try:
         webbrowser.open(url)
     except Exception as e:
-        printmsg("[browser_open] " + e, "EXCEPTION")
+        print("Exception [browser_open]: %s" % e)
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
