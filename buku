@@ -25,7 +25,7 @@ import readline
 import webbrowser
 import html.parser as HTMLParser
 from http.client import HTTPConnection, HTTPSConnection
-from urllib.parse import urljoin, unquote
+from urllib.parse import urljoin, quote, unquote
 import signal
 import shutil
 
@@ -213,6 +213,12 @@ def getPageResp(url, redir=False):
     if debug:
         print("server: [%s]" % server)
         print("URL: [%s]" % url)
+
+    # Handle URLs passed with %xx escape
+    try:
+        url.encode('ascii')
+    except:
+        url = quote(url)
 
     urlconn.request("GET", url)
     resp = urlconn.getresponse()
