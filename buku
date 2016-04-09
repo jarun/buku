@@ -257,7 +257,7 @@ def getTitleData(resp):
             parser.feed(data.decode(charset))
     except Exception as e:
         if debug:
-            print("\x1b[1mEXCEPTION\x1b[21m [getTitleData]: %s" % e)
+            print("\x1b[1mEXCEPTION\x1b[21m [getTitleData]: (%s) %s" % (type(e).__name__, e))
 
 
 
@@ -316,7 +316,7 @@ def fetchTitle(url):
                 printmsg(("[" + str(resp.status) + "] " + resp.reason), "ERROR")
                 break
     except Exception as e:
-        print("\x1b[1mEXCEPTION\x1b[21m [fetchTitle]: %s" % e)
+        print("\x1b[1mEXCEPTION\x1b[21m [fetchTitle]: (%s) %s" % (type(e).__name__, e))
     finally:
         if urlconn is not None:
             urlconn.close()
@@ -489,7 +489,7 @@ def searchdb(cur, keywords):
                 openurl = unquote(results[int(nav) - 1])
                 browser_open(openurl)
             except Exception as e:
-                print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: %s" % e)
+                print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
         else:
             break
 
@@ -699,7 +699,7 @@ def browser_open(url):
     try:
         webbrowser.open(url)
     except Exception as e:
-        print("\x1b[1mEXCEPTION\x1b[21m [browser_open]: %s" % e)
+        print("\x1b[1mEXCEPTION\x1b[21m [browser_open]: (%s) %s" % (type(e).__name__, e))
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
