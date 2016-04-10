@@ -109,6 +109,12 @@ class BMHTMLParser(HTMLParser.HTMLParser):
 
 
 def getDataPath():
+    """Determine the DB file path:
+    if $XDG_DATA_HOME is defined, use it
+    else if $HOME exists, use it
+    else use the current directory
+    """
+
     data_home = os.environ.get('XDG_DATA_HOME')
     if data_home is None:
         if os.environ.get('HOME') is None:
@@ -121,6 +127,10 @@ def getDataPath():
 
 
 def moveOldDatabase():
+    """Move database file from earlier path used in versions <= 1.8
+    to new path. Errors out if both the old and new DB files exist.
+    """
+
     olddbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
     olddbfile = os.path.join(olddbpath, 'bookmarks.db')
 
