@@ -88,12 +88,12 @@ or download the latest [stable release](https://github.com/jarun/Buku/releases/l
 
 Install to default location:
 
-    $ sudo make install  
+    $ sudo make install
 or, a custom location (PREFIX):
 
     $ PREFIX=/path/to/prefix make install
-    
-To remove, run:  
+
+To remove, run:
 
     $ sudo make uninstall
 or, if you have installed to a custom location (PREFIX):
@@ -109,7 +109,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 `buku` is also available on
  - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux;
  - Void Linux repos.
- 
+
         $ sudo xbps-install -S buku
  - [Homebrew](http://braumeister.org/formula/buku) for OS X, or its Linux fork, [Linuxbrew](https://github.com/Linuxbrew/linuxbrew/blob/master/Library/Formula/buku.rb).
 
@@ -275,7 +275,7 @@ Run the script:
 
 Add the same text at the beginning of multiple lines:
 
-**vim**  
+**vim**
   - Press `Ctrl-v` to select the first column of text in the lines you want to change (visual mode).
   - Press `Shift-i` and type the text you want to insert.
   - Hit `Esc`, wait 1 second and the inserted text will appear on every line.

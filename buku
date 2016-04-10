@@ -192,7 +192,7 @@ def initdb():
 def getPageResp(url, fullurl=False):
     """Connect to a server and fetch the requested page data.
     Supports gzip compression.
-    
+
     Params: URL to fetch, redirection status
     Returns: connection, HTTP(S) GET response
     """
@@ -245,7 +245,7 @@ def getPageResp(url, fullurl=False):
 
 def getTitleData(resp):
     """Invoke HTML parser and extract title from HTTP response
-    
+
     Params: GET response
     """
 
@@ -279,7 +279,7 @@ def getTitleData(resp):
 
 def fetchTitle(url):
     """Handle server connection and redirections
-    
+
     Params: URL to fetch
     Returns: page title or empty string, if not found
     """
@@ -361,7 +361,7 @@ def isBookmarkAdded(cur, url):
 def AddUpdateEntry(conn, cur, keywords, index):
     """Add a new bookmark or update an existing record at index
     or insert a new record at addindex (if empty)
-    
+
     Params: connection, cursor, index to update
     """
 
@@ -442,7 +442,7 @@ def dbRefresh(conn, cur):
     bookmark from the web and update the records. Doesn't udpate
     the record if title is empty.
     This API doesn't change DB index, URL or tags of a bookmark.
-    
+
     Params: connection, cursor
     """
 
@@ -466,7 +466,7 @@ def dbRefresh(conn, cur):
 def searchdb(cur, keywords):
     """Search the database for an entries with tags or URL
     or title info matching keywords and list those.
-    
+
     Params: cursor, keywords to search
     """
 
@@ -539,7 +539,7 @@ def searchdb(cur, keywords):
 def compactDB(conn, cur, index):
     """When an entry at index is deleted, move the last
     entry in DB to index, if index is lesser.
-    
+
     Params: connection, cursor, index of deleted entry
     """
 
@@ -560,7 +560,7 @@ def compactDB(conn, cur, index):
 
 def cleardb(conn, cur, index):
     """Delete a single record or remove the table if index is None
-    
+
     Params: connection, cursor, index to delete
     """
 
@@ -590,7 +590,7 @@ def cleardb(conn, cur, index):
 def printdb(cur, index, empty=False):
     """Print bookmark details at index or all bookmarks if index is None
     Print only bookmarks with empty title or tags if empty is True
-    
+
     Params: cursor, index to print, flag to show only bookmarks with no title or tags
     """
 
@@ -626,7 +626,7 @@ def printdb(cur, index, empty=False):
 
 def showUniqueTags(cur):
     """Print all unique tags ordered alphabetically
-    
+
     Params: cursor
     """
 
@@ -653,7 +653,7 @@ def showUniqueTags(cur):
 def replaceTags(conn, cur, orig, new):
     """Replace orig tags with new tags in DB for all records.
     Remove orig tag is new tag is empty.
-    
+
     Params: connection, cursor, original and new tags
     """
 
@@ -692,7 +692,7 @@ def replaceTags(conn, cur, orig, new):
 
 def fetchopen(index):
     """Fetch URL at index and open in browser
-    
+
     Params: index
     """
 
@@ -709,7 +709,7 @@ def fetchopen(index):
 
 def is_int(string):
     """Check if a string is a digit
-    
+
     Params: string
     """
 
@@ -793,7 +793,7 @@ def encrypt_file():
     dbhash = get_filehash(dbpath)
 
     # Generate randon 256-bit salt and key
-    salt = Random.get_random_bytes(SALT_SIZE) 
+    salt = Random.get_random_bytes(SALT_SIZE)
     key = (password + salt.decode('utf-8', "replace")).encode('utf-8')
     for i in range(iterations):
         key = hashlib.sha256(key).digest()
