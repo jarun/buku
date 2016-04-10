@@ -256,7 +256,8 @@ def getTitleData(resp):
         else:
             parser.feed(data.decode(charset))
     except Exception as e:
-        if debug:
+        if debug and str(e) != "we should not get here!":
+            # Suppress Exception due to intentional self.reset() in HTMLParser
             print("\x1b[1mEXCEPTION\x1b[21m [getTitleData]: (%s) %s" % (type(e).__name__, e))
 
 
