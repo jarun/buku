@@ -279,10 +279,10 @@ def fetchTitle(url):
         while 1:
             if resp is None:
                 break
-            if resp.status == 200:
+            elif resp.status == 200:
                 getTitleData(resp)
                 break
-            if resp.status in (301,302,):
+            elif resp.status in [301, 302]:
                 redirurl = urljoin(url, resp.getheader('location', ''))
                 printmsg(redirurl, "REDIRECTION")
 
@@ -303,7 +303,7 @@ def fetchTitle(url):
                 urlconn.close()
                 # Try with complete URL on redirection
                 urlconn, resp = getPageResp(url, True)
-            if resp.status == 500 and retry == False:
+            elif resp.status == 500 and retry == False:
                 """Retry on status 500 (Internal Server Error) with truncated
                 URL. Some servers support truncated request URL on redirection.
                 """
