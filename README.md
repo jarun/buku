@@ -23,7 +23,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - [Features](#features)
 - [Installation](#installation)
   - [Dependencies](#dependencies)
-  - [Installating from this repository](#installing-from-this-repository)
+  - [Installing from this repository](#installing-from-this-repository)
   - [Running as a standalone utility](#running-as-a-standalone-utility)
   - [Installing with a package manager](#installing-with-a-package-manager)
 - [Usage](#usage)
@@ -56,7 +56,7 @@ If you find `buku` useful, please consider donating via PayPal.
 - Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indices
 - Secure parameterized SQLite3 queries to access database
 - Supports HTTP compression
-- Handle multiple HTTP redirections (reports redireted URL, loops, IP blocking)
+- Handle multiple HTTP redirections (reports redirected URL, loops, IP blocking)
 - Unicode in URL works
 - UTF-8 request and response, page character set detection
 - Handle piped input
@@ -162,7 +162,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
   - `-S` : match all the keywords in URL or title. Order is irrelevant.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `()` after the URL.
 - AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
-- Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unecrypted on creation</i>.
+- Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
 
 # Examples
 1. **Add** a new bookmark with title `Linux magazine` & tags `linux news` and `open source`:

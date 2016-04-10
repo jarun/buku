@@ -70,7 +70,7 @@ refresh = False         # Refresh the full DB
 replace = False         # Replace a tag
 encrypt = False         # Lock database file
 decrypt = False         # Unlock database file
-iterations = 8          # Number of hash iteratons to generate key
+iterations = 8          # Number of hash iterations to generate key
 pipeargs = []           # Holds arguments piped to the program
 _VERSION_ = 1.9         # Program version
 
@@ -302,7 +302,7 @@ def fetchTitle(url):
                 redirurl = urljoin(url, resp.getheader('location', ''))
                 printmsg(redirurl, "REDIRECTION")
 
-                if redirurl.find("sorry/IndexRedirect?") >= 0:          # graecefully handle Google blocks
+                if redirurl.find("sorry/IndexRedirect?") >= 0:          # gracefully handle Google blocks
                     printmsg("Connection blocked due to unusual activity", "ERROR")
                     break
 
@@ -792,7 +792,7 @@ def encrypt_file():
     # Get SHA256 hash of DB file
     dbhash = get_filehash(dbpath)
 
-    # Generate randon 256-bit salt and key
+    # Generate random 256-bit salt and key
     salt = Random.get_random_bytes(SALT_SIZE)
     key = (password + salt.decode('utf-8', "replace")).encode('utf-8')
     for i in range(iterations):
