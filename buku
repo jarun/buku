@@ -103,6 +103,9 @@ class BMHTMLParser(HTMLParser.HTMLParser):
         if self.lasttag == "title" and self.inTitle == True:
             self.data += data
 
+    def error(self, message):
+        pass
+
 
 
 def getDataPath():
@@ -240,6 +243,8 @@ def getTitleData(resp):
     charset = resp.headers.get_content_charset()
 
     if resp.headers.get('Content-Encoding') == 'gzip':
+        if debug:
+            print("gzip response")
         data = gzip.GzipFile(fileobj=io.BytesIO(resp.read())).read()
     else:
         data = resp.read()
