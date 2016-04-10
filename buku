@@ -332,6 +332,22 @@ def fetchTitle(url):
 
 
 
+def isBookmarkAdded(cur, url):
+    """Check if URL already exists in DB
+
+    Params: cursor, URL to search
+    Returns: DB index if URL found, else -1
+    """
+
+    cur.execute("SELECT id FROM bookmarks WHERE URL = ?", (url,))
+    resultset = cur.fetchall()
+    if len(resultset) == 0:
+        return -1
+
+    return resultset[0][0]
+
+
+
 def AddUpdateEntry(conn, cur, keywords, index):
     """Add a new bookmark or update an existing record at index
     or insert a new record at addindex (if empty)
@@ -344,6 +360,15 @@ def AddUpdateEntry(conn, cur, keywords, index):
     tags = ','
     meta = ''
     url = keywords[0]
+
+    """In case of an add or insert operation ensure
+    that the URL does not exist in DB already
+    """
+    if index is None:
+        id = isBookmarkAdded(cur, url)
+        if id != -1:
+            print("URL already exists at index %d" % id)
+            return
 
     # Cleanse and get the tags
     if len(keywords) > 1:
