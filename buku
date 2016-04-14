@@ -227,8 +227,7 @@ def getPageResp(url, fullurl=False):
         return (None, None)
 
     if debug:
-        print("server: [%s]" % server)
-        print("URL: [%s]" % url)
+        print("server [%s] url [%s]" % (server, url))
 
     # Handle URLs passed with %xx escape
     try:
@@ -261,6 +260,9 @@ def getTitleData(resp):
 
     if charset == None:
         charset = 'utf-8'
+        if debug:
+            printmsg("Charset missing in response", "WARNING")
+
     if debug:
         print("charset: %s" % charset)
 
