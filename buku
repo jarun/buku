@@ -40,6 +40,9 @@ try:
     import struct
 
     no_crypto = False
+    encrypt = False         # Lock database file
+    decrypt = False         # Unlock database file
+    iterations = 8          # Number of hash iterations to generate key
     BLOCKSIZE = 65536
     SALT_SIZE = 32
     CHUNKSIZE = 0x80000 # Read/write 512 KB chunks
@@ -68,9 +71,6 @@ titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
 refresh = False         # Refresh the full DB
 replace = False         # Replace a tag
-encrypt = False         # Lock database file
-decrypt = False         # Unlock database file
-iterations = 8          # Number of hash iterations to generate key
 pipeargs = []           # Holds arguments piped to the program
 _VERSION_ = 1.9         # Program version
 
