@@ -15,7 +15,7 @@ Before version 1.9, buku stored database in `$HOME/.cache/buku/bookmarks.db`. If
 
 `buku` is **GPLv3** licensed. Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
-Find `buku` useful? If you would like to donate, visit our 
+Find `buku` useful? If you would like to donate, visit our
 [![Donate Button](https://img.shields.io/badge/paypal-donate-orange.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q) page.
 
 # Table of Contents
