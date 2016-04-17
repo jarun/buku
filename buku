@@ -29,6 +29,7 @@ from urllib.parse import urljoin, quote, unquote
 import gzip
 import io
 import signal
+import json
 import shutil
 
 # Import libraries needed for encryption
@@ -71,6 +72,7 @@ titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
 refresh = False         # Refresh the full DB
 replace = False         # Replace a tag
+jsonOutput = False      # Output results as json
 pipeargs = []           # Holds arguments piped to the program
 _VERSION_ = 1.9         # Program version
 
@@ -472,6 +474,8 @@ def searchdb(cur, keywords):
     Params: cursor, keywords to search
     """
 
+    global jsonOutput
+
     searchtag = ''
     for token in keywords:
         searchtag += token + " "
@@ -506,35 +510,45 @@ def searchdb(cur, keywords):
 
     count = 0
     results = []
-    for row in cur.execute(query, arguments):
-        results.append(row[1])
-        count += 1
-        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m        (%d)\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (count, row[1], row[0], row[2], row[3][1:-1]))
+    resultset = cur.execute(query, arguments)
 
-    if count == 0:
-        return
+    if jsonOutput == False:
+        for row in resultset:
+            results.append(row[1])
+            count += 1
+            print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m        (%d)\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (count, row[1], row[0], row[2], row[3][1:-1]))
 
-    print("")
-
-    while True:
-        try:
-            nav = input("Result number to open: ")
-        except EOFError:
+        if count == 0:
             return
 
-        if is_int(nav):
-            index = int(nav) - 1
-            if index < 0 or index >= count:
-                print("Index out of bound")
-                continue
+        print("")
 
+        while True:
             try:
-                openurl = unquote(results[int(nav) - 1])
-                browser_open(openurl)
-            except Exception as e:
-                print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
+                nav = input("Result number to open: ")
+            except EOFError:
+                return
+
+            if is_int(nav):
+                index = int(nav) - 1
+                if index < 0 or index >= count:
+                    print("Index out of bound")
+                    continue
+
+                try:
+                    openurl = unquote(results[int(nav) - 1])
+                    browser_open(openurl)
+                except Exception as e:
+                    print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
+            else:
+                break
+
+    else:
+        results = cur.fetchall();
+        if len(results) > 0:
+            print(formatJson(results))
         else:
-            break
+            return
 
 
 
@@ -597,8 +611,9 @@ def printdb(cur, index, empty=False):
     """
 
     global showOpt
-    resultset = None
+    global jsonOutput
 
+    resultset = None
     if index == None: # Show all entries
         if empty == False:
             cur.execute('SELECT * FROM bookmarks')
@@ -608,23 +623,62 @@ def printdb(cur, index, empty=False):
             resultset = cur.fetchall()
             print("\x1b[1m%d records found\x1b[21m\n" % len(resultset))
 
-        for row in resultset:
-            if showOpt == 1:
-                print("%s %s" % (row[0], row[1]))
-            elif showOpt == 2:
-                print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
-            else:
-                print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
+        if jsonOutput == False:
+            for row in resultset:
+                if showOpt == 1:
+                    print("%s %s" % (row[0], row[1]))
+                elif showOpt == 2:
+                    print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
+                else:
+                    print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
+        else:
+            print(formatJson(resultset))
     else: # Show record at index
         try:
-            for row in cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),)):
+            resultset = cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),))
+        except IndexError:
+            print("Index out of bound")
+            return
+
+        if jsonOutput == False:
+            for row in resultset:
                 print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
                 return
             print("No matching index")
-        except IndexError:
-            print("Index out of bound")
+        else:
+            print(formatJson(resultset, True))
 
 
+
+def formatJson(resultset, single=False):
+    global showOpt
+
+    if single == False:
+        marks = []
+        for row in resultset:
+            if showOpt == 1:
+                record = { 'url': row[1] }
+            elif showOpt == 2:
+                record = { 'url': row[1], 'tags': row[3][1:-1] }
+            else:
+                record = { 'url': row[1], 'title': row[2], 'tags': row[3][1:-1]}
+
+            marks.append(record)
+    else:
+        marks = {}
+        for row in resultset:
+            if showOpt == 1:
+                marks['url'] = row[1]
+            elif showOpt == 2:
+                marks['title'] = row[2]
+                marks['tags']  = row[3][1:-1]
+            else:
+                marks['url']   = row[1]
+                marks['title'] = row[2]
+                marks['tags']  = row[3][1:-1]
+
+
+    return json.dumps(marks, sort_keys=True, indent=4)
 
 def showUniqueTags(cur):
     """Print all unique tags ordered alphabetically
@@ -969,10 +1023,11 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
+
     if len(pipeargs) > 0:
-        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aDegklPRrsSwz")
+        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aDegjklPRrsSwz")
     else:
-        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDegklPRrsSwz")
+        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDegjklPRrsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -1019,6 +1074,8 @@ try:
                 usage()
 
             addurl = True
+        elif opt[0] == "-j":
+            jsonOutput = True
         elif opt[0] == "-k":
             if no_crypto == True:
                 printmsg("PyCrypto missing", "ERROR")
