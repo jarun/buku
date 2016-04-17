@@ -512,14 +512,7 @@ def searchdb(cur, keywords):
     results = []
     resultset = cur.execute(query, arguments)
 
-    if jsonOutput == True:
-        results = cur.fetchall();
-        if len(results) > 0:
-            print(formatJson(results))
-        else:
-            return
-
-    else:
+    if jsonOutput == False:
         for row in resultset:
             results.append(row[1])
             count += 1
@@ -549,6 +542,13 @@ def searchdb(cur, keywords):
                     print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
             else:
                 break
+
+    else:
+        results = cur.fetchall();
+        if len(results) > 0:
+            print(formatJson(results))
+        else:
+            return
 
 
 
@@ -613,22 +613,7 @@ def printdb(cur, index, empty=False):
     global showOpt
     global jsonOutput
 
-#    if index == None: # Show all entries
-        #resultset = cur.execute('SELECT * FROM bookmarks')
-        #if jsonOutput == False:
-            #for row in resultset:
-                #if showOpt == 1:
-                    #print("%s %s" % (row[0], row[1]))
-                #elif showOpt == 2:
-                    #print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
-                #else:
-                    #print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
-        #else:
-            #print(formatJson(resultset))
-
-#=======
     resultset = None
-
     if index == None: # Show all entries
         if empty == False:
             cur.execute('SELECT * FROM bookmarks')
