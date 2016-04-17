@@ -45,6 +45,7 @@ Find `buku` useful? If you would like to donate, visit the
 - Unique URLs to avoid duplicates, show index if URL already exists
 - Open bookmark in browser using index
 - Open search results in browser
+- Optional Json formatted output
 - Modify or delete tags in DB
 - Show all unique tags sorted alphabetically
 - Browser (Chromium and Firefox based) errors and warnings suppression
@@ -68,7 +69,6 @@ Find `buku` useful? If you would like to donate, visit the
 - Fast and clean (no ads or clutter)
 - Minimal dependencies
 - Open source and free
-- Json output with -j flag
 
 # Installation
 
@@ -136,6 +136,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -D                   delete ALL bookmarks
       -e                   show bookmarks with empty titles or no tags
       -i N                 insert new bookmark at free DB index N
+      -j                   show result in Json format
       -k                   decrypt (unlock) database file
       -l                   encrypt (lock) database file
       -o N                 open URL at DB index N in browser

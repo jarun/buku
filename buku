@@ -72,7 +72,7 @@ titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
 refresh = False         # Refresh the full DB
 replace = False         # Replace a tag
-jsonOutput = False      # Output results as json
+jsonOutput = False      # Output json formatted result
 pipeargs = []           # Holds arguments piped to the program
 _VERSION_ = 1.9         # Program version
 
@@ -981,6 +981,7 @@ def usage():
     print("  -D                   delete ALL bookmarks")
     print("  -e                   show bookmarks with empty titles or no tags")
     print("  -i N                 insert new bookmark at free DB index N")
+    print("  -j                   show result in Json format")
     print("  -k                   decrypt (unlock) database file")
     print("  -l                   encrypt (lock) database file")
     print("  -o N                 open URL at DB index N in browser")
