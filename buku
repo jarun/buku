@@ -24,11 +24,13 @@ from getopt import getopt, GetoptError
 import readline
 import webbrowser
 import html.parser as HTMLParser
-from http.client import HTTPConnection
-from http.client import HTTPSConnection
-from urllib.parse import urljoin, unquote
+from http.client import HTTPConnection, HTTPSConnection
+from urllib.parse import urljoin, quote, unquote
+import gzip
+import io
 import signal
 import json
+import shutil
 
 # Import libraries needed for encryption
 try:
@@ -39,6 +41,9 @@ try:
     import struct
 
     no_crypto = False
+    encrypt = False         # Lock database file
+    decrypt = False         # Unlock database file
+    iterations = 8          # Number of hash iterations to generate key
     BLOCKSIZE = 65536
     SALT_SIZE = 32
     CHUNKSIZE = 0x80000 # Read/write 512 KB chunks
@@ -48,79 +53,134 @@ except ImportError:
 
 
 # Globals
-addurl = False
-addindex = None
-online = False
-delete = False
-openurl = None
-show = False
-showindex = None
-showOpt = 0
-showTags = False
-search = False
-searchAll = False
-entry = None
-update = False
-debug = False
-titleData = None
-titleManual = None
-refresh = False
-encrypt = False
-decrypt = False
-jsonOutput = False
-iterations = int(8)
+addurl = False          # Add a URL
+addindex = None         # DB index to insert URL into
+online = False          # Fetch title from web
+delete = False          # Delete bookmark(s)
+empty = False           # List all bookmarks with no title or tag
+openurl = None          # Open URL in browser
+show = False            # Show all details of a bookmark
+showindex = None        # Index of bookmark to show
+showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
+showTags = False        # List all unique tags
+search = False          # Search for keywords
+searchAll = False       # Match all keywords in search
+entry = None            # DB index to update or delete
+update = False          # Update a bookmark in DB
+debug = False           # Enable debug logs
+titleData = None        # Title fetched from a page
+titleManual = None      # Manually add a title offline
+refresh = False         # Refresh the full DB
+replace = False         # Replace a tag
+jsonOutput = False      # Output results as json
+pipeargs = []           # Holds arguments piped to the program
+_VERSION_ = 1.9         # Program version
+
+
+class BMHTMLParser(HTMLParser.HTMLParser):
+    """Class to parse and fetch the title from a HTML page, if available"""
+
+    def __init__(self):
+        HTMLParser.HTMLParser.__init__(self)
+        self.inTitle = False
+        self.data = ""
+        self.lasttag = None
+
+    def handle_starttag(self, tag, attrs):
+        self.inTitle = False
+        if tag == "title":
+            self.inTitle = True
+            self.lasttag = tag
+
+    def handle_endtag(self, tag):
+        global titleData
+
+        if tag == "title":
+            self.inTitle = False
+            if self.data != "":
+                titleData = self.data
+                self.reset() # We have received title data, exit parsing
+
+    def handle_data(self, data):
+        if self.lasttag == "title" and self.inTitle == True:
+            self.data += data
+
+    def error(self, message):
+        pass
 
 
 
-# Show usage of buku and exit
-def usage():
-    print("Usage: buku [OPTIONS] KEYWORDS...")
-    print("Bookmark manager. Your private Google.\n")
-    print("Options")
-    print("  -a URL tag 1, tag 2, ...   add URL as bookmark with comma separated tags")
-    print("  -d N                       delete entry at DB index N (from -P output)")
-    print("  -D                         delete ALL bookmarks")
-    print("  -g                         show all tags (sorted alphabetically)")
-    print("  -i N                       insert entry at DB index N, useful to fill deleted index")
-    print("  -j                         Output data formatted as json (works with -P, -p and -s)")
-    print("  -k                         decrypt (unlock) database file")
-    print("  -l                         encrypt (lock) database file")
-    print("  -m                         manually add or update the title offline")
-    print("  -o N                       open URL at DB index N in browser")
-    print("  -p N                       show details of bookmark record at DB index N")
-    print("  -P                         show all bookmarks along with index from DB")
-    print("  -R                         refresh all bookmarks, tags retained")
-    print("  -s keyword(s)              search all bookmarks for a (partial) tag or any keyword")
-    print("  -S keyword(s)              search all bookmarks for a (partial) tag or all keywords")
-    print("  -t N                       use N (> 0) hash iterations to generate key, works with -k, -l")
-    print("  -u N                       update entry at DB index N")
-    print("  -w                         fetch title info from web, works with -a, -i, -u")
-    print("  -x N                       works with -P, N=1: show only URL, N=2: show URL and tag")
-    print("  -z                         show debug information")
-    print("                             any other option shows help and exits buku\n")
-    print("Keys")
-    print("  1-N                        open Nth search result in browser. Enter exits buku.\n")
-    print("Version 1.7")
-    print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
-    print("Webpage: https://github.com/jarun/buku")
-    sys.exit(1)
+def getDataPath():
+    """Determine the DB file path:
+    if $XDG_DATA_HOME is defined, use it
+    else if $HOME exists, use it
+    else use the current directory
+    """
+
+    data_home = os.environ.get('XDG_DATA_HOME')
+    if data_home is None:
+        if os.environ.get('HOME') is None:
+            data_home = '.'
+        else:
+            data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
+
+    return os.path.join(data_home, 'buku')
 
 
 
-# Initialize the database connection
-# Create bookmarks table is not existing
+def moveOldDatabase():
+    """Move database file from earlier path used in versions <= 1.8
+    to new path. Errors out if both the old and new DB files exist.
+    """
+
+    olddbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
+    olddbfile = os.path.join(olddbpath, 'bookmarks.db')
+
+    if not os.path.exists(olddbfile):
+        return
+
+    newdbpath = getDataPath()
+    newdbfile = os.path.join(newdbpath, 'bookmarks.db')
+
+    if os.path.exists(newdbfile):
+        print("Both old (%s) and new (%s) databases exist, need manual action" % (olddbfile, newdbfile))
+        sys.exit(1)
+
+    if not os.path.exists(newdbpath):
+        os.makedirs(newdbpath)
+
+    shutil.move(olddbfile, newdbfile)
+    print("Database was moved from old (%s) to new (%s) location.\n" % (olddbfile, newdbfile))
+
+    os.rmdir(olddbpath)
+
+
+
 def initdb():
-    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
+    """Initialize the database connection. Create DB file and/or bookmarks table
+    if they don't exist. Alert on encryption options on first execution.
+
+    Returns: connection, cursor
+    """
+
+    dbpath = getDataPath()
     if not os.path.exists(dbpath):
         os.makedirs(dbpath)
 
+    dbfile = os.path.join(dbpath, 'bookmarks.db')
+
     encpath = os.path.join(dbpath, 'bookmarks.db.enc')
-    if os.path.exists(encpath) and not os.path.exists(os.path.join(dbpath, 'bookmarks.db')):
+    # Notify if DB file needs to be decrypted first
+    if os.path.exists(encpath) and not os.path.exists(dbfile):
         print("Unlock database first")
         sys.exit(1)
 
+    # Show info on first creation
+    if no_crypto == False and not os.path.exists(dbfile):
+        print("DB file is being created. You may want to encrypt it later.")
+
     # Create a connection
-    conn = sqlite3.connect(os.path.join(dbpath, 'bookmarks.db'))
+    conn = sqlite3.connect(dbfile)
     cur = conn.cursor()
 
     # Create table if it doesn't exist
@@ -131,21 +191,206 @@ def initdb():
 
 
 
-# Add a new bookmark or update an existing record at index
+def getPageResp(url, fullurl=False):
+    """Connect to a server and fetch the requested page data.
+    Supports gzip compression.
+
+    Params: URL to fetch, redirection status
+    Returns: connection, HTTP(S) GET response
+    """
+
+    if url.find("%20") != -1:
+        url = unquote(url)
+        url = url.replace(" ", "%20")
+    else:
+        url = unquote(url)
+
+    if debug:
+        print("unquoted: %s" % url)
+
+    if url.find("https://") >= 0: # Secure connection
+        server = url[8:]
+        marker = server.find("/")
+        if marker > 0:
+            if fullurl == False:
+                url = server[marker:]
+            server = server[:marker]
+        urlconn = HTTPSConnection(server, timeout=30)
+    elif url.find("http://") >= 0: # Insecure connection
+        server = url[7:]
+        marker = server.find("/")
+        if marker > 0:
+            if fullurl == False:
+                url = server[marker:]
+            server = server[:marker]
+        urlconn = HTTPConnection(server, timeout=30)
+    else:
+        printmsg("Not a valid HTTP(S) url", "WARNING")
+        return (None, None)
+
+    if debug:
+        print("server [%s] url [%s]" % (server, url))
+
+    # Handle URLs passed with %xx escape
+    try:
+        url.encode('ascii')
+    except:
+        url = quote(url)
+
+    urlconn.request("GET", url, None, {
+        "Accept-encoding": "gzip",
+    })
+    return (urlconn, urlconn.getresponse())
+
+
+
+def getTitleData(resp):
+    """Invoke HTML parser and extract title from HTTP response
+
+    Params: GET response
+    """
+
+    data = None
+    charset = resp.headers.get_content_charset()
+
+    if resp.headers.get('Content-Encoding') == 'gzip':
+        if debug:
+            print("gzip response")
+        data = gzip.GzipFile(fileobj=io.BytesIO(resp.read())).read()
+    else:
+        data = resp.read()
+
+    if charset == None:
+        charset = 'utf-8'
+        if debug:
+            printmsg("Charset missing in response", "WARNING")
+
+    if debug:
+        print("charset: %s" % charset)
+
+    parser = BMHTMLParser()
+    try:
+        if charset == 'utf-8':
+            parser.feed(data.decode(charset, "replace"))
+        else:
+            parser.feed(data.decode(charset))
+    except Exception as e:
+        if debug and str(e) != "we should not get here!":
+            # Suppress Exception due to intentional self.reset() in HTMLParser
+            print("\x1b[1mEXCEPTION\x1b[21m [getTitleData]: (%s) %s" % (type(e).__name__, e))
+
+
+
+def fetchTitle(url):
+    """Handle server connection and redirections
+
+    Params: URL to fetch
+    Returns: page title or empty string, if not found
+    """
+
+    global titleData
+    titleData = None
+    urlconn = None
+    retry = False
+
+    try:
+        urlconn, resp = getPageResp(url, False)
+
+        while 1:
+            if resp is None:
+                break
+            elif resp.status == 200:
+                getTitleData(resp)
+                break
+            elif resp.status in [301, 302]:
+                redirurl = urljoin(url, resp.getheader('location', ''))
+                printmsg(redirurl, "REDIRECTION")
+
+                if redirurl.find("sorry/IndexRedirect?") >= 0:          # gracefully handle Google blocks
+                    printmsg("Connection blocked due to unusual activity", "ERROR")
+                    break
+
+                marker = redirurl.find("redirectUrl=")
+                if marker != -1:
+                    redirurl = redirurl[marker + 12:]
+
+                # break same URL redirection loop
+                if url == redirurl:
+                    printmsg("Detected repeated redirection to same URL", "ERROR")
+                    break
+
+                url = redirurl
+                urlconn.close()
+                # Try with complete URL on redirection
+                urlconn, resp = getPageResp(url, True)
+            elif resp.status == 500 and retry == False:
+                """Retry on status 500 (Internal Server Error) with truncated
+                URL. Some servers support truncated request URL on redirection.
+                """
+                urlconn.close()
+                if debug:
+                    print("Received status 500: retrying.")
+                urlconn, resp = getPageResp(url, False)
+                retry = True
+            else:
+                printmsg(("[" + str(resp.status) + "] " + resp.reason), "ERROR")
+                break
+    except Exception as e:
+        print("\x1b[1mEXCEPTION\x1b[21m [fetchTitle]: (%s) %s" % (type(e).__name__, e))
+    finally:
+        if urlconn is not None:
+            urlconn.close()
+        if titleData is None:
+            return ''
+        return titleData.strip().replace("\n","")
+
+
+
+def isBookmarkAdded(cur, url):
+    """Check if URL already exists in DB
+
+    Params: cursor, URL to search
+    Returns: DB index if URL found, else -1
+    """
+
+    cur.execute("SELECT id FROM bookmarks WHERE URL = ?", (url,))
+    resultset = cur.fetchall()
+    if len(resultset) == 0:
+        return -1
+
+    return resultset[0][0]
+
+
+
 def AddUpdateEntry(conn, cur, keywords, index):
+    """Add a new bookmark or update an existing record at index
+    or insert a new record at addindex (if empty)
+
+    Params: connection, cursor, index to update
+    """
+
     global titleManual
     global online
-
     tags = ','
     meta = ''
     url = keywords[0]
 
+    """In case of an add or insert operation ensure
+    that the URL does not exist in DB already
+    """
+    if index is None:
+        id = isBookmarkAdded(cur, url)
+        if id != -1:
+            print("URL already exists at index %d" % id)
+            return
+
+    # Cleanse and get the tags
     if len(keywords) > 1:
         for tag in keywords[1:]:
             if tag[-1] == ',':
-                tag = tag.strip(',') + ','
+                tag = tag.strip(',') + ','      # a last token of a tag ends with a comma
             else:
-                tag = tag.strip(',')
+                tag = tag.strip(',')            # a token in a multi-word tag
 
             if tag == ',':
                 continue
@@ -161,91 +406,11 @@ def AddUpdateEntry(conn, cur, keywords, index):
     if titleManual != None:
         meta = titleManual
     elif online == True:
-        secure = True
-        if url.find("https://") >= 0:
-            server = url[8:]
-        elif url.find("http://") >= 0:
-            secure = False
-            server = url[7:]
+        meta = fetchTitle(url)
+        if meta == '':
+            print("\x1B[91mTitle: []\x1B[0m")
         else:
-            online = False
-
-        if online == True:
-            marker = server.find("/")
-            if marker > 0:
-                fetchurl = server[marker:]
-                server = server[:marker]
-            else:
-                fetchurl = url
-
-            try:
-                if debug:
-                    print("server: [%s]" % server)
-                if secure == True:
-                    urlconn = HTTPSConnection(server, timeout=30)
-                else:
-                    urlconn = HTTPConnection(server, timeout=30)
-
-                if debug:
-                    print("URL: [%s]" % fetchurl)
-                urlconn.request("GET", fetchurl)
-                resp = urlconn.getresponse()
-                if resp.status != 200:
-                    # Handle first redirection
-                    if resp.status in (301,302,):
-                        if debug:
-                            print(resp.getheader('location', ''))
-
-                        redirurl = urljoin(url, resp.getheader('location', ''))
-                        if redirurl.find("sorry/IndexRedirect?") >= 0:
-                            print("ERROR: Connection blocked due to unusual activity.")
-                        else:
-                            urlconn.close()
-
-                            if url.find("https://") >= 0: # Secure connection
-                                server = redirurl[8:]
-                                marker = server.find("/")
-                                if marker > 0:
-                                    server = server[:marker]
-                                urlconn = HTTPSConnection(server, timeout=30)
-                            else:
-                                server = redirurl[7:]
-                                marker = server.find("/")
-                                if marker > 0:
-                                    server = server[:marker]
-                                urlconn = HTTPConnection(server, timeout=30)
-
-                            if debug:
-                                print("Redir server: [%s]" % server)
-                                print("Redir URL: [%s]" % unquote(redirurl))
-
-                            urlconn.request("GET", unquote(redirurl))
-                            resp = urlconn.getresponse()
-                            if resp.status != 200:
-                                print("ERROR on retry:", str(resp.status), ": ", resp.reason)
-                                meta = ''
-                            else:
-                                getTitleData(resp)
-                                if titleData != None:
-                                    meta = titleData
-                    else: # if resp.status in (301,302,):
-                        print("ERROR:", str(resp.status), ": ", resp.reason)
-                        meta = ''
-                else: # if resp.status != 200:
-                    getTitleData(resp)
-                    if titleData != None:
-                        meta = titleData
-            except Exception as e:
-                print("Exception: %s" % e)
-                meta = ''
-            finally:
-                urlconn.close()
-
-                meta = meta.strip().replace("\n","")
-                if meta == '':
-                    print("\x1B[91mTitle: []\x1B[0m")
-                else:
-                    print("Title: [%s]" % meta)
+            print("Title: [%s]" % meta)
 
     if index == None: # Insert a new entry
         try:
@@ -254,7 +419,8 @@ def AddUpdateEntry(conn, cur, keywords, index):
             else:
                 cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (int(addindex), url, meta, tags,))
             conn.commit()
-            print("Added at index %d" % cur.lastrowid)
+            print("Added at index %d\n" % cur.lastrowid)
+            printdb(cur, str(cur.lastrowid))
         except sqlite3.IntegrityError:
             for row in cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
                 print("URL already exists at index %s" % row[0])
@@ -266,7 +432,8 @@ def AddUpdateEntry(conn, cur, keywords, index):
             cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, int(index),))
             conn.commit()
             if cur.rowcount == 1:
-                print("Updated index %d" % int(index))
+                print("Updated index %d\n" % int(index))
+                printdb(cur, int(index))
             else:
                 print("No matching index")
         except sqlite3.IntegrityError:
@@ -274,8 +441,39 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
 
 
-# Search the database for a tag or matching URL or Title info
+def dbRefresh(conn, cur):
+    """Refresh ALL records in the database. Fetch title for each
+    bookmark from the web and update the records. Doesn't udpate
+    the record if title is empty.
+    This API doesn't change DB index, URL or tags of a bookmark.
+
+    Params: connection, cursor
+    """
+
+    cur.execute("SELECT id, url FROM bookmarks ORDER BY id ASC")
+    resultset = cur.fetchall()
+    for row in resultset:
+        title = fetchTitle(row[1])
+        if title == '':
+            print("\x1B[91mTitle: []")
+            print("\x1b[1mNOT updating index %d\x1b[21m\x1B[0m\n" % row[0])
+            continue
+        else:
+            print("Title: [%s]" % title)
+
+        cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
+        conn.commit()
+        print("Updated index %d\n" % row[0])
+
+
+
 def searchdb(cur, keywords):
+    """Search the database for an entries with tags or URL
+    or title info matching keywords and list those.
+
+    Params: cursor, keywords to search
+    """
+
     global jsonOutput
 
     searchtag = ''
@@ -340,31 +538,64 @@ def searchdb(cur, keywords):
 
             if is_int(nav):
                 index = int(nav) - 1
-                if index < 0:
+                if index < 0 or index >= count:
                     print("Index out of bound")
                     continue
 
                 try:
                     openurl = unquote(results[int(nav) - 1])
                     browser_open(openurl)
-                except IndexError:
-                    print("Index out of bound")
+                except Exception as e:
+                    print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
             else:
                 break
 
 
 
-# Delete a single record or remove the table
+def compactDB(conn, cur, index):
+    """When an entry at index is deleted, move the last
+    entry in DB to index, if index is lesser.
+
+    Params: connection, cursor, index of deleted entry
+    """
+
+    cur.execute('SELECT MAX(id) from bookmarks')
+    results = cur.fetchall()
+    for row in results:
+        if row[0] > index:
+            cur.execute('SELECT id, URL, metadata, tags FROM bookmarks WHERE id = ?', (row[0],))
+            results = cur.fetchall()
+            for row in results:
+                cur.execute('DELETE FROM bookmarks WHERE id = ?', (row[0],))
+                conn.commit()
+                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (index, row[1], row[2], row[3],))
+                conn.commit()
+                print("Index %d moved to %d" % (row[0], index))
+
+
+
 def cleardb(conn, cur, index):
+    """Delete a single record or remove the table if index is None
+
+    Params: connection, cursor, index to delete
+    """
+
     if index == None: # Remove the table
+        resp = input("ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ")
+        if resp != 'y':
+            print("No bookmarks deleted")
+            return
+
         cur.execute('DROP TABLE if exists bookmarks')
         conn.commit()
+        print("All bookmarks deleted")
     else: # Remove a single entry
         try:
-            cur.execute("DELETE FROM bookmarks WHERE id = ?", (int(index),))
+            cur.execute('DELETE FROM bookmarks WHERE id = ?', (int(index),))
             conn.commit()
             if cur.rowcount == 1:
                 print("Removed index %d" % int(index))
+                compactDB(conn, cur, int(index))
             else:
                 print("No matching index")
         except IndexError:
@@ -372,13 +603,41 @@ def cleardb(conn, cur, index):
 
 
 
-# Print all records in the table
-def printdb(cur, index):
+def printdb(cur, index, empty=False):
+    """Print bookmark details at index or all bookmarks if index is None
+    Print only bookmarks with empty title or tags if empty is True
+
+    Params: cursor, index to print, flag to show only bookmarks with no title or tags
+    """
+
     global showOpt
     global jsonOutput
 
+#    if index == None: # Show all entries
+        #resultset = cur.execute('SELECT * FROM bookmarks')
+        #if jsonOutput == False:
+            #for row in resultset:
+                #if showOpt == 1:
+                    #print("%s %s" % (row[0], row[1]))
+                #elif showOpt == 2:
+                    #print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
+                #else:
+                    #print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
+        #else:
+            #print(formatJson(resultset))
+
+#=======
+    resultset = None
+
     if index == None: # Show all entries
-        resultset = cur.execute('SELECT * FROM bookmarks')
+        if empty == False:
+            cur.execute('SELECT * FROM bookmarks')
+            resultset = cur.fetchall()
+        else:
+            cur.execute("SELECT * FROM bookmarks WHERE metadata = '' OR tags = ','")
+            resultset = cur.fetchall()
+            print("\x1b[1m%d records found\x1b[21m\n" % len(resultset))
+
         if jsonOutput == False:
             for row in resultset:
                 if showOpt == 1:
@@ -389,7 +648,6 @@ def printdb(cur, index):
                     print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
         else:
             print(formatJson(resultset))
-
     else: # Show record at index
         try:
             resultset = cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),))
@@ -437,8 +695,12 @@ def formatJson(resultset, single=False):
 
     return json.dumps(marks, sort_keys=True, indent=4)
 
-# Show all unique tags
 def showUniqueTags(cur):
+    """Print all unique tags ordered alphabetically
+
+    Params: cursor
+    """
+
     count = 1
     Tags = []
     uniqueTags = []
@@ -459,8 +721,52 @@ def showUniqueTags(cur):
 
 
 
-# Fetch index and open URL in browser
+def replaceTags(conn, cur, orig, new):
+    """Replace orig tags with new tags in DB for all records.
+    Remove orig tag is new tag is empty.
+
+    Params: connection, cursor, original and new tags
+    """
+
+    update = False
+    delete = False
+
+    orig = ',' + orig + ','
+    new = new.strip(',')
+    if new == '':
+        new = ','
+        delete = True
+    else:
+        new = ',' + new + ','
+
+    if orig == new:
+        print("Tags are same.")
+        return
+
+    cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE ?", ('%' + orig + '%',))
+    results = cur.fetchall()
+
+    for row in results:
+        if delete == False:
+            if row[1].find(new) >= 0:
+                new = ','
+
+        newtags = row[1].replace(orig, new)
+        cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
+        print("Updated index %d" % row[0])
+        update = True
+
+    if update:
+        conn.commit()
+
+
+
 def fetchopen(index):
+    """Fetch URL at index and open in browser
+
+    Params: index
+    """
+
     try:
         for row in cur.execute("SELECT URL FROM bookmarks WHERE id = ?", (int(index),)):
             url = unquote(row[0])
@@ -472,8 +778,12 @@ def fetchopen(index):
 
 
 
-# Check if a value is a digit
 def is_int(string):
+    """Check if a string is a digit
+
+    Params: string
+    """
+
     try:
         int(string)
         return True
@@ -482,61 +792,13 @@ def is_int(string):
 
 
 
-# Fetch titleData from GET response
-def getTitleData(resp):
-    global titleData
-    titleData = None
-
-    charset = ''
-    charset = resp.headers.get_content_charset()
-    if charset == None:
-        charset = 'utf-8'
-    if debug:
-        print("charset: %s" % charset)
-
-    parser = BMHTMLParser()
-    try:
-        if charset == 'utf-8':
-            parser.feed(resp.read().decode(charset, "replace"))
-        else:
-            parser.feed(resp.read().decode(charset))
-    except Exception as e:
-        if debug:
-            print("Exception: %s" % e)
-
-
-
-# Parse HTML page for Title info
-class BMHTMLParser(HTMLParser.HTMLParser):
-    def __init__(self):
-        HTMLParser.HTMLParser.__init__(self)
-        self.inTitle = False
-        self.data = ""
-        self.lasttag = None
-
-    def handle_starttag(self, tag, attrs):
-        self.inTitle = False
-        if tag == "title":
-            self.inTitle = True
-            self.lasttag = tag
-
-    def handle_endtag(self, tag):
-        global titleData
-
-        if tag == "title":
-            self.inTitle = False
-            if self.data != "":
-                titleData = self.data
-                self.reset() # We have received title data, exit parsing
-
-    def handle_data(self, data):
-        if self.lasttag == "title" and self.inTitle == True:
-            self.data += data
-
-
-
-# Open a URL in browser
 def browser_open(url):
+    """Duplicate stdin, stdout (to suppress showing errors
+    on the terminal) and open URL in default browser
+
+    Params: url to open
+    """
+
     url = url.replace("%22", "\"")
 
     _stderr = os.dup(2)
@@ -549,7 +811,7 @@ def browser_open(url):
     try:
         webbrowser.open(url)
     except Exception as e:
-        print("Browser Exception: %s" % e)
+        print("\x1b[1mEXCEPTION\x1b[21m [browser_open]: (%s) %s" % (type(e).__name__, e))
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
@@ -557,8 +819,12 @@ def browser_open(url):
 
 
 
-# Get the SHA256 hash of a file
 def get_filehash(filepath):
+    """Get the SHA256 hash of a file
+
+    Params: path to the file
+    """
+
     with open(filepath, 'rb') as f:
         hasher = hashlib.sha256()
         buf = f.read(BLOCKSIZE)
@@ -570,11 +836,18 @@ def get_filehash(filepath):
 
 
 
-# Encrypt the bookmarks database file
 def encrypt_file():
-    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
+    """Encrypt the bookmarks database file"""
+
+    dbpath = os.path.join(getDataPath(), 'bookmarks.db')
+    encpath = dbpath + '.enc'
     if not os.path.exists(dbpath):
         print("%s missing. Already encrypted?" % dbpath)
+        sys.exit(1)
+
+    # If both encrypted file and flat file exist, error out
+    if os.path.exists(dbpath) and os.path.exists(encpath):
+        printmsg("Both encrypted and flat DB files exist!", "ERROR")
         sys.exit(1)
 
     password = ''
@@ -587,13 +860,11 @@ def encrypt_file():
         print("Passwords don't match");
         sys.exit(1)
 
-    encpath = dbpath + '.enc'
-
     # Get SHA256 hash of DB file
     dbhash = get_filehash(dbpath)
 
-    # Generate randon 256-bit salt and key
-    salt = Random.get_random_bytes(SALT_SIZE) 
+    # Generate random 256-bit salt and key
+    salt = Random.get_random_bytes(SALT_SIZE)
     key = (password + salt.decode('utf-8', "replace")).encode('utf-8')
     for i in range(iterations):
         key = hashlib.sha256(key).digest()
@@ -626,12 +897,18 @@ def encrypt_file():
 
 
 
-# Decrypt the bookmarks database file
 def decrypt_file():
-    dbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku', 'bookmarks.db')
+    """Decrypt the bookmarks database file"""
+
+    dbpath = os.path.join(getDataPath(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
-        print("Error: %s missing" % encpath)
+        printmsg((encpath + " missing"), "ERROR")
+        sys.exit(1)
+
+    # If both encrypted file and flat file exist, error out
+    if os.path.exists(dbpath) and os.path.exists(encpath):
+        printmsg("Both encrypted and flat DB files exist!", "ERROR")
         sys.exit(1)
 
     password = ''
@@ -669,7 +946,7 @@ def decrypt_file():
     dbhash = get_filehash(dbpath)
     if dbhash != enchash:
         os.remove(dbpath)
-        print("Wrong password")
+        print("Decryption failed");
     else:
         os.remove(encpath)
         print("File decrypted")
@@ -678,8 +955,9 @@ def decrypt_file():
 
 
 
-# SIGINT handler
 def sigint_handler(signum, frame):
+    """Custom SIGINT handler"""
+
     print('\nInterrupted.', file=sys.stderr)
     sys.exit(1)
 
@@ -687,8 +965,71 @@ signal.signal(signal.SIGINT, sigint_handler)
 
 
 
-# Main starts here
-# ----------------
+def printmsg(msg, level=None):
+    """Print a message in 2 parts, with the level in bold
+
+    Params: msg, level
+    """
+
+    if level is not None:
+        print("\x1b[1m%s:\x1b[21m %s" % (level, msg))
+    else:
+        print("%s" % msg)
+
+
+
+def usage():
+    """Show buku usage, options, general information and exit"""
+
+    print("Usage: OPTIONS [URL] [TAGS] [KEYWORDS ...]\n")
+    print("A private cmdline bookmark manager. Your mini web!\n")
+    print("General options")
+    print("  -a URL [tags]        add URL as bookmark with comma separated tags")
+    print("  -d N                 delete entry at DB index N (from -P), move last entry to N")
+    print("  -g                   list all tags alphabetically")
+    print("  -m title             manually specify the title, for -a, -i, -u")
+    print("  -s keyword(s)        search all bookmarks for a (partial) tag or any keyword")
+    print("  -S keyword(s)        search all bookmarks for a (partial) tag or all keywords")
+    print("  -u N URL [tags]      update all fields of entry at DB index N")
+    print("  -w                   fetch title from web, for -a, -i, -u\n")
+    print("Power toys")
+    print("  -D                   delete ALL bookmarks")
+    print("  -e                   show bookmarks with empty titles or no tags")
+    print("  -i N                 insert new bookmark at free DB index N")
+    print("  -k                   decrypt (unlock) database file")
+    print("  -l                   encrypt (lock) database file")
+    print("  -o N                 open URL at DB index N in browser")
+    print("  -p N                 show details of bookmark record at DB index N")
+    print("  -P                   show all bookmarks along with index from DB")
+    print("  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty")
+    print("  -R                   refresh title from web for all bookmarks, update if non-empty")
+    print("  -t N                 use N (> 0) hash iterations to generate key, for -k, -l")
+    print("  -x N                 modify -P behaviour, N=1: show only URL, N=2: show URL and tag")
+    print("  -z                   show debug information\n")
+    print("Keys")
+    print("  1-N                  open Nth search result in browser. Enter exits buku.\n")
+    print("Version %.1f" % _VERSION_)
+    print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
+    print("License: GPLv3")
+    print("Webpage: https://github.com/jarun/buku")
+    sys.exit(1)
+
+
+
+"""main starts here"""
+def main(argv = sys.argv):
+    # detects whether have pipe line parsing in
+    if not sys.stdin.isatty():
+        pipeargs.extend(sys.argv)
+        for s in sys.stdin.readlines():
+            pipeargs.extend(s.split())
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv)
+    except KeyboardInterrupt:
+        pass
+
 optlist = None
 keywords = None
 
@@ -697,7 +1038,11 @@ if len(sys.argv) < 2:
 
 # Check cmdline options
 try:
-    optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDgjklPRsSwz")
+
+    if len(pipeargs) > 0:
+        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aDegjklPRrsSwz")
+    else:
+        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDegjklPRrsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -727,6 +1072,8 @@ try:
                 usage()
 
             delete = True
+        elif opt[0] == "-e":
+            empty = True
         elif opt[0] == "-g":
             showTags = True
         elif opt[0] == "-i":
@@ -746,13 +1093,13 @@ try:
             jsonOutput = True
         elif opt[0] == "-k":
             if no_crypto == True:
-                print("Error: PyCrypto missing")
+                printmsg("PyCrypto missing", "ERROR")
                 sys.exit(0)
 
             decrypt = True
         elif opt[0] == "-l":
             if no_crypto == True:
-                print("Error: PyCrypto missing")
+                printmsg("PyCrypto missing", "ERROR")
                 sys.exit(0)
 
             encrypt = True
@@ -781,8 +1128,9 @@ try:
                 print("You can either add or update or delete in one instance\n")
                 usage()
 
-            online = True
             refresh = True
+        elif opt[0] == "-r":
+            replace = True
         elif opt[0] == "-s":
             search = True
         elif opt[0] == "-S":
@@ -823,6 +1171,9 @@ except GetoptError as e:
     print("buku:", e)
     sys.exit(1)
 
+if debug:
+    print("Version %.1f" % _VERSION_)
+
 # Update and full DB refresh are mutually exclusive
 if update == True and refresh == True:
     print("You can either update a single index or refresh full DB at once.\n")
@@ -832,6 +1183,9 @@ if update == True and refresh == True:
 if online == True and titleManual != None:
     print("You can either fetch title from web or add/update title manually.\n")
     usage()
+
+# Move database to new location, if needed
+moveOldDatabase()
 
 # Handle encrypt/decrypt options at top priority
 if encrypt == True:
@@ -843,6 +1197,23 @@ if decrypt == True:
 # Initilize the database and get handles
 conn, cur = initdb()
 
+# Replace a tag in DB
+if replace == True:
+    numargs = len(keywords)
+
+    if addurl == True or update == True or delete == True:
+        print("Tag replace doesn't work with add or update or delete.\n")
+        conn.close()
+        usage()
+    elif numargs < 1 or numargs > 2:
+        print("Tag replace accepts 1 or 2 arguments\n")
+        conn.close()
+        usage()
+    elif numargs == 1:
+        replaceTags(conn, cur, keywords[0], "")
+    else:
+        replaceTags(conn, cur, keywords[0], keywords[1])
+
 # Call add or update record
 if addurl == True or update == True:
     if len(keywords) < 1:
@@ -853,16 +1224,7 @@ if addurl == True or update == True:
 
 # Refresh full DB
 if refresh == True:
-    cur.execute("SELECT id, url, tags FROM bookmarks")
-    for row in cur.fetchall():
-        olddata = []
-        olddata.append(row[1])
-        if row[2] != '':
-            olddata.append(row[2][1:]) # Omit the initial ',' already in DB
-        else:
-            olddata.append(row[2])
-        AddUpdateEntry(conn, cur, olddata, row[0])
-        print("")
+    dbRefresh(conn, cur)
 
 # Search tags, URLs, Title info
 if search == True:
@@ -879,6 +1241,9 @@ if show == True:
 # Show all unique tags
 if showTags == True:
     showUniqueTags(cur)
+
+if empty == True:
+    printdb(cur, None, empty)
 
 # Open URL in browser
 if openurl != None:
