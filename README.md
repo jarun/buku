@@ -68,7 +68,7 @@ Find `buku` useful? If you would like to donate, visit the
 - Fast and clean (no ads or clutter)
 - Minimal dependencies
 - Open source and free
-- Json output with -f flag
+- Json output with -j flag
 
 # Installation
 
