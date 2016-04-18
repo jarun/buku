@@ -136,7 +136,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -D                   delete ALL bookmarks
       -e                   show bookmarks with empty titles or no tags
       -i N                 insert new bookmark at free DB index N
-      -j                   show result in Json format
+      -j                   show results in Json format
       -k                   decrypt (unlock) database file
       -l                   encrypt (lock) database file
       -o N                 open URL at DB index N in browser

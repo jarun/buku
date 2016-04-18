@@ -981,7 +981,7 @@ def usage():
     print("  -D                   delete ALL bookmarks")
     print("  -e                   show bookmarks with empty titles or no tags")
     print("  -i N                 insert new bookmark at free DB index N")
-    print("  -j                   show result in Json format")
+    print("  -j                   show results in Json format")
     print("  -k                   decrypt (unlock) database file")
     print("  -l                   encrypt (lock) database file")
     print("  -o N                 open URL at DB index N in browser")
