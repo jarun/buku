@@ -28,10 +28,11 @@ The same URL cannot be added twice. You can update tags and re-fetch title data.
 You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
 .PP
 Search works in mysterious ways:
-  - Substrings match ('match' matches 'rematched') for URL, tags and title.
+  - Substrings match ('match' matches 'rematched') for URL, title and tags.
   - All the keywords are treated together as a 'single' tag in the 'same order'. Bookmarks with partial or complete tag matches are shown in results.
-  - -s : match any of the keywords in URL or title. Order is irrelevant.
-  - -S : match all the keywords in URL or title. Order is irrelevant.
+  - -s : match any of the keywords in URL, title or tags.
+  - -S : match all the keywords in URL, title or tags.
+  - You can search bookmarks by tag (see example).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within '()' after the URL.
 .PP
 AES256 is used for encryption. Optionally specify (-t) the number of hash iterations to use to generate key. Default is 8 iterations.
@@ -92,10 +93,10 @@ Show all bookmark records from the DB along with actual index. Shows URL, title 
 Refresh titles for all bookmarks from the web. Titles are updated only if non-empty. Indexes, URLs and tags are retained.
 .TP
 .BI \-s " keywords"
-Search bookmarks for a (partial) tag or any keyword and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within '()'.
+Search bookmarks for any of the keywords in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within '()'.
 .TP
 .BI \-S " keywords"
-Search bookmarks for a (partial) tag or occurrence of all keywords in URL or title and show the results. Rest same as -s.
+Search bookmarks for all keywords in URL, title or tags and show the results. Rest same as -s.
 .TP
 .BI \-t " N"
 Use
@@ -246,14 +247,14 @@ List \fBall unique tags\fR alphabetically:
 .B buku -o 15012014
 .PP
 .IP 14. 4
-\fBSearch\fR bookmarks for a tag matching \fBkernel debugging\fR or \fBANY\fR of the keywords \fBkernel\fR and \fBdebugging\fR in URL or title (separately):
+\fBSearch\fR bookmarks for \fBANY\fR of the keywords \fBkernel\fR and \fBdebugging\fR in URL, title or tags:
 .PP
 .EX
 .IP
 .B buku -s kernel debugging
 .PP
 .IP 15. 4
-\fBSearch\fR bookmarks for a tag matching \fBkernel debugging\fR or \fBALL\fR the keywords \fBkernel\fR and \fBdebugging\fR in URL or title (separately):
+\fBSearch\fR bookmarks for \fBALL\fR the keywords \fBkernel\fR and \fBdebugging\fR in URL, title or tags:
 .PP
 .EX
 .IP

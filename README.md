@@ -4,7 +4,7 @@
 
 `buku` is a powerful cmdline bookmark management utility written in Python3 and SQLite3. `buku` exists because of my monumental dependency on <a href="http://historio.us/">historious</a>. I wanted the same database on my local system. However, I couldn't find an equally flexible cmdline solution. Hence, `Buku` (after my son's nickname).
 
-You can add bookmarks to `buku` with title and tags, optionally fetch page title from web, search by keywords for matching tags or title or URL, update and remove bookmarks, title or tags. You can open the URLs from search results directly in the browser. You can encrypt or decrypt the database file manually, optionally with custom number of hash passes for key generation.
+You can add bookmarks to `buku` with title and tags, optionally fetch page title from web, search by keywords for matching URL, title or tags, update and remove bookmarks, title or tags. You can open the URLs from search results directly in the browser. You can encrypt or decrypt the database file manually, optionally with custom number of hash passes for key generation.
 
 `buku` can also handle piped input, which lets you combine it with `xsel` (on Linux) and use a shortcut to add selected or copied text as bookmark without touching the terminal.
 Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2016/03/26/buku-xsel/)
@@ -128,8 +128,8 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -d N                 delete entry at DB index N (from -P), move last entry to N
       -g                   list all tags alphabetically
       -m title             manually specify the title, for -a, -i, -u
-      -s keyword(s)        search all bookmarks for a (partial) tag or any keyword
-      -S keyword(s)        search all bookmarks for a (partial) tag or all keywords
+      -s keyword(s)        search bookmarks for any keyword
+      -S keyword(s)        search bookmarks for all keywords
       -u N URL [tags]      update all fields of entry at DB index N
       -w                   fetch title from web, for -a, -i, -u
 
@@ -160,10 +160,10 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 - The same URL cannot be added twice. You can update tags and re-fetch title data. You can also insert a new bookmark at a free index.
 - You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
 - Search works in mysterious ways:
-  - Substrings match (`match` matches `rematched`) for URL, tags and title.
-  - All the keywords are treated together as a `single` tag in the `same order`. Bookmarks with partial or complete tag matches are shown in results.
-  - `-s` : match any of the keywords in URL or title. Order is irrelevant.
-  - `-S` : match all the keywords in URL or title. Order is irrelevant.
+  - Substrings match (`match` matches `rematched`) for URL, title and tags.
+  - `-s` : match any of the keywords in URL, title or tags.
+  - `-S` : match all the keywords in URL, title or tags.
+  - You can search bookmarks by tag (see example).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `()` after the URL.
 - AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
 - Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
@@ -221,10 +221,10 @@ The last index is moved to the deleted index to keep the DB compact.
 13. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-14. **Search** bookmarks for a tag matching `*kernel debugging*` or **ANY** of the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+14. **Search** bookmarks for **ANY** of the keywords `*kernel*` and `*debugging*` in URL, title or tags:
 
         $ buku -s kernel debugging
-15. **Search** bookmarks for a tag matching `*kernel debugging*` or **ALL** the keywords `*kernel*` and `*debugging*` in URL or title (separately):
+15. **Search** bookmarks for **ALL** the keywords `*kernel*` and `*debugging*` in URL, title or tags:
 
         $ buku -S kernel debugging
 

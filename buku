@@ -474,34 +474,24 @@ def searchdb(cur, keywords):
     """
 
     global jsonOutput
-
-    searchtag = ''
-    for token in keywords:
-        searchtag += token + " "
-
     arguments = []
-    arguments.append(searchtag[0:-1])
     placeholder = "'%' || ? || '%'"
-    query = "SELECT id, url, metadata, tags FROM bookmarks WHERE tags LIKE (%s)" % placeholder
+    query = "SELECT id, url, metadata, tags FROM bookmarks WHERE"
+
     if searchAll == True: # Match all keywords in URL or Title
-        query += " OR ("
         for token in keywords:
-            query += "URL LIKE (%s) AND " % (placeholder)
+            query += " (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s)) AND" % (placeholder, placeholder, placeholder)
             arguments.append(token)
-
-        query = query[:-5] + ") OR ("
-
-        for token in keywords:
-            query += "metadata LIKE (%s) AND " % (placeholder)
             arguments.append(token)
-
-        query = query[:-5] + ")"
-
+            arguments.append(token)
+        query = query[:-4]
     else: # Match any keyword in URL or Title
         for token in keywords:
-            query += " OR URL LIKE (%s) OR metadata LIKE (%s)" % (placeholder, placeholder)
+            query += " tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR" % (placeholder, placeholder, placeholder)
             arguments.append(token)
             arguments.append(token)
+            arguments.append(token)
+        query = query[:-3]
 
     if debug:
         print("\"%s\", (%s)" % (query, arguments))
@@ -975,8 +965,8 @@ def usage():
     "  -d N                 delete entry at DB index N (from -P), move last entry to N\n"
     "  -g                   list all tags alphabetically\n"
     "  -m title             manually specify the title, for -a, -i, -u\n"
-    "  -s keyword(s)        search all bookmarks for a (partial) tag or any keyword\n"
-    "  -S keyword(s)        search all bookmarks for a (partial) tag or all keywords\n"
+    "  -s keyword(s)        search bookmarks for any keyword\n"
+    "  -S keyword(s)        search bookmarks for all keywords\n"
     "  -u N URL [tags]      update all fields of entry at DB index N\n"
     "  -w                   fetch title from web, for -a, -i, -u\n\n"
 
