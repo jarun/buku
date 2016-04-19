@@ -157,6 +157,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 - The same URL cannot be added twice. You can update tags and re-fetch title data. You can also insert a new bookmark at a free index.
 - You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
 - Search works in mysterious ways:
+  - Case-insensitive.
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
   - `-s` : match any of the keywords in URL, title or tags.
   - `-S` : match all the keywords in URL, title or tags.
