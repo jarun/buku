@@ -9,32 +9,13 @@ You can add bookmarks to `buku` with title and tags, optionally fetch page title
 `buku` can also handle piped input, which lets you combine it with `xsel` (on Linux) and use a shortcut to add selected or copied text as bookmark without touching the terminal.
 Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2016/03/26/buku-xsel/)
 
-The SQLite3 database file is stored in `$HOME/.local/share/buku/bookmarks.db` (or `$XDG_DATA_HOME/buku/bookmarks.db`, if XDG_DATA_HOME is defined) for each user.
-
-Before version 1.9, buku stored database in `$HOME/.cache/buku/bookmarks.db`. If the file exists, buku automatically moves it to new location.
-
 `buku` is **GPLv3** licensed. Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 Find `buku` useful? If you would like to donate, visit the
 [![Donate Button](https://img.shields.io/badge/paypal-donate-orange.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q) page.
 
-# Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-  - [Dependencies](#dependencies)
-  - [Installing from this repository](#installing-from-this-repository)
-  - [Running as a standalone utility](#running-as-a-standalone-utility)
-  - [Installing with a package manager](#installing-with-a-package-manager)
-- [Usage](#usage)
-  - [Cmdline options](#cmdline-options)
-  - [Operational notes](#operational-notes)
-- [Examples](#examples)
-  - [Bookkeeping](#bookkeeping)
-- [Contributions](#contributions)
-- [Developers](#developers)
-
 # Features
+
 - Add, update or remove a bookmark
 - Add tags to bookmarks
 - Manual password protection using AES256 encryption algorithm
@@ -70,6 +51,21 @@ Find `buku` useful? If you would like to donate, visit the
 - Fast and clean (no ads or clutter)
 - Minimal dependencies
 - Open source and free
+
+# Table of Contents
+
+- [Installation](#installation)
+  - [Dependencies](#dependencies)
+  - [Installing from this repository](#installing-from-this-repository)
+  - [Running as a standalone utility](#running-as-a-standalone-utility)
+  - [Installing with a package manager](#installing-with-a-package-manager)
+- [Usage](#usage)
+  - [Cmdline options](#cmdline-options)
+  - [Operational notes](#operational-notes)
+- [Examples](#examples)
+  - [Bookkeeping](#bookkeeping)
+- [Contributions](#contributions)
+- [Developers](#developers)
 
 # Installation
 
@@ -155,6 +151,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
 ## Operational notes
 
+- The SQLite3 database file is stored in `$HOME/.local/share/buku/bookmarks.db` (or `$XDG_DATA_HOME/buku/bookmarks.db`, if XDG_DATA_HOME is defined) for each user. Before version 1.9, buku stored database in `$HOME/.cache/buku/bookmarks.db`. If the file exists, buku automatically moves it to new location.
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` quotes.
 - The same URL cannot be added twice. You can update tags and re-fetch title data. You can also insert a new bookmark at a free index.
