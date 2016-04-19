@@ -998,7 +998,7 @@ def usage():
 
     "Keys\n"
     "  1-N                  open Nth search result in browser\n"
-    "Enter                  exit buku\n\n"
+    "  Enter                exit buku\n\n"
 
     "Version %.1f\n"
     "Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>\n"
