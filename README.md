@@ -42,6 +42,7 @@ Find `buku` useful? If you would like to donate, visit the
 - Add a custom page title manually
 - Use (partial) tags or keywords to search bookmarks
 - Any or all search keyword match options
+- Search bookmarks by tag
 - Unique URLs to avoid duplicates, show index if URL already exists
 - Open bookmark in browser using index
 - Open search results in browser
@@ -227,15 +228,19 @@ The last index is moved to the deleted index to keep the DB compact.
 
         $ buku -S kernel debugging
 
-16. Encrypt/decrypt DB with **custom number of iterations** to generate key:
+16. **Search** bookmarks tagged `general kernel concepts`:
+
+        $ buku -S ,general kernel concepts,
+Note the commas (,) before and after the tag.
+17. Encrypt/decrypt DB with **custom number of iterations** to generate key:
 
         $ buku -l -t 15
         $ buku -k -t 15
 The same number of iterations must be used for one lock & unlock instance.
-17. Show **debug info**:
+18. Show **debug info**:
 
         $ buku -z ...
-18. More **help**:
+19. More **help**:
 
         $ buku
         $ man buku
