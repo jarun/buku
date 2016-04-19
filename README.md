@@ -149,7 +149,8 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -z                   show debug information
 
     Keys
-      1-N                  open Nth search result in browser. Enter exits buku.
+      1-N                  open Nth search result in browser
+      Enter                exit buku
 
 ## Operational notes
 
