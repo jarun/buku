@@ -200,8 +200,7 @@ def getPageResp(url, fullurl=False):
     """
 
     if url.find("%20") != -1:
-        url = unquote(url)
-        url = url.replace(" ", "%20")
+        url = unquote(url).replace(" ", "%20")
     else:
         url = unquote(url)
 
@@ -388,7 +387,7 @@ def AddUpdateEntry(conn, cur, keywords, index):
     if len(keywords) > 1:
         for tag in keywords[1:]:
             if tag[-1] == ',':
-                tag = tag.strip(',') + ','      # a last token of a tag ends with a comma
+                tag = tag.strip(',') + ','      # if delimiter is present, maintain it
             else:
                 tag = tag.strip(',')            # a token in a multi-word tag
 
@@ -479,10 +478,9 @@ def searchdb(cur, keywords):
     searchtag = ''
     for token in keywords:
         searchtag += token + " "
-    searchtag = searchtag[0:-1]
 
     arguments = []
-    arguments.append(searchtag)
+    arguments.append(searchtag[0:-1])
     placeholder = "'%' || ? || '%'"
     query = "SELECT id, url, metadata, tags FROM bookmarks WHERE tags LIKE (%s)" % placeholder
     if searchAll == True: # Match all keywords in URL or Title
@@ -536,8 +534,7 @@ def searchdb(cur, keywords):
                     continue
 
                 try:
-                    openurl = unquote(results[int(nav) - 1])
-                    browser_open(openurl)
+                    browser_open(unquote(results[int(nav) - 1]))
                 except Exception as e:
                     print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
             else:
@@ -624,13 +621,16 @@ def printdb(cur, index, empty=False):
             print("\x1b[1m%d records found\x1b[21m\n" % len(resultset))
 
         if jsonOutput == False:
-            for row in resultset:
-                if showOpt == 1:
-                    print("%s %s" % (row[0], row[1]))
-                elif showOpt == 2:
-                    print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
-                else:
+            if showOpt == 0:
+                for row in resultset:
                     print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
+            elif showOpt == 1:
+                for row in resultset:
+                    print("%s %s" % (row[0], row[1]))
+            elif showOpt == 2:
+                for row in resultset:
+                    print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
+
         else:
             print(formatJson(resultset))
     else: # Show record at index
@@ -982,7 +982,7 @@ def usage():
 
     "Power toys\n"
     "  -D                   delete ALL bookmarks\n"
-    "  -e                   show bookmarks with empty titles or no tagsi\n"
+    "  -e                   show bookmarks with empty titles or no tags\n"
     "  -i N                 insert new bookmark at free DB index N\n"
     "  -j                   show results in Json format\n"
     "  -k                   decrypt (unlock) database file\n"
