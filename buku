@@ -966,38 +966,44 @@ def printmsg(msg, level=None):
 def usage():
     """Show buku usage, options, general information and exit"""
 
-    print("Usage: OPTIONS [URL] [TAGS] [KEYWORDS ...]\n")
-    print("A private cmdline bookmark manager. Your mini web!\n")
-    print("General options")
-    print("  -a URL [tags]        add URL as bookmark with comma separated tags")
-    print("  -d N                 delete entry at DB index N (from -P), move last entry to N")
-    print("  -g                   list all tags alphabetically")
-    print("  -m title             manually specify the title, for -a, -i, -u")
-    print("  -s keyword(s)        search all bookmarks for a (partial) tag or any keyword")
-    print("  -S keyword(s)        search all bookmarks for a (partial) tag or all keywords")
-    print("  -u N URL [tags]      update all fields of entry at DB index N")
-    print("  -w                   fetch title from web, for -a, -i, -u\n")
-    print("Power toys")
-    print("  -D                   delete ALL bookmarks")
-    print("  -e                   show bookmarks with empty titles or no tags")
-    print("  -i N                 insert new bookmark at free DB index N")
-    print("  -j                   show results in Json format")
-    print("  -k                   decrypt (unlock) database file")
-    print("  -l                   encrypt (lock) database file")
-    print("  -o N                 open URL at DB index N in browser")
-    print("  -p N                 show details of bookmark record at DB index N")
-    print("  -P                   show all bookmarks along with index from DB")
-    print("  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty")
-    print("  -R                   refresh title from web for all bookmarks, update if non-empty")
-    print("  -t N                 use N (> 0) hash iterations to generate key, for -k, -l")
-    print("  -x N                 modify -P behaviour, N=1: show only URL, N=2: show URL and tag")
-    print("  -z                   show debug information\n")
-    print("Keys")
-    print("  1-N                  open Nth search result in browser. Enter exits buku.\n")
-    print("Version %.1f" % _VERSION_)
-    print("Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>")
-    print("License: GPLv3")
-    print("Webpage: https://github.com/jarun/buku")
+    print("Usage: OPTIONS [URL] [TAGS] [KEYWORDS ...]\n\n"
+
+    "A private cmdline bookmark manager. Your mini web!\n\n"
+
+    "General options\n"
+    "  -a URL [tags]        add URL as bookmark with comma separated tags\n"
+    "  -d N                 delete entry at DB index N (from -P), move last entry to N\n"
+    "  -g                   list all tags alphabetically\n"
+    "  -m title             manually specify the title, for -a, -i, -u\n"
+    "  -s keyword(s)        search all bookmarks for a (partial) tag or any keyword\n"
+    "  -S keyword(s)        search all bookmarks for a (partial) tag or all keywords\n"
+    "  -u N URL [tags]      update all fields of entry at DB index N\n"
+    "  -w                   fetch title from web, for -a, -i, -u\n\n"
+
+    "Power toys\n"
+    "  -D                   delete ALL bookmarks\n"
+    "  -e                   show bookmarks with empty titles or no tagsi\n"
+    "  -i N                 insert new bookmark at free DB index N\n"
+    "  -j                   show results in Json format\n"
+    "  -k                   decrypt (unlock) database file\n"
+    "  -l                   encrypt (lock) database file\n"
+    "  -o N                 open URL at DB index N in browser\n"
+    "  -p N                 show details of bookmark record at DB index N\n"
+    "  -P                   show all bookmarks along with index from DB\n"
+    "  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty\n"
+    "  -R                   refresh title from web for all bookmarks, update if non-empty\n"
+    "  -t N                 use N (> 0) hash iterations to generate key, for -k, -l\n"
+    "  -x N                 modify -P behaviour, N=1: show only URL, N=2: show URL and tag\n"
+    "  -z                   show debug information\n\n"
+
+    "Keys\n"
+    "  1-N                  open Nth search result in browser\n"
+    "Enter                  exit buku\n\n"
+
+    "Version %.1f\n"
+    "Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>\n"
+    "License: GPLv3\n"
+    "Webpage: https://github.com/jarun/buku\n" % _VERSION_)
     sys.exit(1)
 
 
