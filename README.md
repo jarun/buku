@@ -121,7 +121,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
     General options
       -a URL [tags]        add URL as bookmark with comma separated tags
-      -d N                 delete entry at DB index N (from -p 0)
+      -d N                 delete entry at DB index N (from -p 0), N=0 deletes all
       -g                   list all tags alphabetically
       -m title             manually specify the title, for -a, -i, -u
       -s keyword(s)        search bookmarks for any keyword
@@ -130,7 +130,6 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -w                   fetch title from web, for -a, -i, -u
 
     Power toys
-      -D                   delete ALL bookmarks
       -e                   show bookmarks with empty titles or no tags
       -i N                 insert new bookmark at free DB index N
       -j                   show results in Json format
@@ -195,7 +194,7 @@ This operation does not modify the indexes, URLs or tags. Only titles, if non-em
 The last index is moved to the deleted index to keep the DB compact.
 6. **Delete all** bookmarks:
 
-        $ buku -D
+        $ buku -d 0
 7. List **all unique tags** alphabetically:
 
         $ buku -g

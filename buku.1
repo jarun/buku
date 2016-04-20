@@ -48,9 +48,8 @@ along with comma separated tags. A tag can have multiple words. The same URL can
 Delete bookmark at index
 .I N
 in DB (from -p 0 output). The last record is moved to the removed index.
-.TP
-.B \-D
-Delete ALL bookmarks.
+.I N
+= 0 deletes all records from DB.
 .TP
 .B \-e
 Show all bookmarks with empty titles or no tags (for bookkeeping).
@@ -193,7 +192,7 @@ The last index is moved to the deleted index to keep the DB compact.
 .PP
 .EX
 .IP
-.B buku -D
+.B buku -d 0
 .PP
 .IP 7. 4
 List \fBall unique tags\fR alphabetically:
