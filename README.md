@@ -125,7 +125,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -g                   list all tags alphabetically
       -m title             manually specify the title, for -a, -i, -u
       -s keyword(s)        search bookmarks for any keyword
-      -S keyword(s)        search bookmarks for all keywords
+      -S keyword(s)        search bookmarks with all keywords
       -u N URL [tags]      update all fields of entry at DB index N
       -w                   fetch title from web, for -a, -i, -u
 
@@ -221,7 +221,7 @@ The last index is moved to the deleted index to keep the DB compact.
 14. **Search** bookmarks for **ANY** of the keywords `*kernel*` and `*debugging*` in URL, title or tags:
 
         $ buku -s kernel debugging
-15. **Search** bookmarks for **ALL** the keywords `*kernel*` and `*debugging*` in URL, title or tags:
+15. **Search** bookmarks with **ALL** the keywords `*kernel*` and `*debugging*` in URL, title or tags:
 
         $ buku -S kernel debugging
 

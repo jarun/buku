@@ -965,7 +965,7 @@ def usage():
     "  -g                   list all tags alphabetically\n"
     "  -m title             manually specify the title, for -a, -i, -u\n"
     "  -s keyword(s)        search bookmarks for any keyword\n"
-    "  -S keyword(s)        search bookmarks for all keywords\n"
+    "  -S keyword(s)        search bookmarks with all keywords\n"
     "  -u N URL [tags]      update all fields of entry at DB index N\n"
     "  -w                   fetch title from web, for -a, -i, -u\n\n"
 
