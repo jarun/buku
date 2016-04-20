@@ -59,7 +59,6 @@ online = False          # Fetch title from web
 delete = False          # Delete bookmark(s)
 empty = False           # List all bookmarks with no title or tag
 openurl = None          # Open URL in browser
-show = False            # Show all details of a bookmark
 showindex = None        # Index of bookmark to show
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 showTags = False        # List all unique tags
@@ -601,7 +600,7 @@ def printdb(cur, index, empty=False):
     global jsonOutput
 
     resultset = None
-    if index == None: # Show all entries
+    if int(index) == 0: # Show all entries
         if empty == False:
             cur.execute('SELECT * FROM bookmarks')
             resultset = cur.fetchall()
@@ -962,7 +961,7 @@ def usage():
 
     "General options\n"
     "  -a URL [tags]        add URL as bookmark with comma separated tags\n"
-    "  -d N                 delete entry at DB index N (from -P), move last entry to N\n"
+    "  -d N                 delete entry at DB index N (from -p 0), move last entry to N\n"
     "  -g                   list all tags alphabetically\n"
     "  -m title             manually specify the title, for -a, -i, -u\n"
     "  -s keyword(s)        search bookmarks for any keyword\n"
@@ -978,12 +977,11 @@ def usage():
     "  -k                   decrypt (unlock) database file\n"
     "  -l                   encrypt (lock) database file\n"
     "  -o N                 open URL at DB index N in browser\n"
-    "  -p N                 show details of bookmark record at DB index N\n"
-    "  -P                   show all bookmarks along with index from DB\n"
+    "  -p N                 show details of bookmark record at DB index N (0 for all)\n"
     "  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty\n"
     "  -R                   refresh title from web for all bookmarks, update if non-empty\n"
     "  -t N                 use N (> 0) hash iterations to generate key, for -k, -l\n"
-    "  -x N                 modify -P behaviour, N=1: show only URL, N=2: show URL and tag\n"
+    "  -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL and tag\n"
     "  -z                   show debug information\n\n"
 
     "Keys\n"
@@ -1022,9 +1020,9 @@ if len(sys.argv) < 2:
 try:
 
     if len(pipeargs) > 0:
-        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aDegjklPRrsSwz")
+        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aDegjklRrsSwz")
     else:
-        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDegjklPRrsSwz")
+        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDegjklRrsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -1099,12 +1097,8 @@ try:
                 usage()
 
             showindex = opt[1]
-            if int(showindex) <= 0:
+            if int(showindex) < 0:
                 usage()
-
-            show = True
-        elif opt[0] == "-P":
-            show = True
         elif opt[0] == "-R":
             if addurl == True or delete == True:
                 print("You can either add or update or delete in one instance\n")
@@ -1217,7 +1211,7 @@ if search == True:
     searchdb(cur, keywords)
 
 # Print all records
-if show == True:
+if showindex is not None:
     printdb(cur, showindex)
 
 # Show all unique tags
@@ -1225,7 +1219,7 @@ if showTags == True:
     showUniqueTags(cur)
 
 if empty == True:
-    printdb(cur, None, empty)
+    printdb(cur, 0, empty)
 
 # Open URL in browser
 if openurl != None:

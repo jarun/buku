@@ -45,7 +45,7 @@ along with comma separated tags. A tag can have multiple words. The same URL can
 .BI \-d " N"
 Delete bookmark at index
 .I N
-in DB (from -P output).
+in DB (from -p 0 output).
 .TP
 .B \-D
 Delete ALL bookmarks.
@@ -62,7 +62,7 @@ Add a new record at free index
 in DB.
 .TP
 .B \-j
-Output data formatted as json (works with -P, -p and -s)
+Output data formatted as json (works with -p and -s)
 .TP
 .B \-k
 Decrypt (unlock) the DB file.
@@ -82,9 +82,8 @@ in browser.
 Show details of bookmark record stored at index
 .I N
 in DB.
-.TP
-.B \-P
-Show all bookmark records from the DB along with actual index. Shows URL, title and tags.
+.I N
+= 0 shows all records with actual index from DB. Shows URL, title and tags.
 .TP
 .B \-R
 Refresh titles for all bookmarks from the web. Titles are updated only if non-empty. Indexes, URLs and tags are retained.
@@ -109,7 +108,7 @@ in DB.
 Fetch title data from the web. Works with -a, -i or -u options.
 .TP
 .BI \-x " N"
-Show selective monochrome output. Works with -P. If
+Show selective monochrome output. Works with -p. If
 .I N
 = 1, only URL is shown. If
 .I N
@@ -234,7 +233,7 @@ List \fBall unique tags\fR alphabetically:
 .PP
 .EX
 .IP
-.B buku -P
+.B buku -p 0
 .PP
 .IP 13. 4
 \fBOpen URL\fR at index 15012014 in browser:

@@ -121,7 +121,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
     General options
       -a URL [tags]        add URL as bookmark with comma separated tags
-      -d N                 delete entry at DB index N (from -P), move last entry to N
+      -d N                 delete entry at DB index N (from -p 0), move last entry to N
       -g                   list all tags alphabetically
       -m title             manually specify the title, for -a, -i, -u
       -s keyword(s)        search bookmarks for any keyword
@@ -137,12 +137,11 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -k                   decrypt (unlock) database file
       -l                   encrypt (lock) database file
       -o N                 open URL at DB index N in browser
-      -p N                 show details of bookmark record at DB index N
-      -P                   show all bookmarks along with index from DB
+      -p N                 show details of bookmark record at DB index N (0 for all)
       -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty
       -R                   refresh title from web for all bookmarks, update if non-empty
       -t N                 use N (> 0) hash iterations to generate key, for -k, -l
-      -x N                 modify -P behaviour, N=1: show only URL, N=2: show URL and tag
+      -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL and tag
       -z                   show debug information
 
     Keys
@@ -215,7 +214,7 @@ The last index is moved to the deleted index to keep the DB compact.
         $ buku -p 15012014
 12. **Show all** bookmarks with real index from database:
 
-        $ buku -P
+        $ buku -p 0
 13. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
@@ -261,7 +260,7 @@ Use the `-u` option to add title or tags to those entries, if you want to.
 Make the script executable and run to batch add bookmarks.
 3. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 
-        $ buku -P -x 2 | tee myurls
+        $ buku -p 0 -x 2 | tee myurls
 Remove the lines you don't need. Add `buku -wu ` in front of all the other lines (check TIP below). Should look like:
 
         #!/bin/bash
