@@ -121,7 +121,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
     General options
       -a URL [tags]        add URL as bookmark with comma separated tags
-      -d N                 delete entry at DB index N (from -p 0), move last entry to N
+      -d N                 delete entry at DB index N (from -p 0)
       -g                   list all tags alphabetically
       -m title             manually specify the title, for -a, -i, -u
       -s keyword(s)        search bookmarks for any keyword
@@ -137,7 +137,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -k                   decrypt (unlock) database file
       -l                   encrypt (lock) database file
       -o N                 open URL at DB index N in browser
-      -p N                 show details of bookmark record at DB index N (0 for all)
+      -p N                 show details of bookmark record at DB index N, N=0 shows all
       -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty
       -R                   refresh title from web for all bookmarks, update if non-empty
       -t N                 use N (> 0) hash iterations to generate key, for -k, -l
@@ -162,6 +162,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
   - `-S` : match all the keywords in URL, title or tags.
   - You can search bookmarks by tag (see example).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `()` after the URL.
+- When a record is deleted, the last record is moved to the index.
 - AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
 - Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
 

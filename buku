@@ -961,7 +961,7 @@ def usage():
 
     "General options\n"
     "  -a URL [tags]        add URL as bookmark with comma separated tags\n"
-    "  -d N                 delete entry at DB index N (from -p 0), move last entry to N\n"
+    "  -d N                 delete entry at DB index N (from -p 0)\n"
     "  -g                   list all tags alphabetically\n"
     "  -m title             manually specify the title, for -a, -i, -u\n"
     "  -s keyword(s)        search bookmarks for any keyword\n"
@@ -977,7 +977,7 @@ def usage():
     "  -k                   decrypt (unlock) database file\n"
     "  -l                   encrypt (lock) database file\n"
     "  -o N                 open URL at DB index N in browser\n"
-    "  -p N                 show details of bookmark record at DB index N (0 for all)\n"
+    "  -p N                 show details of bookmark record at DB index N, N=0 shows all\n"
     "  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty\n"
     "  -R                   refresh title from web for all bookmarks, update if non-empty\n"
     "  -t N                 use N (> 0) hash iterations to generate key, for -k, -l\n"
