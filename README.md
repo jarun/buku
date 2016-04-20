@@ -228,7 +228,7 @@ The last index is moved to the deleted index to keep the DB compact.
 
 16. **Search** bookmarks tagged `general kernel concepts`:
 
-        $ buku -S ,general kernel concepts,
+        $ buku -S ",general kernel concepts,"
 Note the commas (,) before and after the tag.
 17. Encrypt/decrypt DB with **custom number of iterations** to generate key:
 
