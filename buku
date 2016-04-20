@@ -566,7 +566,7 @@ def cleardb(conn, cur, index):
     Params: connection, cursor, index to delete
     """
 
-    if index == None: # Remove the table
+    if int(index) == 0: # Remove the table
         resp = input("ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ")
         if resp != 'y':
             print("No bookmarks deleted")
@@ -961,7 +961,7 @@ def usage():
 
     "General options\n"
     "  -a URL [tags]        add URL as bookmark with comma separated tags\n"
-    "  -d N                 delete entry at DB index N (from -p 0)\n"
+    "  -d N                 delete entry at DB index N (from -p 0), N=0 deletes all\n"
     "  -g                   list all tags alphabetically\n"
     "  -m title             manually specify the title, for -a, -i, -u\n"
     "  -s keyword(s)        search bookmarks for any keyword\n"
@@ -970,7 +970,6 @@ def usage():
     "  -w                   fetch title from web, for -a, -i, -u\n\n"
 
     "Power toys\n"
-    "  -D                   delete ALL bookmarks\n"
     "  -e                   show bookmarks with empty titles or no tags\n"
     "  -i N                 insert new bookmark at free DB index N\n"
     "  -j                   show results in Json format\n"
@@ -1020,9 +1019,9 @@ if len(sys.argv) < 2:
 try:
 
     if len(pipeargs) > 0:
-        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aDegjklRrsSwz")
+        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aegjklRrsSwz")
     else:
-        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aDegjklRrsSwz")
+        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aegjklRrsSwz")
     if len(optlist) < 1:
         usage()
 
@@ -1042,13 +1041,7 @@ try:
                 usage()
 
             entry = opt[1]
-            if int(entry) <= 0:
-                usage()
-
-            delete = True
-        elif opt[0] == "-D":
-            if addurl == True or update == True:
-                print("You can either add or update or delete in one instance\n")
+            if int(entry) < 0:
                 usage()
 
             delete = True
