@@ -1134,11 +1134,6 @@ except GetoptError as e:
 if debug:
     print("Version %.1f" % _VERSION_)
 
-# Update and full DB refresh are mutually exclusive
-if update == True and refresh == True:
-    print("You can either update a single index or refresh full DB at once.\n")
-    usage()
-
 # Move database to new location, if needed
 moveOldDatabase()
 
