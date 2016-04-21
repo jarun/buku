@@ -55,7 +55,6 @@ except ImportError:
 # Globals
 addurl = False          # Add a URL
 addindex = None         # DB index to insert URL into
-online = False          # Fetch title from web
 delete = False          # Delete bookmark(s)
 empty = False           # List all bookmarks with no title or tag
 openurl = None          # Open URL in browser
@@ -368,7 +367,6 @@ def AddUpdateEntry(conn, cur, keywords, index):
     """
 
     global titleManual
-    global online
     tags = ','
     meta = ''
     url = keywords[0]
@@ -402,8 +400,11 @@ def AddUpdateEntry(conn, cur, keywords, index):
         tags += ','
 
     if titleManual != None:
-        meta = titleManual
-    elif online == True:
+        if titleManual == "none":
+            meta = ''
+        else:
+            meta = titleManual
+    else:
         meta = fetchTitle(url)
         if meta == '':
             print("\x1B[91mTitle: []\x1B[0m")
@@ -966,8 +967,7 @@ def usage():
     "  -m title             manually specify the title, for -a, -i, -u\n"
     "  -s keyword(s)        search bookmarks for any keyword\n"
     "  -S keyword(s)        search bookmarks with all keywords\n"
-    "  -u N URL [tags]      update all fields of entry at DB index N\n"
-    "  -w                   fetch title from web, for -a, -i, -u\n\n"
+    "  -u N URL [tags]      update all fields of entry at DB index N\n\n"
 
     "Power toys\n"
     "  -e                   show bookmarks with empty titles or no tags\n"
@@ -1019,9 +1019,9 @@ if len(sys.argv) < 2:
 try:
 
     if len(pipeargs) > 0:
-        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aegjklRrsSwz")
+        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aegjklRrsSz")
     else:
-        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aegjklRrsSwz")
+        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aegjklRrsSz")
     if len(optlist) < 1:
         usage()
 
@@ -1125,8 +1125,6 @@ try:
                 usage()
 
             update = True
-        elif opt[0] == "-w":
-            online = True
         elif opt[0] == "-x":
             if not opt[1].isdigit():
                 usage()
@@ -1146,11 +1144,6 @@ if debug:
 # Update and full DB refresh are mutually exclusive
 if update == True and refresh == True:
     print("You can either update a single index or refresh full DB at once.\n")
-    usage()
-
-# Online title update conflicts with manual title option
-if online == True and titleManual != None:
-    print("You can either fetch title from web or add/update title manually.\n")
     usage()
 
 # Move database to new location, if needed
