@@ -125,7 +125,8 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -m title             manually specify the title, for -a, -i, -u
       -s keyword(s)        search bookmarks for any keyword
       -S keyword(s)        search bookmarks with all keywords
-      -u N URL [tags]      update all fields of entry at DB index N
+      -u N [URL] [tags]    update all fields of entry at DB index N, N=0 refreshes
+                           all titles from the web. If N!=0, URL must be provided.
 
     Power toys
       -e                   show bookmarks with empty titles or no tags
@@ -136,7 +137,6 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -o N                 open URL at DB index N in browser
       -p N                 show details of bookmark record at DB index N, N=0 shows all
       -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty
-      -R                   refresh title from web for all bookmarks, update if non-empty
       -t N                 use N (> 0) hash iterations to generate key, for -k, -l
       -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL and tag
       -z                   show debug information
@@ -148,6 +148,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 ## Operational notes
 
 - The SQLite3 database file is stored in `$HOME/.local/share/buku/bookmarks.db` (or `$XDG_DATA_HOME/buku/bookmarks.db`, if XDG_DATA_HOME is defined) for each user. Before version 1.9, buku stored database in `$HOME/.cache/buku/bookmarks.db`. If the file exists, buku automatically moves it to new location.
+- The database index for entries starts from 1. Index 0 is used for special operations like show or refresh or delete all bookmarks.
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` quotes.
 - The same URL cannot be added twice. You can update tags and re-fetch title data. You can also insert a new bookmark at a free index.
@@ -186,7 +187,7 @@ The assigned automatic index 15012014 is unique, one greater than highest index 
 Tags are updated too. Original tags are removed.
 5. **Update** or refresh **full DB** with page titles from the web:
 
-        $ buku -R
+        $ buku -u 0
 This operation does not modify the indexes, URLs or tags. Only titles, if non-empty, are refreshed.
 6. **Delete** bookmark at index 15012014:
 

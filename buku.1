@@ -16,6 +16,8 @@ The SQLite3 database file is stored in \fB$HOME/.local/share/buku/bookmarks.db\f
 .B buku
 stored database in \fB$HOME/.cache/buku/bookmarks.db\fR. If the file exists, buku automatically moves it to new location.
 .PP
+The database index for entries starts from 1. Index 0 is used for special operations like show or refresh or delete all bookmarks.
+.PP
 It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading 'http://' or 'https://' token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 .PP
 If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single ''' or double '"' qoutes.
@@ -86,9 +88,6 @@ in DB.
 .I N
 = 0 shows all records with actual index from DB. Shows URL, title and tags.
 .TP
-.B \-R
-Refresh titles for all bookmarks from the web. Titles are updated only if non-empty. Indexes, URLs and tags are retained.
-.TP
 .BI \-s " keywords"
 Search bookmarks for any of the keywords in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within '()'.
 .TP
@@ -100,10 +99,14 @@ Use
 .I N
 (> 0) hash iterations to generate key, works with -k, -l.
 .TP
-.BI \-u " N" " " "URL" " " "[tags]"
+.BI \-u " N" " " "[URL]" " " "[tags]"
 Update all fields of bookmark at index
 .I N
 in DB.
+.I N
+= 0 refreshes all titles from the web. If
+.I N
+!= 0, URL must be provided.
 .TP
 .BI \-x " N"
 Show selective monochrome output. Works with -p. If
@@ -174,7 +177,7 @@ Tags are updated too. Original tags are removed.
 .PP
 .EX
 .IP
-.B buku -R
+.B buku -u 0
 .EE
 .PP
 .IP "" 4

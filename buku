@@ -68,7 +68,6 @@ update = False          # Update a bookmark in DB
 debug = False           # Enable debug logs
 titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
-refresh = False         # Refresh the full DB
 replace = False         # Replace a tag
 jsonOutput = False      # Output json formatted result
 pipeargs = []           # Holds arguments piped to the program
@@ -967,7 +966,8 @@ def usage():
     "  -m title             manually specify the title, for -a, -i, -u\n"
     "  -s keyword(s)        search bookmarks for any keyword\n"
     "  -S keyword(s)        search bookmarks with all keywords\n"
-    "  -u N URL [tags]      update all fields of entry at DB index N\n\n"
+    "  -u N [URL] [tags]    update all fields of entry at DB index N, N=0 refreshes\n"
+    "                       all titles from the web. If N!=0, URL must be provided.\n\n"
 
     "Power toys\n"
     "  -e                   show bookmarks with empty titles or no tags\n"
@@ -978,7 +978,6 @@ def usage():
     "  -o N                 open URL at DB index N in browser\n"
     "  -p N                 show details of bookmark record at DB index N, N=0 shows all\n"
     "  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty\n"
-    "  -R                   refresh title from web for all bookmarks, update if non-empty\n"
     "  -t N                 use N (> 0) hash iterations to generate key, for -k, -l\n"
     "  -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL and tag\n"
     "  -z                   show debug information\n\n"
@@ -1121,7 +1120,7 @@ try:
                 usage()
 
             entry = opt[1]
-            if int(entry) <= 0:
+            if int(entry) < 0:
                 usage()
 
             update = True
@@ -1176,17 +1175,24 @@ if replace == True:
     else:
         replaceTags(conn, cur, keywords[0], keywords[1])
 
-# Call add or update record
-if addurl == True or update == True:
+# Add record
+if addurl == True:
     if len(keywords) < 1:
         conn.close()
         usage()
 
     AddUpdateEntry(conn, cur, keywords, entry)
 
-# Refresh full DB
-if refresh == True:
-    dbRefresh(conn, cur)
+# Update record
+if update == True:
+    if int(entry) > 0:
+        if len(keywords) < 1:
+            conn.close()
+            usage()
+
+        AddUpdateEntry(conn, cur, keywords, entry)
+    else:
+        dbRefresh(conn, cur)
 
 # Search tags, URLs, Title info
 if search == True:
