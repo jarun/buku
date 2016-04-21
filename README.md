@@ -2,7 +2,7 @@
 
 ![Screenshot](http://i.imgur.com/UPKcSuN.png)
 
-`buku` is a powerful cmdline bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution for managing bookmarks with a portable database. Hence, `Buku` (after my son's nickname).
+`buku` is a powerful cmdline bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a portable database. Hence, `Buku` (after my son's nickname).
 
 You can add bookmarks to `buku` with title and tags, optionally fetch page title from web, search, update and remove bookmarks. You can open the URLs from search results directly in the browser. Encryption is supported, optionally with custom number of hash passes for key generation.
 
