@@ -19,8 +19,7 @@ Find `buku` useful? If you would like to donate, visit the
 - Add, update or remove a bookmark
 - Add tags to bookmarks
 - Manual password protection using AES256 encryption algorithm
-- Fetch page title from the web
-- Add a custom page title manually
+- Fetch page title from the web (default) or add a custom page title manually
 - Use (partial) tags or keywords to search bookmarks
 - Any or all search keyword match options
 - Search bookmarks by tag
