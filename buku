@@ -1018,9 +1018,9 @@ if len(sys.argv) < 2:
 try:
 
     if len(pipeargs) > 0:
-        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aegjklRrsSz")
+        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aegjklrsSz")
     else:
-        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aegjklRrsSz")
+        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aegjklrsSz")
     if len(optlist) < 1:
         usage()
 
@@ -1091,12 +1091,6 @@ try:
             showindex = opt[1]
             if int(showindex) < 0:
                 usage()
-        elif opt[0] == "-R":
-            if addurl == True or delete == True:
-                print("You can either add or update or delete in one instance\n")
-                usage()
-
-            refresh = True
         elif opt[0] == "-r":
             replace = True
         elif opt[0] == "-s":
