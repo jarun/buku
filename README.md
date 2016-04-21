@@ -170,13 +170,13 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
         $ buku -a http://tuxdiary.com linux news, open source
         Title: [TuxDiary | Linux, open source and a pinch of leisure.]
         Added at index 15012014
-2. Add a bookmark with **manual title** `Linux magazine` & tags `linux news` and `open source`:
+2. **Add** a bookmark with **manual title** `Linux magazine` & tags `linux news` and `open source`:
 
         $ buku -a -m 'Linux magazine' http://tuxdiary.com linux news, open source
         Added at index 15012014
 Note that URL must precede tags. Multiple words in title must be within quotes.
 The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
-3. Add a bookmark **without a title** (works for update and insert too):
+3. **Add** a bookmark **without a title** (works for update and insert too):
 
         $ buku -a -m none http://tuxdiary.com linux news, open source
 4. **Update** existing bookmark at index 15012014 with a new tag:
@@ -185,7 +185,7 @@ The assigned automatic index 15012014 is unique, one greater than highest index 
         Title: [TuxDiary | Linux, open source and a pinch of leisure.]
         Updated index 15012014
 Tags are updated too. Original tags are removed.
-5. Update or **refresh full DB**:
+5. **Update** or refresh **full DB** with page titles from the web:
 
         $ buku -R
 This operation does not modify the indexes, URLs or tags. Only titles, if non-empty, are refreshed.
