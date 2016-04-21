@@ -126,7 +126,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -s keyword(s)        search bookmarks for any keyword
       -S keyword(s)        search bookmarks with all keywords
       -u N [URL] [tags]    update all fields of entry at DB index N, N=0 refreshes
-                           all titles from the web. If N!=0, URL must be provided.
+                           all titles from the web; if N!=0, URL must be provided
 
     Power toys
       -e                   show bookmarks with empty titles or no tags
