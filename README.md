@@ -4,7 +4,7 @@
 
 `buku` is a powerful cmdline bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a portable database. Hence, `Buku` (after my son's nickname).
 
-You can add bookmarks to `buku` with title and tags, optionally fetch page title from web, search, update and remove bookmarks. You can open the URLs from search results directly in the browser. Encryption is supported, optionally with custom number of hash passes for key generation.
+You can add bookmarks to `buku` with tags and page title fetched from the web, search, update and remove bookmarks. You can open the URLs from search results directly in the browser. Encryption is supported, optionally with custom number of hash passes for key generation.
 
 `buku` can also handle piped input, which lets you combine it with `xsel` (on Linux) and use a shortcut to add selected or copied text as bookmark without touching the terminal.
 Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2016/03/26/buku-xsel/)
@@ -19,7 +19,7 @@ Find `buku` useful? If you would like to donate, visit the
 - Add, update or remove a bookmark
 - Add tags to bookmarks
 - Manual password protection using AES256 encryption algorithm
-- Optionally fetch page title data from the web (default: disabled)
+- Fetch page title from the web
 - Add a custom page title manually
 - Use (partial) tags or keywords to search bookmarks
 - Any or all search keyword match options
@@ -127,7 +127,6 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -s keyword(s)        search bookmarks for any keyword
       -S keyword(s)        search bookmarks with all keywords
       -u N URL [tags]      update all fields of entry at DB index N
-      -w                   fetch title from web, for -a, -i, -u
 
     Power toys
       -e                   show bookmarks with empty titles or no tags
@@ -166,78 +165,81 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 - Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
 
 # Examples
-1. **Add** a new bookmark with title `Linux magazine` & tags `linux news` and `open source`:
+1. **Add** a bookmark with **tags** `linux news` and `open source`, **fetch page title** from the web:
+
+        $ buku -a http://tuxdiary.com linux news, open source
+        Title: [TuxDiary | Linux, open source and a pinch of leisure.]
+        Added at index 15012014
+2. Add a bookmark with **manual title** `Linux magazine` & tags `linux news` and `open source`:
 
         $ buku -a -m 'Linux magazine' http://tuxdiary.com linux news, open source
         Added at index 15012014
 Note that URL must precede tags. Multiple words in title must be within quotes.
 The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
-2. Add a bookmark, **fetch page title** information from web:
+3. Add a bookmark **without a title** (works for update and insert too):
 
-        $ buku -a -w http://tuxdiary.com linux news, open source
-        Title: [TuxDiary | Linux, open source and a pinch of leisure.]
-        Added at index 15012014
-3. **Update** existing bookmark at index 15012014 with a new tag:
+        $ buku -a -m none http://tuxdiary.com linux news, open source
+4. **Update** existing bookmark at index 15012014 with a new tag:
 
-        $ buku -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
+        $ buku -u 15012014 http://tuxdiary.com linux news, open source, magazine
         Title: [TuxDiary | Linux, open source and a pinch of leisure.]
         Updated index 15012014
 Tags are updated too. Original tags are removed.
-4. Update or **refresh full DB**:
+5. Update or **refresh full DB**:
 
         $ buku -R
 This operation does not modify the indexes, URLs or tags. Only titles, if non-empty, are refreshed.
-5. **Delete** bookmark at index 15012014:
+6. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
         Index 15012020 moved to 15012014
 The last index is moved to the deleted index to keep the DB compact.
-6. **Delete all** bookmarks:
+7. **Delete all** bookmarks:
 
         $ buku -d 0
-7. List **all unique tags** alphabetically:
+8. List **all unique tags** alphabetically:
 
         $ buku -g
 8. **Insert** a bookmark at index 15012014 (fails if index or URL exists in database):
 
-        $ buku -i 15012014 -w http://tuxdiary.com/about linux news, open source
+        $ buku -i 15012014 http://tuxdiary.com/about linux news, open source
         Title: [A journey with WordPress | TuxDiary]
         Added at index 15012014
-9. **Replace a tag** with new one:
+10. **Replace a tag** with new one:
 
         $ buku -r 'old tag' 'new tag'
-10. **Delete a tag** from DB:
+11. **Delete a tag** from DB:
 
         $ buku -r 'old tag'
-11. **Show info** on bookmark at index 15012014:
+12. **Show info** on bookmark at index 15012014:
 
         $ buku -p 15012014
-12. **Show all** bookmarks with real index from database:
+13. **Show all** bookmarks with real index from database:
 
         $ buku -p 0
-13. **Open URL** at index 15012014 in browser:
+14. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-14. **Search** bookmarks for **ANY** of the keywords `*kernel*` and `*debugging*` in URL, title or tags:
+15. **Search** bookmarks for **ANY** of the keywords `*kernel*` and `*debugging*` in URL, title or tags:
 
         $ buku -s kernel debugging
-15. **Search** bookmarks with **ALL** the keywords `*kernel*` and `*debugging*` in URL, title or tags:
+16. **Search** bookmarks with **ALL** the keywords `*kernel*` and `*debugging*` in URL, title or tags:
 
         $ buku -S kernel debugging
 
-16. **Search** bookmarks tagged `general kernel concepts`:
+17. **Search** bookmarks tagged `general kernel concepts`:
 
         $ buku -S ',general kernel concepts,'
 Note the commas (,) before and after the tag.
-17. Encrypt/decrypt DB with **custom number of iterations** to generate key:
+18. Encrypt/decrypt DB with **custom number of iterations** to generate key:
 
         $ buku -l -t 15
         $ buku -k -t 15
 The same number of iterations must be used for one lock & unlock instance.
-18. Show **debug info**:
+19. Show **debug info**:
 
         $ buku -z ...
-19. More **help**:
+20. More **help**:
 
         $ buku
         $ man buku
@@ -251,25 +253,25 @@ Use the `-u` option to add title or tags to those entries, if you want to.
 2. `buku` doesn't have any **import feature** of its own. To import URLs in **bulk**, create a script with URLs and tags like the following (check TIP below):
 
         #!/bin/bash
-        buku -aw https://wireless.wiki.kernel.org/ networking, device drivers
-        buku -aw https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
-        buku -aw http://www.tittbit.in/
-        buku -aw http://www.mikroe.com/chapters/view/65/ electronics
-        buku -aw "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
-        buku -aw http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
+        buku -a https://wireless.wiki.kernel.org/ networking, device drivers
+        buku -a https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
+        buku -a http://www.tittbit.in/
+        buku -a http://www.mikroe.com/chapters/view/65/ electronics
+        buku -a "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
+        buku -a http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
 Make the script executable and run to batch add bookmarks.
 3. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 
         $ buku -p 0 -x 2 | tee myurls
-Remove the lines you don't need. Add `buku -wu ` in front of all the other lines (check TIP below). Should look like:
+Remove the lines you don't need. Add `buku -u ` in front of all the other lines (check TIP below). Should look like:
 
         #!/bin/bash
-        buku -wu 50 https://wireless.wiki.kernel.org/ networking, device drivers
-        buku -wu 51 https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
-        buku -wu 52 http://www.tittbit.in/
-        buku -wu 53 http://www.mikroe.com/chapters/view/65/ electronics
-        buku -wu 54 "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
-        buku -wu 55 http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
+        buku -u 50 https://wireless.wiki.kernel.org/ networking, device drivers
+        buku -u 51 https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
+        buku -u 52 http://www.tittbit.in/
+        buku -u 53 http://www.mikroe.com/chapters/view/65/ electronics
+        buku -u 54 "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
+        buku -u 55 http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
 Run the script:
 
         $ chmod +x myurls
@@ -287,7 +289,7 @@ Add the same text at the beginning of multiple lines:
 
 **sed**
 
-    $ sed -i 's/^/buku -wu /' filename
+    $ sed -i 's/^/buku -u /' filename
 
 # Contributions
 Pull requests are welcome. Some of the features I have in mind are:

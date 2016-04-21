@@ -105,9 +105,6 @@ Update all fields of bookmark at index
 .I N
 in DB.
 .TP
-.BI \-w
-Fetch title data from the web. Works with -a, -i or -u options.
-.TP
 .BI \-x " N"
 Show selective monochrome output. Works with -p. If
 .I N
@@ -137,7 +134,14 @@ Overrides the default browser. Ref:
 .SH EXAMPLES
 .PP
 .IP 1. 4
-\fBAdd\fR a new bookmark with title \fBLinux magazine\fR & tags \fBlinux news\fR and \fBopen source\fR:
+\fBAdd\fR a bookmark with \fBtags\fR 'linux news' and 'open source', \fBfetch page title\fR from the web:
+.PP
+.EX
+.IP
+.B buku -a http://tuxdiary.com linux news, open source
+.PP
+.IP 2. 4
+Add a bookmark with \fBmanual title\fR 'Linux magazine' & tags 'linux news' and 'open source':
 .PP
 .EX
 .IP
@@ -147,25 +151,25 @@ Overrides the default browser. Ref:
 .IP "" 4
 Note that URL must precede tags. Multiple words in title must be within quotes. The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
 .PP
-.IP 2. 4
-Add a bookmark, \fBfetch page title\fR information from web:
+.IP 3. 4
+Add a bookmark \fBwithout a title\fR (works for update and insert too):
 .PP
 .EX
 .IP
-.B buku -a -w http://tuxdiary.com linux news, open source
+.B buku -a -m none http://tuxdiary.com linux news, open source
 .PP
-.IP 3. 4
+.IP 4. 4
 \fBUpdate\fR existing bookmark at index 15012014 with a new tag:
 .PP
 .EX
 .IP
-.B buku -u 15012014 -w http://tuxdiary.com linux news, open source, magazine
+.B buku -u 15012014 http://tuxdiary.com linux news, open source, magazine
 .EE
 .PP
 .IP "" 4
 Tags are updated too. Original tags are removed.
 .PP
-.IP 4. 4
+.IP 5. 4
 Update or \fBrefresh full DB\fR:
 .PP
 .EX
@@ -176,7 +180,7 @@ Update or \fBrefresh full DB\fR:
 .IP "" 4
 This operation does not modify the indexes, URLs or tags. Only titles, if non-empty, are refreshed.
 .PP
-.IP 5. 4
+.IP 6. 4
 \fBDelete\fR bookmark at index 15012014:
 .PP
 .EX
@@ -187,77 +191,77 @@ This operation does not modify the indexes, URLs or tags. Only titles, if non-em
 .IP "" 4
 The last index is moved to the deleted index to keep the DB compact.
 .PP
-.IP 6. 4
+.IP 7. 4
 \fBDelete all\fR bookmarks:
 .PP
 .EX
 .IP
 .B buku -d 0
 .PP
-.IP 7. 4
+.IP 8. 4
 List \fBall unique tags\fR alphabetically:
 .PP
 .EX
 .IP
 .B buku -g
 .PP
-.IP 8. 4
+.IP 9. 4
 \fBInsert\fR a bookmark at index 15012014 (fails if index or URL exists in database):
 .PP
 .EX
 .IP
-.B buku -i 15012014 -w http://tuxdiary.com/about linux news, open source
+.B buku -i 15012014 http://tuxdiary.com/about linux news, open source
 .PP
-.IP 9. 4
+.IP 10. 4
 \fBReplace a tag\fR with new one:
 .PP
 .EX
 .IP
 .B buku -r 'old tag' 'new tag'
 .PP
-.IP 10. 4
+.IP 11. 4
 \fBDelete a tag\fR from DB:
 .PP
 .EX
 .IP
 .B buku -r 'old tag'
 .PP
-.IP 11. 4
+.IP 12. 4
 \fBShow info\fR on bookmark at index 15012014:
 .PP
 .EX
 .IP
 .B buku -p 15012014
 .PP
-.IP 12. 4
+.IP 13. 4
 \fBShow all\fR bookmarks with real index from database:
 .PP
 .EX
 .IP
 .B buku -p 0
 .PP
-.IP 13. 4
+.IP 14. 4
 \fBOpen URL\fR at index 15012014 in browser:
 .PP
 .EX
 .IP
 .B buku -o 15012014
 .PP
-.IP 14. 4
+.IP 15. 4
 \fBSearch\fR bookmarks for \fBANY\fR of the keywords \fBkernel\fR and \fBdebugging\fR in URL, title or tags:
 .PP
 .EX
 .IP
 .B buku -s kernel debugging
 .PP
-.IP 15. 4
+.IP 16. 4
 \fBSearch\fR bookmarks with \fBALL\fR the keywords \fBkernel\fR and \fBdebugging\fR in URL, title or tags:
 .PP
 .EX
 .IP
 .B buku -S kernel debugging
 .PP
-.IP 16. 4
+.IP 17. 4
 \fBSearch\fR bookmarks tagged \fBgeneral kernel concepts\fR:
 .PP
 .EX
@@ -268,7 +272,7 @@ List \fBall unique tags\fR alphabetically:
 .IP "" 4
 Note the commas (,) before and after the tag.
 .PP
-.IP 17. 4
+.IP 18. 4
 Encrypt/decrypt DB with \fBcustom number of iteration\fR to generate key:
 .PP
 .EX
@@ -282,13 +286,6 @@ Encrypt/decrypt DB with \fBcustom number of iteration\fR to generate key:
 .PP
 .IP "" 4
 The same number of iterations must be used for one lock & unlock instance.
-.PP
-.IP 18. 4
-Show \fBdebug info\fR:
-.PP
-.EX
-.IP
-.B buku -z ...
 .SH AUTHOR
 Written by Arun Prakash Jana <engineerarun@gmail.com>.
 .SH HOME
