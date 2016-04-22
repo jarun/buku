@@ -125,8 +125,9 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -m title             manually specify the title, for -a, -i, -u
       -s keyword(s)        search bookmarks for any keyword
       -S keyword(s)        search bookmarks with all keywords
-      -u N [URL] [tags]    update all fields of entry at DB index N, N=0 refreshes
-                           all titles from the web; if N!=0, URL must be provided
+      -u N [URL] [tags]    update all fields of entry at DB index N; if URL is omitted the
+                           title of entry at DB index N is refreshed from web, N=0 refreshes
+                           all titles from the web; URL and tags update respective fields
 
     Power toys
       -e                   show bookmarks with empty titles or no tags
@@ -179,9 +180,9 @@ The assigned automatic index 15012014 is unique, one greater than highest index 
 3. **Add** a bookmark **without a title** (works for update and insert too):
 
         $ buku -a -m none http://tuxdiary.com linux news, open source
-4. **Update** existing bookmark at index 15012014 with a new tag:
+4. **Update** existing bookmark at index 15012014 with new URL and tags, fetch title from the web:
 
-        $ buku -u 15012014 http://tuxdiary.com linux news, open source, magazine
+        $ buku -u 15012014 http://tuxdiary.com/ linux news, open source, magazine
         Title: [TuxDiary | Linux, open source and a pinch of leisure.]
         Updated index 15012014
 Tags are updated too. Original tags are removed.

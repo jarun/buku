@@ -439,7 +439,7 @@ def AddUpdateEntry(conn, cur, keywords, index):
 
 
 
-def dbRefresh(conn, cur):
+def dbRefresh(conn, cur, index):
     """Refresh ALL records in the database. Fetch title for each
     bookmark from the web and update the records. Doesn't udpate
     the record if title is empty.
@@ -448,7 +448,10 @@ def dbRefresh(conn, cur):
     Params: connection, cursor
     """
 
-    cur.execute("SELECT id, url FROM bookmarks ORDER BY id ASC")
+    if index == 0:
+        cur.execute("SELECT id, url FROM bookmarks ORDER BY id ASC")
+    else:
+        cur.execute("SELECT id, url FROM bookmarks WHERE id = ?", (index,))
     resultset = cur.fetchall()
     for row in resultset:
         title = fetchTitle(row[1])
@@ -966,8 +969,9 @@ def usage():
     "  -m title             manually specify the title, for -a, -i, -u\n"
     "  -s keyword(s)        search bookmarks for any keyword\n"
     "  -S keyword(s)        search bookmarks with all keywords\n"
-    "  -u N [URL] [tags]    update all fields of entry at DB index N, N=0 refreshes\n"
-    "                       all titles from the web; if N!=0, URL must be provided\n\n"
+    "  -u N [URL] [tags]    update all fields of entry at DB index N; if URL is omitted the\n"
+    "                       title of entry at DB index N is refreshed from web, N=0 refreshes\n"
+    "                       all titles from the web; URL and tags update respective fields\n\n"
 
     "Power toys\n"
     "  -e                   show bookmarks with empty titles or no tags\n"
@@ -1174,14 +1178,10 @@ if addurl == True:
 
 # Update record
 if update == True:
-    if int(entry) > 0:
-        if len(keywords) < 1:
-            conn.close()
-            usage()
-
-        AddUpdateEntry(conn, cur, keywords, entry)
+    if len(keywords) < 1:
+        dbRefresh(conn, cur, int(entry))
     else:
-        dbRefresh(conn, cur)
+        AddUpdateEntry(conn, cur, keywords, entry)
 
 # Search tags, URLs, Title info
 if search == True:
