@@ -980,7 +980,7 @@ def usage():
     "  -a URL [tags]        add URL as bookmark with comma separated tags\n"
     "  -d N                 delete entry at DB index N (from -p 0), N=0 deletes all\n"
     "  -g                   list all tags alphabetically\n"
-    "  -m title             manually specify the title, for -a, -i, -u\n"
+    "  -m title             manually set title, for -a, -i, -u; '-m none' clears title\n"
     "  -s keyword(s)        search bookmarks for any keyword\n"
     "  -S keyword(s)        search bookmarks with all keywords\n"
     "  -u N [URL] [tags]    update fields of the entry at DB index N\n"

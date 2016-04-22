@@ -120,7 +120,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -a URL [tags]        add URL as bookmark with comma separated tags
       -d N                 delete entry at DB index N (from -p 0), N=0 deletes all
       -g                   list all tags alphabetically
-      -m title             manually specify the title, for -a, -i, -u
+      -m title             manually set title, for -a, -i, -u; '-m none' clears title
       -s keyword(s)        search bookmarks for any keyword
       -S keyword(s)        search bookmarks with all keywords
       -u N [URL] [tags]    update fields of the entry at DB index N

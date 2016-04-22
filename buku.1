@@ -39,7 +39,7 @@ When a record is deleted, the last record is moved to the index.
 AES256 is used for encryption. Optionally specify (-t) the number of hash iterations to use to generate key. Default is 8 iterations.
 .PP
 Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is unencrypted on creation.
-.SH OPTIONS
+.SH GENERAL OPTIONS
 .TP
 .BI \-a " URL" " " "[tags]"
 Bookmark
@@ -53,11 +53,30 @@ in DB (from -p 0 output). The last record is moved to the removed index.
 .I N
 = 0 deletes all records from DB.
 .TP
-.B \-e
-Show all bookmarks with empty titles or no tags (for bookkeeping).
-.TP
 .B \-g
 List all unique tags sorted alphabetically.
+.TP
+.BI \-m " title"
+Manually specify the title, works with -a, -i, -u. `-m none` clears title.
+.TP
+.BI \-s " keywords"
+Search bookmarks for any of the keywords in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within '()'.
+.TP
+.BI \-S " keywords"
+Search bookmarks with all keywords in URL, title or tags and show the results. Rest same as -s.
+.TP
+.BI \-u " N" " " "[URL]" " " "[tags]"
+Update fields of bookmark at index
+.I N
+in DB. The first keyword, if available, is treated as the URL. If URL is omitted (and -m is not used) the title of entry at index
+.I N
+is refreshed from the web,
+.I N
+= 0 refreshes all titles.
+.SH POWER OPTIONS
+.TP
+.B \-e
+Show all bookmarks with empty titles or no tags (for bookkeeping).
 .TP
 .BI \-i " N"
 Add a new record at free index
@@ -73,9 +92,6 @@ Decrypt (unlock) the DB file.
 .B \-l
 Encrypt (lock) the DB file.
 .TP
-.BI \-m " title"
-Manually specify the title, works with -a, -i, -u.
-.TP
 .BI \-o " N"
 Open URL at DB index
 .I N
@@ -88,25 +104,21 @@ in DB.
 .I N
 = 0 shows all records with actual index from DB. Shows URL, title and tags.
 .TP
-.BI \-s " keywords"
-Search bookmarks for any of the keywords in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential index number may not match the real index in database. DB index is shown in the end within '()'.
-.TP
-.BI \-S " keywords"
-Search bookmarks with all keywords in URL, title or tags and show the results. Rest same as -s.
+.BI \-r " oldtag" " " "[newtag]"
+Replace
+.I oldtag
+with
+.I newtag
+if both are passed, delete
+.I oldtag
+if
+.I newtag
+is omitted.
 .TP
 .BI \-t " N"
 Use
 .I N
 (> 0) hash iterations to generate key, works with -k, -l.
-.TP
-.BI \-u " N" " " "[URL]" " " "[tags]"
-Update fields of bookmark at index
-.I N
-in DB. The first keyword, if available, is treated as the URL. If URL is omitted (and -m is not used) the title of entry at index
-.I N
-is refreshed from the web,
-.I N
-= 0 refreshes all titles.
 .TP
 .BI \-x " N"
 Show selective monochrome output. Works with -p. If
