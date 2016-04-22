@@ -971,7 +971,8 @@ def usage():
     "  -S keyword(s)        search bookmarks with all keywords\n"
     "  -u N [URL] [tags]    update all fields of entry at DB index N; if URL is omitted the\n"
     "                       title of entry at DB index N is refreshed from web, N=0 refreshes\n"
-    "                       all titles from the web; URL and tags update respective fields\n\n"
+    "                       all titles from the web; URL and tags update respective fields\n"
+    "                       first keyword, if available, is treated as the URL\n\n"
 
     "Power toys\n"
     "  -e                   show bookmarks with empty titles or no tags\n"
