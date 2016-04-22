@@ -456,8 +456,8 @@ def dbRefresh(conn, cur, index):
         cur.execute("SELECT id, url FROM bookmarks WHERE id = ?", (index,))
 
     resultset = cur.fetchall()
-    for row in resultset:
-        if titleManual is None:
+    if titleManual is None:
+        for row in resultset:
             title = fetchTitle(row[1])
             if title == '':
                 print("\x1B[91mTitle: []")
@@ -465,15 +465,20 @@ def dbRefresh(conn, cur, index):
                 continue
             else:
                 print("Title: [%s]" % title)
-        else:
-            if titleManual == "none":
-                title = ''
-            else:
-                title = titleManual
 
-        cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
-        conn.commit()
-        print("Updated index %d\n" % row[0])
+            cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
+            conn.commit()
+            print("Updated index %d\n" % row[0])
+    else:
+        if titleManual == "none":
+            title = ''
+        else:
+            title = titleManual
+
+        for row in resultset:
+            cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
+            conn.commit()
+            print("Updated index %d\n" % row[0])
 
 
 
