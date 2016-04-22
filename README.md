@@ -125,10 +125,10 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -m title             manually specify the title, for -a, -i, -u
       -s keyword(s)        search bookmarks for any keyword
       -S keyword(s)        search bookmarks with all keywords
-      -u N [URL] [tags]    update all fields of entry at DB index N; if URL is omitted the
-                           title of entry at DB index N is refreshed from web, N=0 refreshes
-                           all titles from the web; URL and tags update respective fields;
-                           the first keyword, if available, is treated as the URL
+      -u N [URL] [tags]    update fields of the entry at DB index N
+                           The first keyword, if available, is treated as the URL.
+                           If URL is omitted (and -m is not used) the title of entry at
+                           index N is refreshed from the web, N=0 refreshes all titles.
 
     Power toys
       -e                   show bookmarks with empty titles or no tags
@@ -140,7 +140,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -p N                 show details of bookmark record at DB index N, N=0 shows all
       -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty
       -t N                 use N (> 0) hash iterations to generate key, for -k, -l
-      -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL and tag
+      -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL & tag
       -z                   show debug information
 
     Keys
