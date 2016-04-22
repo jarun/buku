@@ -993,7 +993,7 @@ def usage():
     "  -p N                 show details of bookmark record at DB index N, N=0 shows all\n"
     "  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty\n"
     "  -t N                 use N (> 0) hash iterations to generate key, for -k, -l\n"
-    "  -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL and tag\n"
+    "  -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL & tag\n"
     "  -z                   show debug information\n\n"
 
     "Keys\n"
