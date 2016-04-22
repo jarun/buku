@@ -100,13 +100,13 @@ Use
 (> 0) hash iterations to generate key, works with -k, -l.
 .TP
 .BI \-u " N" " " "[URL]" " " "[tags]"
-Update all fields of bookmark at index
+Update fields of bookmark at index
 .I N
-in DB. If URL is omitted the title of entry at DB index
+in DB. The first keyword, if available, is treated as the URL. If URL is omitted (and -m is not used) the title of entry at index
 .I N
-is refreshed from web.
+is refreshed from the web,
 .I N
-= 0 refreshes all titles from the web. URL and tags update respective fields. The first keyword, if available, is treated as the URL.
+= 0 refreshes all titles.
 .TP
 .BI \-x " N"
 Show selective monochrome output. Works with -p. If
