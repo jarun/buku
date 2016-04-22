@@ -102,11 +102,11 @@ Use
 .BI \-u " N" " " "[URL]" " " "[tags]"
 Update all fields of bookmark at index
 .I N
-in DB.
+in DB. If URL is omitted the title of entry at DB index
 .I N
-= 0 refreshes all titles from the web. If
+is refreshed from web.
 .I N
-!= 0, URL must be provided.
+= 0 refreshes all titles from the web. URL and tags update respective fields. The first keyword, if available, is treated as the URL.
 .TP
 .BI \-x " N"
 Show selective monochrome output. Works with -p. If
