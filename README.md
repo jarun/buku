@@ -189,7 +189,7 @@ Tags are updated too. Original tags are removed.
 5. **Update** or refresh **full DB** with page titles from the web:
 
         $ buku -u 0
-This operation does not modify the indexes, URLs or tags. Only titles, if non-empty, are refreshed. Any index other than 0 (passed without URL and tags) refreshes title for that index.
+This operation does not modify the indexes, URLs or tags. Only titles, if non-empty, are refreshed. Any index other than 0 refreshes title for that index.
 6. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
