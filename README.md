@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-<a href="http://i.imgur.com/aMEEGd6.png"><img src="http://i.imgur.com/aMEEGd6.png" alt="Buku" /></a>
+<a href="https://asciinema.org/a/6x3nu7ez9t0flk1knhiabwduv"><img src="https://asciinema.org/a/6x3nu7ez9t0flk1knhiabwduv.png" alt="Asciicast" width="600"/></a>
 </p>
 
 `buku` is a powerful cmdline bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a portable database. Hence, `Buku` (after my son's nickname).
