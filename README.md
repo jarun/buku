@@ -143,7 +143,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
       -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL & tag
       -z                   show debug information
 
-    Keys
+    Prompt keys
       1-N                  open Nth search result in browser
       Enter                exit buku
 

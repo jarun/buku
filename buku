@@ -999,7 +999,7 @@ def usage():
     "  -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL & tag\n"
     "  -z                   show debug information\n\n"
 
-    "Keys\n"
+    "Prompt keys\n"
     "  1-N                  open Nth search result in browser\n"
     "  Enter                exit buku\n\n"
 
