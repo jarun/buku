@@ -1,6 +1,12 @@
 <h1 align="center">Buku</h1>
 
 <p align="center">
+<a href="https://aur.archlinux.org/packages/buku"><img src="https://img.shields.io/aur/version/buku.svg" alt="AUR" /></a>
+<a href="http://braumeister.org/formula/buku"><img src="https://img.shields.io/homebrew/v/buku.svg" alt="Homebrew" /></a>
+<a href="https://github.com/jarun/Buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg" alt="Latest release" /></a>
+</p>
+
+<p align="center">
 <a href="http://i.imgur.com/aMEEGd6.png"><img src="http://i.imgur.com/aMEEGd6.png" alt="Buku" /></a>
 </p>
 
