@@ -302,6 +302,7 @@ Add the same text at the beginning of multiple lines:
 # Contributions
 Pull requests are welcome. Some of the features I have in mind are:
 - Support subcommands using argparse
+- Ubuntu deb package
 - Merge bookmark database files (for users who work on multiple systems)
 - Exact word match (against substring in a word as it works currently. Hint: REGEXP)
 - Parse full page data??? Might end up writing a search engine like Google. ;)
