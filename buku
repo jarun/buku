@@ -51,7 +51,6 @@ except ImportError:
 
 # Globals
 addindex = None         # DB index to insert URL into
-showindex = None        # Index of bookmark to show
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 entry = None            # DB index to update or delete
 update = False          # Update a bookmark in DB
@@ -408,7 +407,7 @@ def AddUpdateEntry(conn, cur, keywords, index):
                 cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (int(addindex), url, meta, tags,))
             conn.commit()
             print("Added at index %d\n" % cur.lastrowid)
-            printdb(cur, str(cur.lastrowid))
+            printdb(cur, cur.lastrowid)
         except sqlite3.IntegrityError:
             for row in cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
                 print("URL already exists at index %s" % row[0])
@@ -596,7 +595,7 @@ def cleardb(conn, cur, index):
 
 def printdb(cur, index, empty=False):
     """Print bookmark details at index or all bookmarks if index is None
-    Print only bookmarks with blank title or tags if empty is True
+    Print only bookmarks with blank title or tag if empty is True
     Note: URL is printed on top because title may be blank
 
     Params: cursor, index to print, flag to show only bookmarks with no title or tags
@@ -606,7 +605,7 @@ def printdb(cur, index, empty=False):
     global jsonOutput
 
     resultset = None
-    if int(index) == 0: # Show all entries
+    if index == 0: # Show all entries
         if empty == False:
             cur.execute('SELECT * FROM bookmarks')
             resultset = cur.fetchall()
@@ -630,7 +629,7 @@ def printdb(cur, index, empty=False):
             print(formatJson(resultset))
     else: # Show record at index
         try:
-            resultset = cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),))
+            resultset = cur.execute("SELECT * FROM bookmarks WHERE id = ?", (index,))
         except IndexError:
             print("Index out of bound")
             return
@@ -894,7 +893,7 @@ def decrypt_file():
     password = ''
     password = getpass.getpass()
     if password == '':
-        print("Decryption failed");
+        printmsg("Decryption failed", "ERROR");
         sys.exit(1)
 
     with open(encpath, 'rb') as infile:
@@ -926,7 +925,7 @@ def decrypt_file():
     dbhash = get_filehash(dbpath)
     if dbhash != enchash:
         os.remove(dbpath)
-        print("Decryption failed");
+        printmsg("Decryption failed", "ERROR");
         sys.exit(1)
     else:
         os.remove(encpath)
@@ -1044,7 +1043,7 @@ addarg('-e', '--empty', dest='empty', action='store_true',                      
        help='show bookmarks with empty titles or no tags')
 addarg('-i', '--insert', dest='insert', nargs='+', metavar=('N', 'URL tags'),
        help='insert new bookmark with URL and tags at free DB index N')
-addarg('-j', '--json', dest='jsonOutput', action='store_true',
+addarg('-j', '--json', dest='jsonOutput', action='store_true',                      # DONE
        help='show results in Json format')
 addarg('-k', '--decrypt', dest='decrypt', action='store_true',                      # DONE
        help='decrypt (unlock) database file')
@@ -1052,13 +1051,13 @@ addarg('-l', '--encrypt', dest='encrypt', action='store_true',                  
        help='encrypt (lock) database file')
 addarg('-o', '--open', dest='openurl', type=int, metavar='N',                       # DONE
        help='open URL at DB index N in browser')
-addarg('-p', '--print', dest='showindex', type=int, metavar='N',
+addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N',   # DONE
        help='show details of bookmark record at DB index N, N=0 shows all')
 addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),    # DONE
        help='replace oldtag with newtag, delete oldtag if newtag=none')
 addarg('-t', '--iterate', dest='iterations', type=int, metavar='N',                 # DONE
        help='use N (> 0) hash iterations to generate key, for -k, -l')
-addarg('-x', '--format', dest='showOpt', metavar='N',
+addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',     # DONE
        help='modify -p behaviour, N=1: show only URL, N=2: show URL and tag')
 addarg('-z', '--debug', dest='debug', action='store_true',                          # DONE
        help='show debug information')
@@ -1188,6 +1187,9 @@ except GetoptError as e:
 
 args = argparser.parse_args()
 
+# Assign the values to globals
+if args.showOpt is not None:
+    showOpt = args.showOpt
 titleManual = args.titleManual
 if args.iterations is not None:
     iterations = args.iterations
@@ -1207,11 +1209,17 @@ if args.encrypt == True:
     if no_crypto:
         printmsg("PyCrypto missing", "ERROR")
         sys.exit(1)
+    if iterations < 1:
+        printmsg("Iterations must be >= 1", "ERROR")
+        sys.exit(1)
     encrypt_file()
 
 if args.decrypt == True:
     if no_crypto:
         printmsg("PyCrypto missing", "ERROR")
+        sys.exit(1)
+    if iterations < 1:
+        printmsg("Decryption failed", "ERROR");
         sys.exit(1)
     decrypt_file()
 
@@ -1224,6 +1232,10 @@ if args.addurl is not None:
 
 # Remove a single record or all records
 if args.delete is not None:
+    if args.delete < 0:
+        printmsg("Index must be >= 0", "ERROR")
+        conn.close()
+        sys.exit(1)
     cleardb(conn, cur, args.delete)
 
 # Show all unique tags
@@ -1252,14 +1264,23 @@ if update == True:
         AddUpdateEntry(conn, cur, keywords, entry)
 
 # Print all records
-if showindex is not None:
-    printdb(cur, showindex)
+if args.printindex is not None:
+    if args.printindex < 0:
+        printmsg("Index must be >= 0", "ERROR")
+        conn.close()
+        sys.exit(1)
+    printdb(cur, args.printindex)
 
+# Print records with blank title or tag
 if args.empty == True:
     printdb(cur, 0, True)
 
 # Open URL in browser
 if args.openurl is not None:
+    if args.openurl < 1:
+        printmsg("Index must be >= 1", "ERROR")
+        conn.close()
+        sys.exit(1)
     fetchopen(args.openurl)
 
 # Close the connection before exiting
