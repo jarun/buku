@@ -50,23 +50,15 @@ except ImportError:
 
 
 # Globals
-addurl = False          # Add a URL
 addindex = None         # DB index to insert URL into
-delete = False          # Delete bookmark(s)
-empty = False           # List all bookmarks with no title or tag
 openurl = None          # Open URL in browser
 showindex = None        # Index of bookmark to show
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
-showTags = False        # List all unique tags
-search = False          # Search for keywords
-searchAll = False       # Match all keywords in search
 entry = None            # DB index to update or delete
 update = False          # Update a bookmark in DB
 debug = False           # Enable debug logs
 titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
-encrypt = False         # Lock database file
-decrypt = False         # Unlock database file
 iterations = 8          # Number of hash iterations to generate key
 jsonOutput = False      # Output json formatted result
 pipeargs = []           # Holds arguments piped to the program
@@ -481,7 +473,7 @@ def dbRefresh(conn, cur, index):
 
 
 
-def searchdb(cur, keywords):
+def searchdb(cur, keywords, all_keywords=False):
     """Search the database for an entries with tags or URL
     or title info matching keywords and list those.
 
@@ -493,7 +485,7 @@ def searchdb(cur, keywords):
     placeholder = "'%' || ? || '%'"
     query = "SELECT id, url, metadata, tags FROM bookmarks WHERE"
 
-    if searchAll == True: # Match all keywords in URL or Title
+    if all_keywords == True: # Match all keywords in URL or Title
         for token in keywords:
             query += " (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s)) AND" % (placeholder, placeholder, placeholder)
             arguments.append(token)
@@ -580,7 +572,7 @@ def cleardb(conn, cur, index):
     Params: connection, cursor, index to delete
     """
 
-    if int(index) == 0: # Remove the table
+    if index == 0: # Remove the table
         resp = input("ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ")
         if resp != 'y':
             print("No bookmarks deleted")
@@ -591,11 +583,11 @@ def cleardb(conn, cur, index):
         print("All bookmarks deleted")
     else: # Remove a single entry
         try:
-            cur.execute('DELETE FROM bookmarks WHERE id = ?', (int(index),))
+            cur.execute('DELETE FROM bookmarks WHERE id = ?', (index,))
             conn.commit()
             if cur.rowcount == 1:
-                print("Removed index %d" % int(index))
-                compactDB(conn, cur, int(index))
+                print("Removed index %d" % index)
+                compactDB(conn, cur, index)
             else:
                 print("No matching index")
         except IndexError:
@@ -881,6 +873,7 @@ def encrypt_file():
 
     os.remove(dbpath)
     print("File encrypted")
+    sys.exit(0)
 
 
 
@@ -1032,29 +1025,29 @@ argparser = ExtendedArgumentParser(
 )
 addarg = argparser.add_argument
 
-addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
+addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),            # DONE
        help='add URL as bookmark with comma separated tags')
-addarg('-d', '--delete', dest='delete', type=int, metavar='N',
+addarg('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N',  # DONE
        help='delete entry at DB index N (from -p 0), N=0 deletes all')
-addarg('-g', '--tags', dest='showTags', action='store_true',
+addarg('-g', '--tags', dest='showTags', action='store_true',                        # DONE
        help='list all tags alphabetically')
 addarg('-m', '--title', dest='titleManual', metavar='title',
        help="manually set title, for -a, -i, -u; '-m none' clears title")
-addarg('-s', '--sany', nargs='+', metavar='KEYWORD',
+addarg('-s', '--sany', nargs='+', metavar='KEYWORD',                                # DONE
        help='search bookmarks for any keyword')
-addarg('-S', '--sall', nargs='+', metavar='KEYWORD',
+addarg('-S', '--sall', nargs='+', metavar='KEYWORD',                                # DONE
        help='search bookmarks with all keywords')
 addarg('-u', '--update', nargs='+', dest='update', metavar=('N', 'URL tags'),
        help='update fields of the entry at DB index N. The first keyword, if available, is treated as the URL. If URL is omitted (and -m is not used) the title of entry at index N is refreshed from the web, N=0 refreshes all titles.')
-addarg('-e', '--empty', dest='empty', action='store_true',
+addarg('-e', '--empty', dest='empty', action='store_true',                          # DONE
        help='show bookmarks with empty titles or no tags')
 addarg('-i', '--insert', dest='insert', nargs='+', metavar=('N', 'URL tags'),
        help='insert new bookmark with URL and tags at free DB index N')
 addarg('-j', '--json', dest='jsonOutput', action='store_true',
        help='show results in Json format')
-addarg('-k', '--decrypt', dest='decrypt', action='store_true',
+addarg('-k', '--decrypt', dest='decrypt', action='store_true',                      # DONE
        help='decrypt (unlock) database file')
-addarg('-l', '--encrypt', dest='encrypt', action='store_true',
+addarg('-l', '--encrypt', dest='encrypt', action='store_true',                      # DONE
        help='encrypt (lock) database file')
 addarg('-o', '--open', dest='openurl', type=int, metavar='N',
        help='open URL at DB index N in browser')
@@ -1066,7 +1059,7 @@ addarg('-t', '--iterate', dest='iterations', type=int, metavar='N',
        help='use N (> 0) hash iterations to generate key, for -k, -l')
 addarg('-x', '--format', dest='showOpt', metavar='N',
        help='modify -p behaviour, N=1: show only URL, N=2: show URL and tag')
-addarg('-z', '--debug', dest='debug', action='store_true',
+addarg('-z', '--debug', dest='debug', action='store_true',                          # DONE
        help='show debug information')
 
 if len(sys.argv) < 2:
@@ -1194,11 +1187,8 @@ except GetoptError as e:
 
 args = argparser.parse_args()
 
-showTags = args.showTags
-empty = args.empty
+titleManual = args.titleManual
 jsonOutput = args.jsonOutput
-encrypt = args.encrypt
-decrypt = args.decrypt
 debug = args.debug
 keywords = []
 
@@ -1210,14 +1200,38 @@ if debug:
 moveOldDatabase()
 
 # Handle encrypt/decrypt options at top priority
-if encrypt == True:
+if args.encrypt == True:
+    if no_crypto:
+        printmsg("PyCrypto missing", "ERROR")
+        sys.exit(1)
     encrypt_file()
 
-if decrypt == True:
+if args.decrypt == True:
+    if no_crypto:
+        printmsg("PyCrypto missing", "ERROR")
+        sys.exit(1)
     decrypt_file()
 
 # Initilize the database and get handles
 conn, cur = initdb()
+
+# Add a record
+if args.addurl is not None:
+    AddUpdateEntry(conn, cur, args.addurl, None)
+
+# Remove a single record or all records
+if args.delete is not None:
+    cleardb(conn, cur, args.delete)
+
+# Show all unique tags
+if args.showTags == True:
+    showUniqueTags(cur)
+
+# Search URLs, titles, tags for keywords
+if args.sany is not None:
+    searchdb(cur, args.sany)
+if args.sall is not None:
+    searchdb(cur, args.sall, True)
 
 # Replace a tag in DB
 if args.replace is not None:
@@ -1227,14 +1241,6 @@ if args.replace is not None:
     else:
         replaceTags(conn, cur, keywords[0], keywords[1])
 
-# Add record
-if addurl == True:
-    if len(keywords) < 1:
-        conn.close()
-        usage()
-
-    AddUpdateEntry(conn, cur, keywords, entry)
-
 # Update record
 if update == True:
     if len(keywords) < 1:
@@ -1242,32 +1248,16 @@ if update == True:
     else:
         AddUpdateEntry(conn, cur, keywords, entry)
 
-# Search tags, URLs, Title info
-if search == True:
-    if len(keywords) < 1:
-        conn.close()
-        usage()
-
-    searchdb(cur, keywords)
-
 # Print all records
 if showindex is not None:
     printdb(cur, showindex)
 
-# Show all unique tags
-if showTags == True:
-    showUniqueTags(cur)
-
-if empty == True:
-    printdb(cur, 0, empty)
+if args.empty == True:
+    printdb(cur, 0, True)
 
 # Open URL in browser
 if openurl != None:
     fetchopen(openurl)
-
-# Remove a single record of all records
-if delete == True:
-    cleardb(conn, cur, entry)
 
 # Close the connection before exiting
 conn.close()
