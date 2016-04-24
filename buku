@@ -1248,13 +1248,6 @@ if args.sany is not None:
 if args.sall is not None:
     searchdb(cur, args.sall, True)
 
-# Replace a tag in DB
-if args.replace is not None:
-    if args.replace[1] == "none":
-        replaceTags(conn, cur, args.replace[0], "")
-    else:
-        replaceTags(conn, cur, args.replace[0], args.replace[1])
-
 # Update record
 if update == True:
     if len(keywords) < 1:
@@ -1269,6 +1262,13 @@ if args.printindex is not None:
         conn.close()
         sys.exit(1)
     printdb(cur, args.printindex)
+
+# Replace a tag in DB
+if args.replace is not None:
+    if args.replace[1] == "none":
+        replaceTags(conn, cur, args.replace[0], "")
+    else:
+        replaceTags(conn, cur, args.replace[0], args.replace[1])
 
 # Print records with blank title or tag
 if args.empty == True:
