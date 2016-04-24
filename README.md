@@ -155,7 +155,11 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
 ## Operational notes
 
-- The SQLite3 database file is stored in `$HOME/.local/share/buku/bookmarks.db` (or `$XDG_DATA_HOME/buku/bookmarks.db`, if XDG_DATA_HOME is defined) for each user. Before version 1.9, buku stored database in `$HOME/.cache/buku/bookmarks.db`. If the file exists, buku automatically moves it to new location.
+- The SQLite3 database file is stored in:
+  - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
+  - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
+  - the **current directory**, on Windows for example.
+- Before version 1.9, `buku`stored its database in **$HOME/.cache/buku/bookmarks.db**. If the file exists, buku automatically moves it to new location.
 - The database index for entries starts from 1. Index 0 is used for special operations like show or refresh or delete all bookmarks.
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single `'` or double `"` quotes.

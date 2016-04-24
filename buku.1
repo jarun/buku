@@ -12,9 +12,14 @@ buku \- A private cmdline bookmark manager. Your mini web!
 is a command-line tool to save, tag and search bookmarks.
 .SH OPERATIONAL NOTES
 .PP
-The SQLite3 database file is stored in \fB$HOME/.local/share/buku/bookmarks.db\fR (or \fB$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined) for each user. Before version 1.9,
+The SQLite3 database file is stored in:
+  - \fB$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined (first preference) or
+  - \fB$HOME/.local/share/buku/bookmarks.db\fR, if HOME is defined (second preference) or
+  - the \fBcurrent directory\fR, on Windows for example.
+.PP
+Before version 1.9,
 .B buku
-stored database in \fB$HOME/.cache/buku/bookmarks.db\fR. If the file exists, buku automatically moves it to new location.
+stored its database in \fB$HOME/.cache/buku/bookmarks.db\fR. If the file exists, buku automatically moves it to new location.
 .PP
 The database index for entries starts from 1. Index 0 is used for special operations like show or refresh or delete all bookmarks.
 .PP
