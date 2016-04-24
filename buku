@@ -20,7 +20,7 @@
 import sys
 import os
 import sqlite3
-from getopt import getopt, GetoptError
+import argparse
 import readline
 import webbrowser
 import html.parser as HTMLParser
@@ -65,7 +65,6 @@ update = False          # Update a bookmark in DB
 debug = False           # Enable debug logs
 titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
-replace = False         # Replace a tag
 encrypt = False         # Lock database file
 decrypt = False         # Unlock database file
 iterations = 8          # Number of hash iterations to generate key
@@ -882,7 +881,6 @@ def encrypt_file():
 
     os.remove(dbpath)
     print("File encrypted")
-    sys.exit(0)
 
 
 
@@ -939,8 +937,6 @@ def decrypt_file():
     else:
         os.remove(encpath)
         print("File decrypted")
-
-    sys.exit(0)
 
 
 
@@ -1025,12 +1021,59 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
 
-optlist = None
-keywords = None
+class ExtendedArgumentParser(argparse.ArgumentParser):
+
+    def print_help(self, file=None):
+        super(ExtendedArgumentParser, self).print_help(file)
+
+argparser = ExtendedArgumentParser(
+    add_help=False,
+    description='A private cmdline bookmark manager. Your mini web!'
+)
+addarg = argparser.add_argument
+
+addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
+       help='add URL as bookmark with comma separated tags')
+addarg('-d', '--delete', dest='delete', type=int, metavar='N',
+       help='delete entry at DB index N (from -p 0), N=0 deletes all')
+addarg('-g', '--tags', dest='showTags', action='store_true',
+       help='list all tags alphabetically')
+addarg('-m', '--title', dest='titleManual', metavar='title',
+       help="manually set title, for -a, -i, -u; '-m none' clears title")
+addarg('-s', '--sany', nargs='+', metavar='KEYWORD',
+       help='search bookmarks for any keyword')
+addarg('-S', '--sall', nargs='+', metavar='KEYWORD',
+       help='search bookmarks with all keywords')
+addarg('-u', '--update', nargs='+', dest='update', metavar=('N', 'URL tags'),
+       help='update fields of the entry at DB index N. The first keyword, if available, is treated as the URL. If URL is omitted (and -m is not used) the title of entry at index N is refreshed from the web, N=0 refreshes all titles.')
+addarg('-e', '--empty', dest='empty', action='store_true',
+       help='show bookmarks with empty titles or no tags')
+addarg('-i', '--insert', dest='insert', nargs='+', metavar=('N', 'URL tags'),
+       help='insert new bookmark with URL and tags at free DB index N')
+addarg('-j', '--json', dest='jsonOutput', action='store_true',
+       help='show results in Json format')
+addarg('-k', '--decrypt', dest='decrypt', action='store_true',
+       help='decrypt (unlock) database file')
+addarg('-l', '--encrypt', dest='encrypt', action='store_true',
+       help='encrypt (lock) database file')
+addarg('-o', '--open', dest='openurl', type=int, metavar='N',
+       help='open URL at DB index N in browser')
+addarg('-p', '--print', dest='showindex', type=int, metavar='N',
+       help='show details of bookmark record at DB index N, N=0 shows all')
+addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),
+       help='replace oldtag with newtag, delete oldtag if newtag=none')
+addarg('-t', '--iterate', dest='iterations', type=int, metavar='N',
+       help='use N (> 0) hash iterations to generate key, for -k, -l')
+addarg('-x', '--format', dest='showOpt', metavar='N',
+       help='modify -p behaviour, N=1: show only URL, N=2: show URL and tag')
+addarg('-z', '--debug', dest='debug', action='store_true',
+       help='show debug information')
 
 if len(sys.argv) < 2:
-    usage()
+    argparser.print_help(sys.stderr)
+    sys.exit(1)
 
+'''
 # Check cmdline options
 try:
 
@@ -1147,7 +1190,19 @@ try:
 except GetoptError as e:
     print("buku:", e)
     sys.exit(1)
+'''
 
+args = argparser.parse_args()
+
+showTags = args.showTags
+empty = args.empty
+jsonOutput = args.jsonOutput
+encrypt = args.encrypt
+decrypt = args.decrypt
+debug = args.debug
+keywords = []
+
+# Show version in debug logs
 if debug:
     print("Version %.1f" % _VERSION_)
 
@@ -1165,18 +1220,9 @@ if decrypt == True:
 conn, cur = initdb()
 
 # Replace a tag in DB
-if replace == True:
-    numargs = len(keywords)
-
-    if addurl == True or update == True or delete == True:
-        print("Tag replace doesn't work with add or update or delete.\n")
-        conn.close()
-        usage()
-    elif numargs < 1 or numargs > 2:
-        print("Tag replace accepts 1 or 2 arguments\n")
-        conn.close()
-        usage()
-    elif numargs == 1:
+if args.replace is not None:
+    keywords = args.replace
+    if keywords[1] == "none":
         replaceTags(conn, cur, keywords[0], "")
     else:
         replaceTags(conn, cur, keywords[0], keywords[1])
