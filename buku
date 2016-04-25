@@ -1012,6 +1012,10 @@ if __name__ == "__main__":
         pass
 
 class customAction(argparse.Action):
+    """Class to capture if an optional param
+    is actually used, even if sans arguments
+    """
+
     def __call__(self, parser, args, values, option_string=None):
         global update
 
@@ -1020,6 +1024,7 @@ class customAction(argparse.Action):
         setattr(args, self.dest, values)
 
 class ExtendedArgumentParser(argparse.ArgumentParser):
+    """Extend classic argument parser"""
 
     def print_help(self, file=None):
         super(ExtendedArgumentParser, self).print_help(file)
@@ -1030,163 +1035,46 @@ argparser = ExtendedArgumentParser(
 )
 addarg = argparser.add_argument
 
-addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),            # DONE
+addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
        help='add URL as bookmark with comma separated tags')
-addarg('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N',  # DONE
+addarg('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N',
        help='delete entry at DB index N (from -p 0), N=0 deletes all')
-addarg('-g', '--tags', dest='showTags', action='store_true',                        # DONE
+addarg('-g', '--tags', dest='showTags', action='store_true',
        help='list all tags alphabetically')
 addarg('-m', '--title', dest='titleManual', metavar='title',
        help="manually set title, for -a, -i, -u; '-m none' clears title")
-addarg('-s', '--sany', nargs='+', metavar='KEYWORD',                                # DONE
+addarg('-s', '--sany', nargs='+', metavar='KEYWORD',
        help='search bookmarks for any keyword')
-addarg('-S', '--sall', nargs='+', metavar='KEYWORD',                                # DONE
+addarg('-S', '--sall', nargs='+', metavar='KEYWORD',
        help='search bookmarks with all keywords')
 addarg('-u', '--update', nargs='*', dest='update', action=customAction, metavar=('N', 'URL tags'),
-       help='update fields of the entry at DB index N. The first keyword, if available, is treated as the URL. If URL is omitted (and -m is not used) the title of entry at index N is refreshed from the web, N=0 refreshes all titles.')
-addarg('-e', '--empty', dest='empty', action='store_true',                          # DONE
+       help='update fields of the entry at DB index N. The first keyword, '
+            'if available, is treated as the URL. If URL is omitted (and -m is '
+            'not used) the title of entry at index N is refreshed from the web, N=0 refreshes all titles.')
+addarg('-e', '--empty', dest='empty', action='store_true',
        help='show bookmarks with empty titles or no tags')
 #addarg('-i', '--insert', nargs='+', dest='insert', metavar=('N', 'URL tags'),
 #       help='insert new bookmark with URL and tags at free DB index N; frees index if URL and tags are omitted')
-addarg('-j', '--json', dest='jsonOutput', action='store_true',                      # DONE
+addarg('-j', '--json', dest='jsonOutput', action='store_true',
        help='show results in Json format')
-addarg('-k', '--decrypt', nargs='?', dest='decrypt', type=int, const=8, metavar='N',                      # DONE
+addarg('-k', '--decrypt', nargs='?', dest='decrypt', type=int, const=8, metavar='N',
        help='decrypt (unlock) database file with N (> 0) hash iterations to generate key, default 8')
-addarg('-l', '--encrypt', nargs='?', dest='encrypt', type=int, const=8, metavar='N',                      # DONE
+addarg('-l', '--encrypt', nargs='?', dest='encrypt', type=int, const=8, metavar='N',
        help='encrypt (lock) database file with N (> 0) hash iterations to generate key, default 8')
-addarg('-o', '--open', dest='openurl', type=int, metavar='N',                       # DONE
+addarg('-o', '--open', dest='openurl', type=int, metavar='N',
        help='open URL at DB index N in browser')
-addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N',   # DONE
+addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N',
        help='show details of bookmark record at DB index N, N=0 shows all')
-addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),    # DONE
+addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),
        help='replace oldtag with newtag, delete oldtag if newtag=none')
-addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',     # DONE
+addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',
        help='modify -p behaviour, N=1: show only URL, N=2: show URL and tag')
-addarg('-z', '--debug', dest='debug', action='store_true',                          # DONE
+addarg('-z', '--debug', dest='debug', action='store_true',
        help='show debug information')
 
 if len(sys.argv) < 2:
     argparser.print_help(sys.stderr)
     sys.exit(1)
-
-'''
-# Check cmdline options
-try:
-
-    if len(pipeargs) > 0:
-        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aegjklrsSz")
-    else:
-        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aegjklrsSz")
-    if len(optlist) < 1:
-        usage()
-
-    for opt in optlist:
-        if opt[0] == "-a":
-            if update == True or delete == True:
-                print("You can either add or update or delete in one instance\n")
-                usage()
-
-            addurl = True
-        elif opt[0] == "-d":
-            if addurl == True or update == True:
-                print("You can either add or update or delete in one instance\n")
-                usage()
-
-            if not opt[1].isdigit():
-                usage()
-
-            entry = opt[1]
-            if int(entry) < 0:
-                usage()
-
-            delete = True
-        elif opt[0] == "-e":
-            empty = True
-        elif opt[0] == "-g":
-            showTags = True
-        elif opt[0] == "-i":
-            if update == True or delete == True:
-                print("You can either add or update or delete in one instance\n")
-                usage()
-
-            if not opt[1].isdigit():
-                usage()
-
-            insertindex = opt[1]
-            if int(insertindex) <= 0:
-                usage()
-
-            addurl = True
-        elif opt[0] == "-j":
-            jsonOutput = True
-        elif opt[0] == "-k":
-            if no_crypto == True:
-                printmsg("PyCrypto missing", "ERROR")
-                sys.exit(0)
-
-            decrypt = True
-        elif opt[0] == "-l":
-            if no_crypto == True:
-                printmsg("PyCrypto missing", "ERROR")
-                sys.exit(0)
-
-            encrypt = True
-        elif opt[0] == "-m":
-            titleManual = opt[1]
-        elif opt[0] == "-o":
-            if not opt[1].isdigit():
-                usage()
-
-            openurl = opt[1]
-            if int(openurl) <= 0:
-                usage()
-        elif opt[0] == "-p":
-            if not opt[1].isdigit():
-                usage()
-
-            showindex = opt[1]
-            if int(showindex) < 0:
-                usage()
-        elif opt[0] == "-r":
-            replace = True
-        elif opt[0] == "-s":
-            search = True
-        elif opt[0] == "-S":
-            searchAll = True
-            search = True
-        elif opt[0] == "-t":
-            if not opt[1].isdigit():
-                usage()
-
-            iterations = int(opt[1])
-            if iterations <= 0:
-                usage()
-        elif opt[0] == "-u":
-            if addurl == True or delete == True:
-                print("You can either add or update or delete in one instance\n")
-                usage()
-
-            if not opt[1].isdigit():
-                usage()
-
-            entry = opt[1]
-            if int(entry) < 0:
-                usage()
-
-            update = True
-        elif opt[0] == "-x":
-            if not opt[1].isdigit():
-                usage()
-
-            showOpt = int(opt[1])
-            if showOpt < 1 or showOpt > 2:
-                usage()
-        elif opt[0] == "-z":
-            debug = True
-except GetoptError as e:
-    print("buku:", e)
-    sys.exit(1)
-'''
 
 args = argparser.parse_args()
 
