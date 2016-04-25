@@ -50,13 +50,12 @@ except ImportError:
 
 
 # Globals
-showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
-entry = None            # DB index to update or delete
 update = False          # Update a bookmark in DB
 titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
 iterations = 8          # Number of hash iterations to generate key
 jsonOutput = False      # Output json formatted result
+showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
 _VERSION_ = 1.9         # Program version
@@ -361,7 +360,7 @@ def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
     """In case of an add or insert operation ensure
     that the URL does not exist in DB already
     """
-    if updateindex is None:
+    if updateindex == 0:
         id = isBookmarkAdded(cur, url)
         if id != -1:
             print("URL already exists at index %d" % id)
@@ -398,7 +397,7 @@ def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
         else:
             print("Title: [%s]" % meta)
 
-    if updateindex is None: # Add or insert a new entry
+    if updateindex == 0: # Add or insert a new entry
         try:
             if insertindex == 0: # insertindex is index number to insert record at
                 cur.execute('INSERT INTO bookmarks(URL, metadata, tags) VALUES (?, ?, ?)', (url, meta, tags,))
@@ -415,11 +414,11 @@ def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
             print("Index %d exists" % insertindex)
     else: # Update an existing entry
         try:
-            cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, int(updateindex),))
+            cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, updateindex,))
             conn.commit()
             if cur.rowcount == 1:
-                print("Updated index %d\n" % int(updateindex))
-                printdb(cur, int(updateindex))
+                print("Updated index %d\n" % updateindex)
+                printdb(cur, updateindex)
             else:
                 print("No matching index")
         except sqlite3.IntegrityError:
@@ -1013,6 +1012,14 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
 
+class customAction(argparse.Action):
+    def __call__(self, parser, args, values, option_string=None):
+        global update
+
+        update = True
+        # NOTE: the following converts a None argument to an empty array []
+        setattr(args, self.dest, values)
+
 class ExtendedArgumentParser(argparse.ArgumentParser):
 
     def print_help(self, file=None):
@@ -1036,7 +1043,7 @@ addarg('-s', '--sany', nargs='+', metavar='KEYWORD',                            
        help='search bookmarks for any keyword')
 addarg('-S', '--sall', nargs='+', metavar='KEYWORD',                                # DONE
        help='search bookmarks with all keywords')
-addarg('-u', '--update', nargs='+', dest='update', metavar=('N', 'URL tags'),
+addarg('-u', '--update', nargs='*', dest='update', action=customAction, metavar=('N', 'URL tags'),
        help='update fields of the entry at DB index N. The first keyword, if available, is treated as the URL. If URL is omitted (and -m is not used) the title of entry at index N is refreshed from the web, N=0 refreshes all titles.')
 addarg('-e', '--empty', dest='empty', action='store_true',                          # DONE
        help='show bookmarks with empty titles or no tags')
@@ -1227,7 +1234,7 @@ conn, cur = initdb()
 
 # Add a record
 if args.addurl is not None:
-    AddUpdateEntry(conn, cur, args.addurl, None)
+    AddUpdateEntry(conn, cur, args.addurl, 0)
 
 # Remove a single record or all records
 if args.delete is not None:
@@ -1249,10 +1256,20 @@ if args.sall is not None:
 
 # Update record
 if update == True:
-    if len(keywords) < 1:
-        dbRefresh(conn, cur, int(entry))
+    if len(args.update) == 0:
+        dbRefresh(conn, cur, 0)
+    elif not args.update[0].isdigit():
+        printmsg("Index must be a number >= 0", "ERROR")
+        conn.close()
+        sys.exit(1)
+    elif int(args.update[0]) == 0:
+        dbRefresh(conn, cur, 0)
+    elif len(args.update) == 1:
+        printmsg("At least URL should be provided for non-zero index", "ERROR")
+        conn.close()
+        sys.exit(1)
     else:
-        AddUpdateEntry(conn, cur, keywords, entry)
+        AddUpdateEntry(conn, cur, args.update[1:], int(args.update[0]))
 
 # Print all records
 if args.printindex is not None:
@@ -1288,7 +1305,7 @@ if args.insert is not None:
     if len(args.insert) == 1:
         pass # We need to add logic here to empty
     else:
-        AddUpdateEntry(conn, cur, args.insert[1:], None, insertindex)
+        AddUpdateEntry(conn, cur, args.insert[1:], 0, insertindex)
 '''
 
 # Open URL in browser
