@@ -21,6 +21,7 @@ import sys
 import os
 import sqlite3
 import argparse
+from argparse import RawTextHelpFormatter
 import readline
 import webbrowser
 import html.parser as HTMLParser
@@ -31,6 +32,7 @@ import io
 import signal
 import json
 import shutil
+import textwrap
 
 # Import libraries needed for encryption
 try:
@@ -1027,47 +1029,87 @@ class customAction(argparse.Action):
 class ExtendedArgumentParser(argparse.ArgumentParser):
     """Extend classic argument parser"""
 
+    # Print additional help and info
+    @staticmethod
+    def print_extended_help(file=None):
+        file.write(textwrap.dedent("""
+        prompt keys:
+          1-N                   open Nth search result in browser
+          Enter                 exit buku
+
+        Version %.1f
+        Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>
+        License: GPLv3
+        Webpage: https://github.com/jarun/buku
+        """ % _VERSION_))
+
+    # Help
     def print_help(self, file=None):
         super(ExtendedArgumentParser, self).print_help(file)
+        self.print_extended_help(file)
 
 argparser = ExtendedArgumentParser(
     add_help=False,
-    description='A private cmdline bookmark manager. Your mini web!'
+    description='A private cmdline bookmark manager. Your mini web!',
+    formatter_class=RawTextHelpFormatter
 )
 addarg = argparser.add_argument
 
 addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
-       help='add URL as bookmark with comma separated tags')
+       help="bookmark URL with comma separated tags\n"
+            " ")
 addarg('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N',
-       help='delete entry at DB index N (from -p 0), or all, if N is omitted')
-addarg('-m', '--title', dest='titleManual', metavar='title',
-       help="manually set title, for -a, -i, -u; title='blank' clears title")
+       help="delete bookmark at DB index N (from -p 0)\n"
+            "delete all bookmarks, if N is omitted\n"
+	    " ")
 addarg('-s', '--sany', nargs='+', metavar='KEYWORD',
-       help='search bookmarks for any keyword')
+       help="search bookmarks for any keyword\n"
+            " ")
 addarg('-S', '--sall', nargs='+', metavar='KEYWORD',
-       help='search bookmarks with all keywords')
+       help="search bookmarks with all keywords\n"
+            "keyword='tags' : list all tags alphabetically\n"
+            "keyword='blank': list entries with empty title/tag\n"
+	    " ")
+addarg('-t', '--title', dest='titleManual', metavar='title',
+       help="manually set title, works with -a, -u\n"
+            "title='blank': clear title\n"
+	    " ")
 addarg('-u', '--update', nargs='*', dest='update', action=customAction, metavar=('N', 'URL tags'),
-       help='update fields of the entry at DB index N. If URL is omitted (and -m is '
-            'not used) the title of entry at index N is refreshed from the web. '
-            'All titles are refreshed if N is omitted.')
+       help="update fields of the bookmark at DB index N\n"
+            "if URL is omitted (and -m is not used), refresh\n"
+	    "title of bookmark at index N from the web;\n"
+            "refresh all titles, if N is omitted\n"
+	    " ")
 #addarg('-i', '--insert', nargs='+', dest='insert', metavar=('N', 'URL tags'),
-#       help='insert new bookmark with URL and tags at free DB index N; frees index if URL and tags are omitted')
+#       help=" insert new bookmark with URL and tags at free DB index N; frees index if URL and tags are omitted")
 addarg('-j', '--json', dest='jsonOutput', action='store_true',
-       help='show results in Json format')
-addarg('-k', '--decrypt', nargs='?', dest='decrypt', type=int, const=8, metavar='N',
-       help='decrypt (unlock) database file with N (> 0, default 8) hash iterations to generate key')
-addarg('-l', '--encrypt', nargs='?', dest='encrypt', type=int, const=8, metavar='N',
-       help='encrypt (lock) database file with N (> 0, default 8) hash iterations to generate key')
+       help="Json formatted output, works with -p, -s\n"
+            " ")
+addarg('-k', '--unlock', nargs='?', dest='decrypt', type=int, const=8, metavar='N',
+       help="decrypt DB file with N (> 0, default 8)\n"
+            "hash iterations to generate key\n"
+	    " ")
+addarg('-l', '--lock', nargs='?', dest='encrypt', type=int, const=8, metavar='N',
+       help="encrypt DB file with N (> 0, default 8)\n"
+            "hash iterations to generate key\n"
+	    " ")
 addarg('-o', '--open', dest='openurl', type=int, metavar='N',
-       help='open URL at DB index N in browser')
+       help="open bookmark at DB index N in browser\n"
+            " ")
 addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N',
-       help='show details of bookmark at DB index N, or all, if N is omitted')
+       help="show details of bookmark at DB index N\n"
+            "show all bookmarks, if N is omitted\n"
+	    " ")
 addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),
-       help="replace oldtag with newtag, delete oldtag if newtag='blank'")
+       help="replace oldtag with newtag\n"
+            "newtag='blank': delete oldtag\n"
+	    " ")
 addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',
-       help='modify -p behaviour, N=1: show only URL, N=2: show URL and tag')
+       help="modify -p output\n"
+            "N=1: show only URL, N=2: show URL and tag\n"
+	    " ")
 addarg('-z', '--debug', dest='debug', action='store_true',
-       help='show debug information')
+       help="show debug information")
 
 if len(sys.argv) < 2:
     argparser.print_help(sys.stderr)
