@@ -21,7 +21,6 @@ import sys
 import os
 import sqlite3
 import argparse
-from argparse import RawTextHelpFormatter
 import readline
 import webbrowser
 import html.parser as HTMLParser
@@ -1051,64 +1050,51 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
 argparser = ExtendedArgumentParser(
     add_help=False,
     description='A private cmdline bookmark manager. Your mini web!',
-    formatter_class=RawTextHelpFormatter
+    formatter_class=argparse.RawTextHelpFormatter
 )
 addarg = argparser.add_argument
 
 addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
-       help="bookmark URL with comma separated tags\n"
-            " ")
+       help="bookmark URL with comma separated tags")
 addarg('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N',
        help="delete bookmark at DB index N (from -p 0)\n"
-            "delete all bookmarks, if N is omitted\n"
-            " ")
+            "delete all bookmarks, if N is omitted")
 addarg('-s', '--sany', nargs='+', metavar='KEYWORD',
-       help="search bookmarks for ANY matching keyword\n"
-            " ")
+       help="search bookmarks for ANY matching keyword")
 addarg('-S', '--sall', nargs='+', metavar='KEYWORD',
        help="search bookmarks with ALL keywords\n"
             "special keywords:\n"
             "'tags' - list all tags alphabetically\n"
-            "'blank'- list entries with empty title/tag\n"
-            " ")
+            "'blank'- list entries with empty title/tag")
 addarg('-t', '--title', dest='titleManual', metavar='title',
        help="manually set title, works with -a, -u\n"
-            "title='blank': clear title\n"
-            " ")
+            "title='blank': clear title")
 addarg('-u', '--update', nargs='*', dest='update', action=customAction, metavar=('N', 'URL tags'),
        help="update fields of bookmark at DB index N\n"
             "if URL is omitted (and -m unused), refresh\n"
 	    "title of bookmark at index N from the web;\n"
-            "refresh all titles, if N is omitted\n"
-            " ")
+            "refresh all titles, if N is omitted")
 #addarg('-i', '--insert', nargs='+', dest='insert', metavar=('N', 'URL tags'),
 #       help=" insert new bookmark with URL and tags at free DB index N; frees index if URL and tags are omitted")
 addarg('-j', '--json', dest='jsonOutput', action='store_true',
-       help="Json formatted output, works with -p, -s\n"
-            " ")
+       help="Json formatted output, works with -p, -s")
 addarg('-k', '--unlock', nargs='?', dest='decrypt', type=int, const=8, metavar='N',
        help="decrypt DB file with N (> 0, default 8)\n"
-            "hash iterations to generate key\n"
-            " ")
+            "hash iterations to generate key")
 addarg('-l', '--lock', nargs='?', dest='encrypt', type=int, const=8, metavar='N',
        help="encrypt DB file with N (> 0, default 8)\n"
-            "hash iterations to generate key\n"
-            " ")
+            "hash iterations to generate key")
 addarg('-o', '--open', dest='openurl', type=int, metavar='N',
-       help="open bookmark at DB index N in web browser\n"
-            " ")
+       help="open bookmark at DB index N in web browser")
 addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N',
        help="show details of bookmark at DB index N\n"
-            "show all bookmarks, if N is omitted\n"
-            " ")
+            "show all bookmarks, if N is omitted")
 addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),
        help="replace oldtag with newtag for all bookmarks\n"
-            "newtag='blank': delete oldtag\n"
-            " ")
+            "newtag='blank': delete oldtag")
 addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',
        help="modify -p output\n"
-            "N=1: show only URL, N=2: show URL and tag\n"
-            " ")
+            "N=1: show only URL, N=2: show URL and tag")
 addarg('-z', '--debug', dest='debug', action='store_true',
        help="show debug information and additional logs")
 
