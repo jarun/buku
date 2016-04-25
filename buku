@@ -58,6 +58,7 @@ showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
 _VERSION_ = 1.9         # Program version
+BLANK = 'blank'
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
@@ -385,7 +386,7 @@ def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
         tags += ','
 
     if titleManual is not None:
-        if titleManual == "none":
+        if titleManual == BLANK:
             meta = ''
         else:
             meta = titleManual
@@ -456,7 +457,7 @@ def dbRefresh(conn, cur, index):
             conn.commit()
             print("Updated index %d\n" % row[0])
     else:
-        if titleManual == "none":
+        if titleManual == BLANK:
             title = ''
         else:
             title = titleManual
@@ -1039,10 +1040,8 @@ addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
        help='add URL as bookmark with comma separated tags')
 addarg('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N',
        help='delete entry at DB index N (from -p 0), or all, if N is omitted')
-addarg('-g', '--tags', dest='showTags', action='store_true',
-       help='list all tags alphabetically')
 addarg('-m', '--title', dest='titleManual', metavar='title',
-       help="manually set title, for -a, -i, -u; '-m none' clears title")
+       help="manually set title, for -a, -i, -u; title='blank' clears title")
 addarg('-s', '--sany', nargs='+', metavar='KEYWORD',
        help='search bookmarks for any keyword')
 addarg('-S', '--sall', nargs='+', metavar='KEYWORD',
@@ -1051,8 +1050,6 @@ addarg('-u', '--update', nargs='*', dest='update', action=customAction, metavar=
        help='update fields of the entry at DB index N. If URL is omitted (and -m is '
             'not used) the title of entry at index N is refreshed from the web. '
             'All titles are refreshed if N is omitted.')
-addarg('-e', '--empty', dest='empty', action='store_true',
-       help='show bookmarks with empty titles or no tags')
 #addarg('-i', '--insert', nargs='+', dest='insert', metavar=('N', 'URL tags'),
 #       help='insert new bookmark with URL and tags at free DB index N; frees index if URL and tags are omitted')
 addarg('-j', '--json', dest='jsonOutput', action='store_true',
@@ -1066,7 +1063,7 @@ addarg('-o', '--open', dest='openurl', type=int, metavar='N',
 addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N',
        help='show details of bookmark at DB index N, or all, if N is omitted')
 addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),
-       help='replace oldtag with newtag, delete oldtag if newtag=none')
+       help="replace oldtag with newtag, delete oldtag if newtag='blank'")
 addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',
        help='modify -p behaviour, N=1: show only URL, N=2: show URL and tag')
 addarg('-z', '--debug', dest='debug', action='store_true',
@@ -1127,15 +1124,18 @@ if args.delete is not None:
         sys.exit(1)
     cleardb(conn, cur, args.delete)
 
-# Show all unique tags
-if args.showTags == True:
-    showUniqueTags(cur)
-
-# Search URLs, titles, tags for keywords
+# Search URLs, titles, tags for any keyword
 if args.sany is not None:
     searchdb(cur, args.sany)
+
+# Search URLs, titles, tags with all keywords
 if args.sall is not None:
-    searchdb(cur, args.sall, True)
+    if args.sall[0] == 'tags' and len(args.sall) == 1:
+        showUniqueTags(cur)
+    elif args.sall[0] == BLANK and len(args.sall) == 1:
+        printdb(cur, 0, True)
+    else:
+        searchdb(cur, args.sall, True)
 
 # Update record
 if update == True:
@@ -1164,14 +1164,18 @@ if args.printindex is not None:
 
 # Replace a tag in DB
 if args.replace is not None:
-    if args.replace[1] == "none":
+    if args.replace[1] == BLANK:
         replaceTags(conn, cur, args.replace[0], "")
     else:
         replaceTags(conn, cur, args.replace[0], args.replace[1])
 
-# Print records with blank title or tag
-if args.empty == True:
-    printdb(cur, 0, True)
+# Open URL in browser
+if args.openurl is not None:
+    if args.openurl < 1:
+        printmsg("Index must be >= 1", "ERROR")
+        conn.close()
+        sys.exit(1)
+    fetchopen(args.openurl)
 
 """NOTE: Insert is functional but commented
 because DB compaction serves the purpose.
@@ -1188,18 +1192,10 @@ if args.insert is not None:
         conn.close()
         sys.exit(1)
     if len(args.insert) == 1:
-        pass # We need to add logic here to empty
+        pass # No operation
     else:
         AddUpdateEntry(conn, cur, args.insert[1:], 0, insertindex)
 """
-
-# Open URL in browser
-if args.openurl is not None:
-    if args.openurl < 1:
-        printmsg("Index must be >= 1", "ERROR")
-        conn.close()
-        sys.exit(1)
-    fetchopen(args.openurl)
 
 # Close the connection before exiting
 conn.close()
