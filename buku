@@ -53,7 +53,6 @@ except ImportError:
 update = False          # Update a bookmark in DB
 titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
-iterations = 8          # Number of hash iterations to generate key
 jsonOutput = False      # Output json formatted result
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
@@ -813,7 +812,7 @@ def get_filehash(filepath):
 
 
 
-def encrypt_file():
+def encrypt_file(iterations):
     """Encrypt the bookmarks database file"""
 
     dbpath = os.path.join(getDataPath(), 'bookmarks.db')
@@ -874,7 +873,7 @@ def encrypt_file():
 
 
 
-def decrypt_file():
+def decrypt_file(iterations):
     """Decrypt the bookmarks database file"""
 
     dbpath = os.path.join(getDataPath(), 'bookmarks.db')
@@ -1051,18 +1050,16 @@ addarg('-e', '--empty', dest='empty', action='store_true',                      
 #       help='insert new bookmark with URL and tags at free DB index N; frees index if URL and tags are omitted')
 addarg('-j', '--json', dest='jsonOutput', action='store_true',                      # DONE
        help='show results in Json format')
-addarg('-k', '--decrypt', dest='decrypt', action='store_true',                      # DONE
-       help='decrypt (unlock) database file')
-addarg('-l', '--encrypt', dest='encrypt', action='store_true',                      # DONE
-       help='encrypt (lock) database file')
+addarg('-k', '--decrypt', nargs='?', dest='decrypt', type=int, const=8, metavar='N',                      # DONE
+       help='decrypt (unlock) database file with N (> 0) hash iterations to generate key, default 8')
+addarg('-l', '--encrypt', nargs='?', dest='encrypt', type=int, const=8, metavar='N',                      # DONE
+       help='encrypt (lock) database file with N (> 0) hash iterations to generate key, default 8')
 addarg('-o', '--open', dest='openurl', type=int, metavar='N',                       # DONE
        help='open URL at DB index N in browser')
 addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N',   # DONE
        help='show details of bookmark record at DB index N, N=0 shows all')
 addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),    # DONE
        help='replace oldtag with newtag, delete oldtag if newtag=none')
-addarg('-t', '--iterate', dest='iterations', type=int, metavar='N',                 # DONE
-       help='use N (> 0) hash iterations to generate key, for -k, -l')
 addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',     # DONE
        help='modify -p behaviour, N=1: show only URL, N=2: show URL and tag')
 addarg('-z', '--debug', dest='debug', action='store_true',                          # DONE
@@ -1197,8 +1194,6 @@ args = argparser.parse_args()
 if args.showOpt is not None:
     showOpt = args.showOpt
 titleManual = args.titleManual
-if args.iterations is not None:
-    iterations = args.iterations
 jsonOutput = args.jsonOutput
 debug = args.debug
 keywords = []
@@ -1211,23 +1206,23 @@ if debug:
 moveOldDatabase()
 
 # Handle encrypt/decrypt options at top priority
-if args.encrypt == True:
+if args.encrypt is not None:
     if no_crypto:
         printmsg("PyCrypto missing", "ERROR")
         sys.exit(1)
-    if iterations < 1:
+    if args.encrypt < 1:
         printmsg("Iterations must be >= 1", "ERROR")
         sys.exit(1)
-    encrypt_file()
+    encrypt_file(args.encrypt)
 
-if args.decrypt == True:
+if args.decrypt is not None:
     if no_crypto:
         printmsg("PyCrypto missing", "ERROR")
         sys.exit(1)
-    if iterations < 1:
+    if args.decrypt < 1:
         printmsg("Decryption failed", "ERROR");
         sys.exit(1)
-    decrypt_file()
+    decrypt_file(args.decrypt)
 
 # Initialize the database and get handles
 conn, cur = initdb()
