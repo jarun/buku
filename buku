@@ -1038,7 +1038,7 @@ addarg = argparser.add_argument
 addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
        help='add URL as bookmark with comma separated tags')
 addarg('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N',
-       help='delete entry at DB index N (from -p 0), N=0 deletes all')
+       help='delete entry at DB index N (from -p 0), or all, if N is omitted')
 addarg('-g', '--tags', dest='showTags', action='store_true',
        help='list all tags alphabetically')
 addarg('-m', '--title', dest='titleManual', metavar='title',
@@ -1048,9 +1048,9 @@ addarg('-s', '--sany', nargs='+', metavar='KEYWORD',
 addarg('-S', '--sall', nargs='+', metavar='KEYWORD',
        help='search bookmarks with all keywords')
 addarg('-u', '--update', nargs='*', dest='update', action=customAction, metavar=('N', 'URL tags'),
-       help='update fields of the entry at DB index N. The first keyword, '
-            'if available, is treated as the URL. If URL is omitted (and -m is '
-            'not used) the title of entry at index N is refreshed from the web, N=0 refreshes all titles.')
+       help='update fields of the entry at DB index N. If URL is omitted (and -m is '
+            'not used) the title of entry at index N is refreshed from the web. '
+            'All titles are refreshed if N is omitted.')
 addarg('-e', '--empty', dest='empty', action='store_true',
        help='show bookmarks with empty titles or no tags')
 #addarg('-i', '--insert', nargs='+', dest='insert', metavar=('N', 'URL tags'),
@@ -1058,13 +1058,13 @@ addarg('-e', '--empty', dest='empty', action='store_true',
 addarg('-j', '--json', dest='jsonOutput', action='store_true',
        help='show results in Json format')
 addarg('-k', '--decrypt', nargs='?', dest='decrypt', type=int, const=8, metavar='N',
-       help='decrypt (unlock) database file with N (> 0) hash iterations to generate key, default 8')
+       help='decrypt (unlock) database file with N (> 0, default 8) hash iterations to generate key')
 addarg('-l', '--encrypt', nargs='?', dest='encrypt', type=int, const=8, metavar='N',
-       help='encrypt (lock) database file with N (> 0) hash iterations to generate key, default 8')
+       help='encrypt (lock) database file with N (> 0, default 8) hash iterations to generate key')
 addarg('-o', '--open', dest='openurl', type=int, metavar='N',
        help='open URL at DB index N in browser')
 addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N',
-       help='show details of bookmark record at DB index N, N=0 shows all')
+       help='show details of bookmark at DB index N, or all, if N is omitted')
 addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),
        help='replace oldtag with newtag, delete oldtag if newtag=none')
 addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',
