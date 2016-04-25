@@ -1285,7 +1285,9 @@ if args.replace is not None:
 if args.empty == True:
     printdb(cur, 0, True)
 
-'''
+"""NOTE: Insert is functional but commented
+because DB compaction serves the purpose.
+
 # Insert a record at an index
 if args.insert is not None:
     if not args.insert[0].isdigit():
@@ -1301,7 +1303,7 @@ if args.insert is not None:
         pass # We need to add logic here to empty
     else:
         AddUpdateEntry(conn, cur, args.insert[1:], 0, insertindex)
-'''
+"""
 
 # Open URL in browser
 if args.openurl is not None:
