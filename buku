@@ -969,6 +969,9 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
 
+if len(pipeargs) > 0:
+    sys.argv = pipeargs
+
 class customAction(argparse.Action):
     """Class to capture if an optional param
     is actually used, even if sans arguments
@@ -1010,8 +1013,6 @@ argparser = ExtendedArgumentParser(
 )
 addarg = argparser.add_argument
 
-#addarg('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help=argparse.SUPPRESS)
-addarg('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout, help=argparse.SUPPRESS)
 addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
        help="bookmark URL with comma separated tags")
 addarg('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N',
@@ -1068,7 +1069,6 @@ if args.showOpt is not None:
 titleManual = args.titleManual
 jsonOutput = args.jsonOutput
 debug = args.debug
-keywords = []
 
 # Show version in debug logs
 if debug:
