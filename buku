@@ -955,23 +955,6 @@ def printmsg(msg, level=None):
 
 
 
-"""main starts here"""
-def main(argv = sys.argv):
-    # detects whether have pipe line parsing in
-    if not sys.stdin.isatty():
-        pipeargs.extend(sys.argv)
-        for s in sys.stdin.readlines():
-            pipeargs.extend(s.split())
-
-if __name__ == "__main__":
-    try:
-        main(sys.argv)
-    except KeyboardInterrupt:
-        pass
-
-if len(pipeargs) > 0:
-    sys.argv = pipeargs
-
 class customAction(argparse.Action):
     """Class to capture if an optional param
     is actually used, even if sans arguments
@@ -983,6 +966,8 @@ class customAction(argparse.Action):
         update = True
         # NOTE: the following converts a None argument to an empty array []
         setattr(args, self.dest, values)
+
+
 
 class ExtendedArgumentParser(argparse.ArgumentParser):
     """Extend classic argument parser"""
@@ -1006,6 +991,28 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
         super(ExtendedArgumentParser, self).print_help(file)
         self.print_extended_help(file)
 
+
+
+"""main starts here"""
+
+# Handle piped input
+def main(argv = sys.argv):
+    if not sys.stdin.isatty():
+        pipeargs.extend(sys.argv)
+        for s in sys.stdin.readlines():
+            pipeargs.extend(s.split())
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv)
+    except KeyboardInterrupt:
+        pass
+
+# If piped input, set argument vector
+if len(pipeargs) > 0:
+    sys.argv = pipeargs
+
+# Setup custom argument parser
 argparser = ExtendedArgumentParser(
     add_help=False,
     description='A private cmdline bookmark manager. Your mini web!',
@@ -1025,9 +1032,9 @@ addarg('-S', '--sall', nargs='+', metavar='KEYWORD',
             "special keywords:\n"
             "'tags' - list all tags alphabetically\n"
             "'blank'- list entries with empty title/tag")
-addarg('-t', '--title', dest='titleManual', metavar='title',
+addarg('-t', '--title', nargs='+', dest='titleManual', metavar='title',
        help="manually set title, works with -a, -u\n"
-            "title='blank': clear title")
+            "title='blank': no title")
 addarg('-u', '--update', nargs='*', dest='update', action=customAction, metavar=('N', 'URL tags'),
        help="update fields of bookmark at DB index N\n"
             "if URL is omitted (and -m unused), refresh\n"
@@ -1057,16 +1064,19 @@ addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',
 addarg('-z', '--debug', dest='debug', action='store_true',
        help="show debug information and additional logs")
 
+# Show help if no arguments passed
 if len(sys.argv) < 2:
     argparser.print_help(sys.stderr)
     sys.exit(1)
 
+# Parse the arguments
 args = argparser.parse_args()
 
 # Assign the values to globals
 if args.showOpt is not None:
     showOpt = args.showOpt
-titleManual = args.titleManual
+if args.titleManual is not None:
+    titleManual = " ".join(args.titleManual)
 jsonOutput = args.jsonOutput
 debug = args.debug
 
