@@ -1058,7 +1058,7 @@ addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar
 addarg('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'),
        help="replace oldtag with newtag for all bookmarks\n"
             "newtag='blank': delete oldtag")
-addarg('-x', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',
+addarg('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N',
        help="modify -p output\n"
             "N=1: show only URL, N=2: show URL and tag")
 addarg('-z', '--debug', dest='debug', action='store_true',
