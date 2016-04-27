@@ -387,10 +387,7 @@ def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
         tags += ','
 
     if titleManual is not None:
-        if titleManual == BLANK:
-            meta = ''
-        else:
-            meta = titleManual
+        meta = titleManual
     else:
         meta = fetchTitle(url)
         if meta == '':
@@ -458,10 +455,7 @@ def dbRefresh(conn, cur, index):
             conn.commit()
             print("Updated index %d\n" % row[0])
     else:
-        if titleManual == BLANK:
-            title = ''
-        else:
-            title = titleManual
+        title = titleManual
 
         for row in resultset:
             cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
@@ -955,7 +949,7 @@ def printmsg(msg, level=None):
 
 
 
-class customAction(argparse.Action):
+class customUpdateAction(argparse.Action):
     """Class to capture if an optional param
     is actually used, even if sans arguments
     """
@@ -964,6 +958,22 @@ class customAction(argparse.Action):
         global update
 
         update = True
+        # NOTE: the following converts a None argument to an empty array []
+        setattr(args, self.dest, values)
+
+
+
+class customTitleAction(argparse.Action):
+    """Class to capture if an optional param
+    is actually used, even if sans arguments
+    """
+
+    def __call__(self, parser, args, values, option_string=None):
+        global titleManual
+
+        titleManual = ''
+        if titleManual is not None:
+            print("titleManual is not None")
         # NOTE: the following converts a None argument to an empty array []
         setattr(args, self.dest, values)
 
@@ -1017,7 +1027,7 @@ argparser = ExtendedArgumentParser(
     description='A private cmdline bookmark manager. Your mini web!',
     formatter_class=argparse.RawTextHelpFormatter,
     usage='''buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
-            [-t title [...]] [-d [N]] [-h]
+            [-t [...]] [-d [N]] [-h]
             [-s keyword [...]] [-S keyword [...]]
             [-k [N]] [-l [N]] [-p [N]] [-f N]
             [-r oldtag newtag] [-j] [-o N] [-z]''',
@@ -1033,15 +1043,14 @@ general_group = argparser.add_argument_group(title="general options",
                      refresh all titles, if no arguments
                      if URL omitted and -t is unused, update
                      title of bookmark at index N from web
--t, --title title [...]
-                     manually set title, works with -a, -u
-                     title='blank': no title
+-t, --title [...]    manually set title, works with -a, -u
+                     do not set title, is no arguments
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
 -h, --help           show this information''')
 general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
-general_group.add_argument('-u', '--update', nargs='*', dest='update', action=customAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
-general_group.add_argument('-t', '--title', nargs='+', dest='titleManual', metavar='title', help=argparse.SUPPRESS)
+general_group.add_argument('-u', '--update', nargs='*', dest='update', action=customUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
+general_group.add_argument('-t', '--title', nargs='*', dest='title', action=customTitleAction, metavar='title', help=argparse.SUPPRESS)
 general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
 general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
@@ -1073,7 +1082,7 @@ power_group=argparser.add_argument_group(title="power toys",
 -f, --format N       modify -p output
                      N=1: show only URL, N=2: show URL and tag
 -r, --replace oldtag newtag
-                     replace oldtag with newtag for all bookmarks
+                     replace oldtag with newtag in all bookmarks
                      newtag='blank': delete oldtag
 -j, --jason          Json formatted output, works with -p, -s
 -o, --open           open bookmark at DB index N in web browser
@@ -1105,8 +1114,8 @@ if args.help == True:
 # Assign the values to globals
 if args.showOpt is not None:
     showOpt = args.showOpt
-if args.titleManual is not None:
-    titleManual = " ".join(args.titleManual)
+if titleManual is not None and len(args.title) > 0:
+    titleManual = " ".join(args.title)
 jsonOutput = args.jsonOutput
 debug = args.debug
 
