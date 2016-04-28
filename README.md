@@ -26,36 +26,32 @@ Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 # Features
 
 - Add, update or remove a bookmark
-- Add tags to bookmarks
-- Manual password protection using AES256 encryption algorithm
+- Tag bookmarks
+- Manual password protection using AES256 encryption
 - Fetch page title from the web (default) or add a custom page title manually
 - Use (partial) tags or keywords to search bookmarks
 - Any or all search keyword match options
-- Search bookmarks by tag
-- Unique URLs to avoid duplicates, show index if URL already exists
-- Open bookmark in browser using index
+- Unique URLs to avoid duplicates
 - Open search results in browser
+- Open bookmark in browser using index
+- Handle piped input (combine with xsel and add bookmarks directly from browser)
+- Supports HTTP compression
 - Optional Json formatted output
 - Modify or delete tags in DB
 - Show all unique tags sorted alphabetically
-- Browser (Chromium and Firefox based) errors and warnings suppression
 - Show single bookmark by ID or all bookmarks in a go
 - Refresh all bookmarks online
-- Auto-compact DB on a single bookmark removal
+- Auto DB compaction on bookmark removal
 - Delete all bookmarks from DB
 - Show all bookmarks with empty titles or no tags (for bookkeeping)
-- Add a bookmark at N<sup>th</sup> index, to fill deleted bookmark indices
-- Secure parameterized SQLite3 queries to access database
-- Supports HTTP compression
-- Handle multiple HTTP redirections (reports redirected URL, loops, IP blocking)
-- Unicode in URL works
+- Supports Unicode characters in URL
 - UTF-8 request and response, page character set detection
-- Handle piped input
+- Secure parameterized SQLite3 queries to access database
+- Handle multiple HTTP redirections (reports redirected URL, loops, IP blocking)
 - Coloured output for clarity
 - Easily create compatible batch add or update scripts
 - Unformatted selective output (for creating batch update scripts)
-- Manpage for quick reference
-- Optional debug information
+- Manpage with examples for quick reference
 - Fast and clean (no ads or clutter)
 - Minimal dependencies
 - Open source and free
