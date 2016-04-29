@@ -20,7 +20,7 @@
 import sys
 import os
 import sqlite3
-from getopt import getopt, GetoptError
+import argparse
 import readline
 import webbrowser
 import html.parser as HTMLParser
@@ -31,6 +31,7 @@ import io
 import signal
 import json
 import shutil
+import textwrap
 
 # Import libraries needed for encryption
 try:
@@ -50,28 +51,15 @@ except ImportError:
 
 
 # Globals
-addurl = False          # Add a URL
-addindex = None         # DB index to insert URL into
-delete = False          # Delete bookmark(s)
-empty = False           # List all bookmarks with no title or tag
-openurl = None          # Open URL in browser
-showindex = None        # Index of bookmark to show
-showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
-showTags = False        # List all unique tags
-search = False          # Search for keywords
-searchAll = False       # Match all keywords in search
-entry = None            # DB index to update or delete
 update = False          # Update a bookmark in DB
-debug = False           # Enable debug logs
 titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
-replace = False         # Replace a tag
-encrypt = False         # Lock database file
-decrypt = False         # Unlock database file
-iterations = 8          # Number of hash iterations to generate key
 jsonOutput = False      # Output json formatted result
+showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
+debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
 _VERSION_ = 1.9         # Program version
+BLANK = 'blank'
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
@@ -358,11 +346,11 @@ def isBookmarkAdded(cur, url):
 
 
 
-def AddUpdateEntry(conn, cur, keywords, index):
-    """Add a new bookmark or update an existing record at index
-    or insert a new record at addindex (if empty)
+def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
+    """Add a new bookmark or update an existing record at
+    updateindex or insert a new record at insertindex (if empty)
 
-    Params: connection, cursor, index to update
+    Params: connection, cursor, keywords, index to update, index to insert at
     """
 
     global titleManual
@@ -373,7 +361,7 @@ def AddUpdateEntry(conn, cur, keywords, index):
     """In case of an add or insert operation ensure
     that the URL does not exist in DB already
     """
-    if index is None:
+    if updateindex == 0:
         id = isBookmarkAdded(cur, url)
         if id != -1:
             print("URL already exists at index %d" % id)
@@ -398,11 +386,8 @@ def AddUpdateEntry(conn, cur, keywords, index):
     if tags[-1] != ',':
         tags += ','
 
-    if titleManual != None:
-        if titleManual == "none":
-            meta = ''
-        else:
-            meta = titleManual
+    if titleManual is not None:
+        meta = titleManual
     else:
         meta = fetchTitle(url)
         if meta == '':
@@ -410,28 +395,28 @@ def AddUpdateEntry(conn, cur, keywords, index):
         else:
             print("Title: [%s]" % meta)
 
-    if index == None: # Insert a new entry
+    if updateindex == 0: # Add or insert a new entry
         try:
-            if addindex == None: # addindex is index number to insert record at
+            if insertindex == 0: # insertindex is index number to insert record at
                 cur.execute('INSERT INTO bookmarks(URL, metadata, tags) VALUES (?, ?, ?)', (url, meta, tags,))
             else:
-                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (int(addindex), url, meta, tags,))
+                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (insertindex, url, meta, tags,))
             conn.commit()
             print("Added at index %d\n" % cur.lastrowid)
-            printdb(cur, str(cur.lastrowid))
+            printdb(cur, cur.lastrowid)
         except sqlite3.IntegrityError:
             for row in cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
                 print("URL already exists at index %s" % row[0])
                 return
 
-            print("Index %s exists" % addindex)
+            print("Index %d exists" % insertindex)
     else: # Update an existing entry
         try:
-            cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, int(index),))
+            cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, updateindex,))
             conn.commit()
             if cur.rowcount == 1:
-                print("Updated index %d\n" % int(index))
-                printdb(cur, int(index))
+                print("Updated index %d\n" % updateindex)
+                printdb(cur, updateindex)
             else:
                 print("No matching index")
         except sqlite3.IntegrityError:
@@ -470,10 +455,7 @@ def dbRefresh(conn, cur, index):
             conn.commit()
             print("Updated index %d\n" % row[0])
     else:
-        if titleManual == "none":
-            title = ''
-        else:
-            title = titleManual
+        title = titleManual
 
         for row in resultset:
             cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
@@ -482,11 +464,11 @@ def dbRefresh(conn, cur, index):
 
 
 
-def searchdb(cur, keywords):
+def searchdb(cur, keywords, all_keywords=False):
     """Search the database for an entries with tags or URL
     or title info matching keywords and list those.
 
-    Params: cursor, keywords to search
+    Params: cursor, keywords to search, search any or all keywords
     """
 
     global jsonOutput
@@ -494,7 +476,7 @@ def searchdb(cur, keywords):
     placeholder = "'%' || ? || '%'"
     query = "SELECT id, url, metadata, tags FROM bookmarks WHERE"
 
-    if searchAll == True: # Match all keywords in URL or Title
+    if all_keywords == True: # Match all keywords in URL or Title
         for token in keywords:
             query += " (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s)) AND" % (placeholder, placeholder, placeholder)
             arguments.append(token)
@@ -584,7 +566,7 @@ def cleardb(conn, cur, index):
     Params: connection, cursor, index to delete
     """
 
-    if int(index) == 0: # Remove the table
+    if index == 0: # Remove the table
         resp = input("ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ")
         if resp != 'y':
             print("No bookmarks deleted")
@@ -595,11 +577,11 @@ def cleardb(conn, cur, index):
         print("All bookmarks deleted")
     else: # Remove a single entry
         try:
-            cur.execute('DELETE FROM bookmarks WHERE id = ?', (int(index),))
+            cur.execute('DELETE FROM bookmarks WHERE id = ?', (index,))
             conn.commit()
             if cur.rowcount == 1:
-                print("Removed index %d" % int(index))
-                compactDB(conn, cur, int(index))
+                print("Removed index %d" % index)
+                compactDB(conn, cur, index)
             else:
                 print("No matching index")
         except IndexError:
@@ -609,7 +591,8 @@ def cleardb(conn, cur, index):
 
 def printdb(cur, index, empty=False):
     """Print bookmark details at index or all bookmarks if index is None
-    Print only bookmarks with empty title or tags if empty is True
+    Print only bookmarks with blank title or tag if empty is True
+    Note: URL is printed on top because title may be blank
 
     Params: cursor, index to print, flag to show only bookmarks with no title or tags
     """
@@ -618,7 +601,7 @@ def printdb(cur, index, empty=False):
     global jsonOutput
 
     resultset = None
-    if int(index) == 0: # Show all entries
+    if index == 0: # Show all entries
         if empty == False:
             cur.execute('SELECT * FROM bookmarks')
             resultset = cur.fetchall()
@@ -642,7 +625,7 @@ def printdb(cur, index, empty=False):
             print(formatJson(resultset))
     else: # Show record at index
         try:
-            resultset = cur.execute("SELECT * FROM bookmarks WHERE id = ?", (int(index),))
+            resultset = cur.execute("SELECT * FROM bookmarks WHERE id = ?", (index,))
         except IndexError:
             print("Index out of bound")
             return
@@ -713,7 +696,7 @@ def showUniqueTags(cur):
 
 
 
-def replaceTags(conn, cur, orig, new):
+def replaceTags(conn, cur, orig, new=None):
     """Replace orig tags with new tags in DB for all records.
     Remove orig tag is new tag is empty.
 
@@ -724,14 +707,32 @@ def replaceTags(conn, cur, orig, new):
     delete = False
 
     orig = ',' + orig + ','
-    new = new.strip(',')
-    if new == '':
-        new = ','
+    if new is None:
+        newtags = ','
         delete = True
     else:
-        new = ',' + new + ','
+        newtags = ','
+        for tag in new:
+            if tag[-1] == ',':
+                tag = tag.strip(',') + ','      # if delimiter is present, maintain it
+            else:
+                tag = tag.strip(',')            # a token in a multi-word tag
 
-    if orig == new:
+            if tag == ',':
+                continue
+
+            if newtags[-1] == ',':
+                newtags += tag
+            else:
+                newtags += ' ' + tag
+
+        if newtags[-1] != ',':
+            newtags += ','
+
+        if newtags == ',':
+            delete = True
+
+    if orig == newtags:
         print("Tags are same.")
         return
 
@@ -740,10 +741,11 @@ def replaceTags(conn, cur, orig, new):
 
     for row in results:
         if delete == False:
-            if row[1].find(new) >= 0:
-                new = ','
+            # Check if tag newtags is already added
+            if row[1].find(newtags) >= 0:
+                newtags = ','
 
-        newtags = row[1].replace(orig, new)
+        newtags = row[1].replace(orig, newtags)
         cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
         print("Updated index %d" % row[0])
         update = True
@@ -760,7 +762,7 @@ def fetchopen(index):
     """
 
     try:
-        for row in cur.execute("SELECT URL FROM bookmarks WHERE id = ?", (int(index),)):
+        for row in cur.execute("SELECT URL FROM bookmarks WHERE id = ?", (index,)):
             url = unquote(row[0])
             browser_open(url)
             return
@@ -828,7 +830,7 @@ def get_filehash(filepath):
 
 
 
-def encrypt_file():
+def encrypt_file(iterations):
     """Encrypt the bookmarks database file"""
 
     dbpath = os.path.join(getDataPath(), 'bookmarks.db')
@@ -889,7 +891,7 @@ def encrypt_file():
 
 
 
-def decrypt_file():
+def decrypt_file(iterations):
     """Decrypt the bookmarks database file"""
 
     dbpath = os.path.join(getDataPath(), 'bookmarks.db')
@@ -906,7 +908,7 @@ def decrypt_file():
     password = ''
     password = getpass.getpass()
     if password == '':
-        print("Decryption failed");
+        printmsg("Decryption failed", "ERROR");
         sys.exit(1)
 
     with open(encpath, 'rb') as infile:
@@ -938,12 +940,11 @@ def decrypt_file():
     dbhash = get_filehash(dbpath)
     if dbhash != enchash:
         os.remove(dbpath)
-        print("Decryption failed");
+        printmsg("Decryption failed", "ERROR");
+        sys.exit(1)
     else:
         os.remove(encpath)
         print("File decrypted")
-
-    sys.exit(0)
 
 
 
@@ -970,53 +971,64 @@ def printmsg(msg, level=None):
 
 
 
-def usage():
-    """Show buku usage, options, general information and exit"""
+class customUpdateAction(argparse.Action):
+    """Class to capture if an optional param
+    is actually used, even if sans arguments
+    """
 
-    print("Usage: OPTIONS [URL] [TAGS] [KEYWORDS ...]\n\n"
+    def __call__(self, parser, args, values, option_string=None):
+        global update
 
-    "A private cmdline bookmark manager. Your mini web!\n\n"
+        update = True
+        # NOTE: the following converts a None argument to an empty array []
+        setattr(args, self.dest, values)
 
-    "General options\n"
-    "  -a URL [tags]        add URL as bookmark with comma separated tags\n"
-    "  -d N                 delete entry at DB index N (from -p 0), N=0 deletes all\n"
-    "  -g                   list all tags alphabetically\n"
-    "  -m title             manually set title, for -a, -i, -u; '-m none' clears title\n"
-    "  -s keyword(s)        search bookmarks for any keyword\n"
-    "  -S keyword(s)        search bookmarks with all keywords\n"
-    "  -u N [URL] [tags]    update fields of the entry at DB index N\n"
-    "                       The first keyword, if available, is treated as the URL.\n"
-    "                       If URL is omitted (and -m is not used) the title of entry at\n"
-    "                       index N is refreshed from the web, N=0 refreshes all titles.\n\n"
 
-    "Power toys\n"
-    "  -e                   show bookmarks with empty titles or no tags\n"
-    "  -i N                 insert new bookmark at free DB index N\n"
-    "  -j                   show results in Json format\n"
-    "  -k                   decrypt (unlock) database file\n"
-    "  -l                   encrypt (lock) database file\n"
-    "  -o N                 open URL at DB index N in browser\n"
-    "  -p N                 show details of bookmark record at DB index N, N=0 shows all\n"
-    "  -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty\n"
-    "  -t N                 use N (> 0) hash iterations to generate key, for -k, -l\n"
-    "  -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL & tag\n"
-    "  -z                   show debug information\n\n"
 
-    "Prompt keys\n"
-    "  1-N                  open Nth search result in browser\n"
-    "  Enter                exit buku\n\n"
+class customTitleAction(argparse.Action):
+    """Class to capture if an optional param
+    is actually used, even if sans arguments
+    """
 
-    "Version %.1f\n"
-    "Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>\n"
-    "License: GPLv3\n"
-    "Webpage: https://github.com/jarun/buku\n" % _VERSION_)
-    sys.exit(1)
+    def __call__(self, parser, args, values, option_string=None):
+        global titleManual
+
+        titleManual = ''
+        if titleManual is not None:
+            print("titleManual is not None")
+        # NOTE: the following converts a None argument to an empty array []
+        setattr(args, self.dest, values)
+
+
+
+class ExtendedArgumentParser(argparse.ArgumentParser):
+    """Extend classic argument parser"""
+
+    # Print additional help and info
+    @staticmethod
+    def print_extended_help(file=None):
+        file.write(textwrap.dedent('''
+        prompt keys:
+          1-N                  open the Nth search result in web browser
+          Enter                exit buku
+
+        Version %.1f
+        Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>
+        License: GPLv3
+        Webpage: https://github.com/jarun/buku
+        ''' % _VERSION_))
+
+    # Help
+    def print_help(self, file=None):
+        super(ExtendedArgumentParser, self).print_help(file)
+        self.print_extended_help(file)
 
 
 
 """main starts here"""
+
+# Handle piped input
 def main(argv = sys.argv):
-    # detects whether have pipe line parsing in
     if not sys.stdin.isatty():
         pipeargs.extend(sys.argv)
         for s in sys.stdin.readlines():
@@ -1028,129 +1040,108 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
 
-optlist = None
-keywords = None
+# If piped input, set argument vector
+if len(pipeargs) > 0:
+    sys.argv = pipeargs
 
+# Setup custom argument parser
+argparser = ExtendedArgumentParser(
+    description='A private cmdline bookmark manager. Your mini web!',
+    formatter_class=argparse.RawTextHelpFormatter,
+    usage='''buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
+            [-t [...]] [-d [N]] [-h]
+            [-s keyword [...]] [-S keyword [...]]
+            [-k [N]] [-l [N]] [-p [N]] [-f N]
+            [-r oldtag [newtag ...]] [-j] [-o N] [-z]''',
+    add_help=False
+)
+
+# General options
+general_group = argparser.add_argument_group(title="general options",
+    description='''-a, --add URL [tags ...]
+                     bookmark URL with comma separated tags
+-u, --update [N [URL tags ...]]
+                     update fields of bookmark at DB index N
+                     refresh all titles, if no arguments
+                     if URL omitted and -t is unused, update
+                     title of bookmark at index N from web
+-t, --title [...]    manually set title, works with -a, -u
+                     do not set title, if no arguments
+-d, --delete [N]     delete bookmark at DB index N
+                     delete all bookmarks, if no arguments
+-h, --help           show this information''')
+general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
+general_group.add_argument('-u', '--update', nargs='*', dest='update', action=customUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
+general_group.add_argument('-t', '--title', nargs='*', dest='title', action=customTitleAction, metavar='title', help=argparse.SUPPRESS)
+general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
+general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
+
+# Search options
+search_group=argparser.add_argument_group(title="search options",
+    description='''-s, --sany keyword [...]
+                     search bookmarks for ANY matching keyword
+-S, --sall keyword [...]
+                     search bookmarks with ALL keywords
+                     special keywords -
+                     "tags" : list all tags alphabetically
+                     "blank": list entries with empty title/tag''')
+search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
+search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
+
+# Encryption options
+crypto_group=argparser.add_argument_group(title="encryption options",
+    description='''-l, --lock [N]       encrypt DB file with N (> 0, default 8)
+                     hash iterations to generate key
+-k, --unlock [N]     decrypt DB file with N (> 0, default 8)
+                     hash iterations to generate key''')
+crypto_group.add_argument('-k', '--unlock', nargs='?', dest='decrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
+crypto_group.add_argument('-l', '--lock', nargs='?', dest='encrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
+
+# Power toys
+power_group=argparser.add_argument_group(title="power toys",
+    description='''-p, --print [N]      show details of bookmark at DB index N
+                     show all bookmarks, if no arguments
+-f, --format N       modify -p output
+                     N=1: show only URL, N=2: show URL and tag
+-r, --replace oldtag [newtag ...]
+                     replace oldtag with newtag in all bookmarks
+                     delete oldtag, if no newtag
+-j, --jason          Json formatted output, works with -p, -s
+-o, --open           open bookmark at DB index N in web browser
+-z, --debug          show debug information and additional logs''')
+power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
+power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
+power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
+power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true', help=argparse.SUPPRESS)
+power_group.add_argument('-o', '--open', dest='openurl', type=int, metavar='N', help=argparse.SUPPRESS)
+power_group.add_argument('-z', '--debug', dest='debug', action='store_true', help=argparse.SUPPRESS)
+
+#addarg = argparser.add_argument
+#addarg('-i', '--insert', nargs='+', dest='insert', metavar=('N', 'URL tags'),
+#       help=" insert new bookmark with URL and tags at free DB index N; frees index if URL and tags are omitted")
+
+# Show help if no arguments passed
 if len(sys.argv) < 2:
-    usage()
-
-# Check cmdline options
-try:
-
-    if len(pipeargs) > 0:
-        optlist, keywords = getopt(pipeargs[1:], "d:i:m:o:p:t:u:x:aegjklrsSz")
-    else:
-        optlist, keywords = getopt(sys.argv[1:], "d:i:m:o:p:t:u:x:aegjklrsSz")
-    if len(optlist) < 1:
-        usage()
-
-    for opt in optlist:
-        if opt[0] == "-a":
-            if update == True or delete == True:
-                print("You can either add or update or delete in one instance\n")
-                usage()
-
-            addurl = True
-        elif opt[0] == "-d":
-            if addurl == True or update == True:
-                print("You can either add or update or delete in one instance\n")
-                usage()
-
-            if not opt[1].isdigit():
-                usage()
-
-            entry = opt[1]
-            if int(entry) < 0:
-                usage()
-
-            delete = True
-        elif opt[0] == "-e":
-            empty = True
-        elif opt[0] == "-g":
-            showTags = True
-        elif opt[0] == "-i":
-            if update == True or delete == True:
-                print("You can either add or update or delete in one instance\n")
-                usage()
-
-            if not opt[1].isdigit():
-                usage()
-
-            addindex = opt[1]
-            if int(addindex) <= 0:
-                usage()
-
-            addurl = True
-        elif opt[0] == "-j":
-            jsonOutput = True
-        elif opt[0] == "-k":
-            if no_crypto == True:
-                printmsg("PyCrypto missing", "ERROR")
-                sys.exit(0)
-
-            decrypt = True
-        elif opt[0] == "-l":
-            if no_crypto == True:
-                printmsg("PyCrypto missing", "ERROR")
-                sys.exit(0)
-
-            encrypt = True
-        elif opt[0] == "-m":
-            titleManual = opt[1]
-        elif opt[0] == "-o":
-            if not opt[1].isdigit():
-                usage()
-
-            openurl = opt[1]
-            if int(openurl) <= 0:
-                usage()
-        elif opt[0] == "-p":
-            if not opt[1].isdigit():
-                usage()
-
-            showindex = opt[1]
-            if int(showindex) < 0:
-                usage()
-        elif opt[0] == "-r":
-            replace = True
-        elif opt[0] == "-s":
-            search = True
-        elif opt[0] == "-S":
-            searchAll = True
-            search = True
-        elif opt[0] == "-t":
-            if not opt[1].isdigit():
-                usage()
-
-            iterations = int(opt[1])
-            if iterations <= 0:
-                usage()
-        elif opt[0] == "-u":
-            if addurl == True or delete == True:
-                print("You can either add or update or delete in one instance\n")
-                usage()
-
-            if not opt[1].isdigit():
-                usage()
-
-            entry = opt[1]
-            if int(entry) < 0:
-                usage()
-
-            update = True
-        elif opt[0] == "-x":
-            if not opt[1].isdigit():
-                usage()
-
-            showOpt = int(opt[1])
-            if showOpt < 1 or showOpt > 2:
-                usage()
-        elif opt[0] == "-z":
-            debug = True
-except GetoptError as e:
-    print("buku:", e)
+    argparser.print_help(sys.stderr)
     sys.exit(1)
 
+# Parse the arguments
+args = argparser.parse_args()
+
+# Show help and exit if help requested
+if args.help == True:
+    argparser.print_help(sys.stderr)
+    sys.exit(0)
+
+# Assign the values to globals
+if args.showOpt is not None:
+    showOpt = args.showOpt
+if titleManual is not None and len(args.title) > 0:
+    titleManual = " ".join(args.title)
+jsonOutput = args.jsonOutput
+debug = args.debug
+
+# Show version in debug logs
 if debug:
     print("Version %.1f" % _VERSION_)
 
@@ -1158,73 +1149,111 @@ if debug:
 moveOldDatabase()
 
 # Handle encrypt/decrypt options at top priority
-if encrypt == True:
-    encrypt_file()
+if args.encrypt is not None:
+    if no_crypto:
+        printmsg("PyCrypto missing", "ERROR")
+        sys.exit(1)
+    if args.encrypt < 1:
+        printmsg("Iterations must be >= 1", "ERROR")
+        sys.exit(1)
+    encrypt_file(args.encrypt)
 
-if decrypt == True:
-    decrypt_file()
+if args.decrypt is not None:
+    if no_crypto:
+        printmsg("PyCrypto missing", "ERROR")
+        sys.exit(1)
+    if args.decrypt < 1:
+        printmsg("Decryption failed", "ERROR");
+        sys.exit(1)
+    decrypt_file(args.decrypt)
 
-# Initilize the database and get handles
+# Initialize the database and get handles
 conn, cur = initdb()
 
-# Replace a tag in DB
-if replace == True:
-    numargs = len(keywords)
+# Add a record
+if args.addurl is not None:
+    AddUpdateEntry(conn, cur, args.addurl, 0)
 
-    if addurl == True or update == True or delete == True:
-        print("Tag replace doesn't work with add or update or delete.\n")
+# Remove a single record or all records
+if args.delete is not None:
+    if args.delete < 0:
+        printmsg("Index must be >= 0", "ERROR")
         conn.close()
-        usage()
-    elif numargs < 1 or numargs > 2:
-        print("Tag replace accepts 1 or 2 arguments\n")
-        conn.close()
-        usage()
-    elif numargs == 1:
-        replaceTags(conn, cur, keywords[0], "")
+        sys.exit(1)
+    cleardb(conn, cur, args.delete)
+
+# Search URLs, titles, tags for any keyword
+if args.sany is not None:
+    searchdb(cur, args.sany)
+
+# Search URLs, titles, tags with all keywords
+if args.sall is not None:
+    if args.sall[0] == 'tags' and len(args.sall) == 1:
+        showUniqueTags(cur)
+    elif args.sall[0] == BLANK and len(args.sall) == 1:
+        printdb(cur, 0, True)
     else:
-        replaceTags(conn, cur, keywords[0], keywords[1])
-
-# Add record
-if addurl == True:
-    if len(keywords) < 1:
-        conn.close()
-        usage()
-
-    AddUpdateEntry(conn, cur, keywords, entry)
+        searchdb(cur, args.sall, True)
 
 # Update record
 if update == True:
-    if len(keywords) < 1:
-        dbRefresh(conn, cur, int(entry))
-    else:
-        AddUpdateEntry(conn, cur, keywords, entry)
-
-# Search tags, URLs, Title info
-if search == True:
-    if len(keywords) < 1:
+    if len(args.update) == 0:
+        dbRefresh(conn, cur, 0)
+    elif not args.update[0].isdigit():
+        printmsg("Index must be a number >= 0", "ERROR")
         conn.close()
-        usage()
-
-    searchdb(cur, keywords)
+        sys.exit(1)
+    elif int(args.update[0]) == 0:
+        dbRefresh(conn, cur, 0)
+    elif len(args.update) == 1:
+        printmsg("At least URL should be provided for non-zero index", "ERROR")
+        conn.close()
+        sys.exit(1)
+    else:
+        AddUpdateEntry(conn, cur, args.update[1:], int(args.update[0]))
 
 # Print all records
-if showindex is not None:
-    printdb(cur, showindex)
+if args.printindex is not None:
+    if args.printindex < 0:
+        printmsg("Index must be >= 0", "ERROR")
+        conn.close()
+        sys.exit(1)
+    printdb(cur, args.printindex)
 
-# Show all unique tags
-if showTags == True:
-    showUniqueTags(cur)
-
-if empty == True:
-    printdb(cur, 0, empty)
+# Replace a tag in DB
+if args.replace is not None:
+    if len(args.replace) == 1:
+        replaceTags(conn, cur, args.replace[0])
+    else:
+        replaceTags(conn, cur, args.replace[0], args.replace[1:])
 
 # Open URL in browser
-if openurl != None:
-    fetchopen(openurl)
+if args.openurl is not None:
+    if args.openurl < 1:
+        printmsg("Index must be >= 1", "ERROR")
+        conn.close()
+        sys.exit(1)
+    fetchopen(args.openurl)
 
-# Remove a single record of all records
-if delete == True:
-    cleardb(conn, cur, entry)
+"""NOTE: Insert is functional but commented
+because DB compaction serves the purpose.
+
+# Insert a record at an index
+if args.insert is not None:
+    if not args.insert[0].isdigit():
+        printmsg("Index must be a number >= 1", "ERROR")
+        conn.close()
+        sys.exit(1)
+    insertindex = int(args.insert[0])
+    if insertindex < 1:
+        printmsg("Index must be a number >= 1", "ERROR")
+        conn.close()
+        sys.exit(1)
+    if len(args.insert) == 1:
+        pass # No operation
+    else:
+        AddUpdateEntry(conn, cur, args.insert[1:], 0, insertindex)
+"""
 
 # Close the connection before exiting
 conn.close()
