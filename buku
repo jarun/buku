@@ -693,7 +693,7 @@ def showUniqueTags(cur):
 
 
 
-def replaceTags(conn, cur, orig, new):
+def replaceTags(conn, cur, orig, new=None):
     """Replace orig tags with new tags in DB for all records.
     Remove orig tag is new tag is empty.
 
@@ -704,14 +704,32 @@ def replaceTags(conn, cur, orig, new):
     delete = False
 
     orig = ',' + orig + ','
-    new = new.strip(',')
-    if new == '':
-        new = ','
+    if new is None:
+        newtags = ','
         delete = True
     else:
-        new = ',' + new + ','
+        newtags = ','
+        for tag in new:
+            if tag[-1] == ',':
+                tag = tag.strip(',') + ','      # if delimiter is present, maintain it
+            else:
+                tag = tag.strip(',')            # a token in a multi-word tag
 
-    if orig == new:
+            if tag == ',':
+                continue
+
+            if newtags[-1] == ',':
+                newtags += tag
+            else:
+                newtags += ' ' + tag
+
+        if newtags[-1] != ',':
+            newtags += ','
+
+        if newtags == ',':
+            delete = True
+
+    if orig == newtags:
         print("Tags are same.")
         return
 
@@ -720,10 +738,11 @@ def replaceTags(conn, cur, orig, new):
 
     for row in results:
         if delete == False:
-            if row[1].find(new) >= 0:
-                new = ','
+            # Check if tag newtags is already added
+            if row[1].find(newtags) >= 0:
+                newtags = ','
 
-        newtags = row[1].replace(orig, new)
+        newtags = row[1].replace(orig, newtags)
         cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
         print("Updated index %d" % row[0])
         update = True
@@ -1030,7 +1049,7 @@ argparser = ExtendedArgumentParser(
             [-t [...]] [-d [N]] [-h]
             [-s keyword [...]] [-S keyword [...]]
             [-k [N]] [-l [N]] [-p [N]] [-f N]
-            [-r oldtag newtag] [-j] [-o N] [-z]''',
+            [-r oldtag [newtag ...]] [-j] [-o N] [-z]''',
     add_help=False
 )
 
@@ -1044,7 +1063,7 @@ general_group = argparser.add_argument_group(title="general options",
                      if URL omitted and -t is unused, update
                      title of bookmark at index N from web
 -t, --title [...]    manually set title, works with -a, -u
-                     do not set title, is no arguments
+                     do not set title, if no arguments
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
 -h, --help           show this information''')
@@ -1081,15 +1100,15 @@ power_group=argparser.add_argument_group(title="power toys",
                      show all bookmarks, if no arguments
 -f, --format N       modify -p output
                      N=1: show only URL, N=2: show URL and tag
--r, --replace oldtag newtag
+-r, --replace oldtag [newtag ...]
                      replace oldtag with newtag in all bookmarks
-                     newtag='blank': delete oldtag
+                     delete oldtag, if no newtag
 -j, --jason          Json formatted output, works with -p, -s
 -o, --open           open bookmark at DB index N in web browser
 -z, --debug          show debug information and additional logs''')
 power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
 power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
-power_group.add_argument('-r', '--replace', nargs=2, dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
+power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
 power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true', help=argparse.SUPPRESS)
 power_group.add_argument('-o', '--open', dest='openurl', type=int, metavar='N', help=argparse.SUPPRESS)
 power_group.add_argument('-z', '--debug', dest='debug', action='store_true', help=argparse.SUPPRESS)
@@ -1200,10 +1219,10 @@ if args.printindex is not None:
 
 # Replace a tag in DB
 if args.replace is not None:
-    if args.replace[1] == BLANK:
-        replaceTags(conn, cur, args.replace[0], "")
+    if len(args.replace) == 1:
+        replaceTags(conn, cur, args.replace[0])
     else:
-        replaceTags(conn, cur, args.replace[0], args.replace[1])
+        replaceTags(conn, cur, args.replace[0], args.replace[1:])
 
 # Open URL in browser
 if args.openurl is not None:
