@@ -117,37 +117,59 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
 ## Cmdline options
 
-    Usage: buku OPTIONS [URL] [TAGS] [KEYWORDS ...]
+**NOTE:** If you are using `buku` v1.9 or below please refer to the installed manpage or program help. The development version has significant changes.
+
+    usage: buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
+                [-t [...]] [-d [N]] [-h]
+                [-s keyword [...]] [-S keyword [...]]
+                [-k [N]] [-l [N]] [-p [N]] [-f N]
+                [-r oldtag [newtag ...]] [-j] [-o N] [-z]
 
     A private cmdline bookmark manager. Your mini web!
 
-    General options
-      -a URL [tags]        add URL as bookmark with comma separated tags
-      -d N                 delete entry at DB index N (from -p 0), N=0 deletes all
-      -g                   list all tags alphabetically
-      -m title             manually set title, for -a, -i, -u; '-m none' clears title
-      -s keyword(s)        search bookmarks for any keyword
-      -S keyword(s)        search bookmarks with all keywords
-      -u N [URL] [tags]    update fields of the entry at DB index N
-                           The first keyword, if available, is treated as the URL.
-                           If URL is omitted (and -m is not used) the title of entry at
-                           index N is refreshed from the web, N=0 refreshes all titles.
+    general options:
+      -a, --add URL [tags ...]
+                           bookmark URL with comma separated tags
+      -u, --update [N [URL tags ...]]
+                           update fields of bookmark at DB index N
+                           refresh all titles, if no arguments
+                           if URL omitted and -t is unused, update
+                           title of bookmark at index N from web
+      -t, --title [...]    manually set title, works with -a, -u
+                           do not set title, if no arguments
+      -d, --delete [N]     delete bookmark at DB index N
+                           delete all bookmarks, if no arguments
+      -h, --help           show this information
 
-    Power toys
-      -e                   show bookmarks with empty titles or no tags
-      -i N                 insert new bookmark at free DB index N
-      -j                   show results in Json format
-      -k                   decrypt (unlock) database file
-      -l                   encrypt (lock) database file
-      -o N                 open URL at DB index N in browser
-      -p N                 show details of bookmark record at DB index N, N=0 shows all
-      -r oldtag [newtag]   replace oldtag with newtag, delete oldtag if newtag empty
-      -t N                 use N (> 0) hash iterations to generate key, for -k, -l
-      -x N                 modify -p behaviour, N=1: show only URL, N=2: show URL & tag
-      -z                   show debug information
+    search options:
+      -s, --sany keyword [...]
+                           search bookmarks for ANY matching keyword
+      -S, --sall keyword [...]
+                           search bookmarks with ALL keywords
+                           special keywords -
+                           "tags" : list all tags alphabetically
+                           "blank": list entries with empty title/tag
 
-    Prompt keys
-      1-N                  open Nth search result in browser
+    encryption options:
+      -l, --lock [N]       encrypt DB file with N (> 0, default 8)
+                           hash iterations to generate key
+      -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
+                           hash iterations to generate key
+
+    power toys:
+      -p, --print [N]      show details of bookmark at DB index N
+                           show all bookmarks, if no arguments
+      -f, --format N       modify -p output
+                           N=1: show only URL, N=2: show URL and tag
+      -r, --replace oldtag [newtag ...]
+                           replace oldtag with newtag in all bookmarks
+                           delete oldtag, if no newtag
+      -j, --jason          Json formatted output, works with -p, -s
+      -o, --open           open bookmark at DB index N in web browser
+      -z, --debug          show debug information and additional logs
+
+    prompt keys:
+      1-N                  open the Nth search result in web browser
       Enter                exit buku
 
 ## Operational notes
