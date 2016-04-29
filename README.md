@@ -323,13 +323,7 @@ Add the same text at the beginning of multiple lines:
     $ sed -i 's/^/buku -u /' filename
 
 # Contributions
-Pull requests are welcome. Some of the features I have in mind are:
-- Support subcommands using argparse
-- Ubuntu deb package
-- Merge bookmark database files (for users who work on multiple systems)
-- Exact word match (against substring in a word as it works currently. Hint: REGEXP)
-- Parse full page data??? Might end up writing a search engine like Google. ;)
-- Anything else which would add value (please raise an issue for discussion)
+Pull requests are welcome. Please visit issue #14 for a list of TODOs.
 
 # Developers
 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
