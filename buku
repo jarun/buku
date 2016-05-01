@@ -58,7 +58,7 @@ jsonOutput = False      # Output json formatted result
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
-_VERSION_ = 1.9         # Program version
+_VERSION_ = 2.0         # Program version
 BLANK = 'blank'
 
 
