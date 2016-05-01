@@ -267,7 +267,7 @@ The same number of iterations must be used for one lock & unlock instance. Defau
 
 1. To list bookmarks with **no title or tags**:
 
-        $ buku -e
+        $ buku -S blank
 Use the `-u` option to add title or tags to those entries, if you want to.
 2. `buku` doesn't have any **import feature** of its own. To import URLs in **bulk**, create a script with URLs and tags like the following (check TIP below):
 
@@ -281,7 +281,7 @@ Use the `-u` option to add title or tags to those entries, if you want to.
 Make the script executable and run to batch add bookmarks.
 3. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
 
-        $ buku -p 0 -x 2 | tee myurls
+        $ buku -p -f 2 | tee myurls
 Remove the lines you don't need. Add `buku -u ` in front of all the other lines (check TIP below). Should look like:
 
         #!/bin/bash
