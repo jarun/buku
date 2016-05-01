@@ -994,8 +994,6 @@ class customTitleAction(argparse.Action):
         global titleManual
 
         titleManual = ''
-        if titleManual is not None:
-            print("titleManual is not None")
         # NOTE: the following converts a None argument to an empty array []
         setattr(args, self.dest, values)
 

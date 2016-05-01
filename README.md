@@ -179,21 +179,18 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
   - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
   - the **current directory**, e.g. on Windows.
 - Before version 1.9, `buku`stored its database in **$HOME/.cache/buku/bookmarks.db**. If the file exists, buku automatically moves it to new location.
-- The database index for entries starts from 1. Index 0 is used for special operations like show or refresh or delete all bookmarks.
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double (`'`/`"`) quotes.
-- The same URL cannot be added twice. You can update tags and re-fetch title data. You can also insert a new bookmark at a free index.
-- You can either add or update or delete record(s) in one instance. A combination of these operations is not supported in a single run.
+- URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
 - Search works in mysterious ways:
   - Case-insensitive.
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
   - `-s` : match any of the keywords in URL, title or tags.
   - `-S` : match all the keywords in URL, title or tags.
-  - You can search bookmarks by tag (see example).
-  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `()` after the URL.
+  - You can search bookmarks by tag (refer examples).
+  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the URL.
 - When a record is deleted, the last record is moved to the index.
-- AES256 is used for encryption. Optionally specify (`-t`) the number of hash iterations to use to generate key. Default is 8 iterations.
-- Encryption is optional and manual. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
+- Encryption is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
 
 # Examples
 1. **Add** a bookmark with **tags** `linux news` and `open source`, **fetch page title** from the web:
@@ -201,15 +198,14 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
         $ buku -a http://tuxdiary.com linux news, open source
         Title: [TuxDiary | Linux, open source and a pinch of leisure.]
         Added at index 15012014
-2. **Add** a bookmark with **manual title** `Linux magazine` & tags `linux news` and `open source`:
+2. **Add** a bookmark with tags `linux news` and `open source` & **custom title** `Linux magazine`:
 
-        $ buku -a -m 'Linux magazine' http://tuxdiary.com linux news, open source
+        $ buku -a http://tuxdiary.com linux news, open source -t 'Linux magazine'
         Added at index 15012014
-Note that URL must precede tags. Multiple words in title must be within quotes.
-The assigned automatic index 15012014 is unique, one greater than highest index already in use in database.
-3. **Add** a bookmark **without a title** (works for update and insert too):
+Note that URL must precede tags.
+3. **Add** a bookmark **without a title** (works for update too):
 
-        $ buku -a -m none http://tuxdiary.com linux news, open source
+        $ buku -a http://tuxdiary.com linux news, open source -t
 4. **Update** existing bookmark at index 15012014 with new URL and tags, fetch title from the web:
 
         $ buku -u 15012014 http://tuxdiary.com/ linux news, open source, magazine
@@ -218,8 +214,8 @@ The assigned automatic index 15012014 is unique, one greater than highest index 
 Tags are updated too. Original tags are removed.
 5. **Update** or refresh **full DB** with page titles from the web:
 
-        $ buku -u 0
-This operation does not modify the indexes, URLs or tags. Only titles, if non-empty, are refreshed. Any index other than 0 refreshes title for that index.
+        $ buku -u
+This operation does not modify the indexes, URLs or tags. Only title is refreshed if fetched title is non-empty.
 6. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
@@ -227,50 +223,42 @@ This operation does not modify the indexes, URLs or tags. Only titles, if non-em
 The last index is moved to the deleted index to keep the DB compact.
 7. **Delete all** bookmarks:
 
-        $ buku -d 0
+        $ buku -d
 8. List **all unique tags** alphabetically:
 
-        $ buku -g
-8. **Insert** a bookmark at index 15012014 (fails if index or URL exists in database):
+        $ buku -S tags
+9. **Replace tag** 'old tag' with 'new tag':
 
-        $ buku -i 15012014 http://tuxdiary.com/about linux news, open source
-        Title: [A journey with WordPress | TuxDiary]
-        Added at index 15012014
-10. **Replace a tag** with new one:
-
-        $ buku -r 'old tag' 'new tag'
-11. **Delete a tag** from DB:
+        $ buku -r 'old tag' new tag
+10. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-12. **Show info** on bookmark at index 15012014:
+11. **Show details** of bookmark at index 15012014:
 
         $ buku -p 15012014
-13. **Show all** bookmarks with real index from database:
+12. **Show all** bookmarks with real index from database:
 
-        $ buku -p 0
-14. **Open URL** at index 15012014 in browser:
+        $ buku -p
+13. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-15. **Search** bookmarks for **ANY** of the keywords `*kernel*` and `*debugging*` in URL, title or tags:
+14. **Search** bookmarks for **ANY** of the keywords `*kernel*` and `*debugging*` in URL, title or tags:
 
         $ buku -s kernel debugging
-16. **Search** bookmarks with **ALL** the keywords `*kernel*` and `*debugging*` in URL, title or tags:
+15. **Search** bookmarks with **ALL** the keywords `*kernel*` and `*debugging*` in URL, title or tags:
 
         $ buku -S kernel debugging
 
-17. **Search** bookmarks tagged `general kernel concepts`:
+16. **Search** bookmarks with **tag** *general kernel concepts*:
 
         $ buku -S ',general kernel concepts,'
-Note the commas (,) before and after the tag.
-18. Encrypt/decrypt DB with **custom number of iterations** to generate key:
+Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
+17. Encrypt/decrypt DB with **custom number of iterations** (15) to generate key:
 
-        $ buku -l -t 15
-        $ buku -k -t 15
+        $ buku -l 15
+        $ buku -k 15
 The same number of iterations must be used for one lock & unlock instance.
-19. Show **debug info**:
-
-        $ buku -z ...
-20. More **help**:
+18. More **help**:
 
         $ buku
         $ man buku
