@@ -59,7 +59,6 @@ showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
 _VERSION_ = 2.0         # Program version
-BLANK = 'blank'
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
@@ -1188,7 +1187,7 @@ if args.sany is not None:
 if args.sall is not None:
     if args.sall[0] == 'tags' and len(args.sall) == 1:
         showUniqueTags(cur)
-    elif args.sall[0] == BLANK and len(args.sall) == 1:
+    elif args.sall[0] == 'blank' and len(args.sall) == 1:
         printdb(cur, 0, True)
     else:
         searchdb(cur, args.sall, True)
