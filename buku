@@ -957,6 +957,15 @@ signal.signal(signal.SIGINT, sigint_handler)
 
 
 
+def closequit(conn=None, exitval=0):
+    """Close a DB connection and exit"""
+
+    if conn is not None:
+        conn.close()
+    sys.exit(exitval)
+
+
+
 def printmsg(msg, level=None):
     """Print a message in 2 parts, with the level in bold
 
@@ -1021,13 +1030,6 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
         self.print_extended_help(file)
 
 
-
-def closequit(conn=None, exitval=0):
-    """Close a DB connection and exit"""
-
-    if conn is not None:
-        conn.close()
-    sys.exit(exitval)
 
 """main starts here"""
 
