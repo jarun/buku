@@ -224,25 +224,25 @@ The last index is moved to the deleted index to keep the DB compact.
 7. **Delete all** bookmarks:
 
         $ buku -d
-8. **Search** bookmarks for **ANY** of the keywords *kernel* and *debugging* in URL, title or tags:
+8. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -s kernel debugging
-9. **Search** bookmarks with **ALL** the keywords *kernel* and *debugging* in URL, title or tags:
+9. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -S kernel debugging
 
-10. **Search** bookmarks with **tag** *general kernel concepts*:
+10. **Search** bookmarks with **tag** `general kernel concepts`:
 
         $ buku -S ',general kernel concepts,'
 Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
 11. List **all unique tags** alphabetically:
 
         $ buku -S tags
-12. Encrypt/decrypt DB with **custom number of iterations** (15) to generate key:
+12. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
-The same number of iterations must be used for one lock & unlock instance.
+The same number of iterations must be used for one lock & unlock instance. Default is 8.
 13. **Show details** of bookmark at index 15012014:
 
         $ buku -p 15012014
