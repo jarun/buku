@@ -1022,6 +1022,13 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
 
 
 
+def closequit(conn=None, exitval=0):
+    """Close a DB connection and exit"""
+
+    if conn is not None:
+        conn.close()
+    sys.exit(exitval)
+
 """main starts here"""
 
 # Handle piped input
@@ -1142,7 +1149,7 @@ debug = args.debug
 if debug:
     print("Version %.1f" % _VERSION_)
 
-# Move database to new location, if needed
+# Move pre-1.9 database to new location
 moveOldDatabase()
 
 # Handle encrypt/decrypt options at top priority
@@ -1175,8 +1182,7 @@ if args.addurl is not None:
 if args.delete is not None:
     if args.delete < 0:
         printmsg("Index must be >= 0", "ERROR")
-        conn.close()
-        sys.exit(1)
+        closequit(conn, 1)
     cleardb(conn, cur, args.delete)
 
 # Search URLs, titles, tags for any keyword
@@ -1198,14 +1204,12 @@ if update == True:
         dbRefresh(conn, cur, 0)
     elif not args.update[0].isdigit():
         printmsg("Index must be a number >= 0", "ERROR")
-        conn.close()
-        sys.exit(1)
+        closequit(conn, 1)
     elif int(args.update[0]) == 0:
         dbRefresh(conn, cur, 0)
     elif len(args.update) == 1:
         printmsg("At least URL should be provided for non-zero index", "ERROR")
-        conn.close()
-        sys.exit(1)
+        closequit(conn, 1)
     else:
         AddUpdateEntry(conn, cur, args.update[1:], int(args.update[0]))
 
@@ -1213,8 +1217,7 @@ if update == True:
 if args.printindex is not None:
     if args.printindex < 0:
         printmsg("Index must be >= 0", "ERROR")
-        conn.close()
-        sys.exit(1)
+        closequit(conn, 1)
     printdb(cur, args.printindex)
 
 # Replace a tag in DB
@@ -1228,8 +1231,7 @@ if args.replace is not None:
 if args.openurl is not None:
     if args.openurl < 1:
         printmsg("Index must be >= 1", "ERROR")
-        conn.close()
-        sys.exit(1)
+        closequit(conn, 1)
     fetchopen(args.openurl)
 
 """NOTE: Insert is functional but commented
@@ -1239,13 +1241,11 @@ because DB compaction serves the purpose.
 if args.insert is not None:
     if not args.insert[0].isdigit():
         printmsg("Index must be a number >= 1", "ERROR")
-        conn.close()
-        sys.exit(1)
+        closequit(conn, 1)
     insertindex = int(args.insert[0])
     if insertindex < 1:
         printmsg("Index must be a number >= 1", "ERROR")
-        conn.close()
-        sys.exit(1)
+        closequit(conn, 1)
     if len(args.insert) == 1:
         pass # No operation
     else:
