@@ -209,6 +209,8 @@ def getPageResp(url, fullurl=False):
         urlconn = HTTPConnection(server, timeout=30)
     else:
         printmsg("Not a valid HTTP(S) url", "WARNING")
+        if url.find(":") == -1:
+            printmsg("Doesn't appear to be a valid url either", "WARNING")
         return (None, None)
 
     if debug:
