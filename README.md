@@ -224,40 +224,40 @@ The last index is moved to the deleted index to keep the DB compact.
 7. **Delete all** bookmarks:
 
         $ buku -d
-8. List **all unique tags** alphabetically:
-
-        $ buku -S tags
-9. **Replace tag** 'old tag' with 'new tag':
-
-        $ buku -r 'old tag' new tag
-10. **Delete tag** 'old tag' from DB:
-
-        $ buku -r 'old tag'
-11. **Show details** of bookmark at index 15012014:
-
-        $ buku -p 15012014
-12. **Show all** bookmarks with real index from database:
-
-        $ buku -p
-13. **Open URL** at index 15012014 in browser:
-
-        $ buku -o 15012014
-14. **Search** bookmarks for **ANY** of the keywords `*kernel*` and `*debugging*` in URL, title or tags:
+8. **Search** bookmarks for **ANY** of the keywords *kernel* and *debugging* in URL, title or tags:
 
         $ buku -s kernel debugging
-15. **Search** bookmarks with **ALL** the keywords `*kernel*` and `*debugging*` in URL, title or tags:
+9. **Search** bookmarks with **ALL** the keywords *kernel* and *debugging* in URL, title or tags:
 
         $ buku -S kernel debugging
 
-16. **Search** bookmarks with **tag** *general kernel concepts*:
+10. **Search** bookmarks with **tag** *general kernel concepts*:
 
         $ buku -S ',general kernel concepts,'
 Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
-17. Encrypt/decrypt DB with **custom number of iterations** (15) to generate key:
+11. List **all unique tags** alphabetically:
+
+        $ buku -S tags
+12. Encrypt/decrypt DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
 The same number of iterations must be used for one lock & unlock instance.
+13. **Show details** of bookmark at index 15012014:
+
+        $ buku -p 15012014
+14. **Show all** bookmarks with real index from database:
+
+        $ buku -p
+15. **Replace tag** 'old tag' with 'new tag':
+
+        $ buku -r 'old tag' new tag
+16. **Delete tag** 'old tag' from DB:
+
+        $ buku -r 'old tag'
+17. **Open URL** at index 15012014 in browser:
+
+        $ buku -o 15012014
 18. More **help**:
 
         $ buku
