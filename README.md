@@ -311,7 +311,7 @@ Add the same text at the beginning of multiple lines:
     $ sed -i 's/^/buku -u /' filename
 
 # Contributions
-Pull requests are welcome. Please visit [issue #14](https://github.com/jarun/Buku/issues/14) for a list of TODOs.
+Pull requests are welcome. Please visit [#14](https://github.com/jarun/Buku/issues/14) for a list of TODOs.
 
 # Developers
 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
