@@ -1124,11 +1124,14 @@ power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true',
 power_group.add_argument('-o', '--open', dest='openurl', type=int, metavar='N', help=argparse.SUPPRESS)
 power_group.add_argument('-z', '--debug', dest='debug', action='store_true', help=argparse.SUPPRESS)
 
-#addarg = argparser.add_argument
-#addarg('-i', '--insert', nargs='+', dest='insert', metavar=('N', 'URL tags'),
-#       help=" insert new bookmark with URL and tags at free DB index N; frees index if URL and tags are omitted")
+"""
+# NOTE: Insert is functional but commented because DB compaction serves the purpose.
+addarg = argparser.add_argument
+addarg('-i', '--insert', nargs='+', dest='insert', metavar=('N', 'URL tags'),
+       help=" insert new bookmark with URL and tags at free DB index N; frees index if URL and tags are omitted")
+"""
 
-# Show help if no arguments passed
+# Show help and exit if no arguments
 if len(sys.argv) < 2:
     argparser.print_help(sys.stderr)
     sys.exit(1)
@@ -1182,7 +1185,7 @@ conn, cur = initdb()
 if args.addurl is not None:
     AddUpdateEntry(conn, cur, args.addurl, 0)
 
-# Remove a single record or all records
+# Delete record(s)
 if args.delete is not None:
     if args.delete < 0:
         printmsg("Index must be >= 0", "ERROR")
@@ -1238,9 +1241,8 @@ if args.openurl is not None:
         closequit(conn, 1)
     fetchopen(args.openurl)
 
-"""NOTE: Insert is functional but commented
-because DB compaction serves the purpose.
-
+"""
+# NOTE: Insert is functional but commented because DB compaction serves the purpose.
 # Insert a record at an index
 if args.insert is not None:
     if not args.insert[0].isdigit():
