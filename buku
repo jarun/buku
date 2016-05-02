@@ -1021,7 +1021,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
           Enter                exit buku
 
         Version %.1f
-        Copyright (C) 2015 Arun Prakash Jana <engineerarun@gmail.com>
+        Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
         License: GPLv3
         Webpage: https://github.com/jarun/buku
         ''' % _VERSION_))

@@ -21,7 +21,7 @@ Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2
 Find `buku` useful? If you would like to donate, visit the
 [![Donate Button](https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q) page.
 
-Copyright (C) 2015 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
+Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 # Features
 
