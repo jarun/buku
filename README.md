@@ -249,6 +249,7 @@ The same number of iterations must be used for one lock & unlock instance. Defau
 14. **Show all** bookmarks with real index from database:
 
         $ buku -p
+        $ buku -p | more
 15. **Replace tag** 'old tag' with 'new tag':
 
         $ buku -r 'old tag' new tag
