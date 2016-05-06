@@ -117,7 +117,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 
 ## Cmdline options
 
-**NOTE:** If you are using `buku` v1.9 or below please refer to the installed manpage or program help. The development version has significant changes.
+**NOTE:** If you are using `buku` v1.9 or below please refer the installed manpage or program help. The development version has significant changes.
 
     usage: buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
                 [-t [...]] [-d [N]] [-h]
