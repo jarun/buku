@@ -163,14 +163,19 @@ def initdb():
     if no_crypto == False and not os.path.exists(dbfile):
         print("DB file is being created. You may want to encrypt it later.")
 
-    # Create a connection
-    conn = sqlite3.connect(dbfile)
-    cur = conn.cursor()
+    try:
+        # Create a connection
+        conn = sqlite3.connect(dbfile)
+        cur = conn.cursor()
 
-    # Create table if it doesn't exist
-    cur.execute('''CREATE TABLE if not exists bookmarks \
-               (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text, tags text)''')
-    conn.commit()
+        # Create table if it doesn't exist
+        cur.execute('''CREATE TABLE if not exists bookmarks \
+                   (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text, tags text)''')
+        conn.commit()
+    except Exception as e:
+        print("\x1b[1mEXCEPTION\x1b[21m [initdb]: (%s) %s" % (type(e).__name__, e))
+        sys.exit(1)
+
     return (conn, cur)
 
 
