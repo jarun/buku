@@ -125,7 +125,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
                 [-k [N]] [-l [N]] [-p [N]] [-f N]
                 [-r oldtag [newtag ...]] [-j] [-o N] [-z]
 
-    A private cmdline bookmark manager. Your mini web!
+    A private command-line bookmark manager. Your mini web!
 
     general options:
       -a, --add URL [tags ...]
