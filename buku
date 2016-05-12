@@ -1059,7 +1059,7 @@ if len(pipeargs) > 0:
 
 # Setup custom argument parser
 argparser = ExtendedArgumentParser(
-    description='A private cmdline bookmark manager. Your mini web!',
+    description='A private command-line bookmark manager. Your mini web!',
     formatter_class=argparse.RawTextHelpFormatter,
     usage='''buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
             [-t [...]] [-d [N]] [-h]
