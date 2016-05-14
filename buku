@@ -29,7 +29,6 @@ from urllib.parse import urljoin, quote, unquote
 import gzip
 import io
 import signal
-import textwrap
 
 # Import libraries needed for encryption
 try:
@@ -1018,16 +1017,16 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
     # Print additional help and info
     @staticmethod
     def print_extended_help(file=None):
-        file.write(textwrap.dedent('''
-        prompt keys:
-          1-N                  open the Nth search result in web browser
-          Enter                exit buku
+        file.write('''
+prompt keys:
+  1-N                  open the Nth search result in web browser
+  Enter                exit buku
 
-        Version %.1f
-        Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
-        License: GPLv3
-        Webpage: https://github.com/jarun/buku
-        ''' % _VERSION_))
+Version %.1f
+Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
+License: GPLv3
+Webpage: https://github.com/jarun/buku
+''' % _VERSION_)
 
     # Help
     def print_help(self, file=None):
