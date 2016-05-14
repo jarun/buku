@@ -29,7 +29,6 @@ from urllib.parse import urljoin, quote, unquote
 import gzip
 import io
 import signal
-import shutil
 import textwrap
 
 # Import libraries needed for encryption
@@ -132,7 +131,7 @@ def moveOldDatabase():
     if not os.path.exists(newdbpath):
         os.makedirs(newdbpath)
 
-    shutil.move(olddbfile, newdbfile)
+    os.rename(olddbfile, newdbfile)
     print("Database was moved from old (%s) to new (%s) location.\n" % (olddbfile, newdbfile))
 
     os.rmdir(olddbpath)
