@@ -29,7 +29,6 @@ from urllib.parse import urljoin, quote, unquote
 import gzip
 import io
 import signal
-import json
 import shutil
 import textwrap
 
@@ -1154,7 +1153,9 @@ if args.showOpt is not None:
     showOpt = args.showOpt
 if titleManual is not None and len(args.title) > 0:
     titleManual = " ".join(args.title)
-jsonOutput = args.jsonOutput
+if args.jsonOutput:
+    import json
+    jsonOutput = args.jsonOutput
 debug = args.debug
 
 # Show version in debug logs
