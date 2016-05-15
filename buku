@@ -1117,7 +1117,7 @@ power_group=argparser.add_argument_group(title="power toys",
                      replace oldtag with newtag in all bookmarks
                      delete oldtag, if no newtag
 -j, --jason          Json formatted output, works with -p, -s
--o, --open           open bookmark at DB index N in web browser
+-o, --open N         open bookmark at DB index N in web browser
 -z, --debug          show debug information and additional logs''')
 power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
 power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)

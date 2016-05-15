@@ -165,7 +165,7 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
                            replace oldtag with newtag in all bookmarks
                            delete oldtag, if no newtag
       -j, --jason          Json formatted output, works with -p, -s
-      -o, --open           open bookmark at DB index N in web browser
+      -o, --open N         open bookmark at DB index N in web browser
       -z, --debug          show debug information and additional logs
 
     prompt keys:
