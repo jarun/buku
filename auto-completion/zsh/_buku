@@ -1,0 +1,25 @@
+#compdef buku
+#
+# Completion definition for buku.
+#
+# Author:
+#   Arun Prakash Jana <engineerarun@gmail.com>
+#
+
+setopt localoptions noshwordsplit noksharrays
+local -a args
+args=(
+    '(-a --add)'{-a,--add}'[add bookmark]:URL tags'
+    '(-d --delete)'{-d,--delete}'[delete bookmark]'
+    '(-h --help)'{-h,--help}'[show help]'
+    '(-k --unlock)'{-k,--unlock}'[decrypt database]'
+    '(-l --lock)'{-l,--lock}'[encrypt database]'
+    '(-o --open)'{-o,--open}'[open bookmark in browser]:bookmark index'
+    '(-p --print)'{-p,--print}'[show bookmark details]'
+    '(-r --replace)'{-r,--replace}'[replace a tag]:tag to replace'
+    '(-s --sany)'{-s,--sany}'[search any keyword]:keyword(s)'
+    '(-s --sall)'{-s,--sall}'[search all keywords]:keyword(s)'
+    '(-t --title)'{-t,--title}'[set custom title]'
+    '(-u --update)'{-u,--update}'[update bookmark]'
+)
+_arguments -S -s $args
