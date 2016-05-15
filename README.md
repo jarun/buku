@@ -121,7 +121,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 ## Cmdline options
 
-**NOTE:** If you are using `buku` v1.9 or below please refer the installed manpage or program help. The development version has significant changes.
+**NOTE:** If you are using `buku` v1.9 or below please refer the installed manpage or program help.
 
     usage: buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
                 [-t [...]] [-d [N]] [-h]
