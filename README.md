@@ -43,6 +43,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 - Refresh all bookmarks online
 - Auto DB compaction on bookmark removal
 - Delete all bookmarks from DB
+- Tab-completion scripts for Bash, Fish and Zsh
 - Show all bookmarks with empty titles or no tags (for bookkeeping)
 - Supports Unicode characters in URL
 - UTF-8 request and response, page character set detection
@@ -62,6 +63,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
   - [Dependencies](#dependencies)
   - [Installing from this repository](#installing-from-this-repository)
   - [Running as a standalone utility](#running-as-a-standalone-utility)
+  - [Shell completion](#shell-completion)
   - [Installing with a package manager](#installing-with-a-package-manager)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
@@ -107,6 +109,8 @@ You may need to use `sudo` with `PREFIX` depending on your permissions on destin
 `buku` is a standalone utility. From the containing directory, run:
 
     $ ./buku
+## Shell completion
+Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
 ## Installing with a package manager
 `buku` is also available on
  - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux
