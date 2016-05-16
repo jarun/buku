@@ -46,7 +46,6 @@ except ImportError:
     no_crypto = True
 
 
-
 # Globals
 update = False          # Update a bookmark in DB
 titleData = None        # Title fetched from a page
@@ -90,7 +89,6 @@ class BMHTMLParser(HTMLParser.HTMLParser):
         pass
 
 
-
 def getDataPath():
     """Determine the DB file path:
     if $XDG_DATA_HOME is defined, use it
@@ -106,7 +104,6 @@ def getDataPath():
             data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
 
     return os.path.join(data_home, 'buku')
-
 
 
 def moveOldDatabase():
@@ -134,7 +131,6 @@ def moveOldDatabase():
     print("Database was moved from old (%s) to new (%s) location.\n" % (olddbfile, newdbfile))
 
     os.rmdir(olddbpath)
-
 
 
 def initdb():
@@ -174,7 +170,6 @@ def initdb():
         sys.exit(1)
 
     return (conn, cur)
-
 
 
 def getPageResp(url, fullurl=False):
@@ -230,7 +225,6 @@ def getPageResp(url, fullurl=False):
     return (urlconn, urlconn.getresponse())
 
 
-
 def getTitleData(resp):
     """Invoke HTML parser and extract title from HTTP response
 
@@ -265,7 +259,6 @@ def getTitleData(resp):
         if debug and str(e) != "we should not get here!":
             # Suppress Exception due to intentional self.reset() in HTMLParser
             print("\x1b[1mEXCEPTION\x1b[21m [getTitleData]: (%s) %s" % (type(e).__name__, e))
-
 
 
 def fetchTitle(url):
@@ -332,7 +325,6 @@ def fetchTitle(url):
         return titleData.strip().replace("\n","")
 
 
-
 def isBookmarkAdded(cur, url):
     """Check if URL already exists in DB
 
@@ -346,7 +338,6 @@ def isBookmarkAdded(cur, url):
         return -1
 
     return resultset[0][0]
-
 
 
 def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
@@ -426,7 +417,6 @@ def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
             print("URL already exists")
 
 
-
 def dbRefresh(conn, cur, index):
     """Refresh ALL records in the database. Fetch title for each
     bookmark from the web and update the records. Doesn't udpate
@@ -464,7 +454,6 @@ def dbRefresh(conn, cur, index):
             cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
             conn.commit()
             print("Updated index %d\n" % row[0])
-
 
 
 def searchdb(cur, keywords, all_keywords=False):
@@ -537,7 +526,6 @@ def searchdb(cur, keywords, all_keywords=False):
             return
 
 
-
 def compactDB(conn, cur, index):
     """When an entry at index is deleted, move the last
     entry in DB to index, if index is lesser.
@@ -560,7 +548,6 @@ def compactDB(conn, cur, index):
                 cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (index, row[1], row[2], row[3],))
                 conn.commit()
                 print("Index %d moved to %d" % (row[0], index))
-
 
 
 def cleardb(conn, cur, index):
@@ -589,7 +576,6 @@ def cleardb(conn, cur, index):
                 print("No matching index")
         except IndexError:
             print("Index out of bound")
-
 
 
 def printdb(cur, index, empty=False):
@@ -642,8 +628,9 @@ def printdb(cur, index, empty=False):
             print(formatJson(resultset, True))
 
 
-
 def formatJson(resultset, single=False):
+    """Return results in Json format"""
+
     global showOpt
 
     if single == False:
@@ -670,8 +657,8 @@ def formatJson(resultset, single=False):
                 marks['title'] = row[2]
                 marks['tags']  = row[3][1:-1]
 
-
     return json.dumps(marks, sort_keys=True, indent=4)
+
 
 def showUniqueTags(cur):
     """Print all unique tags ordered alphabetically
@@ -696,7 +683,6 @@ def showUniqueTags(cur):
     for tag in Tags:
         print("%6d. %s" % (count, tag))
         count += 1
-
 
 
 def replaceTags(conn, cur, orig, new=None):
@@ -757,7 +743,6 @@ def replaceTags(conn, cur, orig, new=None):
         conn.commit()
 
 
-
 def fetchopen(index):
     """Fetch URL at index and open in browser
 
@@ -774,7 +759,6 @@ def fetchopen(index):
             print("Index out of bound")
 
 
-
 def is_int(string):
     """Check if a string is a digit
 
@@ -786,7 +770,6 @@ def is_int(string):
         return True
     except:
         return False
-
 
 
 def browser_open(url):
@@ -815,7 +798,6 @@ def browser_open(url):
         os.dup2(_stdout, 1)
 
 
-
 def get_filehash(filepath):
     """Get the SHA256 hash of a file
 
@@ -830,7 +812,6 @@ def get_filehash(filepath):
             buf = f.read(BLOCKSIZE)
 
         return hasher.digest()
-
 
 
 def encrypt_file(iterations):
@@ -893,7 +874,6 @@ def encrypt_file(iterations):
     sys.exit(0)
 
 
-
 def decrypt_file(iterations):
     """Decrypt the bookmarks database file"""
 
@@ -950,7 +930,6 @@ def decrypt_file(iterations):
         print("File decrypted")
 
 
-
 def sigint_handler(signum, frame):
     """Custom SIGINT handler"""
 
@@ -960,14 +939,12 @@ def sigint_handler(signum, frame):
 signal.signal(signal.SIGINT, sigint_handler)
 
 
-
 def closequit(conn=None, exitval=0):
     """Close a DB connection and exit"""
 
     if conn is not None:
         conn.close()
     sys.exit(exitval)
-
 
 
 def printmsg(msg, level=None):
@@ -980,7 +957,6 @@ def printmsg(msg, level=None):
         print("\x1b[1m%s:\x1b[21m %s" % (level, msg))
     else:
         print("%s" % msg)
-
 
 
 class customUpdateAction(argparse.Action):
@@ -996,7 +972,6 @@ class customUpdateAction(argparse.Action):
         setattr(args, self.dest, values)
 
 
-
 class customTitleAction(argparse.Action):
     """Class to capture if an optional param
     is actually used, even if sans arguments
@@ -1008,7 +983,6 @@ class customTitleAction(argparse.Action):
         titleManual = ''
         # NOTE: the following converts a None argument to an empty array []
         setattr(args, self.dest, values)
-
 
 
 class ExtendedArgumentParser(argparse.ArgumentParser):
@@ -1032,7 +1006,6 @@ Webpage: https://github.com/jarun/buku
     def print_help(self, file=None):
         super(ExtendedArgumentParser, self).print_help(file)
         self.print_extended_help(file)
-
 
 
 """main starts here"""
