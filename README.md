@@ -30,7 +30,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 - Manual password protection using AES256 encryption
 - Fetch page title from the web (default) or add a custom page title manually
 - Use (partial) tags or keywords to search bookmarks
-- Any or all search keyword match options
+- Any or all search keyword match options, continuous search
 - Unique URLs to avoid duplicates
 - Open search results in browser
 - Open bookmark in browser using index
@@ -174,7 +174,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     prompt keys:
       1-N                  open the Nth search result in web browser
-      Enter                exit buku
+      q, ^D                exit buku
+      *                    any other string initiates a new search
 
 ## Operational notes
 

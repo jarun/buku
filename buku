@@ -461,6 +461,7 @@ def searchdb(cur, keywords, all_keywords=False):
     or title info matching keywords and list those.
 
     Params: cursor, keywords to search, search any or all keywords
+    Returns: result set
     """
 
     global jsonOutput
@@ -487,40 +488,7 @@ def searchdb(cur, keywords, all_keywords=False):
         print("\"%s\", (%s)" % (query, arguments))
 
     cur.execute(query, arguments)
-    results = cur.fetchall()
-    if len(results) == 0:
-        return
-
-    if jsonOutput == False:
-        count = 0
-        for row in results:
-            count += 1
-            print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m        [%d]\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s\n" % (count, row[1], row[0], row[2], row[3][1:-1]))
-
-        if count == 0:
-            return
-
-        while True:
-            try:
-                nav = input("Result number to open: ")
-            except EOFError:
-                return
-
-            if is_int(nav):
-                index = int(nav) - 1
-                if index < 0 or index >= count:
-                    print("Index out of bound")
-                    continue
-
-                try:
-                    browser_open(unquote(results[index][1]))
-                except Exception as e:
-                    print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
-            else:
-                break
-
-    else:
-        print(formatJson(results))
+    return cur.fetchall()
 
 
 def compactDB(conn, cur, index):
@@ -623,6 +591,52 @@ def printdb(cur, index, empty=False):
             print("No matching index")
         else:
             print(formatJson(resultset, True))
+
+
+def showPrompt(conn, results=None):
+    """Show the results, prompt and do the following:
+    Open URL in browser
+    Accept input keywords for new search
+
+    Params: connection, results to show
+    Returns: new input
+    """
+
+    count = 0
+    if results is not None:
+        for row in results:
+            count += 1
+            print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m        [%d]\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s\n" % (count, row[1], row[0], row[2], row[3][1:-1]))
+    else:
+        while True:
+            try:
+                nav = input("Search keywords: ").strip()
+                nav = nav.strip('\'\"')
+                if len(nav) > 0:
+                    return nav
+            except EOFError:
+                closequit(conn, 1)
+
+    while True:
+        try:
+            nav = input("Result number to open or search keywords: ").strip()
+            nav = nav.strip('\'\"')
+        except EOFError:
+            closequit(conn, 1)
+
+        if is_int(nav):
+            index = int(nav) - 1
+            if index >= 0 and index < count:
+                try:
+                    browser_open(unquote(results[index][1]))
+                    continue
+                except Exception as e:
+                    print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
+                    closequit(conn, 1)
+        elif len(nav) == 0:
+            continue
+
+        return nav
 
 
 def formatJson(resultset, single=False):
@@ -991,7 +1005,8 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
         file.write('''
 prompt keys:
   1-N                  open the Nth search result in web browser
-  Enter                exit buku
+  q, ^D                exit buku
+  *                    any other string initiates a new search
 
 Version %.1f
 Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
@@ -1166,11 +1181,55 @@ if args.delete is not None:
         closequit(conn, 1)
     cleardb(conn, cur, args.delete)
 
-# Search URLs, titles, tags for any keyword
-if args.sany is not None:
-    searchdb(cur, args.sany)
+# ANY and ALL search are mutually exclusive
+if args.sany is not None and args.sall is not None:
+    printmsg("-s and -S are mutually exclusive options", "ERROR")
+    closequit(conn, 1)
 
-# Search URLs, titles, tags with all keywords
+# Search URLs, titles, tags for any keyword
+if args.sany is not None or args.sall is not None:
+    if args.sany is not None:
+        terms = args.sany
+        all_keywords = False
+    else:
+        terms = args.sall
+        all_keywords = True
+    while True:
+        if all_keywords and len(terms) == 1:
+            special = False
+
+            if terms[0] == 'tags':
+                showUniqueTags(cur)
+                special = True
+            elif terms[0] == 'blank':
+                printdb(cur, 0, True)
+                special = True
+
+            if special == True:
+                newterms = showPrompt(conn, None)
+                if newterms == "q":
+                    closequit(conn)
+
+                terms = newterms.split() # TODO: support precise tag search with comma
+                continue
+
+        results = searchdb(cur, terms, all_keywords)
+        if jsonOutput:
+            print(formatJson(results))
+            break
+
+        if len(results) == 0:
+            print("No matches")
+            newterms = showPrompt(conn, None)
+        else:
+            newterms = showPrompt(conn, results)
+
+        if newterms == "q":
+            closequit(conn)
+
+        terms = newterms.split()
+
+"""# Search URLs, titles, tags with all keywords
 if args.sall is not None:
     if args.sall[0] == 'tags' and len(args.sall) == 1:
         showUniqueTags(cur)
@@ -1178,6 +1237,7 @@ if args.sall is not None:
         printdb(cur, 0, True)
     else:
         searchdb(cur, args.sall, True)
+"""
 
 # Update record
 if update == True:
