@@ -486,13 +486,14 @@ def searchdb(cur, keywords, all_keywords=False):
     if debug:
         print("\"%s\", (%s)" % (query, arguments))
 
-    count = 0
-    results = []
-    resultset = cur.execute(query, arguments)
+    cur.execute(query, arguments)
+    results = cur.fetchall()
+    if len(results) == 0:
+        return
 
     if jsonOutput == False:
-        for row in resultset:
-            results.append(row[1])
+        count = 0
+        for row in results:
             count += 1
             print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m        [%d]\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s\n" % (count, row[1], row[0], row[2], row[3][1:-1]))
 
@@ -512,18 +513,14 @@ def searchdb(cur, keywords, all_keywords=False):
                     continue
 
                 try:
-                    browser_open(unquote(results[int(nav) - 1]))
+                    browser_open(unquote(results[index][1]))
                 except Exception as e:
                     print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
             else:
                 break
 
     else:
-        results = cur.fetchall();
-        if len(results) > 0:
-            print(formatJson(results))
-        else:
-            return
+        print(formatJson(results))
 
 
 def compactDB(conn, cur, index):
