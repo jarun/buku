@@ -25,37 +25,20 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 # Features
 
-- Add, update or remove a bookmark
-- Tag bookmarks
-- Manual password protection using AES256 encryption
+- Add, tag, search, update, remove bookmarks
 - Fetch page title from the web (default) or add a custom page title manually
-- Use (partial) tags or keywords to search bookmarks
-- Any or all search keyword match options, continuous search
-- Unique URLs to avoid duplicates
-- Open search results in browser
-- Open bookmark in browser using index
-- Handle piped input (combine with xsel and add bookmarks directly from browser)
-- Supports HTTP compression
-- Optional Json formatted output
-- Modify or delete tags in DB
-- Show all unique tags sorted alphabetically
-- Show single bookmark by ID or all bookmarks in a go
+- Non-stop search from prompt, open search results in browser
+- Manual password protection using AES256 encryption
+- Handle piped input (combine with `xsel` and add bookmarks directly from browser)
+- Modify or delete tags, list all unique tags alphabetically
 - Refresh all bookmarks online
-- Auto DB compaction on bookmark removal
-- Delete all bookmarks from DB
+- Show single bookmark by ID or all bookmarks in a go
 - Tab-completion scripts for Bash, Fish and Zsh
 - Show all bookmarks with empty titles or no tags (for bookkeeping)
-- Supports Unicode characters in URL
-- UTF-8 request and response, page character set detection
-- Secure parameterized SQLite3 queries to access database
-- Handle multiple HTTP redirections (reports redirected URL, loops, IP blocking)
-- Coloured output for clarity
-- Easily create compatible batch add or update scripts
-- Unformatted selective output (for creating batch update scripts)
-- Manpage with examples for quick reference
+- Coloured output (default), unformatted output, Json output
+- Manpage with examples
 - Fast and clean (no ads or clutter)
 - Minimal dependencies
-- Open source and free
 
 # Table of Contents
 
@@ -194,7 +177,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - `-S` : match all the keywords in URL, title or tags.
   - You can search bookmarks by tag (refer examples).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the URL.
-- When a record is deleted, the last record is moved to the index.
+- Auto DB compaction: when a record is deleted, the last record is moved to the index.
 - Encryption is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
 
 # Examples
