@@ -27,6 +27,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 - Add, tag, search, update, remove bookmarks
 - Fetch page title from the web (default) or add a custom page title manually
+- Add comments (description) to bookmarks
 - Open search results in browser
 - Manual password protection using AES256 encryption
 - Handle piped input (combine with `xsel` and add bookmarks directly from browser)
@@ -122,6 +123,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            title of bookmark at index N from web
       -t, --title [...]    manually set title, works with -a, -u
                            do not set title, if no arguments
+      -c, --comment [...]  description of the bookmark, works with
+                           -a, -u; clears comment, if no arguments
       -d, --delete [N]     delete bookmark at DB index N
                            delete all bookmarks, if no arguments
       -h, --help           show this information
@@ -179,9 +182,9 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 - Encryption is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
 
 # Examples
-1. **Add** a bookmark with **tags** `linux news` and `open source`, **fetch page title** from the web:
+1. **Add** a bookmark with **tags** `linux news` and `open source`, **comment** `Informative website on Linux and open source`, **fetch page title** from the web:
 
-        $ buku -a http://tuxdiary.com linux news, open source
+        $ buku -a http://tuxdiary.com linux news, open source -c Informative website on Linux and open source
         Title: [TuxDiary | Linux, open source and a pinch of leisure.]
         Added at index 15012014
 2. **Add** a bookmark with tags `linux news` and `open source` & **custom title** `Linux magazine`:

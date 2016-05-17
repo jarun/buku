@@ -5,7 +5,7 @@ buku \- A private command-line bookmark manager. Your mini web!
 .B buku
 [-a URL [tags ...]] [-u [N [URL tags ...]]]
 .br
-     [-t [...]] [-d [N]] [-h]
+     [-t [...]] [-c [...]] [-d [N]] [-h]
 .br
      [-s keyword [...]] [-S keyword [...]]
 .br
@@ -60,7 +60,10 @@ is refreshed from the web. If
 is omitted, all titles are refreshed from the web.
 .TP
 .BI \-t " " \--title " [...]"
-Manually specify the title, works with -a, -i, -u. `-m none` clears title.
+Manually specify the title, works with -a, -u. Omits or clears the title, if no arguments passed.
+.TP
+.BI \-c " " \--comment " [...]"
+Add comment or description on the bookmark, works with -a, -u. Clears the comment, if no arguments passed.
 .TP
 .BI \-d " " \--delete " [N]"
 Delete bookmark at index
@@ -151,11 +154,11 @@ Overrides the default browser. Ref:
 .SH EXAMPLES
 .PP
 .IP 1. 4
-\fBAdd\fR a bookmark with \fBtags\fR 'linux news' and 'open source', \fBfetch page title\fR from the web:
+\fBAdd\fR a bookmark with \fBtags\fR 'linux news' and 'open source', \fBcomment\fR 'Informative website on Linux and open source', \fBfetch page title\fR from the web:
 .PP
 .EX
 .IP
-.B buku -a http://tuxdiary.com linux news, open source
+.B buku -a http://tuxdiary.com linux news, open source -c Informative website on Linux and open source
 .PP
 .IP 2. 4
 \fBAdd\fR a bookmark with tags 'linux news' and 'open source' & \fBcustom title\fR 'Linux magazine':

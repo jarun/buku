@@ -50,6 +50,7 @@ except ImportError:
 update = False          # Update a bookmark in DB
 titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
+description = None      # Description of the bookmark
 jsonOutput = False      # Output json formatted result
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
@@ -163,11 +164,18 @@ def initdb():
 
         # Create table if it doesn't exist
         cur.execute('''CREATE TABLE if not exists bookmarks \
-                   (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text, tags text)''')
+                   (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text, tags text, desc text)''')
         conn.commit()
     except Exception as e:
         print("\x1b[1mEXCEPTION\x1b[21m [initdb]: (%s) %s" % (type(e).__name__, e))
         sys.exit(1)
+
+    # Add description column in existing DB (from version 2.1)
+    try:
+        cur.execute("""ALTER TABLE bookmarks ADD COLUMN desc text default \'\'""")
+        conn.commit()
+    except:
+        pass
 
     return (conn, cur)
 
@@ -348,6 +356,7 @@ def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
     """
 
     global titleManual
+    global description
     tags = ','
     meta = ''
     url = keywords[0]
@@ -390,11 +399,14 @@ def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
             print("Title: [%s]" % meta)
 
     if updateindex == 0: # Add or insert a new entry
+        if description is None:
+            description = ''
+
         try:
             if insertindex == 0: # insertindex is index number to insert record at
-                cur.execute('INSERT INTO bookmarks(URL, metadata, tags) VALUES (?, ?, ?)', (url, meta, tags,))
+                cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tags, description))
             else:
-                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (insertindex, url, meta, tags,))
+                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (insertindex, url, meta, tags, description))
             conn.commit()
             print("Added at index %d\n" % cur.lastrowid)
             printdb(cur, cur.lastrowid)
@@ -406,7 +418,10 @@ def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
             print("Index %d exists" % insertindex)
     else: # Update an existing entry
         try:
-            cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, updateindex,))
+            if description is None:
+                cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, updateindex,))
+            else:
+                cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ?, desc = ? WHERE id = ?", (url, meta, tags, description, updateindex,))
             conn.commit()
             if cur.rowcount == 1:
                 print("Updated index %d\n" % updateindex)
@@ -466,18 +481,20 @@ def searchdb(cur, keywords, all_keywords=False):
     global jsonOutput
     arguments = []
     placeholder = "'%' || ? || '%'"
-    query = "SELECT id, url, metadata, tags FROM bookmarks WHERE"
+    query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE"
 
     if all_keywords == True: # Match all keywords in URL or Title
         for token in keywords:
-            query += " (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s)) AND" % (placeholder, placeholder, placeholder)
+            query += " (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s)) AND" % (placeholder, placeholder, placeholder, placeholder)
+            arguments.append(token)
             arguments.append(token)
             arguments.append(token)
             arguments.append(token)
         query = query[:-4]
     else: # Match any keyword in URL or Title
         for token in keywords:
-            query += " tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR" % (placeholder, placeholder, placeholder)
+            query += " tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s) OR" % (placeholder, placeholder, placeholder, placeholder)
+            arguments.append(token)
             arguments.append(token)
             arguments.append(token)
             arguments.append(token)
@@ -495,7 +512,7 @@ def searchdb(cur, keywords, all_keywords=False):
         count = 0
         for row in results:
             count += 1
-            print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m        [%d]\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s\n" % (count, row[1], row[0], row[2], row[3][1:-1]))
+            printRecord(row, count)
 
         if count == 0:
             return
@@ -537,12 +554,12 @@ def compactDB(conn, cur, index):
     results = cur.fetchall()
     for row in results:
         if row[0] > index:
-            cur.execute('SELECT id, URL, metadata, tags FROM bookmarks WHERE id = ?', (row[0],))
+            cur.execute('SELECT id, URL, metadata, tags, desc FROM bookmarks WHERE id = ?', (row[0],))
             results = cur.fetchall()
             for row in results:
                 cur.execute('DELETE FROM bookmarks WHERE id = ?', (row[0],))
                 conn.commit()
-                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags) VALUES (?, ?, ?, ?)', (index, row[1], row[2], row[3],))
+                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (index, row[1], row[2], row[3], row[4],))
                 conn.commit()
                 print("Index %d moved to %d" % (row[0], index))
 
@@ -575,6 +592,35 @@ def cleardb(conn, cur, index):
             print("Index out of bound")
 
 
+def printRecord(row, count=0):
+    """Print a single DB record
+    Handles differently for search and print (count = 0)
+    """
+
+    # Print index and URL
+    if count != 0:
+        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\t[%d]" % (count, row[1], row[0]))
+    else:
+        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m" % (row[0], row[1]))
+
+    # Print title
+    if row[2] != '':
+        print("      %s" % row[2])
+
+    print("")
+
+    # Print description
+    if row[4] != '':
+        print("      %s" % row[4])
+        #print("\t\x1B[91m[DESC]\x1B[0m %s" % row[4])
+
+    # Print tags
+    if row[3] != ',':
+        print("      \x1B[91m[TAGS]\x1B[0m %s" % row[3][1:-1])
+
+    print("")
+
+
 def printdb(cur, index, empty=False):
     """Print bookmark details at index or all bookmarks if index is None
     Print only bookmarks with blank title or tag if empty is True
@@ -599,7 +645,7 @@ def printdb(cur, index, empty=False):
         if jsonOutput == False:
             if showOpt == 0:
                 for row in resultset:
-                    print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s\n" % (row[0], row[1], row[2], row[3][1:-1]))
+                    printRecord(row)
             elif showOpt == 1:
                 for row in resultset:
                     print("%s %s" % (row[0], row[1]))
@@ -618,7 +664,7 @@ def printdb(cur, index, empty=False):
 
         if jsonOutput == False:
             for row in resultset:
-                print("\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\n\t%s\n\t\x1B[91m[TAGS]\x1B[0m %s" % (row[0], row[1], row[2], row[3][1:-1]))
+                printRecord(row)
                 return
             print("No matching index")
         else:
@@ -982,6 +1028,19 @@ class customTitleAction(argparse.Action):
         setattr(args, self.dest, values)
 
 
+class customDescAction(argparse.Action):
+    """Class to capture if an optional param
+    is actually used, even if sans arguments
+    """
+
+    def __call__(self, parser, args, values, option_string=None):
+        global description
+
+        description = ''
+        # NOTE: the following converts a None argument to an empty array []
+        setattr(args, self.dest, values)
+
+
 class ExtendedArgumentParser(argparse.ArgumentParser):
     """Extend classic argument parser"""
 
@@ -1029,7 +1088,7 @@ argparser = ExtendedArgumentParser(
     description='A private command-line bookmark manager. Your mini web!',
     formatter_class=argparse.RawTextHelpFormatter,
     usage='''buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
-            [-t [...]] [-d [N]] [-h]
+            [-t [...]] [-c [...]] [-d [N]] [-h]
             [-s keyword [...]] [-S keyword [...]]
             [-k [N]] [-l [N]] [-p [N]] [-f N]
             [-r oldtag [newtag ...]] [-j] [-o N] [-z]''',
@@ -1047,12 +1106,15 @@ general_group = argparser.add_argument_group(title="general options",
                      title of bookmark at index N from web
 -t, --title [...]    manually set title, works with -a, -u
                      do not set title, if no arguments
+-c, --comment [...]  description of the bookmark, works with
+                     -a, -u; clears comment, if no arguments
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
 -h, --help           show this information''')
 general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
 general_group.add_argument('-u', '--update', nargs='*', dest='update', action=customUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
 general_group.add_argument('-t', '--title', nargs='*', dest='title', action=customTitleAction, metavar='title', help=argparse.SUPPRESS)
+general_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=customDescAction, metavar='desc', help=argparse.SUPPRESS)
 general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
 general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
@@ -1121,6 +1183,8 @@ if args.showOpt is not None:
     showOpt = args.showOpt
 if titleManual is not None and len(args.title) > 0:
     titleManual = " ".join(args.title)
+if description is not None and len(args.desc) > 0:
+    description = " ".join(args.desc)
 if args.jsonOutput:
     import json
     jsonOutput = args.jsonOutput
