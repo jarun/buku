@@ -40,7 +40,7 @@ Search works in mysterious ways:
   - You can search bookmarks by tag (refer examples).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within '[]' after the URL.
 .PP
-When a record is deleted, the last record is moved to the index.
+Auto DB compaction: when a record is deleted, the last record is moved to the index.
 .PP
 Encryption is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is unencrypted on creation.
 .SH GENERAL OPTIONS
