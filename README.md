@@ -32,12 +32,10 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 - Handle piped input (combine with `xsel` and add bookmarks directly from browser)
 - Modify or delete tags, list all unique tags alphabetically
 - Refresh all bookmarks online
-- Show single bookmark by ID or all bookmarks in a go
 - Tab-completion scripts for Bash, Fish and Zsh
-- Show all bookmarks with empty titles or no tags (for bookkeeping)
-- Coloured output (default), unformatted output, Json output
 - Manpage with examples
-- Fast and clean (no ads or clutter)
+- Several options for power users (refer help or manpage)
+- Fast and clean interface
 - Minimal dependencies
 
 # Table of Contents
