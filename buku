@@ -605,18 +605,15 @@ def printRecord(row, count=0):
 
     # Print title
     if row[2] != '':
-        print("      %s" % row[2])
-
-    print("")
+        print("   \x1B[91m>\x1B[0m %s" % row[2])
 
     # Print description
     if row[4] != '':
-        print("      %s" % row[4])
-        #print("\t\x1B[91m[DESC]\x1B[0m %s" % row[4])
+        print("   \x1B[91m+\x1B[0m %s" % row[4])
 
     # Print tags
     if row[3] != ',':
-        print("      \x1B[91m[TAGS]\x1B[0m %s" % row[3][1:-1])
+        print("   \x1B[91m#\x1B[0m %s" % row[3][1:-1])
 
     print("")
 
