@@ -27,7 +27,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 - Add, tag, search, update, remove bookmarks
 - Fetch page title from the web (default) or add a custom page title manually
-- Non-stop search from prompt, open search results in browser
+- Open search results in browser
 - Manual password protection using AES256 encryption
 - Handle piped input (combine with `xsel` and add bookmarks directly from browser)
 - Modify or delete tags, list all unique tags alphabetically
