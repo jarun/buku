@@ -106,8 +106,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
     usage: buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
-                [-t [...]] [-d [N]] [-h]
-                [-s keyword [...]] [-S keyword [...]]
+                [-t [...]] [-c [...]] [-d [N]] [-h]
+                [-s keyword [...]] [-S keyword [...]] [--st keyword [...]]
                 [-k [N]] [-l [N]] [-p [N]] [-f N]
                 [-r oldtag [newtag ...]] [-j] [-o N] [-z]
 
@@ -137,6 +137,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            special keywords -
                            "tags" : list all tags alphabetically
                            "blank": list entries with empty title/tag
+      --st, --stag keyword [...]
+                           search bookmarks by tag
 
     encryption options:
       -l, --lock [N]       encrypt DB file with N (> 0, default 8)
@@ -176,6 +178,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
   - `-s` : match any of the keywords in URL, title or tags.
   - `-S` : match all the keywords in URL, title or tags.
+  - `--st` : search bookmarks by tag.
   - You can search bookmarks by tag (see [examples](#examples)).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the URL.
 - Auto DB compaction: when a record is deleted, the last record is moved to the index.
@@ -222,7 +225,7 @@ The last index is moved to the deleted index to keep the DB compact.
 
 10. **Search** bookmarks with **tag** `general kernel concepts`:
 
-        $ buku -S ',general kernel concepts,'
+        $ buku --st general kernel concepts
 Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
 11. List **all unique tags** alphabetically:
 

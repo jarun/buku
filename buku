@@ -1105,7 +1105,7 @@ argparser = ExtendedArgumentParser(
     formatter_class=argparse.RawTextHelpFormatter,
     usage='''buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
             [-t [...]] [-c [...]] [-d [N]] [-h]
-            [-s keyword [...]] [-S keyword [...]]
+            [-s keyword [...]] [-S keyword [...]] [--st keyword [...]]
             [-k [N]] [-l [N]] [-p [N]] [-f N]
             [-r oldtag [newtag ...]] [-j] [-o N] [-z]''',
     add_help=False
@@ -1143,7 +1143,8 @@ search_group=argparser.add_argument_group(title="search options",
                      special keywords -
                      "tags" : list all tags alphabetically
                      "blank": list entries with empty title/tag
---st --stag tag      search bookmarks by tag''')
+--st, --stag keyword [...]
+                     search bookmarks by tag''')
 search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
 search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
 search_group.add_argument('--st', '--stag', nargs='+', dest='stag', metavar='keyword', help=argparse.SUPPRESS)

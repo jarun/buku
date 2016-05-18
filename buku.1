@@ -7,7 +7,7 @@ buku \- A private command-line bookmark manager. Your mini web!
 .br
      [-t [...]] [-c [...]] [-d [N]] [-h]
 .br
-     [-s keyword [...]] [-S keyword [...]]
+     [-s keyword [...]] [-S keyword [...]] [--st keyword [...]]
 .br
      [-k [N]] [-l [N]] [-p [N]] [-f N]
 .br
@@ -37,6 +37,7 @@ Search works in mysterious ways:
   - Substrings match ('match' matches 'rematched') for URL, title and tags.
   - -s : match any of the keywords in URL, title or tags.
   - -S : match all the keywords in URL, title or tags.
+  - --st : search bookmarks by tag.
   - You can search bookmarks by tag (see examples below).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within '[]' after the URL.
 .PP
@@ -87,6 +88,9 @@ Special keywords:
 "tags" : list all tags alphabetically
 .br
 "blank": list entries with empty title/tag
+.TP
+.BI \--st " " \--stag " keyword [...]"
+Search bookmarks by tag.
 .SH ENCRYPTION OPTIONS
 .TP
 .BI \-l " " \--lock " [N]"
@@ -237,7 +241,7 @@ The last index is moved to the deleted index to keep the DB compact.
 .PP
 .EX
 .IP
-.B buku -S ',general kernel concepts,'
+.B buku --st general kernel concepts
 .EE
 .PP
 .IP "" 4
