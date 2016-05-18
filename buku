@@ -535,7 +535,6 @@ def searchdb(cur, keywords, all_keywords=False):
                     print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
             else:
                 break
-
     else:
         print(formatJson(results))
 

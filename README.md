@@ -34,8 +34,8 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 - Modify or delete tags, list all unique tags alphabetically
 - Refresh all bookmarks online
 - Tab-completion scripts for Bash, Fish and Zsh
-- Manpage with examples
-- Several options for power users (refer help or manpage)
+- Man page with examples
+- Several options for power users (see help or man page)
 - Fast and clean interface
 - Minimal dependencies
 
@@ -103,7 +103,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 ## Cmdline options
 
-**NOTE:** If you are using `buku` v1.9 or below please refer the installed manpage or program help.
+**NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
     usage: buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
                 [-t [...]] [-d [N]] [-h]
@@ -176,7 +176,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
   - `-s` : match any of the keywords in URL, title or tags.
   - `-S` : match all the keywords in URL, title or tags.
-  - You can search bookmarks by tag (refer examples).
+  - You can search bookmarks by tag (see [examples](#examples)).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the URL.
 - Auto DB compaction: when a record is deleted, the last record is moved to the index.
 - Encryption is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
