@@ -159,8 +159,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     prompt keys:
       1-N                  open the Nth search result in web browser
-      q, ^D                exit buku
-      *                    any other string initiates a new search
+      Enter                exit buku
 
 ## Operational notes
 
