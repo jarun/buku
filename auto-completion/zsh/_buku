@@ -10,6 +10,7 @@ setopt localoptions noshwordsplit noksharrays
 local -a args
 args=(
     '(-a --add)'{-a,--add}'[add bookmark]:URL tags'
+    '(-c --comment)'{-c,--comment}'[comment on bookmark]'
     '(-d --delete)'{-d,--delete}'[delete bookmark]'
     '(-h --help)'{-h,--help}'[show help]'
     '(-k --unlock)'{-k,--unlock}'[decrypt database]'

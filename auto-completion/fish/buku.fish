@@ -4,7 +4,8 @@
 # Author:
 #   Arun Prakash Jana <engineerarun@gmail.com>
 #
-complete -c buku -s a -l add    -r  --description 'add bookmark'
+complete -c buku -s a -l add     -r --description 'add bookmark'
+complete -c buku -s c -l comment    --description 'comment on bookmark'
 complete -c buku -s d -l delete     --description 'delete bookmark'
 complete -c buku -s h -l help       --description 'show help'
 complete -c buku -s k -l unlock     --description 'decrypt database'

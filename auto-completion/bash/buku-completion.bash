@@ -10,7 +10,7 @@ _buku () {
     local IFS=$' \n'
     local cur=$2 prev=$3
     local -a opts opts_with_args
-    opts=(-a --add -d --delete -h --help -k --unlock -l --lock -o --open
+    opts=(-a --add -c --comment -d --delete -h --help -k --unlock -l --lock -o --open
           -p --print -r --replace -s --sany -S --sall -t --title -u --update)
     opts_with_arg=(-a --add -o --open -r --replace -s --sany -S --sall)
 
