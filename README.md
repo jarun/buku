@@ -153,7 +153,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -r, --replace oldtag [newtag ...]
                            replace oldtag with newtag in all bookmarks
                            delete oldtag, if no newtag
-      -j, --json           Json formatted output, works with -p, -s
+      -j, --json           Json formatted output, for -p, -s, -S, --st
       -o, --open N         open bookmark at DB index N in web browser
       -z, --debug          show debug information and additional logs
 

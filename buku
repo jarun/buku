@@ -701,7 +701,7 @@ def formatJson(resultset, single=False):
             elif showOpt == 2:
                 record = { 'url': row[1], 'tags': row[3][1:-1] }
             else:
-                record = { 'url': row[1], 'title': row[2], 'tags': row[3][1:-1]}
+                record = { 'url': row[1], 'title': row[2], 'comment': row[4], 'tags': row[3][1:-1]}
 
             marks.append(record)
     else:
@@ -715,6 +715,7 @@ def formatJson(resultset, single=False):
             else:
                 marks['url']   = row[1]
                 marks['title'] = row[2]
+                marks['comment'] = row[4]
                 marks['tags']  = row[3][1:-1]
 
     return json.dumps(marks, sort_keys=True, indent=4)
@@ -1177,7 +1178,7 @@ power_group=argparser.add_argument_group(title="power toys",
 -r, --replace oldtag [newtag ...]
                      replace oldtag with newtag in all bookmarks
                      delete oldtag, if no newtag
--j, --json           Json formatted output, works with -p, -s
+-j, --json           Json formatted output, for -p, -s, -S, --st
 -o, --open N         open bookmark at DB index N in web browser
 -z, --debug          show debug information and additional logs''')
 power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
