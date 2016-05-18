@@ -7,7 +7,7 @@ buku \- A private command-line bookmark manager. Your mini web!
 .br
      [-t [...]] [-c [...]] [-d [N]] [-h]
 .br
-     [-s keyword [...]] [-S keyword [...]] [--st keyword [...]]
+     [-s keyword [...]] [-S keyword [...]] [--st [...]]
 .br
      [-k [N]] [-l [N]] [-p [N]] [-f N]
 .br
@@ -37,7 +37,7 @@ Search works in mysterious ways:
   - Substrings match ('match' matches 'rematched') for URL, title and tags.
   - -s : match any of the keywords in URL, title or tags.
   - -S : match all the keywords in URL, title or tags.
-  - --st : search bookmarks by tag.
+  - --st : search bookmarks by tag, or show all tags alphabetically.
   - You can search bookmarks by tag (see examples below).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within '[]' after the URL.
 .PP
@@ -83,14 +83,12 @@ Search bookmarks for ANY of the keyword(s) in URL, title or tags and show the re
 .BI \-S " " \--sall " keyword [...]"
 Search bookmarks with ALL keywords in URL, title or tags and show the results. Behaviour same as -s.
 .br
-Special keywords:
-.br
-"tags" : list all tags alphabetically
+Special keyword:
 .br
 "blank": list entries with empty title/tag
 .TP
-.BI \--st " " \--stag " keyword [...]"
-Search bookmarks by tag.
+.BI \--st " " \--stag " [...]"
+Search bookmarks by tag. List all tags alphabetically, if no arguments.
 .SH ENCRYPTION OPTIONS
 .TP
 .BI \-l " " \--lock " [N]"
@@ -252,7 +250,7 @@ List \fBall unique tags\fR alphabetically:
 .PP
 .EX
 .IP
-.B buku -S tags
+.B buku --st
 .PP
 .IP 12. 4
 \fBEncrypt or decrypt\fR DB with \fBcustom number of iterations\fR (15) to generate key:

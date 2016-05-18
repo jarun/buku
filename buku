@@ -48,6 +48,7 @@ except ImportError:
 
 # Globals
 update = False          # Update a bookmark in DB
+tagsearch = False       # Search bookmarks by tag
 titleData = None        # Title fetched from a page
 titleManual = None      # Manually add a title offline
 description = None      # Description of the bookmark
@@ -1019,7 +1020,7 @@ def printmsg(msg, level=None):
 
 
 class customUpdateAction(argparse.Action):
-    """Class to capture if an optional param
+    """Class to capture if optional param 'update'
     is actually used, even if sans arguments
     """
 
@@ -1031,8 +1032,20 @@ class customUpdateAction(argparse.Action):
         setattr(args, self.dest, values)
 
 
+class customTagSearchAction(argparse.Action):
+    """Class to capture if optional param 'stag'
+    is actually used, even if sans arguments
+    """
+
+    def __call__(self, parser, args, values, option_string=None):
+        global tagsearch
+
+        tagsearch = True
+        setattr(args, self.dest, values)
+
+
 class customTitleAction(argparse.Action):
-    """Class to capture if an optional param
+    """Class to capture if optional param 'title'
     is actually used, even if sans arguments
     """
 
@@ -1040,12 +1053,11 @@ class customTitleAction(argparse.Action):
         global titleManual
 
         titleManual = ''
-        # NOTE: the following converts a None argument to an empty array []
         setattr(args, self.dest, values)
 
 
 class customDescAction(argparse.Action):
-    """Class to capture if an optional param
+    """Class to capture if optional param 'comment'
     is actually used, even if sans arguments
     """
 
@@ -1053,7 +1065,6 @@ class customDescAction(argparse.Action):
         global description
 
         description = ''
-        # NOTE: the following converts a None argument to an empty array []
         setattr(args, self.dest, values)
 
 
@@ -1105,7 +1116,7 @@ argparser = ExtendedArgumentParser(
     formatter_class=argparse.RawTextHelpFormatter,
     usage='''buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
             [-t [...]] [-c [...]] [-d [N]] [-h]
-            [-s keyword [...]] [-S keyword [...]] [--st keyword [...]]
+            [-s keyword [...]] [-S keyword [...]] [--st [...]]
             [-k [N]] [-l [N]] [-p [N]] [-f N]
             [-r oldtag [newtag ...]] [-j] [-o N] [-z]''',
     add_help=False
@@ -1140,14 +1151,13 @@ search_group=argparser.add_argument_group(title="search options",
                      search bookmarks for ANY matching keyword
 -S, --sall keyword [...]
                      search bookmarks with ALL keywords
-                     special keywords -
-                     "tags" : list all tags alphabetically
+                     special keyword -
                      "blank": list entries with empty title/tag
---st, --stag keyword [...]
-                     search bookmarks by tag''')
+--st, --stag [...]   search bookmarks by tag
+                     list all tags alphabetically, if no arguments''')
 search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
 search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
-search_group.add_argument('--st', '--stag', nargs='+', dest='stag', metavar='keyword', help=argparse.SUPPRESS)
+search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=customTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
 
 # Encryption options
 crypto_group=argparser.add_argument_group(title="encryption options",
@@ -1255,17 +1265,18 @@ if args.sany is not None:
 
 # Search URLs, titles, tags with all keywords
 if args.sall is not None:
-    if args.sall[0] == 'tags' and len(args.sall) == 1:
-        showUniqueTags(cur)
-    elif args.sall[0] == 'blank' and len(args.sall) == 1:
+    if args.sall[0] == 'blank' and len(args.sall) == 1:
         printdb(cur, 0, True)
     else:
         searchdb(cur, args.sall, True)
 
 # Search bookmarks by tag
-if args.stag is not None:
-    tag = ',' + " ".join(args.stag) + ','
-    searchTag(cur, tag)
+if tagsearch == True:
+    if len(args.stag) > 0:
+        tag = ',' + " ".join(args.stag) + ','
+        searchTag(cur, tag)
+    else:
+        showUniqueTags(cur)
 
 # Update record
 if update == True:

@@ -107,7 +107,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     usage: buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
                 [-t [...]] [-c [...]] [-d [N]] [-h]
-                [-s keyword [...]] [-S keyword [...]] [--st keyword [...]]
+                [-s keyword [...]] [-S keyword [...]] [--st [...]]
                 [-k [N]] [-l [N]] [-p [N]] [-f N]
                 [-r oldtag [newtag ...]] [-j] [-o N] [-z]
 
@@ -134,11 +134,10 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            search bookmarks for ANY matching keyword
       -S, --sall keyword [...]
                            search bookmarks with ALL keywords
-                           special keywords -
-                           "tags" : list all tags alphabetically
+                           special keyword -
                            "blank": list entries with empty title/tag
-      --st, --stag keyword [...]
-                           search bookmarks by tag
+      --st, --stag [...]   search bookmarks by tag
+                           list all tags alphabetically, if no arguments
 
     encryption options:
       -l, --lock [N]       encrypt DB file with N (> 0, default 8)
@@ -178,7 +177,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
   - `-s` : match any of the keywords in URL, title or tags.
   - `-S` : match all the keywords in URL, title or tags.
-  - `--st` : search bookmarks by tag.
+  - `--st` : search bookmarks by tag, or show all tags alphabetically.
   - You can search bookmarks by tag (see [examples](#examples)).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the URL.
 - Auto DB compaction: when a record is deleted, the last record is moved to the index.
@@ -229,7 +228,7 @@ The last index is moved to the deleted index to keep the DB compact.
 Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
 11. List **all unique tags** alphabetically:
 
-        $ buku -S tags
+        $ buku --st
 12. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
