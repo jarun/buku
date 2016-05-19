@@ -1015,7 +1015,7 @@ def printmsg(msg, level=None):
     """
 
     if level is not None:
-        print("\x1b[1m%s:\x1b[21m %s" % (level, msg))
+        print("\x1b[1m%s: \x1b[21m%s\x1B[0m" % (level, msg))
     else:
         print("%s" % msg)
 
