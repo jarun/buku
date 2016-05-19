@@ -638,10 +638,10 @@ def compactDB(conn, cur, index):
     """
 
     cur.execute('SELECT MAX(id) from bookmarks')
-    if cur.rowcount < 1:
+    results = cur.fetchall()
+    if len(results) == 1 and results[0][0] is None: # Return if the last index was just deleted
         return
 
-    results = cur.fetchall()
     for row in results:
         if row[0] > index:
             cur.execute('SELECT id, URL, metadata, tags, desc FROM bookmarks WHERE id = ?', (row[0],))
