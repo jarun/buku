@@ -746,7 +746,7 @@ def showUniqueTags(cur):
         count += 1
 
 
-def replaceTags(conn, cur, orig, new=None):
+def replaceTag(conn, cur, orig, new=None):
     """Replace orig tags with new tags in DB for all records.
     Remove orig tag is new tag is empty.
 
@@ -755,13 +755,12 @@ def replaceTags(conn, cur, orig, new=None):
 
     update = False
     delete = False
+    newtags = ','
 
     orig = ',' + orig + ','
     if new is None:
-        newtags = ','
         delete = True
     else:
-        newtags = ','
         for tag in new:
             if tag[-1] == ',':
                 tag = tag.strip(',') + ','      # if delimiter is present, maintain it
@@ -1304,9 +1303,9 @@ if args.printindex is not None:
 # Replace a tag in DB
 if args.replace is not None:
     if len(args.replace) == 1:
-        replaceTags(conn, cur, args.replace[0])
+        replaceTag(conn, cur, args.replace[0])
     else:
-        replaceTags(conn, cur, args.replace[0], args.replace[1:])
+        replaceTag(conn, cur, args.replace[0], args.replace[1:])
 
 # Open URL in browser
 if args.openurl is not None:
