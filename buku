@@ -355,15 +355,21 @@ def getTags(keywords=[]):
     # TODO: Simplify this logic
 
     tags = ','
+    origTags = []
+    uniqueTags = []
 
     # Cleanse and get the tags
     for tag in keywords:
-        if tag[-1] == ',':
-            tag = tag.strip(',') + ','      # if delimiter is present, maintain it
-        else:
-            tag = tag.strip(',')            # a token in a multi-word tag
+        if tag[0] == ',':                   # delimiter precedes token (e.g. token1 ,token2)
+            if tags[-1] != ',':
+                tags += ','
 
-        if tag == ',':
+        if tag[-1] == ',':                  # if delimiter is present, maintain it (e.g. token1, token2)
+            tag = tag.strip(',') + ','
+        else:                               # a token in a multi-word tag (e.g. token1 token2)
+            tag = tag.strip(',')
+
+        if tag == ',':                      # isolated delimiter (e.g. token1 , token2)
             if tags[-1] != ',':
                 tags += tag
             continue
@@ -376,7 +382,15 @@ def getTags(keywords=[]):
     if tags[-1] != ',':
         tags += ','
 
-    return tags
+    origTags.extend(tags.strip(',').split(','))
+    for tag in origTags:
+        if tag not in uniqueTags:
+            uniqueTags.append(tag)          # Select unique tags
+
+    # Sort the tags
+    sortedTags = sorted(uniqueTags, key=str.lower)
+
+    return ',' + ','.join(sortedTags) + ','
 
 
 def AddInsertEntry(conn, cur, keywords, insertindex=0):
