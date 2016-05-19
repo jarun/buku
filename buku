@@ -48,10 +48,11 @@ except ImportError:
 
 # Globals
 update = False          # Update a bookmark in DB
-tagsearch = False       # Search bookmarks by tag
-titleData = None        # Title fetched from a page
+tagManual = None        # Tags for update command
 titleManual = None      # Manually add a title offline
 description = None      # Description of the bookmark
+tagsearch = False       # Search bookmarks by tag
+titleData = None        # Title fetched from a page
 jsonOutput = False      # Output json formatted result
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
@@ -165,7 +166,7 @@ def initdb():
 
         # Create table if it doesn't exist
         cur.execute('''CREATE TABLE if not exists bookmarks \
-                   (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text, tags text, desc text)''')
+                   (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text default \'\', tags text default \',\', desc text default \'\')''')
         conn.commit()
     except Exception as e:
         print("\x1b[1mEXCEPTION\x1b[21m [initdb]: (%s) %s" % (type(e).__name__, e))
@@ -349,7 +350,90 @@ def isBookmarkAdded(cur, url):
     return resultset[0][0]
 
 
-def AddUpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
+def getTags(keywords=[]):
+    """Format and get tag string from tokens"""
+    # TODO: Simplify this logic
+
+    tags = ','
+
+    # Cleanse and get the tags
+    for tag in keywords:
+        if tag[-1] == ',':
+            tag = tag.strip(',') + ','      # if delimiter is present, maintain it
+        else:
+            tag = tag.strip(',')            # a token in a multi-word tag
+
+        if tag == ',':
+            if tags[-1] != ',':
+                tags += tag
+            continue
+
+        if tags[-1] == ',':
+            tags += tag
+        else:
+            tags += ' ' + tag
+
+    if tags[-1] != ',':
+        tags += ','
+
+    return tags
+
+
+def AddInsertEntry(conn, cur, keywords, insertindex=0):
+    """Add a new bookmark or insert a
+    new record at insertindex (if empty)
+
+    Params: connection, cursor, keywords, index to update, index to insert at
+    """
+
+    global titleManual
+    global description
+    tags = ','
+    meta = ''
+    url = keywords[0]
+
+    # Ensure that the URL does not exist in DB already
+    id = isBookmarkAdded(cur, url)
+    if id != -1:
+        print("URL already exists at index %d" % id)
+        return
+
+    if tagManual is not None and tagManual[0] != ',':
+        keywords = keywords + [','] + tagManual
+
+    if len(keywords) > 1:
+        tags = getTags(keywords[1:])
+
+    if titleManual is not None:
+        meta = titleManual
+    else:
+        meta = fetchTitle(url)
+        if meta == '':
+            print("\x1B[91mTitle: []\x1B[0m")
+        else:
+            print("Title: [%s]" % meta)
+
+    if description is None:
+        description = ''
+
+    try:
+        if insertindex == 0: # insertindex is index number to insert record at
+            cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tags, description))
+        else:
+            cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (insertindex, url, meta, tags, description))
+        conn.commit()
+        print("Added at index %d\n" % cur.lastrowid)
+        printdb(cur, cur.lastrowid)
+    except sqlite3.IntegrityError:
+        for row in cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
+            print("URL already exists at index %s" % row[0])
+            return
+
+        # Print error for index existing case
+        print("Index %d exists" % insertindex)
+
+
+def UpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
     """Add a new bookmark or update an existing record at
     updateindex or insert a new record at insertindex (if empty)
 
@@ -1032,15 +1116,15 @@ class customUpdateAction(argparse.Action):
         setattr(args, self.dest, values)
 
 
-class customTagSearchAction(argparse.Action):
-    """Class to capture if optional param 'stag'
+class customTagAction(argparse.Action):
+    """Class to capture if optional param 'tag'
     is actually used, even if sans arguments
     """
 
     def __call__(self, parser, args, values, option_string=None):
-        global tagsearch
+        global tagManual
 
-        tagsearch = True
+        tagManual = [',',]
         setattr(args, self.dest, values)
 
 
@@ -1065,6 +1149,18 @@ class customDescAction(argparse.Action):
         global description
 
         description = ''
+        setattr(args, self.dest, values)
+
+
+class customTagSearchAction(argparse.Action):
+    """Class to capture if optional param 'stag'
+    is actually used, even if sans arguments
+    """
+
+    def __call__(self, parser, args, values, option_string=None):
+        global tagsearch
+
+        tagsearch = True
         setattr(args, self.dest, values)
 
 
@@ -1114,35 +1210,40 @@ if len(pipeargs) > 0:
 argparser = ExtendedArgumentParser(
     description='A private command-line bookmark manager. Your mini web!',
     formatter_class=argparse.RawTextHelpFormatter,
-    usage='''buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
-            [-t [...]] [-c [...]] [-d [N]] [-h]
+    usage='''buku [-a URL [tags ...]] [-u [N]] [-d [N]]
+            [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
             [-s keyword [...]] [-S keyword [...]] [--st [...]]
             [-k [N]] [-l [N]] [-p [N]] [-f N]
-            [-r oldtag [newtag ...]] [-j] [-o N] [-z]''',
+            [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]''',
     add_help=False
 )
 
 # General options
 general_group = argparser.add_argument_group(title="general options",
     description='''-a, --add URL [tags ...]
-                     bookmark URL with comma separated tags
--u, --update [N [URL tags ...]]
+                     bookmark URL with comma-separated tags
+-u, --update [N]
                      update fields of bookmark at DB index N
                      refresh all titles, if no arguments
-                     if URL omitted and -t is unused, update
-                     title of bookmark at index N from web
--t, --title [...]    manually set title, works with -a, -u
-                     do not set title, if no arguments
--c, --comment [...]  description of the bookmark, works with
-                     -a, -u; clears comment, if no arguments
+                     refresh title of bookmark at N, if only
+                     N is specified
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
+--url keyword        specify url, works with -u
+--tag [...]          specify comma-separated tags, works with -u
+                     clears tag, if no arguments
+-t, --title [...]    manually set title, works with -a, -u
+                     do not set or clear title, if no arguments
+-c, --comment [...]  description of the bookmark, works with
+                     -a, -u; clears comment, if no arguments
 -h, --help           show this information''')
 general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
 general_group.add_argument('-u', '--update', nargs='*', dest='update', action=customUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
+general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
+general_group.add_argument('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
+general_group.add_argument('--tag', nargs='*', dest='tag', action=customTagAction, metavar='tag', help=argparse.SUPPRESS)
 general_group.add_argument('-t', '--title', nargs='*', dest='title', action=customTitleAction, metavar='title', help=argparse.SUPPRESS)
 general_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=customDescAction, metavar='desc', help=argparse.SUPPRESS)
-general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
 general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
 # Search options
@@ -1210,6 +1311,8 @@ if args.help == True:
 # Assign the values to globals
 if args.showOpt is not None:
     showOpt = args.showOpt
+if tagManual is not None and len(args.tag) > 0:
+    tagManual = args.tag
 if titleManual is not None and len(args.title) > 0:
     titleManual = " ".join(args.title)
 if description is not None and len(args.desc) > 0:
@@ -1250,7 +1353,7 @@ conn, cur = initdb()
 
 # Add a record
 if args.addurl is not None:
-    AddUpdateEntry(conn, cur, args.addurl, 0)
+    AddInsertEntry(conn, cur, args.addurl)
 
 # Delete record(s)
 if args.delete is not None:
@@ -1291,7 +1394,7 @@ if update == True:
         printmsg("At least URL should be provided for non-zero index", "ERROR")
         closequit(conn, 1)
     else:
-        AddUpdateEntry(conn, cur, args.update[1:], int(args.update[0]))
+        UpdateEntry(conn, cur, args.update[1:], int(args.update[0]))
 
 # Print all records
 if args.printindex is not None:
@@ -1328,7 +1431,7 @@ if args.insert is not None:
     if len(args.insert) == 1:
         pass # No operation
     else:
-        AddUpdateEntry(conn, cur, args.insert[1:], 0, insertindex)
+        AddInsertEntry(conn, cur, args.insert[1:], insertindex)
 """
 
 # Close the connection before exiting

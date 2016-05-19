@@ -115,7 +115,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     general options:
       -a, --add URL [tags ...]
-                           bookmark URL with comma separated tags
+                           bookmark URL with comma-separated tags
       -u, --update [N [URL tags ...]]
                            update fields of bookmark at DB index N
                            refresh all titles, if no arguments
