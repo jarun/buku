@@ -400,6 +400,7 @@ def AddInsertEntry(conn, cur, keywords, insertindex=0):
     Params: connection, cursor, keywords, index to update, index to insert at
     """
 
+    global tagManual
     global titleManual
     global description
     tags = ','
@@ -412,7 +413,7 @@ def AddInsertEntry(conn, cur, keywords, insertindex=0):
         print("URL already exists at index %d" % id)
         return
 
-    if tagManual is not None and tagManual[0] != ',':
+    if tagManual is not None and False == (tagManual[0] == ',' and len(tagManual) == 1):
         keywords = keywords + [','] + tagManual
 
     if len(keywords) > 1:
@@ -431,10 +432,11 @@ def AddInsertEntry(conn, cur, keywords, insertindex=0):
         description = ''
 
     try:
-        if insertindex == 0: # insertindex is index number to insert record at
+        if insertindex == 0:    # insertindex is index number to insert record at
             cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tags, description))
         else:
             cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (insertindex, url, meta, tags, description))
+
         conn.commit()
         print("Added at index %d\n" % cur.lastrowid)
         printdb(cur, cur.lastrowid)
