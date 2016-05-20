@@ -205,6 +205,8 @@ def getPageResp(url, fullurl=False):
             if fullurl == False:
                 url = server[marker:]
             server = server[:marker]
+        else:           # Handle domain name without trailing /
+            url = '/'
         urlconn = HTTPSConnection(server, timeout=30)
     elif url.find("http://") >= 0: # Insecure connection
         server = url[7:]
@@ -213,6 +215,8 @@ def getPageResp(url, fullurl=False):
             if fullurl == False:
                 url = server[marker:]
             server = server[:marker]
+        else:
+            url = '/'
         urlconn = HTTPConnection(server, timeout=30)
     else:
         printmsg("Not a valid HTTP(S) url", "WARNING")
