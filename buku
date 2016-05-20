@@ -473,30 +473,6 @@ def UpdateEntry(conn, cur, index, url=''):
         arguments.append(url)
         toUpdate = True
 
-    # Update title if passed as an argument
-    #
-    # 1. if -t has no arguments, delete existing title
-    # 2. if -t has arguments, update existing title
-    # 3. if -t option is omitted at cmdline:
-    #    if a URL is not passed, update the title from web with DB URL
-    #    if URL is passed, update the title from web using the URL
-    meta = None
-    if titleManual is not None:
-        meta = titleManual
-    elif url != '':
-        meta = fetchTitle(url)
-        if meta == '':
-            print("\x1B[91mTitle: []\x1B[0m")
-        else:
-            print("Title: [%s]" % meta)
-    else:
-        dbRefresh(conn, cur, index)
-
-    if meta is not None:
-        query += " metadata = ?,"
-        arguments.append(meta)
-        toUpdate = True
-
     # Update tags if passed as argument
     if tagManual is not None:
         tags = ','
@@ -512,14 +488,38 @@ def UpdateEntry(conn, cur, index, url=''):
         arguments.append(description)
         toUpdate = True
 
-    if toUpdate == False:
-        print("returning")
+    # Update title
+    #
+    # 1. if -t has no arguments, delete existing title
+    # 2. if -t has arguments, update existing title
+    # 3. if -t option is omitted at cmdline:
+    #    if URL is passed, update the title from web using the URL
+    # 4. if no other argument (url, tag, comment) passed update title from web using DB URL
+    meta = None
+    if titleManual is not None:
+        meta = titleManual
+    elif url != '':
+        meta = fetchTitle(url)
+        if meta == '':
+            print("\x1B[91mTitle: []\x1B[0m")
+        else:
+            print("Title: [%s]" % meta)
+    elif toUpdate == False:
+        dbRefresh(conn, cur, index)
+        printdb(cur, index)
+
+    if meta is not None:
+        query += " metadata = ?,"
+        arguments.append(meta)
+        toUpdate = True
+
+    if toUpdate == False:       # Nothing to update
         return
 
     query = query[:-1] + " WHERE id = ?"
     arguments.append(index)
     if debug:
-        print("query: %s, args: %s" % (query, arguments))
+        print("query: [%s], args: [%s]" % (query, arguments))
 
     try:
         cur.execute(query, arguments)
