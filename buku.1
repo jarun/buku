@@ -63,6 +63,13 @@ in DB. If
 .I N
 and other options are omitted, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only N is passed without any update modifiers, title is fetched and updated (if not empty).
 .TP
+.BI \-d " " \--delete " [N]"
+Delete bookmark at index
+.I N
+in DB (from -p output). The last record is moved to the removed index. If
+.I N
+is omitted, all records are deleted from the DB.
+.TP
 .BI \--url " [...]"
 Manually specify the URL. Fetches and updates title if --title is not used.
 .TP
@@ -74,13 +81,6 @@ Manually specify the title, works with -a, -u. Omits or clears the title, if no 
 .TP
 .BI \-c " " \--comment " [...]"
 Add comment or description on the bookmark, works with -a, -u. Clears the comment, if no arguments passed.
-.TP
-.BI \-d " " \--delete " [N]"
-Delete bookmark at index
-.I N
-in DB (from -p output). The last record is moved to the removed index. If
-.I N
-is omitted, all records are deleted from the DB.
 .TP
 .BI \-h " " \--help
 Show program help.
@@ -169,7 +169,8 @@ Overrides the default browser. Ref:
 .PP
 .EX
 .IP
-.B buku -a http://tuxdiary.com linux news, open source -c Informative website on Linux and open source
+.B buku -a https://tuxdiary.com linux news, open source -c Informative website on Linux and open source
+In the output, >: title, +: comment, #: tags.
 .PP
 .IP 2. 4
 \fBAdd\fR a bookmark with tags 'linux news' and 'open source' & \fBcustom title\fR 'Linux magazine':
@@ -190,17 +191,42 @@ Note that URL must precede tags.
 .B buku -a http://tuxdiary.com linux news, open source -t
 .PP
 .IP 4. 4
-\fBUpdate\fR existing bookmark at index 15012014 with new URL and tags, fetch title from the web:
+\fBUpdate\fR existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 .PP
 .EX
 .IP
-.B buku -u 15012014 http://tuxdiary.com/ linux news, open source, magazine
+.B buku -u 15012014 --url http://tuxdiary.com/ --tag linux news, open source, magazine -c site for Linux utilities
+.PP
+.IP 5. 4
+\fBFetch and update only title\fR for bookmark at 15012014:
+.PP
+.EX
+.IP
+.B $ buku -u 15012014
+.PP
+.IP 6. 4
+\fBUpdate only comment\fR for bookmark at 15012014:
+.PP
+.EX
+.IP
+.B buku -u 15012014 -c this is a new comment
 .EE
 .PP
 .IP "" 4
-Tags are updated too. Original tags are removed.
+Applies to --url, --title and --tag too.
 .PP
-.IP 5. 4
+.IP 7. 4
+\fBDelete only comment\fR for bookmark at 15012014:
+.PP
+.EX
+.IP
+.B buku -u 15012014 -c
+.EE
+.PP
+.IP "" 4
+Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
+.PP
+.IP 8. 4
 \fBUpdate\fR or refresh \fBfull DB\fR with page titles from the web:
 .PP
 .EX
@@ -211,7 +237,7 @@ Tags are updated too. Original tags are removed.
 .IP "" 4
 This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
 .PP
-.IP 6. 4
+.IP 9. 4
 \fBDelete\fR bookmark at index 15012014:
 .PP
 .EX
@@ -222,28 +248,28 @@ This operation does not modify the indexes, URLs, tags or comments. Only title i
 .IP "" 4
 The last index is moved to the deleted index to keep the DB compact.
 .PP
-.IP 7. 4
+.IP 10. 4
 \fBDelete all\fR bookmarks:
 .PP
 .EX
 .IP
 .B buku -d
 .PP
-.IP 8. 4
+.IP 11. 4
 \fBSearch\fR bookmarks for \fBANY\fR of the keywords 'kernel' and 'debugging' in URL, title or tags:
 .PP
 .EX
 .IP
 .B buku -s kernel debugging
 .PP
-.IP 9. 4
+.IP 12. 4
 \fBSearch\fR bookmarks with \fBALL\fR the keywords 'kernel' and 'debugging' in URL, title or tags:
 .PP
 .EX
 .IP
 .B buku -S kernel debugging
 .PP
-.IP 10. 4
+.IP 13. 4
 \fBSearch\fR bookmarks with \fBtag\fR 'general kernel concepts':
 .PP
 .EX
@@ -254,14 +280,14 @@ The last index is moved to the deleted index to keep the DB compact.
 .IP "" 4
 Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
 .PP
-.IP 11. 4
+.IP 14. 4
 List \fBall unique tags\fR alphabetically:
 .PP
 .EX
 .IP
 .B buku --st
 .PP
-.IP 12. 4
+.IP 15. 4
 \fBEncrypt or decrypt\fR DB with \fBcustom number of iterations\fR (15) to generate key:
 .PP
 .EX
@@ -274,14 +300,14 @@ List \fBall unique tags\fR alphabetically:
 .IP "" 4
 The same number of iterations must be used for one lock & unlock instance. Default is 8.
 .PP
-.IP 13. 4
+.IP 16. 4
 \fBShow details\fR of bookmark at index 15012014:
 .PP
 .EX
 .IP
 .B buku -p 15012014
 .PP
-.IP 14. 4
+.IP 17. 4
 \fBShow all\fR bookmarks with real index from database:
 .PP
 .EX
@@ -289,21 +315,21 @@ The same number of iterations must be used for one lock & unlock instance. Defau
 .B buku -p
 .B buku -p | more
 .PP
-.IP 15. 4
+.IP 18. 4
 \fBReplace tag\fR 'old tag' with 'new tag':
 .PP
 .EX
 .IP
 .B buku -r 'old tag' new tag
 .PP
-.IP 16. 4
+.IP 19. 4
 \fBDelete tag\fR 'old tag' from DB:
 .PP
 .EX
 .IP
 .B buku -r 'old tag'
 .PP
-.IP 17. 4
+.IP 20. 4
 \fBOpen URL\fR at index 15012014 in browser:
 .PP
 .EX

@@ -213,14 +213,14 @@ Note that URL must precede tags.
 4. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
         $ buku -u 15012014 --url http://tuxdiary.com/ --tag linux news, open source, magazine -c site for Linux utilities
-5. Fetch and **update only title** for bookmark at 15012014:
+5. **Fetch and update only title** for bookmark at 15012014:
 
         $ buku -u 15012014
-6. Update only comment for bookmark at 15012014:
+6. **Update only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c this is a new comment
 Applies to --url, --title and --tag too.
-7. Delete only comment for bookmark at 15012014:
+7. **Delete only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c
 Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
