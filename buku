@@ -360,16 +360,16 @@ def getTags(keywords=[]):
 
     # Cleanse and get the tags
     for tag in keywords:
-        if tag[0] == ',':                   # delimiter precedes token (e.g. token1 ,token2)
+        if tag[0] == ',':           # delimiter precedes token (e.g. token1 ,token2)
             if tags[-1] != ',':
                 tags += ','
 
-        if tag[-1] == ',':                  # if delimiter is present, maintain it (e.g. token1, token2)
+        if tag[-1] == ',':          # if delimiter is present, maintain it (e.g. token1, token2)
             tag = tag.strip(',') + ','
-        else:                               # a token in a multi-word tag (e.g. token1 token2)
+        else:                       # a token in a multi-word tag (e.g. token1 token2)
             tag = tag.strip(',')
 
-        if tag == ',':                      # isolated delimiter (e.g. token1 , token2)
+        if tag == ',':              # isolated delimiter (e.g. token1 , token2)
             if tags[-1] != ',':
                 tags += tag
             continue
@@ -385,11 +385,12 @@ def getTags(keywords=[]):
     origTags.extend(tags.strip(',').split(','))
     for tag in origTags:
         if tag not in uniqueTags:
-            uniqueTags.append(tag)          # Select unique tags
+            uniqueTags.append(tag)  # Select unique tags
 
     # Sort the tags
     sortedTags = sorted(uniqueTags, key=str.lower)
 
+    # Wrap with delimiter
     return ',' + ','.join(sortedTags) + ','
 
 
@@ -413,12 +414,7 @@ def AddInsertEntry(conn, cur, keywords, insertindex=0):
         print("URL already exists at index %d" % id)
         return
 
-    if tagManual is not None and False == (tagManual[0] == ',' and len(tagManual) == 1):
-        keywords = keywords + [','] + tagManual
-
-    if len(keywords) > 1:
-        tags = getTags(keywords[1:])
-
+    # Process title
     if titleManual is not None:
         meta = titleManual
     else:
@@ -428,6 +424,14 @@ def AddInsertEntry(conn, cur, keywords, insertindex=0):
         else:
             print("Title: [%s]" % meta)
 
+    # Process tags
+    if tagManual is not None and False == (tagManual[0] == ',' and len(tagManual) == 1):
+        keywords = keywords + [','] + tagManual
+
+    if len(keywords) > 1:
+        tags = getTags(keywords[1:])
+
+    # Process description
     if description is None:
         description = ''
 
@@ -449,88 +453,84 @@ def AddInsertEntry(conn, cur, keywords, insertindex=0):
         print("Index %d exists" % insertindex)
 
 
-def UpdateEntry(conn, cur, keywords, updateindex, insertindex=0):
-    """Add a new bookmark or update an existing record at
-    updateindex or insert a new record at insertindex (if empty)
+def UpdateEntry(conn, cur, index, url=''):
+    """Update an existing record at index
 
-    Params: connection, cursor, keywords, index to update, index to insert at
+    Params: connection, cursor, index to update, url
     """
 
+    global tagManual
     global titleManual
     global description
-    tags = ','
-    meta = ''
-    url = keywords[0]
 
-    """In case of an add or insert operation ensure
-    that the URL does not exist in DB already
-    """
-    if updateindex == 0:
-        id = isBookmarkAdded(cur, url)
-        if id != -1:
-            print("URL already exists at index %d" % id)
-            return
+    arguments = []
+    query = "UPDATE bookmarks SET"
+    toUpdate = False
 
-    # Cleanse and get the tags
-    if len(keywords) > 1:
-        for tag in keywords[1:]:
-            if tag[-1] == ',':
-                tag = tag.strip(',') + ','      # if delimiter is present, maintain it
-            else:
-                tag = tag.strip(',')            # a token in a multi-word tag
+    # Update URL if passed as argument
+    if url != '':
+        query += " URL = ?,"
+        arguments.append(url)
+        toUpdate = True
 
-            if tag == ',':
-                continue
-
-            if tags[-1] == ',':
-                tags += tag
-            else:
-                tags += ' ' + tag
-
-    if tags[-1] != ',':
-        tags += ','
-
+    # Update title if passed as an argument
+    #
+    # 1. if -t has no arguments, delete existing title
+    # 2. if -t has arguments, update existing title
+    # 3. if -t option is omitted at cmdline:
+    #    if a URL is not passed, update the title from web with DB URL
+    #    if URL is passed, update the title from web using the URL
+    meta = None
     if titleManual is not None:
         meta = titleManual
-    else:
+    elif url != '':
         meta = fetchTitle(url)
         if meta == '':
             print("\x1B[91mTitle: []\x1B[0m")
         else:
             print("Title: [%s]" % meta)
+    else:
+        dbRefresh(conn, cur, index)
 
-    if updateindex == 0: # Add or insert a new entry
-        if description is None:
-            description = ''
+    if meta is not None:
+        query += " metadata = ?,"
+        arguments.append(meta)
+        toUpdate = True
 
-        try:
-            if insertindex == 0: # insertindex is index number to insert record at
-                cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tags, description))
-            else:
-                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (insertindex, url, meta, tags, description))
-            conn.commit()
-            print("Added at index %d\n" % cur.lastrowid)
-            printdb(cur, cur.lastrowid)
-        except sqlite3.IntegrityError:
-            for row in cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
-                print("URL already exists at index %s" % row[0])
-                return
+    # Update tags if passed as argument
+    if tagManual is not None:
+        tags = ','
+        if False == (tagManual[0] == ',' and len(tagManual) == 1):
+            tags = getTags(tagManual)
+        query += " tags = ?,"
+        arguments.append(tags)
+        toUpdate = True
 
-            print("Index %d exists" % insertindex)
-    else: # Update an existing entry
-        try:
-            if description is None:
-                cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ? WHERE id = ?", (url, meta, tags, updateindex,))
-            else:
-                cur.execute("UPDATE bookmarks SET URL = ?, metadata = ?, tags = ?, desc = ? WHERE id = ?", (url, meta, tags, description, updateindex,))
-            conn.commit()
-            if cur.rowcount == 1:
-                print("Updated index %d\n" % updateindex)
-                printdb(cur, updateindex)
-            else:
-                print("No matching index")
-        except sqlite3.IntegrityError:
-            print("URL already exists")
+    # Update description if passed as an argument
+    if description is not None:
+        query += " desc = ?,"
+        arguments.append(description)
+        toUpdate = True
+
+    if toUpdate == False:
+        print("returning")
+        return
+
+    query = query[:-1] + " WHERE id = ?"
+    arguments.append(index)
+    if debug:
+        print("query: %s, args: %s" % (query, arguments))
+
+    try:
+        cur.execute(query, arguments)
+        conn.commit()
+        if cur.rowcount == 1:
+            print("Updated index %d\n" % index)
+            printdb(cur, index)
+        else:
+            print("No matching index")
+    except sqlite3.IntegrityError:
+        print("URL already exists")
 
 
 def dbRefresh(conn, cur, index):
@@ -1248,8 +1248,8 @@ general_group = argparser.add_argument_group(title="general options",
 --url keyword        specify url, works with -u
 --tag [...]          specify comma-separated tags, works with -u
                      clears tag, if no arguments
--t, --title [...]    manually set title, works with -a, -u
-                     do not set or clear title, if no arguments
+-t, --title [...]    manually set title, works with -a, -u; do not
+                     set (-a) or clear (-u) title, if no arguments
 -c, --comment [...]  description of the bookmark, works with
                      -a, -u; clears comment, if no arguments
 -h, --help           show this information''')
@@ -1406,11 +1406,12 @@ if update == True:
         closequit(conn, 1)
     elif int(args.update[0]) == 0:
         dbRefresh(conn, cur, 0)
-    elif len(args.update) == 1:
-        printmsg("At least URL should be provided for non-zero index", "ERROR")
-        closequit(conn, 1)
     else:
-        UpdateEntry(conn, cur, args.update[1:], int(args.update[0]))
+        if args.url is not None:
+            new_url = args.url[0]
+        else:
+            new_url = ''
+        UpdateEntry(conn, cur, int(args.update[0]), new_url)
 
 # Print all records
 if args.printindex is not None:
