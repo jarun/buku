@@ -25,7 +25,7 @@ import readline
 import webbrowser
 import html.parser as HTMLParser
 from http.client import HTTPConnection, HTTPSConnection
-from urllib.parse import urljoin, quote, unquote
+from urllib.parse import urljoin, quote, unquote, urlsplit, urlunsplit
 import gzip
 import io
 import signal
@@ -190,6 +190,9 @@ def getPageResp(url, fullurl=False):
     Returns: connection, HTTP(S) GET response
     """
 
+    urlconn = None
+
+    # is this really necessary...? Why only spaces ?
     if url.find("%20") != -1:
         url = unquote(url).replace(" ", "%20")
     else:
@@ -198,27 +201,25 @@ def getPageResp(url, fullurl=False):
     if debug:
         print("unquoted: %s" % url)
 
-    if url.find("https://") >= 0: # Secure connection
-        server = url[8:]
-        marker = server.find("/")
-        if marker > 0:
-            if fullurl == False:
-                url = server[marker:]
-            server = server[:marker]
+    # parse the url, then re-assemble only the relative part
+    url_details = urlsplit(url)
+    url_relative_parts = [v for v in url_details]
+    url_relative_parts[0] = ''  # blank out the scheme
+    url_relative_parts[1] = ''  # blank out the server
+    url = urlunsplit(url_relative_parts)
+
+    server = url_details.netloc
+
+    if url_details.scheme == 'https':  # Secure connection
         urlconn = HTTPSConnection(server, timeout=30)
-    elif url.find("http://") >= 0: # Insecure connection
-        server = url[7:]
-        marker = server.find("/")
-        if marker > 0:
-            if fullurl == False:
-                url = server[marker:]
-            server = server[:marker]
+
+    elif url_details.scheme == 'http':  # Insecure connection
         urlconn = HTTPConnection(server, timeout=30)
     else:
         printmsg("Not a valid HTTP(S) url", "WARNING")
         if url.find(":") == -1:
             printmsg("Doesn't appear to be a valid url either", "WARNING")
-        return (None, None)
+        return None, None
 
     if debug:
         print("server [%s] url [%s]" % (server, url))
@@ -232,7 +233,7 @@ def getPageResp(url, fullurl=False):
     urlconn.request("GET", url, None, {
         "Accept-encoding": "gzip",
     })
-    return (urlconn, urlconn.getresponse())
+    return urlconn, urlconn.getresponse()
 
 
 def getTitleData(resp):
