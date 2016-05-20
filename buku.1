@@ -3,15 +3,15 @@
 buku \- A private command-line bookmark manager. Your mini web!
 .SH SYNOPSIS
 .B buku
-[-a URL [tags ...]] [-u [N [URL tags ...]]]
+[-a URL [tags ...]] [-u [N]] [-d [N]]
 .br
-     [-t [...]] [-c [...]] [-d [N]] [-h]
+     [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
 .br
      [-s keyword [...]] [-S keyword [...]] [--st [...]]
 .br
      [-k [N]] [-l [N]] [-p [N]] [-f N]
 .br
-     [-r oldtag [newtag ...]] [-j] [-o N] [-z]
+     [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]
 .SH DESCRIPTION
 .B buku
 is a command-line tool to save, tag and search bookmarks.
@@ -31,6 +31,11 @@ It's advisable to copy URLs directly from the browser address bar, i.e., along w
 If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double ('/") qoutes.
 .PP
 URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
+.pp
+Update operation:
+  - if --title, --tag or --comment is passed without argument, clear the corresponding field from DB
+  - if --url is passed (and --title is omitted), update the title from web using the URL
+  - if index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web
 .PP
 Search works in mysterious ways:
   - Case-insensitive.
@@ -51,14 +56,18 @@ Bookmark
 .I URL
 along with comma-separated tags. A tag can have multiple words.
 .TP
-.BI \-u " " \--update " [N [URL tags ...]]"
+.BI \-u " " \--update " [N]"
 Update fields of the bookmark at index
 .I N
-in DB. If URL is omitted (and -t is not used) the title of entry at index
+in DB. If
 .I N
-is refreshed from the web. If
-.I N
-is omitted, all titles are refreshed from the web.
+and other options are omitted, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only N is passed without any update modifiers, title is fetched and updated (if not empty).
+.TP
+.BI \--url " [...]"
+Manually specify the URL. Fetches and updates title if --title is not used.
+.TP
+.BI \--tag " [...]"
+Specify comma separated tags. Clears the tags, if no arguments passed.
 .TP
 .BI \-t " " \--title " [...]"
 Manually specify the title, works with -a, -u. Omits or clears the title, if no arguments passed.
@@ -200,7 +209,7 @@ Tags are updated too. Original tags are removed.
 .EE
 .PP
 .IP "" 4
-This operation does not modify the indexes, URLs or tags. Only title is refreshed if fetched title is non-empty.
+This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
 .PP
 .IP 6. 4
 \fBDelete\fR bookmark at index 15012014:

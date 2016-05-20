@@ -1263,17 +1263,19 @@ argparser = ExtendedArgumentParser(
 general_group = argparser.add_argument_group(title="general options",
     description='''-a, --add URL [tags ...]
                      bookmark URL with comma-separated tags
--u, --update [N]
-                     update fields of bookmark at DB index N
+-u, --update [N]     update fields of bookmark at DB index N
                      refresh all titles, if no arguments
                      refresh title of bookmark at N, if only
-                     N is specified
+                     N is specified without any update modifiers
+                     to change url, tag or comment
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
 --url keyword        specify url, works with -u
 --tag [...]          specify comma-separated tags, works with -u
                      clears tag, if no arguments
--t, --title [...]    manually set title, works with -a, -u; do not
+-t, --title [...]    manually set title, works with -a, -u
+                     if no arguments:
+                     -a: do not set title, -u: clear title
                      set (-a) or clear (-u) title, if no arguments
 -c, --comment [...]  description of the bookmark, works with
                      -a, -u; clears comment, if no arguments
