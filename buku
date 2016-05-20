@@ -182,11 +182,18 @@ def initdb():
     return (conn, cur)
 
 
-def getPageResp(url, fullurl=False):
+def getPageResp(url, fullurl=False, forced=False):
     """Connect to a server and fetch the requested page data.
     Supports gzip compression.
 
-    Params: URL to fetch, redirection status
+    If forced is True, for URLs like http://www.domain.com
+    or http://www.domain.com/ path is www.domain.com or
+    www.domain.com/ correspondingly.
+
+    If fullurl is False, for URLs like http://www.domain.com/,
+    path is /, else www.domain.com/.
+
+    Params: URL to fetch, use complete url as path, force flag
     Returns: connection, HTTP(S) GET response
     """
 
@@ -202,20 +209,20 @@ def getPageResp(url, fullurl=False):
         server = url[8:]
         marker = server.find("/")
         if marker > 0:
-            if fullurl == False:
+            if fullurl == False and forced == False:
                 url = server[marker:]
             server = server[:marker]
-        else:           # Handle domain name without trailing /
+        elif forced == False:           # Handle domain name without trailing /
             url = '/'
         urlconn = HTTPSConnection(server, timeout=30)
     elif url.find("http://") >= 0: # Insecure connection
         server = url[7:]
         marker = server.find("/")
         if marker > 0:
-            if fullurl == False:
+            if fullurl == False and forced == False:
                 url = server[marker:]
             server = server[:marker]
-        else:
+        elif forced == False:
             url = '/'
         urlconn = HTTPConnection(server, timeout=30)
     else:
@@ -299,6 +306,7 @@ def fetchTitle(url):
             elif resp.status in [301, 302]:
                 redirurl = urljoin(url, resp.getheader('location', ''))
                 printmsg(redirurl, "REDIRECTION")
+                retry = False       # Reset retry, start fresh on redirection
 
                 if redirurl.find("sorry/IndexRedirect?") >= 0:          # gracefully handle Google blocks
                     printmsg("Connection blocked due to unusual activity", "ERROR")
@@ -317,6 +325,19 @@ def fetchTitle(url):
                 urlconn.close()
                 # Try with complete URL on redirection
                 urlconn, resp = getPageResp(url, True)
+            elif resp.status == 403 and retry == False:
+                """Handle URLs of the form https://www.domain.com or
+                https://www.domain.com/ which fails when trying to fetch
+                resource '/', retry with full path.
+                """
+                urlconn.close()
+                if debug:
+                    print("Received status 403: retrying.")
+                # Remove trailing /
+                if url[-1] == '/':
+                    url = url[:-1]
+                urlconn, resp = getPageResp(url, False, True)
+                retry = True
             elif resp.status == 500 and retry == False:
                 """Retry on status 500 (Internal Server Error) with truncated
                 URL. Some servers support truncated request URL on redirection.
