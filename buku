@@ -57,7 +57,7 @@ jsonOutput = False      # Output json formatted result
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
-_VERSION_ = 2.0         # Program version
+_VERSION_ = 2.1         # Program version
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
@@ -182,11 +182,18 @@ def initdb():
     return (conn, cur)
 
 
-def getPageResp(url, fullurl=False):
+def getPageResp(url, fullurl=False, forced=False):
     """Connect to a server and fetch the requested page data.
     Supports gzip compression.
 
-    Params: URL to fetch, redirection status
+    If forced is True, for URLs like http://www.domain.com
+    or http://www.domain.com/ path is www.domain.com or
+    www.domain.com/ correspondingly.
+
+    If fullurl is False, for URLs like http://www.domain.com/,
+    path is /, else www.domain.com/.
+
+    Params: URL to fetch, use complete url as path, force flag
     Returns: connection, HTTP(S) GET response
     """
 
@@ -202,17 +209,21 @@ def getPageResp(url, fullurl=False):
         server = url[8:]
         marker = server.find("/")
         if marker > 0:
-            if fullurl == False:
+            if fullurl == False and forced == False:
                 url = server[marker:]
             server = server[:marker]
+        elif forced == False:           # Handle domain name without trailing /
+            url = '/'
         urlconn = HTTPSConnection(server, timeout=30)
     elif url.find("http://") >= 0: # Insecure connection
         server = url[7:]
         marker = server.find("/")
         if marker > 0:
-            if fullurl == False:
+            if fullurl == False and forced == False:
                 url = server[marker:]
             server = server[:marker]
+        elif forced == False:
+            url = '/'
         urlconn = HTTPConnection(server, timeout=30)
     else:
         printmsg("Not a valid HTTP(S) url", "WARNING")
@@ -295,6 +306,7 @@ def fetchTitle(url):
             elif resp.status in [301, 302]:
                 redirurl = urljoin(url, resp.getheader('location', ''))
                 printmsg(redirurl, "REDIRECTION")
+                retry = False       # Reset retry, start fresh on redirection
 
                 if redirurl.find("sorry/IndexRedirect?") >= 0:          # gracefully handle Google blocks
                     printmsg("Connection blocked due to unusual activity", "ERROR")
@@ -313,6 +325,19 @@ def fetchTitle(url):
                 urlconn.close()
                 # Try with complete URL on redirection
                 urlconn, resp = getPageResp(url, True)
+            elif resp.status == 403 and retry == False:
+                """Handle URLs of the form https://www.domain.com or
+                https://www.domain.com/ which fails when trying to fetch
+                resource '/', retry with full path.
+                """
+                urlconn.close()
+                if debug:
+                    print("Received status 403: retrying.")
+                # Remove trailing /
+                if url[-1] == '/':
+                    url = url[:-1]
+                urlconn, resp = getPageResp(url, False, True)
+                retry = True
             elif resp.status == 500 and retry == False:
                 """Retry on status 500 (Internal Server Error) with truncated
                 URL. Some servers support truncated request URL on redirection.
@@ -473,30 +498,6 @@ def UpdateEntry(conn, cur, index, url=''):
         arguments.append(url)
         toUpdate = True
 
-    # Update title if passed as an argument
-    #
-    # 1. if -t has no arguments, delete existing title
-    # 2. if -t has arguments, update existing title
-    # 3. if -t option is omitted at cmdline:
-    #    if a URL is not passed, update the title from web with DB URL
-    #    if URL is passed, update the title from web using the URL
-    meta = None
-    if titleManual is not None:
-        meta = titleManual
-    elif url != '':
-        meta = fetchTitle(url)
-        if meta == '':
-            print("\x1B[91mTitle: []\x1B[0m")
-        else:
-            print("Title: [%s]" % meta)
-    else:
-        dbRefresh(conn, cur, index)
-
-    if meta is not None:
-        query += " metadata = ?,"
-        arguments.append(meta)
-        toUpdate = True
-
     # Update tags if passed as argument
     if tagManual is not None:
         tags = ','
@@ -512,14 +513,38 @@ def UpdateEntry(conn, cur, index, url=''):
         arguments.append(description)
         toUpdate = True
 
-    if toUpdate == False:
-        print("returning")
+    # Update title
+    #
+    # 1. if -t has no arguments, delete existing title
+    # 2. if -t has arguments, update existing title
+    # 3. if -t option is omitted at cmdline:
+    #    if URL is passed, update the title from web using the URL
+    # 4. if no other argument (url, tag, comment) passed update title from web using DB URL
+    meta = None
+    if titleManual is not None:
+        meta = titleManual
+    elif url != '':
+        meta = fetchTitle(url)
+        if meta == '':
+            print("\x1B[91mTitle: []\x1B[0m")
+        else:
+            print("Title: [%s]" % meta)
+    elif toUpdate == False:
+        dbRefresh(conn, cur, index)
+        printdb(cur, index)
+
+    if meta is not None:
+        query += " metadata = ?,"
+        arguments.append(meta)
+        toUpdate = True
+
+    if toUpdate == False:       # Nothing to update
         return
 
     query = query[:-1] + " WHERE id = ?"
     arguments.append(index)
     if debug:
-        print("query: %s, args: %s" % (query, arguments))
+        print("query: [%s], args: [%s]" % (query, arguments))
 
     try:
         cur.execute(query, arguments)
@@ -1238,17 +1263,19 @@ argparser = ExtendedArgumentParser(
 general_group = argparser.add_argument_group(title="general options",
     description='''-a, --add URL [tags ...]
                      bookmark URL with comma-separated tags
--u, --update [N]
-                     update fields of bookmark at DB index N
+-u, --update [N]     update fields of bookmark at DB index N
                      refresh all titles, if no arguments
                      refresh title of bookmark at N, if only
-                     N is specified
+                     N is specified without any update modifiers
+                     to change url, tag or comment
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
 --url keyword        specify url, works with -u
 --tag [...]          specify comma-separated tags, works with -u
                      clears tag, if no arguments
--t, --title [...]    manually set title, works with -a, -u; do not
+-t, --title [...]    manually set title, works with -a, -u
+                     if no arguments:
+                     -a: do not set title, -u: clear title
                      set (-a) or clear (-u) title, if no arguments
 -c, --comment [...]  description of the bookmark, works with
                      -a, -u; clears comment, if no arguments

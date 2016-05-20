@@ -105,28 +105,32 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
-    usage: buku [-a URL [tags ...]] [-u [N [URL tags ...]]]
-                [-t [...]] [-c [...]] [-d [N]] [-h]
+    usage: buku [-a URL [tags ...]] [-u [N]] [-d [N]]
+                [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
                 [-s keyword [...]] [-S keyword [...]] [--st [...]]
                 [-k [N]] [-l [N]] [-p [N]] [-f N]
-                [-r oldtag [newtag ...]] [-j] [-o N] [-z]
+                [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]
 
     A private command-line bookmark manager. Your mini web!
 
     general options:
       -a, --add URL [tags ...]
                            bookmark URL with comma-separated tags
-      -u, --update [N [URL tags ...]]
-                           update fields of bookmark at DB index N
+      -u, --update [N]     update fields of bookmark at DB index N
                            refresh all titles, if no arguments
-                           if URL omitted and -t is unused, update
-                           title of bookmark at index N from web
-      -t, --title [...]    manually set title, works with -a, -u
-                           do not set title, if no arguments
-      -c, --comment [...]  description of the bookmark, works with
-                           -a, -u; clears comment, if no arguments
+                           refresh title of bookmark at N, if only
+                           N is specified without any update modifiers
+                           to change url, tag or comment
       -d, --delete [N]     delete bookmark at DB index N
                            delete all bookmarks, if no arguments
+      --url keyword        specify url, works with -u
+      --tag [...]          specify comma-separated tags, works with -u
+                           clears tag, if no arguments
+      -t, --title [...]    manually set title, works with -a, -u
+                           if no arguments:
+                           -a: do not set title, -u: clear title
+      -c, --comment [...]  description of the bookmark, works with
+                           -a, -u; clears comment, if no arguments
       -h, --help           show this information
 
     search options:
@@ -171,6 +175,10 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double (`'`/`"`) quotes.
 - URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
+- Update operation:
+  - if --title, --tag or --comment is passed without argument, clear the corresponding field from DB
+  - if --url is passed (and --title is omitted), update the title from web using the URL
+  - if index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web
 - Search works in mysterious ways:
   - Case-insensitive.
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
@@ -185,9 +193,15 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 # Examples
 1. **Add** a bookmark with **tags** `linux news` and `open source`, **comment** `Informative website on Linux and open source`, **fetch page title** from the web:
 
-        $ buku -a http://tuxdiary.com linux news, open source -c Informative website on Linux and open source
-        Title: [TuxDiary | Linux, open source and a pinch of leisure.]
-        Added at index 15012014
+        $ buku -a https://tuxdiary.com linux news, open source -c Informative website on Linux and open source
+        Title: [TuxDiary – Linux, open source, command-line, leisure.]
+        Added at index 336
+
+        336. https://tuxdiary.com
+        > TuxDiary – Linux, open source, command-line, leisure.
+        + Informative website on Linux and open source
+        # linux news,open source
+where, >: title, +: comment, #: tags
 2. **Add** a bookmark with tags `linux news` and `open source` & **custom title** `Linux magazine`:
 
         $ buku -a http://tuxdiary.com linux news, open source -t 'Linux magazine'
@@ -196,60 +210,68 @@ Note that URL must precede tags.
 3. **Add** a bookmark **without a title** (works for update too):
 
         $ buku -a http://tuxdiary.com linux news, open source -t
-4. **Update** existing bookmark at index 15012014 with new URL and tags, fetch title from the web:
+4. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
-        $ buku -u 15012014 http://tuxdiary.com/ linux news, open source, magazine
-        Title: [TuxDiary | Linux, open source and a pinch of leisure.]
-        Updated index 15012014
-Tags are updated too. Original tags are removed.
-5. **Update** or refresh **full DB** with page titles from the web:
+        $ buku -u 15012014 --url http://tuxdiary.com/ --tag linux news, open source, magazine -c site for Linux utilities
+5. **Fetch and update only title** for bookmark at 15012014:
+
+        $ buku -u 15012014
+6. **Update only comment** for bookmark at 15012014:
+
+        $ buku -u 15012014 -c this is a new comment
+Applies to --url, --title and --tag too.
+7. **Delete only comment** for bookmark at 15012014:
+
+        $ buku -u 15012014 -c
+Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
+8. **Update** or refresh **full DB** with page titles from the web:
 
         $ buku -u
-This operation does not modify the indexes, URLs or tags. Only title is refreshed if fetched title is non-empty.
-6. **Delete** bookmark at index 15012014:
+This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
+9. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
         Index 15012020 moved to 15012014
 The last index is moved to the deleted index to keep the DB compact.
-7. **Delete all** bookmarks:
+10. **Delete all** bookmarks:
 
         $ buku -d
-8. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
+11. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -s kernel debugging
-9. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
+12. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -S kernel debugging
 
-10. **Search** bookmarks with **tag** `general kernel concepts`:
+13. **Search** bookmarks with **tag** `general kernel concepts`:
 
         $ buku --st general kernel concepts
 Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
-11. List **all unique tags** alphabetically:
+14. List **all unique tags** alphabetically:
 
         $ buku --st
-12. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+15. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
 The same number of iterations must be used for one lock & unlock instance. Default is 8.
-13. **Show details** of bookmark at index 15012014:
+16. **Show details** of bookmark at index 15012014:
 
         $ buku -p 15012014
-14. **Show all** bookmarks with real index from database:
+17. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-15. **Replace tag** 'old tag' with 'new tag':
+18. **Replace tag** 'old tag' with 'new tag':
 
         $ buku -r 'old tag' new tag
-16. **Delete tag** 'old tag' from DB:
+19. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-17. **Open URL** at index 15012014 in browser:
+20. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-18. More **help**:
+21. More **help**:
 
         $ buku
         $ man buku
