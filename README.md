@@ -123,7 +123,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            to change url, tag or comment
       -d, --delete [N]     delete bookmark at DB index N
                            delete all bookmarks, if no arguments
-      --url keyword        specify url, works with -u
+      --url keyword        specify url, works with -u only
       --tag [...]          set comma-separated tags, works with -a, -u
                            clears tag, if no arguments
       -t, --title [...]    manually set title, works with -a, -u
