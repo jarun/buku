@@ -1274,12 +1274,11 @@ general_group = argparser.add_argument_group(title="general options",
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
 --url keyword        specify url, works with -u
---tag [...]          specify comma-separated tags, works with -u
+--tag [...]          set comma-separated tags, works with -a, -u
                      clears tag, if no arguments
 -t, --title [...]    manually set title, works with -a, -u
                      if no arguments:
                      -a: do not set title, -u: clear title
-                     set (-a) or clear (-u) title, if no arguments
 -c, --comment [...]  description of the bookmark, works with
                      -a, -u; clears comment, if no arguments
 -h, --help           show this information''')
