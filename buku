@@ -91,95 +91,559 @@ class BMHTMLParser(HTMLParser.HTMLParser):
     def error(self, message):
         pass
 
+class BukuDb:
 
-def getDataPath():
-    """Determine the DB file path:
-    if $XDG_DATA_HOME is defined, use it
-    else if $HOME exists, use it
-    else use the current directory
-    """
+    def __init__(self, *args, **kwargs):
+        conn, cur = BukuDb.initdb()
+        self.conn = conn
+        self.cur = cur
 
-    data_home = os.environ.get('XDG_DATA_HOME')
-    if data_home is None:
-        if os.environ.get('HOME') is None:
-            data_home = '.'
+    @staticmethod
+    def getDataPath():
+        """Determine the DB file path:
+        if $XDG_DATA_HOME is defined, use it
+        else if $HOME exists, use it
+        else use the current directory
+        """
+    
+        data_home = os.environ.get('XDG_DATA_HOME')
+        if data_home is None:
+            if os.environ.get('HOME') is None:
+                data_home = '.'
+            else:
+                data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
+    
+        return os.path.join(data_home, 'buku')
+    
+    @staticmethod
+    def moveOldDatabase():
+        """Move database file from earlier path used in versions <= 1.8
+        to new path. Errors out if both the old and new DB files exist.
+        """
+    
+        olddbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
+        olddbfile = os.path.join(olddbpath, 'bookmarks.db')
+    
+        if not os.path.exists(olddbfile):
+            return
+    
+        newdbpath = BukuDb.getDataPath()
+        newdbfile = os.path.join(newdbpath, 'bookmarks.db')
+    
+        if os.path.exists(newdbfile):
+            print("Both old (%s) and new (%s) databases exist, need manual action" % (olddbfile, newdbfile))
+            sys.exit(1)
+    
+        if not os.path.exists(newdbpath):
+            os.makedirs(newdbpath)
+    
+        os.rename(olddbfile, newdbfile)
+        print("Database was moved from old (%s) to new (%s) location.\n" % (olddbfile, newdbfile))
+    
+        os.rmdir(olddbpath)
+    
+    @staticmethod
+    def initdb():
+        """Initialize the database connection. Create DB file and/or bookmarks table
+        if they don't exist. Alert on encryption options on first execution.
+    
+        Returns: connection, cursor
+        """
+    
+        dbpath = BukuDb.getDataPath()
+        if not os.path.exists(dbpath):
+            os.makedirs(dbpath)
+    
+        dbfile = os.path.join(dbpath, 'bookmarks.db')
+    
+        encpath = os.path.join(dbpath, 'bookmarks.db.enc')
+        # Notify if DB file needs to be decrypted first
+        if os.path.exists(encpath) and not os.path.exists(dbfile):
+            print("Unlock database first")
+            sys.exit(1)
+    
+        # Show info on first creation
+        if no_crypto == False and not os.path.exists(dbfile):
+            print("DB file is being created. You may want to encrypt it later.")
+    
+        try:
+            # Create a connection
+            conn = sqlite3.connect(dbfile)
+            cur = conn.cursor()
+    
+            # Create table if it doesn't exist
+            cur.execute('''CREATE TABLE if not exists bookmarks \
+                       (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text default \'\', tags text default \',\', desc text default \'\')''')
+            conn.commit()
+        except Exception as e:
+            print("\x1b[1mEXCEPTION\x1b[21m [initdb]: (%s) %s" % (type(e).__name__, e))
+            sys.exit(1)
+    
+        # Add description column in existing DB (from version 2.1)
+        try:
+            cur.execute("""ALTER TABLE bookmarks ADD COLUMN desc text default \'\'""")
+            conn.commit()
+        except:
+            pass
+    
+        return (conn, cur)
+
+    def isBookmarkAdded(self, url):
+        """Check if URL already exists in DB
+    
+        Params: URL to search
+        Returns: DB index if URL found, else -1
+        """
+    
+        self.cur.execute("SELECT id FROM bookmarks WHERE URL = ?", (url,))
+        resultset = self.cur.fetchall()
+        if len(resultset) == 0:
+            return -1
+    
+        return resultset[0][0]
+    
+    def AddInsertEntry(self, keywords, insertindex=0):
+        """Add a new bookmark or insert a
+        new record at insertindex (if empty)
+    
+        Params: keywords, index to update, index to insert at
+        """
+    
+        global tagManual
+        global titleManual
+        global description
+        tags = ','
+        meta = ''
+        url = keywords[0]
+    
+        # Ensure that the URL does not exist in DB already
+        id = self.isBookmarkAdded(url)
+        if id != -1:
+            print("URL already exists at index %d" % id)
+            return
+    
+        # Process title
+        if titleManual is not None:
+            meta = titleManual
         else:
-            data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
+            meta = fetchTitle(url)
+            if meta == '':
+                print("\x1B[91mTitle: []\x1B[0m")
+            else:
+                print("Title: [%s]" % meta)
+    
+        # Process tags
+        if tagManual is not None and False == (tagManual[0] == ',' and len(tagManual) == 1):
+            keywords = keywords + [','] + tagManual
+    
+        if len(keywords) > 1:
+            tags = getTags(keywords[1:])
+    
+        # Process description
+        if description is None:
+            description = ''
+    
+        try:
+            if insertindex == 0:    # insertindex is index number to insert record at
+                self.cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tags, description))
+            else:
+                self.cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (insertindex, url, meta, tags, description))
+    
+            self.conn.commit()
+            print("Added at index %d\n" % self.cur.lastrowid)
+            self.printdb(self.cur.lastrowid)
+        except sqlite3.IntegrityError:
+            for row in self.cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
+                print("URL already exists at index %s" % row[0])
+                return
+    
+            # Print error for index existing case
+            print("Index %d exists" % insertindex)
+    
+    
+    def UpdateEntry(self, index, url=''):
+        """Update an existing record at index
+    
+        Params: self.conn.ction, self.cur.or, index to update, url
+        """
+    
+        global tagManual
+        global titleManual
+        global description
+    
+        arguments = []
+        query = "UPDATE bookmarks SET"
+        toUpdate = False
+    
+        # Update URL if passed as argument
+        if url != '':
+            query += " URL = ?,"
+            arguments.append(url)
+            toUpdate = True
+    
+        # Update tags if passed as argument
+        if tagManual is not None:
+            tags = ','
+            if False == (tagManual[0] == ',' and len(tagManual) == 1):
+                tags = getTags(tagManual)
+            query += " tags = ?,"
+            arguments.append(tags)
+            toUpdate = True
+    
+        # Update description if passed as an argument
+        if description is not None:
+            query += " desc = ?,"
+            arguments.append(description)
+            toUpdate = True
+    
+        # Update title
+        #
+        # 1. if -t has no arguments, delete existing title
+        # 2. if -t has arguments, update existing title
+        # 3. if -t option is omitted at cmdline:
+        #    if URL is passed, update the title from web using the URL
+        # 4. if no other argument (url, tag, comment) passed update title from web using DB URL
+        meta = None
+        if titleManual is not None:
+            meta = titleManual
+        elif url != '':
+            meta = fetchTitle(url)
+            if meta == '':
+                print("\x1B[91mTitle: []\x1B[0m")
+            else:
+                print("Title: [%s]" % meta)
+        elif toUpdate == False:
+            self.dbRefresh(index)
+            self.printdb(index)
+    
+        if meta is not None:
+            query += " metadata = ?,"
+            arguments.append(meta)
+            toUpdate = True
+    
+        if toUpdate == False:       # Nothing to update
+            return
+    
+        query = query[:-1] + " WHERE id = ?"
+        arguments.append(index)
+        if debug:
+            print("query: [%s], args: [%s]" % (query, arguments))
+    
+        try:
+            self.cur.execute(query, arguments)
+            self.conn.commit()
+            if self.cur.rowcount == 1:
+                print("Updated index %d\n" % index)
+                self.printdb(index)
+            else:
+                print("No matching index")
+        except sqlite3.IntegrityError:
+            print("URL already exists")
+    
+    
+    def dbRefresh(self, index):
+        """Refresh ALL records in the database. Fetch title for each
+        bookmark from the web and update the records. Doesn't udpate
+        the record if title is empty.
+        This API doesn't change DB index, URL or tags of a bookmark.
+    
+        Params: index of record to update, or 0 for all records
+        """
+    
+        global titleManual
+    
+        if index == 0:
+            self.cur.execute("SELECT id, url FROM bookmarks ORDER BY id ASC")
+        else:
+            self.cur.execute("SELECT id, url FROM bookmarks WHERE id = ?", (index,))
+    
+        resultset = self.cur.fetchall()
+        if titleManual is None:
+            for row in resultset:
+                title = fetchTitle(row[1])
+                if title == '':
+                    print("\x1B[91mTitle: []")
+                    print("\x1b[1mNOT updating index %d\x1b[21m\x1B[0m\n" % row[0])
+                    continue
+                else:
+                    print("Title: [%s]" % title)
+    
+                self.cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
+                self.conn.commit()
+                print("Updated index %d\n" % row[0])
+        else:
+            title = titleManual
+    
+            for row in resultset:
+                self.cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
+                self.conn.commit()
+                print("Updated index %d\n" % row[0])
+    
+    
+    def searchdb(self, keywords, all_keywords=False):
+        """Search the database for an entries with tags or URL
+        or title info matching keywords and list those.
+    
+        Params: keywords to search, search any or all keywords
+        """
+    
+        global jsonOutput
+        arguments = []
+        placeholder = "'%' || ? || '%'"
+        query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE"
+    
+        if all_keywords == True: # Match all keywords in URL or Title
+            for token in keywords:
+                query += " (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s)) AND" % (placeholder, placeholder, placeholder, placeholder)
+                arguments.append(token)
+                arguments.append(token)
+                arguments.append(token)
+                arguments.append(token)
+            query = query[:-4]
+        else: # Match any keyword in URL or Title
+            for token in keywords:
+                query += " tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s) OR" % (placeholder, placeholder, placeholder, placeholder)
+                arguments.append(token)
+                arguments.append(token)
+                arguments.append(token)
+                arguments.append(token)
+            query = query[:-3]
+    
+        if debug:
+            print("\"%s\", (%s)" % (query, arguments))
+    
+        self.cur.execute(query, arguments)
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return
+    
+        if jsonOutput == False:
+            showPrompt(results)
+        else:
+            print(formatJson(results))
+    
+    
+    def searchTag(self, tag):
+        """Search and list bookmarks with a tag
+    
+        Params: tag to search
+        """
+    
+        global jsonOutput
+        self.cur.execute("SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%'", (tag,))
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return
+    
+        if jsonOutput == False:
+            showPrompt(results)
+        else:
+            print(formatJson(results))
+    
+    def compactDB(self, index):
+        """When an entry at index is deleted, move the last
+        entry in DB to index, if index is lesser.
+    
+        Params: index of deleted entry
+        """
+    
+        self.cur.execute('SELECT MAX(id) from bookmarks')
+        results = self.cur.fetchall()
+        if len(results) == 1 and results[0][0] is None: # Return if the last index was just deleted
+            return
+    
+        for row in results:
+            if row[0] > index:
+                self.cur.execute('SELECT id, URL, metadata, tags, desc FROM bookmarks WHERE id = ?', (row[0],))
+                results = self.cur.fetchall()
+                for row in results:
+                    self.cur.execute('DELETE FROM bookmarks WHERE id = ?', (row[0],))
+                    self.conn.commit()
+                    self.cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (index, row[1], row[2], row[3], row[4],))
+                    self.conn.commit()
+                    print("Index %d moved to %d" % (row[0], index))
+    
+    
+    def cleardb(self, index):
+        """Delete a single record or remove the table if index is None
+    
+        Params: index to delete
+        """
+    
+        if index == 0:  # Remove the table
+            resp = input("ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ")
+            if resp != 'y':
+                print("No bookmarks deleted")
+                return
+    
+            self.cur.execute('DROP TABLE if exists bookmarks')
+            self.conn.commit()
+            print("All bookmarks deleted")
+        else: # Remove a single entry
+            try:
+                self.cur.execute('DELETE FROM bookmarks WHERE id = ?', (index,))
+                self.conn.commit()
+                if self.cur.rowcount == 1:
+                    print("Removed index %d" % index)
+                    self.compactDB(index)
+                else:
+                    print("No matching index")
+            except IndexError:
+                print("Index out of bound")
+    
+    def printdb(self, index, empty=False):
+        """Print bookmark details at index or all bookmarks if index is None
+        Print only bookmarks with blank title or tag if empty is True
+        Note: URL is printed on top because title may be blank
+    
+        Params: index to print, flag to show only bookmarks with no title or tags
+        """
+    
+        global showOpt
+        global jsonOutput
+    
+        resultset = None
+        if index == 0: # Show all entries
+            if empty == False:
+                self.cur.execute('SELECT * FROM bookmarks')
+                resultset = self.cur.fetchall()
+            else:
+                self.cur.execute("SELECT * FROM bookmarks WHERE metadata = '' OR tags = ','")
+                resultset = self.cur.fetchall()
+                print("\x1b[1m%d records found\x1b[21m\n" % len(resultset))
+    
+            if jsonOutput == False:
+                if showOpt == 0:
+                    for row in resultset:
+                        printRecord(row)
+                elif showOpt == 1:
+                    for row in resultset:
+                        print("%s %s" % (row[0], row[1]))
+                elif showOpt == 2:
+                    for row in resultset:
+                        print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
+    
+            else:
+                print(formatJson(resultset))
+        else:  # Show record at index
+            try:
+                resultset = self.cur.execute("SELECT * FROM bookmarks WHERE id = ?", (index,))
+            except IndexError:
+                print("Index out of bound")
+                return
+    
+            if jsonOutput == False:
+                for row in resultset:
+                    printRecord(row)
+                    return
+                print("No matching index")
+            else:
+                print(formatJson(resultset, True))
 
-    return os.path.join(data_home, 'buku')
+    def showUniqueTags(self):
+        """Print all unique tags ordered alphabetically
+        """
+    
+        count = 1
+        Tags = []
+        uniqueTags = []
+        for row in self.cur.execute('SELECT DISTINCT tags FROM bookmarks'):
+            if row[0] == ',':
+                continue
+    
+            Tags.extend(row[0].strip(',').split(','))
+    
+        for tag in Tags:
+            if tag not in uniqueTags:
+                uniqueTags.append(tag)
+    
+        Tags = sorted(uniqueTags, key=str.lower)
+        for tag in Tags:
+            print("%6d. %s" % (count, tag))
+            count += 1
+    
+    
+    def replaceTag(self, orig, new=None):
+        """Replace orig tags with new tags in DB for all records.
+        Remove orig tag is new tag is empty.
+    
+        Params: original and new tags
+        """
+    
+        update = False
+        delete = False
+        newtags = ','
+    
+        orig = ',' + orig + ','
+        if new is None:
+            delete = True
+        else:
+            for tag in new:
+                if tag[-1] == ',':
+                    tag = tag.strip(',') + ','      # if delimiter is present, maintain it
+                else:
+                    tag = tag.strip(',')            # a token in a multi-word tag
+    
+                if tag == ',':
+                    continue
+    
+                if newtags[-1] == ',':
+                    newtags += tag
+                else:
+                    newtags += ' ' + tag
+    
+            if newtags[-1] != ',':
+                newtags += ','
+    
+            if newtags == ',':
+                delete = True
+    
+        if orig == newtags:
+            print("Tags are same.")
+            return
+    
+        self.cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE ?", ('%' + orig + '%',))
+        results = self.cur.fetchall()
+    
+        for row in results:
+            if delete == False:
+                # Check if tag newtags is already added
+                if row[1].find(newtags) >= 0:
+                    newtags = ','
+    
+            newtags = row[1].replace(orig, newtags)
+            self.cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
+            print("Updated index %d" % row[0])
+            update = True
+    
+        if update:
+            self.conn.commit()
 
+    def fetchopen(self, index):
+        """Fetch URL at index and open in browser
 
-def moveOldDatabase():
-    """Move database file from earlier path used in versions <= 1.8
-    to new path. Errors out if both the old and new DB files exist.
-    """
+        Params: index
+        """
 
-    olddbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
-    olddbfile = os.path.join(olddbpath, 'bookmarks.db')
+        try:
+            for row in self.cur.execute("SELECT URL FROM bookmarks WHERE id = ?", (index,)):
+                url = unquote(row[0])
+                browser_open(url)
+                return
+            print("No matching index")
+        except IndexError:
+                print("Index out of bound")
 
-    if not os.path.exists(olddbfile):
-        return
+    def closequit(self, exitval=0):
+        """Close a DB connection and exit"""
 
-    newdbpath = getDataPath()
-    newdbfile = os.path.join(newdbpath, 'bookmarks.db')
-
-    if os.path.exists(newdbfile):
-        print("Both old (%s) and new (%s) databases exist, need manual action" % (olddbfile, newdbfile))
-        sys.exit(1)
-
-    if not os.path.exists(newdbpath):
-        os.makedirs(newdbpath)
-
-    os.rename(olddbfile, newdbfile)
-    print("Database was moved from old (%s) to new (%s) location.\n" % (olddbfile, newdbfile))
-
-    os.rmdir(olddbpath)
-
-
-def initdb():
-    """Initialize the database connection. Create DB file and/or bookmarks table
-    if they don't exist. Alert on encryption options on first execution.
-
-    Returns: connection, cursor
-    """
-
-    dbpath = getDataPath()
-    if not os.path.exists(dbpath):
-        os.makedirs(dbpath)
-
-    dbfile = os.path.join(dbpath, 'bookmarks.db')
-
-    encpath = os.path.join(dbpath, 'bookmarks.db.enc')
-    # Notify if DB file needs to be decrypted first
-    if os.path.exists(encpath) and not os.path.exists(dbfile):
-        print("Unlock database first")
-        sys.exit(1)
-
-    # Show info on first creation
-    if no_crypto == False and not os.path.exists(dbfile):
-        print("DB file is being created. You may want to encrypt it later.")
-
-    try:
-        # Create a connection
-        conn = sqlite3.connect(dbfile)
-        cur = conn.cursor()
-
-        # Create table if it doesn't exist
-        cur.execute('''CREATE TABLE if not exists bookmarks \
-                   (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text default \'\', tags text default \',\', desc text default \'\')''')
-        conn.commit()
-    except Exception as e:
-        print("\x1b[1mEXCEPTION\x1b[21m [initdb]: (%s) %s" % (type(e).__name__, e))
-        sys.exit(1)
-
-    # Add description column in existing DB (from version 2.1)
-    try:
-        cur.execute("""ALTER TABLE bookmarks ADD COLUMN desc text default \'\'""")
-        conn.commit()
-    except:
-        pass
-
-    return (conn, cur)
+        if self.conn is not None:
+            try:
+                self.cur.close()
+                self.conn.close()
+            except:  # we don't really care about errors, we're closing down anyway
+                pass
+        sys.exit(exitval)
 
 
 def getPageResp(url, fullurl=False, forced=False):
@@ -360,21 +824,6 @@ def fetchTitle(url):
         return titleData.strip().replace("\n","")
 
 
-def isBookmarkAdded(cur, url):
-    """Check if URL already exists in DB
-
-    Params: cursor, URL to search
-    Returns: DB index if URL found, else -1
-    """
-
-    cur.execute("SELECT id FROM bookmarks WHERE URL = ?", (url,))
-    resultset = cur.fetchall()
-    if len(resultset) == 0:
-        return -1
-
-    return resultset[0][0]
-
-
 def getTags(keywords=[]):
     """Format and get tag string from tokens"""
     # TODO: Simplify this logic
@@ -417,296 +866,6 @@ def getTags(keywords=[]):
 
     # Wrap with delimiter
     return ',' + ','.join(sortedTags) + ','
-
-
-def AddInsertEntry(conn, cur, keywords, insertindex=0):
-    """Add a new bookmark or insert a
-    new record at insertindex (if empty)
-
-    Params: connection, cursor, keywords, index to update, index to insert at
-    """
-
-    global tagManual
-    global titleManual
-    global description
-    tags = ','
-    meta = ''
-    url = keywords[0]
-
-    # Ensure that the URL does not exist in DB already
-    id = isBookmarkAdded(cur, url)
-    if id != -1:
-        print("URL already exists at index %d" % id)
-        return
-
-    # Process title
-    if titleManual is not None:
-        meta = titleManual
-    else:
-        meta = fetchTitle(url)
-        if meta == '':
-            print("\x1B[91mTitle: []\x1B[0m")
-        else:
-            print("Title: [%s]" % meta)
-
-    # Process tags
-    if tagManual is not None and False == (tagManual[0] == ',' and len(tagManual) == 1):
-        keywords = keywords + [','] + tagManual
-
-    if len(keywords) > 1:
-        tags = getTags(keywords[1:])
-
-    # Process description
-    if description is None:
-        description = ''
-
-    try:
-        if insertindex == 0:    # insertindex is index number to insert record at
-            cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tags, description))
-        else:
-            cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (insertindex, url, meta, tags, description))
-
-        conn.commit()
-        print("Added at index %d\n" % cur.lastrowid)
-        printdb(cur, cur.lastrowid)
-    except sqlite3.IntegrityError:
-        for row in cur.execute("SELECT id from bookmarks where URL LIKE ?", (url,)):
-            print("URL already exists at index %s" % row[0])
-            return
-
-        # Print error for index existing case
-        print("Index %d exists" % insertindex)
-
-
-def UpdateEntry(conn, cur, index, url=''):
-    """Update an existing record at index
-
-    Params: connection, cursor, index to update, url
-    """
-
-    global tagManual
-    global titleManual
-    global description
-
-    arguments = []
-    query = "UPDATE bookmarks SET"
-    toUpdate = False
-
-    # Update URL if passed as argument
-    if url != '':
-        query += " URL = ?,"
-        arguments.append(url)
-        toUpdate = True
-
-    # Update tags if passed as argument
-    if tagManual is not None:
-        tags = ','
-        if False == (tagManual[0] == ',' and len(tagManual) == 1):
-            tags = getTags(tagManual)
-        query += " tags = ?,"
-        arguments.append(tags)
-        toUpdate = True
-
-    # Update description if passed as an argument
-    if description is not None:
-        query += " desc = ?,"
-        arguments.append(description)
-        toUpdate = True
-
-    # Update title
-    #
-    # 1. if -t has no arguments, delete existing title
-    # 2. if -t has arguments, update existing title
-    # 3. if -t option is omitted at cmdline:
-    #    if URL is passed, update the title from web using the URL
-    # 4. if no other argument (url, tag, comment) passed update title from web using DB URL
-    meta = None
-    if titleManual is not None:
-        meta = titleManual
-    elif url != '':
-        meta = fetchTitle(url)
-        if meta == '':
-            print("\x1B[91mTitle: []\x1B[0m")
-        else:
-            print("Title: [%s]" % meta)
-    elif toUpdate == False:
-        dbRefresh(conn, cur, index)
-        printdb(cur, index)
-
-    if meta is not None:
-        query += " metadata = ?,"
-        arguments.append(meta)
-        toUpdate = True
-
-    if toUpdate == False:       # Nothing to update
-        return
-
-    query = query[:-1] + " WHERE id = ?"
-    arguments.append(index)
-    if debug:
-        print("query: [%s], args: [%s]" % (query, arguments))
-
-    try:
-        cur.execute(query, arguments)
-        conn.commit()
-        if cur.rowcount == 1:
-            print("Updated index %d\n" % index)
-            printdb(cur, index)
-        else:
-            print("No matching index")
-    except sqlite3.IntegrityError:
-        print("URL already exists")
-
-
-def dbRefresh(conn, cur, index):
-    """Refresh ALL records in the database. Fetch title for each
-    bookmark from the web and update the records. Doesn't udpate
-    the record if title is empty.
-    This API doesn't change DB index, URL or tags of a bookmark.
-
-    Params: connection, cursor
-    """
-
-    global titleManual
-
-    if index == 0:
-        cur.execute("SELECT id, url FROM bookmarks ORDER BY id ASC")
-    else:
-        cur.execute("SELECT id, url FROM bookmarks WHERE id = ?", (index,))
-
-    resultset = cur.fetchall()
-    if titleManual is None:
-        for row in resultset:
-            title = fetchTitle(row[1])
-            if title == '':
-                print("\x1B[91mTitle: []")
-                print("\x1b[1mNOT updating index %d\x1b[21m\x1B[0m\n" % row[0])
-                continue
-            else:
-                print("Title: [%s]" % title)
-
-            cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
-            conn.commit()
-            print("Updated index %d\n" % row[0])
-    else:
-        title = titleManual
-
-        for row in resultset:
-            cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
-            conn.commit()
-            print("Updated index %d\n" % row[0])
-
-
-def searchdb(cur, keywords, all_keywords=False):
-    """Search the database for an entries with tags or URL
-    or title info matching keywords and list those.
-
-    Params: cursor, keywords to search, search any or all keywords
-    """
-
-    global jsonOutput
-    arguments = []
-    placeholder = "'%' || ? || '%'"
-    query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE"
-
-    if all_keywords == True: # Match all keywords in URL or Title
-        for token in keywords:
-            query += " (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s)) AND" % (placeholder, placeholder, placeholder, placeholder)
-            arguments.append(token)
-            arguments.append(token)
-            arguments.append(token)
-            arguments.append(token)
-        query = query[:-4]
-    else: # Match any keyword in URL or Title
-        for token in keywords:
-            query += " tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s) OR" % (placeholder, placeholder, placeholder, placeholder)
-            arguments.append(token)
-            arguments.append(token)
-            arguments.append(token)
-            arguments.append(token)
-        query = query[:-3]
-
-    if debug:
-        print("\"%s\", (%s)" % (query, arguments))
-
-    cur.execute(query, arguments)
-    results = cur.fetchall()
-    if len(results) == 0:
-        return
-
-    if jsonOutput == False:
-        showPrompt(results)
-    else:
-        print(formatJson(results))
-
-
-def searchTag(cur, tag):
-    """Search and list bookmarks with a tag
-
-    Params: cursor, tag to search
-    """
-
-    global jsonOutput
-    cur.execute("SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%'", (tag,))
-    results = cur.fetchall()
-    if len(results) == 0:
-        return
-
-    if jsonOutput == False:
-        showPrompt(results)
-    else:
-        print(formatJson(results))
-
-def compactDB(conn, cur, index):
-    """When an entry at index is deleted, move the last
-    entry in DB to index, if index is lesser.
-
-    Params: connection, cursor, index of deleted entry
-    """
-
-    cur.execute('SELECT MAX(id) from bookmarks')
-    results = cur.fetchall()
-    if len(results) == 1 and results[0][0] is None: # Return if the last index was just deleted
-        return
-
-    for row in results:
-        if row[0] > index:
-            cur.execute('SELECT id, URL, metadata, tags, desc FROM bookmarks WHERE id = ?', (row[0],))
-            results = cur.fetchall()
-            for row in results:
-                cur.execute('DELETE FROM bookmarks WHERE id = ?', (row[0],))
-                conn.commit()
-                cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (index, row[1], row[2], row[3], row[4],))
-                conn.commit()
-                print("Index %d moved to %d" % (row[0], index))
-
-
-def cleardb(conn, cur, index):
-    """Delete a single record or remove the table if index is None
-
-    Params: connection, cursor, index to delete
-    """
-
-    if index == 0: # Remove the table
-        resp = input("ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ")
-        if resp != 'y':
-            print("No bookmarks deleted")
-            return
-
-        cur.execute('DROP TABLE if exists bookmarks')
-        conn.commit()
-        print("All bookmarks deleted")
-    else: # Remove a single entry
-        try:
-            cur.execute('DELETE FROM bookmarks WHERE id = ?', (index,))
-            conn.commit()
-            if cur.rowcount == 1:
-                print("Removed index %d" % index)
-                compactDB(conn, cur, index)
-            else:
-                print("No matching index")
-        except IndexError:
-            print("Index out of bound")
 
 
 def showPrompt(results):
@@ -763,56 +922,6 @@ def printRecord(row, count=0):
     print("")
 
 
-def printdb(cur, index, empty=False):
-    """Print bookmark details at index or all bookmarks if index is None
-    Print only bookmarks with blank title or tag if empty is True
-    Note: URL is printed on top because title may be blank
-
-    Params: cursor, index to print, flag to show only bookmarks with no title or tags
-    """
-
-    global showOpt
-    global jsonOutput
-
-    resultset = None
-    if index == 0: # Show all entries
-        if empty == False:
-            cur.execute('SELECT * FROM bookmarks')
-            resultset = cur.fetchall()
-        else:
-            cur.execute("SELECT * FROM bookmarks WHERE metadata = '' OR tags = ','")
-            resultset = cur.fetchall()
-            print("\x1b[1m%d records found\x1b[21m\n" % len(resultset))
-
-        if jsonOutput == False:
-            if showOpt == 0:
-                for row in resultset:
-                    printRecord(row)
-            elif showOpt == 1:
-                for row in resultset:
-                    print("%s %s" % (row[0], row[1]))
-            elif showOpt == 2:
-                for row in resultset:
-                    print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
-
-        else:
-            print(formatJson(resultset))
-    else: # Show record at index
-        try:
-            resultset = cur.execute("SELECT * FROM bookmarks WHERE id = ?", (index,))
-        except IndexError:
-            print("Index out of bound")
-            return
-
-        if jsonOutput == False:
-            for row in resultset:
-                printRecord(row)
-                return
-            print("No matching index")
-        else:
-            print(formatJson(resultset, True))
-
-
 def formatJson(resultset, single=False):
     """Return results in Json format"""
 
@@ -844,104 +953,6 @@ def formatJson(resultset, single=False):
                 marks['tags']  = row[3][1:-1]
 
     return json.dumps(marks, sort_keys=True, indent=4)
-
-
-def showUniqueTags(cur):
-    """Print all unique tags ordered alphabetically
-
-    Params: cursor
-    """
-
-    count = 1
-    Tags = []
-    uniqueTags = []
-    for row in cur.execute('SELECT DISTINCT tags FROM bookmarks'):
-        if row[0] == ',':
-            continue
-
-        Tags.extend(row[0].strip(',').split(','))
-
-    for tag in Tags:
-        if tag not in uniqueTags:
-            uniqueTags.append(tag)
-
-    Tags = sorted(uniqueTags, key=str.lower)
-    for tag in Tags:
-        print("%6d. %s" % (count, tag))
-        count += 1
-
-
-def replaceTag(conn, cur, orig, new=None):
-    """Replace orig tags with new tags in DB for all records.
-    Remove orig tag is new tag is empty.
-
-    Params: connection, cursor, original and new tags
-    """
-
-    update = False
-    delete = False
-    newtags = ','
-
-    orig = ',' + orig + ','
-    if new is None:
-        delete = True
-    else:
-        for tag in new:
-            if tag[-1] == ',':
-                tag = tag.strip(',') + ','      # if delimiter is present, maintain it
-            else:
-                tag = tag.strip(',')            # a token in a multi-word tag
-
-            if tag == ',':
-                continue
-
-            if newtags[-1] == ',':
-                newtags += tag
-            else:
-                newtags += ' ' + tag
-
-        if newtags[-1] != ',':
-            newtags += ','
-
-        if newtags == ',':
-            delete = True
-
-    if orig == newtags:
-        print("Tags are same.")
-        return
-
-    cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE ?", ('%' + orig + '%',))
-    results = cur.fetchall()
-
-    for row in results:
-        if delete == False:
-            # Check if tag newtags is already added
-            if row[1].find(newtags) >= 0:
-                newtags = ','
-
-        newtags = row[1].replace(orig, newtags)
-        cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
-        print("Updated index %d" % row[0])
-        update = True
-
-    if update:
-        conn.commit()
-
-
-def fetchopen(index):
-    """Fetch URL at index and open in browser
-
-    Params: index
-    """
-
-    try:
-        for row in cur.execute("SELECT URL FROM bookmarks WHERE id = ?", (index,)):
-            url = unquote(row[0])
-            browser_open(url)
-            return
-        print("No matching index")
-    except IndexError:
-            print("Index out of bound")
 
 
 def is_int(string):
@@ -1002,7 +1013,7 @@ def get_filehash(filepath):
 def encrypt_file(iterations):
     """Encrypt the bookmarks database file"""
 
-    dbpath = os.path.join(getDataPath(), 'bookmarks.db')
+    dbpath = os.path.join(BukuDb.getDataPath(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(dbpath):
         print("%s missing. Already encrypted?" % dbpath)
@@ -1062,7 +1073,7 @@ def encrypt_file(iterations):
 def decrypt_file(iterations):
     """Decrypt the bookmarks database file"""
 
-    dbpath = os.path.join(getDataPath(), 'bookmarks.db')
+    dbpath = os.path.join(BukuDb.getDataPath(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
         printmsg((encpath + " missing"), "ERROR")
@@ -1122,14 +1133,6 @@ def sigint_handler(signum, frame):
     sys.exit(1)
 
 signal.signal(signal.SIGINT, sigint_handler)
-
-
-def closequit(conn=None, exitval=0):
-    """Close a DB connection and exit"""
-
-    if conn is not None:
-        conn.close()
-    sys.exit(exitval)
 
 
 def printmsg(msg, level=None):
@@ -1271,12 +1274,11 @@ general_group = argparser.add_argument_group(title="general options",
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
 --url keyword        specify url, works with -u
---tag [...]          specify comma-separated tags, works with -u
+--tag [...]          set comma-separated tags, works with -a, -u
                      clears tag, if no arguments
 -t, --title [...]    manually set title, works with -a, -u
                      if no arguments:
                      -a: do not set title, -u: clear title
-                     set (-a) or clear (-u) title, if no arguments
 -c, --comment [...]  description of the bookmark, works with
                      -a, -u; clears comment, if no arguments
 -h, --help           show this information''')
@@ -1370,7 +1372,7 @@ if debug:
     print("Version %.1f" % _VERSION_)
 
 # Move pre-1.9 database to new location
-moveOldDatabase()
+BukuDb.moveOldDatabase()
 
 # Handle encrypt/decrypt options at top priority
 if args.encrypt is not None:
@@ -1392,74 +1394,74 @@ if args.decrypt is not None:
     decrypt_file(args.decrypt)
 
 # Initialize the database and get handles
-conn, cur = initdb()
+bdb = BukuDb()
 
 # Add a record
 if args.addurl is not None:
-    AddInsertEntry(conn, cur, args.addurl)
+    bdb.AddInsertEntry(args.addurl)
 
 # Delete record(s)
 if args.delete is not None:
     if args.delete < 0:
         printmsg("Index must be >= 0", "ERROR")
-        closequit(conn, 1)
-    cleardb(conn, cur, args.delete)
+        bdb.closequit(1)
+    bdb.cleardb(args.delete)
 
 # Search URLs, titles, tags for any keyword
 if args.sany is not None:
-    searchdb(cur, args.sany)
+    bdb.searchdb(args.sany)
 
 # Search URLs, titles, tags with all keywords
 if args.sall is not None:
     if args.sall[0] == 'blank' and len(args.sall) == 1:
-        printdb(cur, 0, True)
+        bdb.printdb(0, True)
     else:
-        searchdb(cur, args.sall, True)
+        bdb.searchdb(args.sall, True)
 
 # Search bookmarks by tag
 if tagsearch == True:
     if len(args.stag) > 0:
         tag = ',' + " ".join(args.stag) + ','
-        searchTag(cur, tag)
+        bdb.searchTag(tag)
     else:
-        showUniqueTags(cur)
+        bdb.showUniqueTags()
 
 # Update record
 if update == True:
     if len(args.update) == 0:
-        dbRefresh(conn, cur, 0)
+        bdb.dbRefresh(0)
     elif not args.update[0].isdigit():
         printmsg("Index must be a number >= 0", "ERROR")
-        closequit(conn, 1)
+        bdb.closequit(1)
     elif int(args.update[0]) == 0:
-        dbRefresh(conn, cur, 0)
+        bdb.dbRefresh(0)
     else:
         if args.url is not None:
             new_url = args.url[0]
         else:
             new_url = ''
-        UpdateEntry(conn, cur, int(args.update[0]), new_url)
+        bdb.UpdateEntry(int(args.update[0]), new_url)
 
 # Print all records
 if args.printindex is not None:
     if args.printindex < 0:
         printmsg("Index must be >= 0", "ERROR")
-        closequit(conn, 1)
-    printdb(cur, args.printindex)
+        bdb.closequit(1)
+    bdb.printdb(args.printindex)
 
 # Replace a tag in DB
 if args.replace is not None:
     if len(args.replace) == 1:
-        replaceTag(conn, cur, args.replace[0])
+        bdb.replaceTag(args.replace[0])
     else:
-        replaceTag(conn, cur, args.replace[0], args.replace[1:])
+        bdb.replaceTag(args.replace[0], args.replace[1:])
 
 # Open URL in browser
 if args.openurl is not None:
     if args.openurl < 1:
         printmsg("Index must be >= 1", "ERROR")
-        closequit(conn, 1)
-    fetchopen(args.openurl)
+        bdb.closequit(1)
+    bdb.fetchopen(args.openurl)
 
 """
 # NOTE: Insert is functional but commented because DB compaction serves the purpose.
@@ -1478,5 +1480,4 @@ if args.insert is not None:
         AddInsertEntry(conn, cur, args.insert[1:], insertindex)
 """
 
-# Close the connection before exiting
-conn.close()
+bdb.closequit(0)

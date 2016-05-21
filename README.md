@@ -124,7 +124,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -d, --delete [N]     delete bookmark at DB index N
                            delete all bookmarks, if no arguments
       --url keyword        specify url, works with -u
-      --tag [...]          specify comma-separated tags, works with -u
+      --tag [...]          set comma-separated tags, works with -a, -u
                            clears tag, if no arguments
       -t, --title [...]    manually set title, works with -a, -u
                            if no arguments:
