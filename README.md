@@ -119,10 +119,12 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -u, --update [N]     update fields of bookmark at DB index N
                            refresh all titles, if no arguments
                            refresh title of bookmark at N, if only
-                           N is specified without any update modifiers
-                           to change url, tag or comment
+                           N is specified without any edit options
       -d, --delete [N]     delete bookmark at DB index N
                            delete all bookmarks, if no arguments
+      -h, --help           show this information
+
+    edit options:
       --url keyword        specify url, works with -u only
       --tag [...]          set comma-separated tags, works with -a, -u
                            clears tag, if no arguments
@@ -131,7 +133,6 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            -a: do not set title, -u: clear title
       -c, --comment [...]  description of the bookmark, works with
                            -a, -u; clears comment, if no arguments
-      -h, --help           show this information
 
     search options:
       -s, --sany keyword [...]

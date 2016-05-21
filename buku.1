@@ -61,7 +61,7 @@ Update fields of the bookmark at index
 .I N
 in DB. If
 .I N
-and other options are omitted, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only N is passed without any update modifiers, title is fetched and updated (if not empty).
+and other options are omitted, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only N is passed without any edit options, title is fetched and updated (if not empty).
 .TP
 .BI \-d " " \--delete " [N]"
 Delete bookmark at index
@@ -69,6 +69,10 @@ Delete bookmark at index
 in DB (from -p output). The last record is moved to the removed index. If
 .I N
 is omitted, all records are deleted from the DB.
+.TP
+.BI \-h " " \--help
+Show program help.
+.SH EDIT OPTIONS
 .TP
 .BI \--url " [...]"
 Specify the URL, works with -u only. Fetches and updates title if --title is not used.
@@ -81,9 +85,6 @@ Manually specify the title, works with -a, -u. Omits or clears the title, if no 
 .TP
 .BI \-c " " \--comment " [...]"
 Add comment or description on the bookmark, works with -a, -u. Clears the comment, if no arguments passed.
-.TP
-.BI \-h " " \--help
-Show program help.
 .SH SEARCH OPTIONS
 .TP
 .BI \-s " " \--sany " keyword [...]"

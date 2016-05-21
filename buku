@@ -1270,27 +1270,29 @@ general_group = argparser.add_argument_group(title="general options",
 -u, --update [N]     update fields of bookmark at DB index N
                      refresh all titles, if no arguments
                      refresh title of bookmark at N, if only
-                     N is specified without any update modifiers
-                     to change url, tag or comment
+                     N is specified without any edit options
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
---url keyword        specify url, works with -u only
+-h, --help           show this information''')
+general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
+general_group.add_argument('-u', '--update', nargs='*', dest='update', action=customUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
+general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
+general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
+
+# Edit options
+edit_group=argparser.add_argument_group(title="edit options",
+    description='''--url keyword        specify url, works with -u only
 --tag [...]          set comma-separated tags, works with -a, -u
                      clears tag, if no arguments
 -t, --title [...]    manually set title, works with -a, -u
                      if no arguments:
                      -a: do not set title, -u: clear title
 -c, --comment [...]  description of the bookmark, works with
-                     -a, -u; clears comment, if no arguments
--h, --help           show this information''')
-general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
-general_group.add_argument('-u', '--update', nargs='*', dest='update', action=customUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
-general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
-general_group.add_argument('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
-general_group.add_argument('--tag', nargs='*', dest='tag', action=customTagAction, metavar='tag', help=argparse.SUPPRESS)
-general_group.add_argument('-t', '--title', nargs='*', dest='title', action=customTitleAction, metavar='title', help=argparse.SUPPRESS)
-general_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=customDescAction, metavar='desc', help=argparse.SUPPRESS)
-general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
+                     -a, -u; clears comment, if no arguments''')
+edit_group.add_argument('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
+edit_group.add_argument('--tag', nargs='*', dest='tag', action=customTagAction, metavar='tag', help=argparse.SUPPRESS)
+edit_group.add_argument('-t', '--title', nargs='*', dest='title', action=customTitleAction, metavar='title', help=argparse.SUPPRESS)
+edit_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=customDescAction, metavar='desc', help=argparse.SUPPRESS)
 
 # Search options
 search_group=argparser.add_argument_group(title="search options",
