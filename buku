@@ -82,7 +82,7 @@ class BMHTMLParser(HTMLParser.HTMLParser):
             self.inTitle = False
             if self.data != "":
                 titleData = self.data
-                self.reset() # We have received title data, exit parsing
+                self.reset()  # We have received title data, exit parsing
 
     def handle_data(self, data):
         if self.lasttag == "title" and self.inTitle == True:
@@ -261,40 +261,41 @@ class BukuDb:
             print("Index %d exists" % insertindex)
     
     
-    def UpdateEntry(self, index, url=''):
-        """Update an existing record at index
-    
-        Params: self.conn.ction, self.cur.or, index to update, url
+    def UpdateEntry(self, index, url='', tag_manual=None, title_manual=None, desc=None):
+        """ Update an existing record at index
+        
+        :param index: int position to update
+        :param url: address
+        :param tag_manual: list of tags to add manually
+        :param title_manual: string title to add manually
+        :param desc: string description
+        :return:
         """
-    
-        global tagManual
-        global titleManual
-        global description
     
         arguments = []
         query = "UPDATE bookmarks SET"
-        toUpdate = False
+        to_update = False
     
         # Update URL if passed as argument
         if url != '':
             query += " URL = ?,"
             arguments.append(url)
-            toUpdate = True
+            to_update = True
     
         # Update tags if passed as argument
-        if tagManual is not None:
+        if tag_manual is not None:
             tags = ','
-            if False == (tagManual[0] == ',' and len(tagManual) == 1):
-                tags = getTags(tagManual)
+            if not (tag_manual[0] == ',' and len(tag_manual) == 1):
+                tags = getTags(tag_manual)
             query += " tags = ?,"
             arguments.append(tags)
-            toUpdate = True
+            to_update = True
     
         # Update description if passed as an argument
-        if description is not None:
+        if desc is not None:
             query += " desc = ?,"
-            arguments.append(description)
-            toUpdate = True
+            arguments.append(desc)
+            to_update = True
     
         # Update title
         #
@@ -304,24 +305,24 @@ class BukuDb:
         #    if URL is passed, update the title from web using the URL
         # 4. if no other argument (url, tag, comment) passed update title from web using DB URL
         meta = None
-        if titleManual is not None:
-            meta = titleManual
+        if title_manual is not None:
+            meta = title_manual
         elif url != '':
             meta = fetchTitle(url)
             if meta == '':
                 print("\x1B[91mTitle: []\x1B[0m")
             else:
                 print("Title: [%s]" % meta)
-        elif toUpdate == False:
+        elif not to_update:
             self.dbRefresh(index)
             self.printdb(index)
     
         if meta is not None:
             query += " metadata = ?,"
             arguments.append(meta)
-            toUpdate = True
+            to_update = True
     
-        if toUpdate == False:       # Nothing to update
+        if not to_update:       # Nothing to update
             return
     
         query = query[:-1] + " WHERE id = ?"
@@ -1440,7 +1441,7 @@ if update == True:
             new_url = args.url[0]
         else:
             new_url = ''
-        bdb.UpdateEntry(int(args.update[0]), new_url)
+        bdb.UpdateEntry(int(args.update[0]), new_url, tagManual, titleManual, description)
 
 # Print all records
 if args.printindex is not None:
