@@ -99,7 +99,7 @@ class BukuDb:
         self.cur = cur
 
     @staticmethod
-    def getDataPath():
+    def get_dbfile_path():
         """Determine the DB file path:
         if $XDG_DATA_HOME is defined, use it
         else if $HOME exists, use it
@@ -116,7 +116,7 @@ class BukuDb:
         return os.path.join(data_home, 'buku')
 
     @staticmethod
-    def moveOldDatabase():
+    def move_legacy_dbfile():
         """Move database file from earlier path used in versions <= 1.8
         to new path. Errors out if both the old and new DB files exist.
         """
@@ -127,7 +127,7 @@ class BukuDb:
         if not os.path.exists(olddbfile):
             return
 
-        newdbpath = BukuDb.getDataPath()
+        newdbpath = BukuDb.get_dbfile_path()
         newdbfile = os.path.join(newdbpath, 'bookmarks.db')
 
         if os.path.exists(newdbfile):
@@ -150,7 +150,7 @@ class BukuDb:
         Returns: connection, cursor
         """
 
-        dbpath = BukuDb.getDataPath()
+        dbpath = BukuDb.get_dbfile_path()
         if not os.path.exists(dbpath):
             os.makedirs(dbpath)
 
@@ -188,7 +188,7 @@ class BukuDb:
 
         return (conn, cur)
 
-    def isBookmarkAdded(self, url):
+    def get_bookmark_index(self, url):
         """Check if URL already exists in DB
 
         Params: URL to search
@@ -202,7 +202,7 @@ class BukuDb:
 
         return resultset[0][0]
 
-    def AddInsertEntry(self, keywords, insertindex=0):
+    def add_bookmark(self, keywords, insertindex=0):
         """Add a new bookmark or insert a
         new record at insertindex (if empty)
 
@@ -217,7 +217,7 @@ class BukuDb:
         url = keywords[0]
 
         # Ensure that the URL does not exist in DB already
-        id = self.isBookmarkAdded(url)
+        id = self.get_bookmark_index(url)
         if id != -1:
             print("URL already exists at index %d" % id)
             return
@@ -226,7 +226,7 @@ class BukuDb:
         if titleManual is not None:
             meta = titleManual
         else:
-            meta = fetchTitle(url)
+            meta = network_handler(url)
             if meta == '':
                 print("\x1B[91mTitle: []\x1B[0m")
             else:
@@ -237,7 +237,7 @@ class BukuDb:
             keywords = keywords + [','] + tagManual
 
         if len(keywords) > 1:
-            tags = getTags(keywords[1:])
+            tags = parse_tags(keywords[1:])
 
         # Process description
         if description is None:
@@ -261,7 +261,7 @@ class BukuDb:
             print("Index %d exists" % insertindex)
 
 
-    def UpdateEntry(self, index, url='', tag_manual=None, title_manual=None, desc=None):
+    def update_bookmark(self, index, url='', tag_manual=None, title_manual=None, desc=None):
         """ Update an existing record at index
 
         :param index: int position to update
@@ -286,7 +286,7 @@ class BukuDb:
         if tag_manual is not None:
             tags = ','
             if not (tag_manual[0] == ',' and len(tag_manual) == 1):
-                tags = getTags(tag_manual)
+                tags = parse_tags(tag_manual)
             query += " tags = ?,"
             arguments.append(tags)
             to_update = True
@@ -308,13 +308,13 @@ class BukuDb:
         if title_manual is not None:
             meta = title_manual
         elif url != '':
-            meta = fetchTitle(url)
+            meta = network_handler(url)
             if meta == '':
                 print("\x1B[91mTitle: []\x1B[0m")
             else:
                 print("Title: [%s]" % meta)
         elif not to_update:
-            self.dbRefresh(index)
+            self.refreshdb(index)
             self.printdb(index)
 
         if meta is not None:
@@ -342,7 +342,7 @@ class BukuDb:
             print("URL already exists")
 
 
-    def dbRefresh(self, index):
+    def refreshdb(self, index):
         """Refresh ALL records in the database. Fetch title for each
         bookmark from the web and update the records. Doesn't udpate
         the record if title is empty.
@@ -361,7 +361,7 @@ class BukuDb:
         resultset = self.cur.fetchall()
         if titleManual is None:
             for row in resultset:
-                title = fetchTitle(row[1])
+                title = network_handler(row[1])
                 if title == '':
                     print("\x1B[91mTitle: []")
                     print("\x1b[1mNOT updating index %d\x1b[21m\x1B[0m\n" % row[0])
@@ -419,12 +419,12 @@ class BukuDb:
             return
 
         if jsonOutput == False:
-            showPrompt(results)
+            prompt(results)
         else:
-            print(formatJson(results))
+            print(format_json(results))
 
 
-    def searchTag(self, tag):
+    def search_by_tag(self, tag):
         """Search and list bookmarks with a tag
 
         Params: tag to search
@@ -437,11 +437,11 @@ class BukuDb:
             return
 
         if jsonOutput == False:
-            showPrompt(results)
+            prompt(results)
         else:
-            print(formatJson(results))
+            print(format_json(results))
 
-    def compactDB(self, index):
+    def compactdb(self, index):
         """When an entry at index is deleted, move the last
         entry in DB to index, if index is lesser.
 
@@ -486,7 +486,7 @@ class BukuDb:
                 self.conn.commit()
                 if self.cur.rowcount == 1:
                     print("Removed index %d" % index)
-                    self.compactDB(index)
+                    self.compactdb(index)
                 else:
                     print("No matching index")
             except IndexError:
@@ -516,7 +516,7 @@ class BukuDb:
             if jsonOutput == False:
                 if showOpt == 0:
                     for row in resultset:
-                        printRecord(row)
+                        print_record(row)
                 elif showOpt == 1:
                     for row in resultset:
                         print("%s %s" % (row[0], row[1]))
@@ -525,7 +525,7 @@ class BukuDb:
                         print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
 
             else:
-                print(formatJson(resultset))
+                print(format_json(resultset))
         else:  # Show record at index
             try:
                 resultset = self.cur.execute("SELECT * FROM bookmarks WHERE id = ?", (index,))
@@ -535,13 +535,13 @@ class BukuDb:
 
             if jsonOutput == False:
                 for row in resultset:
-                    printRecord(row)
+                    print_record(row)
                     return
                 print("No matching index")
             else:
-                print(formatJson(resultset, True))
+                print(format_json(resultset, True))
 
-    def showUniqueTags(self):
+    def list_tags(self):
         """Print all unique tags ordered alphabetically
         """
 
@@ -564,7 +564,7 @@ class BukuDb:
             count += 1
 
 
-    def replaceTag(self, orig, new=None):
+    def replace_tag(self, orig, new=None):
         """Replace orig tags with new tags in DB for all records.
         Remove orig tag is new tag is empty.
 
@@ -620,8 +620,8 @@ class BukuDb:
         if update:
             self.conn.commit()
 
-    def fetchopen(self, index):
-        """Fetch URL at index and open in browser
+    def browse_by_index(self, index):
+        """Open URL at index in browser
 
         Params: index
         """
@@ -635,7 +635,7 @@ class BukuDb:
         except IndexError:
                 print("Index out of bound")
 
-    def closequit(self, exitval=0):
+    def close_quit(self, exitval=0):
         """Close a DB connection and exit"""
 
         if self.conn is not None:
@@ -647,7 +647,7 @@ class BukuDb:
         sys.exit(exitval)
 
 
-def getPageResp(url, fullurl=False, forced=False):
+def connect_server(url, fullurl=False, forced=False):
     """Connect to a server and fetch the requested page data.
     Supports gzip compression.
 
@@ -711,10 +711,10 @@ def getPageResp(url, fullurl=False, forced=False):
     return (urlconn, urlconn.getresponse())
 
 
-def getTitleData(resp):
+def get_page_title(resp):
     """Invoke HTML parser and extract title from HTTP response
 
-    Params: GET response
+    Params: GET response and invoke HTML parser
     """
 
     data = None
@@ -744,10 +744,10 @@ def getTitleData(resp):
     except Exception as e:
         if debug and str(e) != "we should not get here!":
             # Suppress Exception due to intentional self.reset() in HTMLParser
-            print("\x1b[1mEXCEPTION\x1b[21m [getTitleData]: (%s) %s" % (type(e).__name__, e))
+            print("\x1b[1mEXCEPTION\x1b[21m [get_page_title]: (%s) %s" % (type(e).__name__, e))
 
 
-def fetchTitle(url):
+def network_handler(url):
     """Handle server connection and redirections
 
     Params: URL to fetch
@@ -760,13 +760,13 @@ def fetchTitle(url):
     retry = False
 
     try:
-        urlconn, resp = getPageResp(url, False)
+        urlconn, resp = connect_server(url, False)
 
         while 1:
             if resp is None:
                 break
             elif resp.status == 200:
-                getTitleData(resp)
+                get_page_title(resp)
                 break
             elif resp.status in [301, 302]:
                 redirurl = urljoin(url, resp.getheader('location', ''))
@@ -789,7 +789,7 @@ def fetchTitle(url):
                 url = redirurl
                 urlconn.close()
                 # Try with complete URL on redirection
-                urlconn, resp = getPageResp(url, True)
+                urlconn, resp = connect_server(url, True)
             elif resp.status == 403 and retry == False:
                 """Handle URLs of the form https://www.domain.com or
                 https://www.domain.com/ which fails when trying to fetch
@@ -801,7 +801,7 @@ def fetchTitle(url):
                 # Remove trailing /
                 if url[-1] == '/':
                     url = url[:-1]
-                urlconn, resp = getPageResp(url, False, True)
+                urlconn, resp = connect_server(url, False, True)
                 retry = True
             elif resp.status == 500 and retry == False:
                 """Retry on status 500 (Internal Server Error) with truncated
@@ -810,13 +810,13 @@ def fetchTitle(url):
                 urlconn.close()
                 if debug:
                     print("Received status 500: retrying.")
-                urlconn, resp = getPageResp(url, False)
+                urlconn, resp = connect_server(url, False)
                 retry = True
             else:
                 printmsg(("[" + str(resp.status) + "] " + resp.reason), "ERROR")
                 break
     except Exception as e:
-        print("\x1b[1mEXCEPTION\x1b[21m [fetchTitle]: (%s) %s" % (type(e).__name__, e))
+        print("\x1b[1mEXCEPTION\x1b[21m [network_handler]: (%s) %s" % (type(e).__name__, e))
     finally:
         if urlconn is not None:
             urlconn.close()
@@ -825,7 +825,7 @@ def fetchTitle(url):
         return titleData.strip().replace("\n","")
 
 
-def getTags(keywords=[]):
+def parse_tags(keywords=[]):
     """Format and get tag string from tokens"""
     # TODO: Simplify this logic
 
@@ -869,13 +869,13 @@ def getTags(keywords=[]):
     return ',' + ','.join(sortedTags) + ','
 
 
-def showPrompt(results):
-    """Show each matching result from a search"""
+def prompt(results):
+    """Show each matching result from a search and prompt"""
 
     count = 0
     for row in results:
         count += 1
-        printRecord(row, count)
+        print_record(row, count)
 
     while True:
         try:
@@ -897,7 +897,7 @@ def showPrompt(results):
             break
 
 
-def printRecord(row, count=0):
+def print_record(row, count=0):
     """Print a single DB record
     Handles differently for search and print (count = 0)
     """
@@ -923,7 +923,7 @@ def printRecord(row, count=0):
     print("")
 
 
-def formatJson(resultset, single=False):
+def format_json(resultset, single=False):
     """Return results in Json format"""
 
     global showOpt
@@ -1014,7 +1014,7 @@ def get_filehash(filepath):
 def encrypt_file(iterations):
     """Encrypt the bookmarks database file"""
 
-    dbpath = os.path.join(BukuDb.getDataPath(), 'bookmarks.db')
+    dbpath = os.path.join(BukuDb.get_dbfile_path(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(dbpath):
         print("%s missing. Already encrypted?" % dbpath)
@@ -1074,7 +1074,7 @@ def encrypt_file(iterations):
 def decrypt_file(iterations):
     """Decrypt the bookmarks database file"""
 
-    dbpath = os.path.join(BukuDb.getDataPath(), 'bookmarks.db')
+    dbpath = os.path.join(BukuDb.get_dbfile_path(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
         printmsg((encpath + " missing"), "ERROR")
@@ -1148,7 +1148,7 @@ def printmsg(msg, level=None):
         print("%s" % msg)
 
 
-class customUpdateAction(argparse.Action):
+class CustomUpdateAction(argparse.Action):
     """Class to capture if optional param 'update'
     is actually used, even if sans arguments
     """
@@ -1161,7 +1161,7 @@ class customUpdateAction(argparse.Action):
         setattr(args, self.dest, values)
 
 
-class customTagAction(argparse.Action):
+class CustomTagAction(argparse.Action):
     """Class to capture if optional param 'tag'
     is actually used, even if sans arguments
     """
@@ -1173,7 +1173,7 @@ class customTagAction(argparse.Action):
         setattr(args, self.dest, values)
 
 
-class customTitleAction(argparse.Action):
+class CustomTitleAction(argparse.Action):
     """Class to capture if optional param 'title'
     is actually used, even if sans arguments
     """
@@ -1185,7 +1185,7 @@ class customTitleAction(argparse.Action):
         setattr(args, self.dest, values)
 
 
-class customDescAction(argparse.Action):
+class CustomDescAction(argparse.Action):
     """Class to capture if optional param 'comment'
     is actually used, even if sans arguments
     """
@@ -1197,7 +1197,7 @@ class customDescAction(argparse.Action):
         setattr(args, self.dest, values)
 
 
-class customTagSearchAction(argparse.Action):
+class CustomTagSearchAction(argparse.Action):
     """Class to capture if optional param 'stag'
     is actually used, even if sans arguments
     """
@@ -1275,7 +1275,7 @@ general_group = argparser.add_argument_group(title="general options",
                      delete all bookmarks, if no arguments
 -h, --help           show this information''')
 general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
-general_group.add_argument('-u', '--update', nargs='*', dest='update', action=customUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
+general_group.add_argument('-u', '--update', nargs='*', dest='update', action=CustomUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
 general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
 general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
@@ -1290,9 +1290,9 @@ edit_group=argparser.add_argument_group(title="edit options",
 -c, --comment [...]  description of the bookmark, works with
                      -a, -u; clears comment, if no arguments''')
 edit_group.add_argument('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
-edit_group.add_argument('--tag', nargs='*', dest='tag', action=customTagAction, metavar='tag', help=argparse.SUPPRESS)
-edit_group.add_argument('-t', '--title', nargs='*', dest='title', action=customTitleAction, metavar='title', help=argparse.SUPPRESS)
-edit_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=customDescAction, metavar='desc', help=argparse.SUPPRESS)
+edit_group.add_argument('--tag', nargs='*', dest='tag', action=CustomTagAction, metavar='tag', help=argparse.SUPPRESS)
+edit_group.add_argument('-t', '--title', nargs='*', dest='title', action=CustomTitleAction, metavar='title', help=argparse.SUPPRESS)
+edit_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=CustomDescAction, metavar='desc', help=argparse.SUPPRESS)
 
 # Search options
 search_group=argparser.add_argument_group(title="search options",
@@ -1306,7 +1306,7 @@ search_group=argparser.add_argument_group(title="search options",
                      list all tags alphabetically, if no arguments''')
 search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
 search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
-search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=customTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
+search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=CustomTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
 
 # Encryption options
 crypto_group=argparser.add_argument_group(title="encryption options",
@@ -1375,7 +1375,7 @@ if debug:
     print("Version %.1f" % _VERSION_)
 
 # Move pre-1.9 database to new location
-BukuDb.moveOldDatabase()
+BukuDb.move_legacy_dbfile()
 
 # Handle encrypt/decrypt options at top priority
 if args.encrypt is not None:
@@ -1401,13 +1401,13 @@ bdb = BukuDb()
 
 # Add a record
 if args.addurl is not None:
-    bdb.AddInsertEntry(args.addurl)
+    bdb.add_bookmark(args.addurl)
 
 # Delete record(s)
 if args.delete is not None:
     if args.delete < 0:
         printmsg("Index must be >= 0", "ERROR")
-        bdb.closequit(1)
+        bdb.close_quit(1)
     bdb.cleardb(args.delete)
 
 # Search URLs, titles, tags for any keyword
@@ -1425,46 +1425,46 @@ if args.sall is not None:
 if tagsearch == True:
     if len(args.stag) > 0:
         tag = ',' + " ".join(args.stag) + ','
-        bdb.searchTag(tag)
+        bdb.search_by_tag(tag)
     else:
-        bdb.showUniqueTags()
+        bdb.list_tags()
 
 # Update record
 if update == True:
     if len(args.update) == 0:
-        bdb.dbRefresh(0)
+        bdb.refreshdb(0)
     elif not args.update[0].isdigit():
         printmsg("Index must be a number >= 0", "ERROR")
-        bdb.closequit(1)
+        bdb.close_quit(1)
     elif int(args.update[0]) == 0:
-        bdb.dbRefresh(0)
+        bdb.refreshdb(0)
     else:
         if args.url is not None:
             new_url = args.url[0]
         else:
             new_url = ''
-        bdb.UpdateEntry(int(args.update[0]), new_url, tagManual, titleManual, description)
+        bdb.update_bookmark(int(args.update[0]), new_url, tagManual, titleManual, description)
 
 # Print all records
 if args.printindex is not None:
     if args.printindex < 0:
         printmsg("Index must be >= 0", "ERROR")
-        bdb.closequit(1)
+        bdb.close_quit(1)
     bdb.printdb(args.printindex)
 
 # Replace a tag in DB
 if args.replace is not None:
     if len(args.replace) == 1:
-        bdb.replaceTag(args.replace[0])
+        bdb.replace_tag(args.replace[0])
     else:
-        bdb.replaceTag(args.replace[0], args.replace[1:])
+        bdb.replace_tag(args.replace[0], args.replace[1:])
 
 # Open URL in browser
 if args.openurl is not None:
     if args.openurl < 1:
         printmsg("Index must be >= 1", "ERROR")
-        bdb.closequit(1)
-    bdb.fetchopen(args.openurl)
+        bdb.close_quit(1)
+    bdb.browse_by_index(args.openurl)
 
 """
 # NOTE: Insert is functional but commented because DB compaction serves the purpose.
@@ -1472,15 +1472,15 @@ if args.openurl is not None:
 if args.insert is not None:
     if not args.insert[0].isdigit():
         printmsg("Index must be a number >= 1", "ERROR")
-        closequit(conn, 1)
+        close_quit(conn, 1)
     insertindex = int(args.insert[0])
     if insertindex < 1:
         printmsg("Index must be a number >= 1", "ERROR")
-        closequit(conn, 1)
+        close_quit(conn, 1)
     if len(args.insert) == 1:
         pass # No operation
     else:
-        AddInsertEntry(conn, cur, args.insert[1:], insertindex)
+        add_bookmark(conn, cur, args.insert[1:], insertindex)
 """
 
-bdb.closequit(0)
+bdb.close_quit(0)
