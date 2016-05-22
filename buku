@@ -57,7 +57,7 @@ jsonOutput = False      # Output json formatted result
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
-_VERSION_ = 2.1         # Program version
+_VERSION_ = '2.1'       # Program version
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
@@ -1220,7 +1220,7 @@ prompt keys:
   1-N                  open the Nth search result in web browser
   Enter                exit buku
 
-Version %.1f
+Version %s
 Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
 License: GPLv3
 Webpage: https://github.com/jarun/buku
@@ -1372,7 +1372,7 @@ debug = args.debug
 
 # Show version in debug logs
 if debug:
-    print("Version %.1f" % _VERSION_)
+    print("Version %s" % _VERSION_)
 
 # Move pre-1.9 database to new location
 BukuDb.move_legacy_dbfile()
