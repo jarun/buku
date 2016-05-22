@@ -202,18 +202,14 @@ class BukuDb:
 
         return resultset[0][0]
 
-    def add_bookmark(self, keywords, tag_manual=None, title_manual=None, desc=None):
+    def add_bookmark(self, url, tag_manual=None, title_manual=None, desc=None):
         """Add a new bookmark
 
-        :param keywords: url + optional tags list
-        :param tag_manual: list of tags to add manually
+        :param url: url to bookmark
+        :param tag_manual: string of comma-separated tags to add manually
         :param title_manual: string title to add manually
         :param desc: string description
         """
-
-        tags = ','
-        meta = ''
-        url = keywords[0]
 
         # Ensure that the URL does not exist in DB already
         id = self.get_bookmark_index(url)
@@ -232,18 +228,15 @@ class BukuDb:
                 print("Title: [%s]" % meta)
 
         # Process tags
-        if tag_manual is not None and False == (tag_manual[0] == ',' and len(tag_manual) == 1):
-            keywords = keywords + [','] + tag_manual
-
-        if len(keywords) > 1:
-            tags = parse_tags(keywords[1:])
+        if tag_manual is None:
+            tag_manual = ','
 
         # Process description
         if desc is None:
             desc = ''
 
         try:
-            self.cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tags, desc))
+            self.cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tag_manual, desc))
             self.conn.commit()
             print("Added at index %d\n" % self.cur.lastrowid)
             self.printdb(self.cur.lastrowid)
@@ -256,7 +249,7 @@ class BukuDb:
 
         :param index: int position to update
         :param url: address
-        :param tag_manual: list of tags to add manually
+        :param tag_manual: string of comma-separated tags to add manually
         :param title_manual: string title to add manually
         :param desc: string description
         :return:
@@ -274,11 +267,8 @@ class BukuDb:
 
         # Update tags if passed as argument
         if tag_manual is not None:
-            tags = ','
-            if not (tag_manual[0] == ',' and len(tag_manual) == 1):
-                tags = parse_tags(tag_manual)
             query += " tags = ?,"
-            arguments.append(tags)
+            arguments.append(tag_manual)
             to_update = True
 
         # Update description if passed as an argument
@@ -1384,7 +1374,16 @@ bdb = BukuDb()
 
 # Add a record
 if args.addurl is not None:
-    bdb.add_bookmark(args.addurl, tagManual, titleManual, description)
+    # Parse tags into a comma-separated string
+    tags = ','
+    keywords = args.addurl
+    if tagManual is not None and not (tagManual[0] == ',' and len(tagManual) == 1):
+        keywords = args.addurl + [','] + tagManual
+
+    if len(keywords) > 1:
+        tags = parse_tags(keywords[1:])
+
+    bdb.add_bookmark(args.addurl[0], tags, titleManual, description)
 
 # Update record
 if update == True:
@@ -1400,7 +1399,13 @@ if update == True:
             new_url = args.url[0]
         else:
             new_url = ''
-        bdb.update_bookmark(int(args.update[0]), new_url, tagManual, titleManual, description)
+
+        # Parse tags into a comma-separated string
+        tags = ','
+        if tagManual is not None and not (tagManual[0] == ',' and len(tagManual) == 1):
+            tags = parse_tags(tagManual)
+
+        bdb.update_bookmark(int(args.update[0]), new_url, tags, titleManual, description)
 
 # Delete record(s)
 if args.delete is not None:
