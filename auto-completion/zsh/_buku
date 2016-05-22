@@ -13,6 +13,7 @@ args=(
     '(-c --comment)'{-c,--comment}'[comment on bookmark]'
     '(-d --delete)'{-d,--delete}'[delete bookmark]'
     '(-h --help)'{-h,--help}'[show help]'
+    '(-h --help)'{-i,--import}'[import bookmarks]:html bookmark file'
     '(-k --unlock)'{-k,--unlock}'[decrypt database]'
     '(-l --lock)'{-l,--lock}'[encrypt database]'
     '(-o --open)'{-o,--open}'[open bookmark in browser]:bookmark index'

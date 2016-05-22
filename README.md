@@ -15,7 +15,7 @@
 
 You can add bookmarks to `buku` with tags and page title fetched from the web, search, update and remove bookmarks. You can open the URLs from search results directly in the browser. Encryption is supported, optionally with custom number of hash passes for key generation.
 
-`buku` can also handle piped input, which lets you combine it with `xsel` (on Linux) and use a shortcut to add selected or copied text as bookmark without touching the terminal.
+`buku` can handle piped input, which lets you combine it with `xsel` (on Linux) and use a shortcut to add selected or copied text as bookmark without touching the terminal.
 Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2016/03/26/buku-xsel/)
 
 Find `buku` useful? If you would like to donate, visit the
@@ -25,14 +25,13 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 # Features
 
-- Add, tag, search, update, remove bookmarks
-- Fetch page title from the web (default) or add a custom page title manually
-- Add comments (description) to bookmarks
-- Open search results in browser
+- Add, tag, comment on, search, update, remove bookmarks
+- Fetch page title from the web (default) or add manually
+- Import HTML bookmark exports from Firefox, Google Chrome or IE
+- Open search results directly in browser
 - Manual password protection using AES256 encryption
-- Handle piped input (combine with `xsel` and add bookmarks directly from browser)
 - Modify or delete tags, list all unique tags alphabetically
-- Refresh all bookmarks online
+- Refresh all bookmarks online in one shot
 - Tab-completion scripts for Bash, Fish and Zsh
 - Man page with examples
 - Several options for power users (see help or man page)
@@ -105,7 +104,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
-    usage: buku [-a URL [tags ...]] [-u [N]] [-d [N]]
+    usage: buku [-a URL [tags ...]] [-u [N]] [-i path] [-d [N]]
                 [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
                 [-s keyword [...]] [-S keyword [...]] [--st [...]]
                 [-k [N]] [-l [N]] [-p [N]] [-f N]
@@ -122,6 +121,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            N is specified without any edit options
       -d, --delete [N]     delete bookmark at DB index N
                            delete all bookmarks, if no arguments
+      -i, --import path    import bookmarks from html file; Firefox,
+                           Google Chrome and IE formats supported
       -h, --help           show this information
 
     edit options:
@@ -221,58 +222,62 @@ Note that URL must precede tags.
 
         $ buku -u 15012014 -c this is a new comment
 Applies to --url, --title and --tag too.
-7. **Delete only comment** for bookmark at 15012014:
+7. Import bookmarks:
+
+        $ buku -i bookmarks.html
+HTML exports from Firefox, Google Chrome and IE are supported.
+8. **Delete only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c
 Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
-8. **Update** or refresh **full DB** with page titles from the web:
+9. **Update** or refresh **full DB** with page titles from the web:
 
         $ buku -u
 This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
-9. **Delete** bookmark at index 15012014:
+10. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
         Index 15012020 moved to 15012014
 The last index is moved to the deleted index to keep the DB compact.
-10. **Delete all** bookmarks:
+11. **Delete all** bookmarks:
 
         $ buku -d
-11. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
+12. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -s kernel debugging
-12. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
+13. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -S kernel debugging
 
-13. **Search** bookmarks with **tag** `general kernel concepts`:
+14. **Search** bookmarks with **tag** `general kernel concepts`:
 
         $ buku --st general kernel concepts
 Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
-14. List **all unique tags** alphabetically:
+15. List **all unique tags** alphabetically:
 
         $ buku --st
-15. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+16. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
 The same number of iterations must be used for one lock & unlock instance. Default is 8.
-16. **Show details** of bookmark at index 15012014:
+17. **Show details** of bookmark at index 15012014:
 
         $ buku -p 15012014
-17. **Show all** bookmarks with real index from database:
+18. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-18. **Replace tag** 'old tag' with 'new tag':
+19. **Replace tag** 'old tag' with 'new tag':
 
         $ buku -r 'old tag' new tag
-19. **Delete tag** 'old tag' from DB:
+20. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-20. **Open URL** at index 15012014 in browser:
+21. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-21. More **help**:
+22. More **help**:
 
         $ buku
         $ man buku

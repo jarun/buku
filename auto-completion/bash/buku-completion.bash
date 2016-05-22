@@ -10,9 +10,9 @@ _buku () {
     local IFS=$' \n'
     local cur=$2 prev=$3
     local -a opts opts_with_args
-    opts=(-a --add -c --comment -d --delete -h --help -k --unlock -l --lock -o --open -p --print
-          -r --replace -s --sany -S --sall --st --stag --tag -t --title -u --update --url)
-    opts_with_arg=(-a --add -o --open -r --replace -s --sany -S --sall)
+    opts=(-a --add -c --comment -d --delete -h --help -i --import -k --unlock -l --lock -o --open
+          -p --print -r --replace -s --sany -S --sall --st --stag --tag -t --title -u --update --url)
+    opts_with_arg=(-a --add -i --import -o --open -r --replace -s --sany -S --sall)
 
     # Do not complete non option names
     [[ $cur == -* ]] || return 1
