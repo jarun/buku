@@ -202,15 +202,15 @@ class BukuDb:
 
         return resultset[0][0]
 
-    def add_bookmark(self, keywords):
+    def add_bookmark(self, keywords, tag_manual=None, title_manual=None, desc=None):
         """Add a new bookmark
 
-        Params: keywords (url + optional tags)
+        :param keywords: url + optional tags list
+        :param tag_manual: list of tags to add manually
+        :param title_manual: string title to add manually
+        :param desc: string description
         """
 
-        global tagManual
-        global titleManual
-        global description
         tags = ','
         meta = ''
         url = keywords[0]
@@ -222,8 +222,8 @@ class BukuDb:
             return
 
         # Process title
-        if titleManual is not None:
-            meta = titleManual
+        if title_manual is not None:
+            meta = title_manual
         else:
             meta = network_handler(url)
             if meta == '':
@@ -232,18 +232,18 @@ class BukuDb:
                 print("Title: [%s]" % meta)
 
         # Process tags
-        if tagManual is not None and False == (tagManual[0] == ',' and len(tagManual) == 1):
-            keywords = keywords + [','] + tagManual
+        if tag_manual is not None and False == (tag_manual[0] == ',' and len(tag_manual) == 1):
+            keywords = keywords + [','] + tag_manual
 
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
         # Process description
-        if description is None:
-            description = ''
+        if desc is None:
+            desc = ''
 
         try:
-            self.cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tags, description))
+            self.cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tags, desc))
             self.conn.commit()
             print("Added at index %d\n" % self.cur.lastrowid)
             self.printdb(self.cur.lastrowid)
@@ -1384,7 +1384,23 @@ bdb = BukuDb()
 
 # Add a record
 if args.addurl is not None:
-    bdb.add_bookmark(args.addurl)
+    bdb.add_bookmark(args.addurl, tagManual, titleManual, description)
+
+# Update record
+if update == True:
+    if len(args.update) == 0:
+        bdb.refreshdb(0)
+    elif not args.update[0].isdigit():
+        printmsg("Index must be a number >= 0", "ERROR")
+        bdb.close_quit(1)
+    elif int(args.update[0]) == 0:
+        bdb.refreshdb(0)
+    else:
+        if args.url is not None:
+            new_url = args.url[0]
+        else:
+            new_url = ''
+        bdb.update_bookmark(int(args.update[0]), new_url, tagManual, titleManual, description)
 
 # Delete record(s)
 if args.delete is not None:
@@ -1411,22 +1427,6 @@ if tagsearch == True:
         bdb.search_by_tag(tag)
     else:
         bdb.list_tags()
-
-# Update record
-if update == True:
-    if len(args.update) == 0:
-        bdb.refreshdb(0)
-    elif not args.update[0].isdigit():
-        printmsg("Index must be a number >= 0", "ERROR")
-        bdb.close_quit(1)
-    elif int(args.update[0]) == 0:
-        bdb.refreshdb(0)
-    else:
-        if args.url is not None:
-            new_url = args.url[0]
-        else:
-            new_url = ''
-        bdb.update_bookmark(int(args.update[0]), new_url, tagManual, titleManual, description)
 
 # Print all records
 if args.printindex is not None:
