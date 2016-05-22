@@ -627,6 +627,30 @@ class BukuDb:
         sys.exit(exitval)
 
 
+    def import_bookmarks(self, import_file):
+        """Import bookmarks from a html file.
+        Supports Firefox, Google Chrome and IE imports
+
+        Params: Bookmark file to import
+        """
+
+        if not os.path.exists(import_file):
+            printmsg((import_file + " not found"), "ERROR")
+            sys.exit(1)
+
+        import bs4
+
+        with open(import_file, encoding='utf-8') as f:
+            soup = bs4.BeautifulSoup(f, 'html.parser')
+
+        html_tags = soup.findAll('a')
+        for tag in html_tags:
+            self.add_bookmark(tag['href'], tag['tags'] if tag.has_attr('tags') else None,
+                              tag.string, None)
+
+
+# Generic functions
+
 def connect_server(url, fullurl=False, forced=False):
     """Connect to a server and fetch the requested page data.
     Supports gzip compression.
@@ -1253,10 +1277,13 @@ general_group = argparser.add_argument_group(title="general options",
                      N is specified without any edit options
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
+-i, --import file    import bookmarks from html file
+                     Firefox, Google Chrome, IE supported
 -h, --help           show this information''')
 general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
 general_group.add_argument('-u', '--update', nargs='*', dest='update', action=CustomUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
 general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
+general_group.add_argument('-i', '--import', nargs=1, dest='imports', metavar='file', help=argparse.SUPPRESS)
 general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
 # Edit options
@@ -1406,6 +1433,10 @@ if update == True:
             tags = parse_tags(tagManual)
 
         bdb.update_bookmark(int(args.update[0]), new_url, tags, titleManual, description)
+
+# Import bookmarks
+if args.imports is not None:
+    bdb.import_bookmarks(args.imports[0])
 
 # Delete record(s)
 if args.delete is not None:
