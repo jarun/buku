@@ -171,19 +171,19 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double (`'`/`"`) quotes.
 - URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
 - Update operation:
-  - if --title, --tag or --comment is passed without argument, clear the corresponding field from DB
-  - if --url is passed (and --title is omitted), update the title from web using the URL
-  - if index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web
+  - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
+  - If --url is passed (and --title is omitted), update the title from web using the URL.
+  - If index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web.
 - Search works in mysterious ways:
   - Case-insensitive.
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
-  - `-s` : match any of the keywords in URL, title or tags.
-  - `-S` : match all the keywords in URL, title or tags.
-  - `--st` : search bookmarks by tag, or show all tags alphabetically.
+  - -s : match any of the keywords in URL, title or tags.
+  - -S : match all the keywords in URL, title or tags.
+  - --st : search bookmarks by tag, or show all tags alphabetically.
   - You can search bookmarks by tag (see [examples](#examples)).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the URL.
 - Auto DB compaction: when a record is deleted, the last record is moved to the index.
-- Encryption is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (`-k`) before using buku and locked (`-l`) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
+- Encryption is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
 
 # Examples
 1. **Add** a bookmark with **tags** `linux news` and `open source`, **comment** `Informative website on Linux and open source`, **fetch page title** from the web:
