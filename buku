@@ -565,23 +565,7 @@ class BukuDb:
         if new is None:
             delete = True
         else:
-            for tag in new:
-                if tag[-1] == ',':
-                    tag = tag.strip(',') + ','      # if delimiter is present, maintain it
-                else:
-                    tag = tag.strip(',')            # a token in a multi-word tag
-
-                if tag == ',':
-                    continue
-
-                if newtags[-1] == ',':
-                    newtags += tag
-                else:
-                    newtags += ' ' + tag
-
-            if newtags[-1] != ',':
-                newtags += ','
-
+            newtags = parse_tags(new)
             if newtags == ',':
                 delete = True
 
@@ -852,6 +836,9 @@ def parse_tags(keywords=[]):
 
     # Cleanse and get the tags
     for tag in keywords:
+        if tag == '':
+            continue
+
         if tag[0] == ',':           # delimiter precedes token (e.g. token1 ,token2)
             if tags[-1] != ',':
                 tags += ','
@@ -870,6 +857,9 @@ def parse_tags(keywords=[]):
             tags += tag
         else:
             tags += ' ' + tag
+
+    if tags == ',':
+        return tags
 
     if tags[-1] != ',':
         tags += ','
