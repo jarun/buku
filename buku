@@ -328,7 +328,8 @@ class BukuDb:
         the record if title is empty.
         This API doesn't change DB index, URL or tags of a bookmark.
 
-        Params: index of record to update, or 0 for all records
+        :param index: index of record to update, or 0 for all records
+        :param title_manual: custom title
         """
 
         if index == 0:
@@ -359,14 +360,15 @@ class BukuDb:
                 print("Updated index %d\n" % row[0])
 
 
-    def searchdb(self, keywords, all_keywords=False):
+    def searchdb(self, keywords, all_keywords=False, json=False):
         """Search the database for an entries with tags or URL
         or title info matching keywords and list those.
 
-        Params: keywords to search, search any or all keywords
+        :param keywords: keywords to search
+        :param all_keywords: search any or all keywords
+        :param json: json formatted output
         """
 
-        global jsonOutput
         arguments = []
         placeholder = "'%' || ? || '%'"
         query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE"
@@ -396,7 +398,7 @@ class BukuDb:
         if len(results) == 0:
             return
 
-        if jsonOutput == False:
+        if json == False:
             prompt(results)
         else:
             print(format_json(results))
@@ -1448,14 +1450,14 @@ if args.delete is not None:
 
 # Search URLs, titles, tags for any keyword
 if args.sany is not None:
-    bdb.searchdb(args.sany)
+    bdb.searchdb(args.sany, False, jsonOutput)
 
 # Search URLs, titles, tags with all keywords
 if args.sall is not None:
     if args.sall[0] == 'blank' and len(args.sall) == 1:
         bdb.print_bookmark(0, True)
     else:
-        bdb.searchdb(args.sall, True)
+        bdb.searchdb(args.sall, True, jsonOutput)
 
 # Search bookmarks by tag
 if tagsearch == True:
