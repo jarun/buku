@@ -1296,7 +1296,7 @@ general_group.add_argument('-h', '--help', dest='help', action='store_true', hel
 edit_group=argparser.add_argument_group(title="edit options",
     description='''--url keyword        specify url, works with -u only
 --tag [...]          set comma-separated tags, works with -a, -u
-                     clears tag, if no arguments
+                     clears tags, if no arguments
 -t, --title [...]    manually set title, works with -a, -u
                      if no arguments:
                      -a: do not set title, -u: clear title
@@ -1337,9 +1337,9 @@ power_group=argparser.add_argument_group(title="power toys",
 -f, --format N       modify -p output
                      N=1: show only URL, N=2: show URL and tag
 -r, --replace oldtag [newtag ...]
-                     replace oldtag with newtag in all bookmarks
+                     replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
--j, --json           Json formatted output, for -p, -s, -S, --st
+-j, --json           Json formatted output for -p, -s, -S, --st
 -o, --open N         open bookmark at DB index N in web browser
 -z, --debug          show debug information and additional logs''')
 power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)

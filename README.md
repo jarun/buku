@@ -122,7 +122,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
     edit options:
       --url keyword        specify url, works with -u only
       --tag [...]          set comma-separated tags, works with -a, -u
-                           clears tag, if no arguments
+                           clears tags, if no arguments
       -t, --title [...]    manually set title, works with -a, -u
                            if no arguments:
                            -a: do not set title, -u: clear title
@@ -151,9 +151,9 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -f, --format N       modify -p output
                            N=1: show only URL, N=2: show URL and tag
       -r, --replace oldtag [newtag ...]
-                           replace oldtag with newtag in all bookmarks
+                           replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
-      -j, --json           Json formatted output, for -p, -s, -S, --st
+      -j, --json           Json formatted output for -p, -s, -S, --st
       -o, --open N         open bookmark at DB index N in web browser
       -z, --debug          show debug information and additional logs
 
