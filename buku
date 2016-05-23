@@ -322,7 +322,7 @@ class BukuDb:
             print("URL already exists")
 
 
-    def refreshdb(self, index):
+    def refreshdb(self, index, title_manual=None):
         """Refresh ALL records in the database. Fetch title for each
         bookmark from the web and update the records. Doesn't udpate
         the record if title is empty.
@@ -331,15 +331,13 @@ class BukuDb:
         Params: index of record to update, or 0 for all records
         """
 
-        global titleManual
-
         if index == 0:
             self.cur.execute("SELECT id, url FROM bookmarks ORDER BY id ASC")
         else:
             self.cur.execute("SELECT id, url FROM bookmarks WHERE id = ?", (index,))
 
         resultset = self.cur.fetchall()
-        if titleManual is None:
+        if title_manual is None:
             for row in resultset:
                 title = network_handler(row[1])
                 if title == '':
@@ -353,7 +351,7 @@ class BukuDb:
                 self.conn.commit()
                 print("Updated index %d\n" % row[0])
         else:
-            title = titleManual
+            title = title_manual
 
             for row in resultset:
                 self.cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
@@ -923,7 +921,7 @@ def print_record(row, count=0):
     if row[4] != '':
         print("   \x1B[91m+\x1B[0m %s" % row[4])
 
-    # Print tags
+    # Print tags IF not default (',')
     if row[3] != ',':
         print("   \x1B[91m#\x1B[0m %s" % row[3][1:-1])
 
@@ -1418,12 +1416,12 @@ if args.addurl is not None:
 # Update record
 if update == True:
     if len(args.update) == 0:
-        bdb.refreshdb(0)
+        bdb.refreshdb(0, titleManual)
     elif not args.update[0].isdigit():
         printmsg("Index must be a number >= 0", "ERROR")
         bdb.close_quit(1)
     elif int(args.update[0]) == 0:
-        bdb.refreshdb(0)
+        bdb.refreshdb(0, titleManual)
     else:
         if args.url is not None:
             new_url = args.url[0]
@@ -1431,7 +1429,7 @@ if update == True:
             new_url = ''
 
         # Parse tags into a comma-separated string
-        tags = ','
+        tags = None
         if tagManual is not None and not (tagManual[0] == ',' and len(tagManual) == 1):
             tags = parse_tags(tagManual)
 
