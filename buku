@@ -239,7 +239,7 @@ class BukuDb:
             self.cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tag_manual, desc))
             self.conn.commit()
             print("Added at index %d\n" % self.cur.lastrowid)
-            self.printdb(self.cur.lastrowid)
+            self.print_bookmark(self.cur.lastrowid)
         except Exception as e:
             print("\x1b[1mEXCEPTION\x1b[21m [add_bookmark]: (%s) %s" % (type(e).__name__, e))
 
@@ -295,7 +295,7 @@ class BukuDb:
                 print("Title: [%s]" % meta)
         elif not to_update:
             self.refreshdb(index)
-            self.printdb(index)
+            self.print_bookmark(index)
 
         if meta is not None:
             query += " metadata = ?,"
@@ -315,7 +315,7 @@ class BukuDb:
             self.conn.commit()
             if self.cur.rowcount == 1:
                 print("Updated index %d\n" % index)
-                self.printdb(index)
+                self.print_bookmark(index)
             else:
                 print("No matching index")
         except sqlite3.IntegrityError:
@@ -472,7 +472,7 @@ class BukuDb:
             except IndexError:
                 print("Index out of bound")
 
-    def printdb(self, index, empty=False):
+    def print_bookmark(self, index, empty=False):
         """Print bookmark details at index or all bookmarks if index is None
         Print only bookmarks with blank title or tag if empty is True
         Note: URL is printed on top because title may be blank
@@ -507,18 +507,25 @@ class BukuDb:
                 print(format_json(resultset))
         else:  # Show record at index
             try:
-                resultset = self.cur.execute("SELECT * FROM bookmarks WHERE id = ?", (index,))
+                self.cur.execute("SELECT * FROM bookmarks WHERE id = ?", (index,))
+                results = self.cur.fetchall()
+                if len(results) == 0:
+                    print("No mathcing index")
+                    return
             except IndexError:
                 print("Index out of bound")
                 return
 
             if jsonOutput == False:
-                for row in resultset:
-                    print_record(row)
-                    return
-                print("No matching index")
+                for row in results:
+                    if showOpt == 0:
+                        print_record(row)
+                    elif showOpt == 1:
+                        print("%s %s" % (row[0], row[1]))
+                    elif showOpt == 2:
+                        print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
             else:
-                print(format_json(resultset, True))
+                print(format_json(results, True))
 
     def list_tags(self):
         """Print all unique tags ordered alphabetically
@@ -1153,7 +1160,7 @@ def printmsg(msg, level=None):
     """
 
     if level is not None:
-        print("\x1b[1m%s: \x1b[21m%s\x1B[0m" % (level, msg))
+        print("\x1b[1m%s: \x1b[21m%s\x1b[0m" % (level, msg))
     else:
         print("%s" % msg)
 
@@ -1458,7 +1465,7 @@ if args.sany is not None:
 # Search URLs, titles, tags with all keywords
 if args.sall is not None:
     if args.sall[0] == 'blank' and len(args.sall) == 1:
-        bdb.printdb(0, True)
+        bdb.print_bookmark(0, True)
     else:
         bdb.searchdb(args.sall, True)
 
@@ -1475,7 +1482,7 @@ if args.printindex is not None:
     if args.printindex < 0:
         printmsg("Index must be >= 0", "ERROR")
         bdb.close_quit(1)
-    bdb.printdb(args.printindex)
+    bdb.print_bookmark(args.printindex)
 
 # Replace a tag in DB
 if args.replace is not None:
