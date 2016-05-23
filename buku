@@ -445,7 +445,7 @@ class BukuDb:
                     print("Index %d moved to %d" % (row[0], index))
 
 
-    def cleardb(self, index):
+    def delete_bookmark(self, index):
         """Delete a single record or remove the table if index is None
 
         Params: index to delete
@@ -503,7 +503,6 @@ class BukuDb:
                 elif showOpt == 2:
                     for row in resultset:
                         print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
-
             else:
                 print(format_json(resultset))
         else:  # Show record at index
@@ -627,7 +626,7 @@ class BukuDb:
         sys.exit(exitval)
 
 
-    def import_bookmarks(self, fp):
+    def import_bookmark(self, fp):
         """Import bookmarks from a html file.
         Supports Firefox, Google Chrome and IE imports
 
@@ -1443,14 +1442,14 @@ if update == True:
 
 # Import bookmarks
 if args.imports is not None:
-    bdb.import_bookmarks(args.imports[0])
+    bdb.import_bookmark(args.imports[0])
 
 # Delete record(s)
 if args.delete is not None:
     if args.delete < 0:
         printmsg("Index must be >= 0", "ERROR")
         bdb.close_quit(1)
-    bdb.cleardb(args.delete)
+    bdb.delete_bookmark(args.delete)
 
 # Search URLs, titles, tags for any keyword
 if args.sany is not None:
