@@ -404,19 +404,19 @@ class BukuDb:
             print(format_json(results))
 
 
-    def search_by_tag(self, tag):
+    def search_by_tag(self, tag, json=False):
         """Search and list bookmarks with a tag
 
-        Params: tag to search
+        :param tag: tag to search
+        :param json: print in json format
         """
 
-        global jsonOutput
         self.cur.execute("SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%'", (tag,))
         results = self.cur.fetchall()
         if len(results) == 0:
             return
 
-        if jsonOutput == False:
+        if json == False:
             prompt(results)
         else:
             print(format_json(results))
@@ -1463,7 +1463,7 @@ if args.sall is not None:
 if tagsearch == True:
     if len(args.stag) > 0:
         tag = ',' + " ".join(args.stag) + ','
-        bdb.search_by_tag(tag)
+        bdb.search_by_tag(tag, jsonOutput)
     else:
         bdb.list_tags()
 
