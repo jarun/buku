@@ -22,22 +22,20 @@ The SQLite3 database file is stored in:
   - \fB$HOME/.local/share/buku/bookmarks.db\fR, if HOME is defined (second preference) or
   - the \fBcurrent directory\fR.
 .PP
-Before version 1.9,
-.B buku
-stored its database in \fB$HOME/.cache/buku/bookmarks.db\fR. If the file exists, buku automatically moves it to new location.
+Before version 1.9, buku stored its database in $HOME/.cache/buku/bookmarks.db. If the file exists, buku automatically moves it to new location.
 .PP
 It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading 'http://' or 'https://' token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 .PP
 If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double ('/") qoutes.
 .PP
 URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
-.pp
-Update operation:
+.PP
+\fBUpdate\fR operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
   - If index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web.
 .PP
-Search works in mysterious ways:
+\fBSearch\fR works in mysterious ways:
   - Case-insensitive.
   - Substrings match ('match' matches 'rematched') for URL, title and tags.
   - -s : match any of the keywords in URL, title or tags.
@@ -48,7 +46,7 @@ Search works in mysterious ways:
 .PP
 Auto DB compaction: when a record is deleted, the last record is moved to the index.
 .PP
-Encryption is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is unencrypted on creation.
+\fBEncryption\fR is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
 .SH GENERAL OPTIONS
 .TP
 .BI \-a " " \--add " URL [tags ...]"

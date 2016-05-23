@@ -13,9 +13,8 @@
 
 `buku` is a powerful cmdline bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a portable database. Hence, `Buku` (after my son's nickname).
 
-You can add bookmarks to `buku` with tags and page title fetched from the web, search, update and remove bookmarks. You can open the URLs from search results directly in the browser. Encryption is supported, optionally with custom number of hash passes for key generation.
-
 `buku` can handle piped input, which lets you combine it with `xsel` (on Linux) and use a shortcut to add selected or copied text as bookmark without touching the terminal.
+
 Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2016/03/26/buku-xsel/)
 
 Find `buku` useful? If you would like to donate, visit the
@@ -24,6 +23,7 @@ Find `buku` useful? If you would like to donate, visit the
 Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 # Features
+
 - Add, tag, comment on, search, update, remove bookmarks
 - Fetch page title from the web (default) or add manually
 - Import HTML bookmark exports from Firefox, Google Chrome or IE
@@ -38,6 +38,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 - Minimal dependencies
 
 # Table of Contents
+
 - [Installation](#installation)
   - [Dependencies](#dependencies)
   - [Installing from this repository](#installing-from-this-repository)
@@ -52,7 +53,9 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 - [Developers](#developers)
 
 # Installation
+
 ## Dependencies
+
 `buku` requires Python 3.x to work.
 
 For optional encryption support, install PyCrypto module. Run:
@@ -61,41 +64,44 @@ For optional encryption support, install PyCrypto module. Run:
 or on Ubuntu:
 
     $ sudo apt-get install python3-crypto
+
 ## Installing from this repository
+
 If you have git installed, run:
 
     $ git clone https://github.com/jarun/buku/
 or download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/buku/archive/master.zip).
 
-Install to default location:
+Install to default location (`/usr/local`):
 
     $ sudo make install
-or, a custom location (PREFIX):
-
-    $ PREFIX=/path/to/prefix make install
 
 To remove, run:
 
     $ sudo make uninstall
-or, if you have installed to a custom location (PREFIX):
-
-    $ PREFIX=/path/to/prefix make uninstall
-You may need to use `sudo` with `PREFIX` depending on your permissions on destination directory.
+`PREFIX` is supported. You may need to use `sudo` with `PREFIX` depending on your permissions on destination directory.
 
 ## Running as a standalone utility
+
 `buku` is a standalone utility. From the containing directory, run:
 
     $ ./buku
+
 ## Shell completion
+
 Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
+
 ## Installing with a package manager
+
 `buku` is also available on
  - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux
  - Void Linux repos ( `$ sudo xbps-install -S buku` )
  - [Homebrew](http://braumeister.org/formula/buku) for OS X, or its Linux fork, [Linuxbrew](https://github.com/Linuxbrew/linuxbrew/blob/master/Library/Formula/buku.rb)
 
 # Usage
+
 ## Cmdline options
+
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
     usage: buku [-a URL [tags ...]] [-u [N]] [-i path] [-d [N]]
@@ -162,19 +168,20 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       Enter                exit buku
 
 ## Operational notes
+
 - The SQLite3 database file is stored in:
   - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
   - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
   - the **current directory**.
-- Before version 1.9, `buku`stored its database in **$HOME/.cache/buku/bookmarks.db**. If the file exists, buku automatically moves it to new location.
-- It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. `buku` looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
+- Before version 1.9, buku stored its database in $HOME/.cache/buku/bookmarks.db. If the file exists, buku automatically moves it to new location.
+- It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double (`'`/`"`) quotes.
 - URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
-- Update operation:
+- **Update** operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
   - If index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web.
-- Search works in mysterious ways:
+- **Search** works in mysterious ways:
   - Case-insensitive.
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
   - -s : match any of the keywords in URL, title or tags.
@@ -183,9 +190,10 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - You can search bookmarks by tag (see [examples](#examples)).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the URL.
 - Auto DB compaction: when a record is deleted, the last record is moved to the index.
-- Encryption is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is <i>unencrypted on creation</i>.
+- **Encryption** is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 
 # Examples
+
 1. **Add** a bookmark with **tags** `linux news` and `open source`, **comment** `Informative website on Linux and open source`, **fetch page title** from the web:
 
         $ buku -a https://tuxdiary.com linux news, open source -c Informative website on Linux and open source
@@ -279,9 +287,11 @@ The same number of iterations must be used for one lock & unlock instance. Defau
         $ man buku
 
 # Contributions
+
 Pull requests are welcome. Please visit [#14](https://github.com/jarun/Buku/issues/14) for a list of TODOs.
 
 # Developers
+
 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 
 Special thanks to the community for valuable suggestions and ideas.
