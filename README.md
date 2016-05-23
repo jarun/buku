@@ -24,7 +24,6 @@ Find `buku` useful? If you would like to donate, visit the
 Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 # Features
-
 - Add, tag, comment on, search, update, remove bookmarks
 - Fetch page title from the web (default) or add manually
 - Import HTML bookmark exports from Firefox, Google Chrome or IE
@@ -39,7 +38,6 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 - Minimal dependencies
 
 # Table of Contents
-
 - [Installation](#installation)
   - [Dependencies](#dependencies)
   - [Installing from this repository](#installing-from-this-repository)
@@ -50,12 +48,10 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
   - [Cmdline options](#cmdline-options)
   - [Operational notes](#operational-notes)
 - [Examples](#examples)
-  - [Bookkeeping](#bookkeeping)
 - [Contributions](#contributions)
 - [Developers](#developers)
 
 # Installation
-
 ## Dependencies
 `buku` requires Python 3.x to work.
 
@@ -99,9 +95,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
  - [Homebrew](http://braumeister.org/formula/buku) for OS X, or its Linux fork, [Linuxbrew](https://github.com/Linuxbrew/linuxbrew/blob/master/Library/Formula/buku.rb)
 
 # Usage
-
 ## Cmdline options
-
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
     usage: buku [-a URL [tags ...]] [-u [N]] [-i path] [-d [N]]
@@ -168,7 +162,6 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       Enter                exit buku
 
 ## Operational notes
-
 - The SQLite3 database file is stored in:
   - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
   - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
@@ -277,57 +270,13 @@ The same number of iterations must be used for one lock & unlock instance. Defau
 21. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-22. More **help**:
+22. To list bookmarks with no title or tags for **bookkeeping**:
+
+        $ buku -S blank
+23. More **help**:
 
         $ buku
         $ man buku
-
-## Bookkeeping
-
-1. To list bookmarks with **no title or tags**:
-
-        $ buku -S blank
-Use the `-u` option to add title or tags to those entries, if you want to.
-2. `buku` doesn't have any **import feature** of its own. To import URLs in **bulk**, create a script with URLs and tags like the following (check TIP below):
-
-        #!/bin/bash
-        buku -a https://wireless.wiki.kernel.org/ networking, device drivers
-        buku -a https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
-        buku -a http://www.tittbit.in/
-        buku -a http://www.mikroe.com/chapters/view/65/ electronics
-        buku -a "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
-        buku -a http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
-Make the script executable and run to batch add bookmarks.
-3. To **update selected URLs** (refresh) along with your tags, first get the unformatted selective output with URL and tags:
-
-        $ buku -p -f 2 | tee myurls
-Remove the lines you don't need. Add `buku -u ` in front of all the other lines (check TIP below). Should look like:
-
-        #!/bin/bash
-        buku -u 50 https://wireless.wiki.kernel.org/ networking, device drivers
-        buku -u 51 https://courses.engr.illinois.edu/ece390/books/artofasm/ArtofAsm.html assembly
-        buku -u 52 http://www.tittbit.in/
-        buku -u 53 http://www.mikroe.com/chapters/view/65/ electronics
-        buku -u 54 "http://msdn.microsoft.com/en-us/library/bb470206(v=vs.85).aspx" file systems
-        buku -u 55 http://www.ibm.com/developerworks/linux/library/l-linuxboot/index.html boot process
-Run the script:
-
-        $ chmod +x myurls
-        $ ./myurls
-
-
-####TIP
-
-Add the same text at the beginning of multiple lines:
-
-**vim**
-  - Press `Ctrl-v` to select the first column of text in the lines you want to change (visual mode).
-  - Press `Shift-i` and type the text you want to insert.
-  - Hit `Esc`, wait 1 second and the inserted text will appear on every line.
-
-**sed**
-
-    $ sed -i 's/^/buku -u /' filename
 
 # Contributions
 Pull requests are welcome. Please visit [#14](https://github.com/jarun/Buku/issues/14) for a list of TODOs.
