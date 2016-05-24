@@ -562,6 +562,7 @@ class BukuDb:
         Params: original and new tags
         """
 
+        print('orig: %s new: %s' % (orig, new))
         update = False
         delete = False
         newtags = ','
@@ -587,8 +588,8 @@ class BukuDb:
                 if row[1].find(newtags) >= 0:
                     newtags = ','
 
-            newtags = row[1].replace(orig, newtags)
-            self.cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
+            tags = row[1].replace(orig, newtags)
+            self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (tags, row[0],))
             print('Index %d updated' % row[0])
             update = True
 
