@@ -895,6 +895,11 @@ def prompt(results):
     while True:
         try:
             nav = input("Result number to open: ")
+            if not nav:
+                nav = input("Result number to open: ")
+                if not nav:
+                    # Quit on double enter
+                    break
         except EOFError:
             return
 
@@ -1235,7 +1240,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
         file.write('''
 prompt keys:
   1-N                  open the Nth search result in web browser
-  Enter                exit buku
+  double Enter         exit buku
 
 Version %s
 Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>

@@ -174,7 +174,7 @@ Remove shell completion scripts:
 
     prompt keys:
       1-N                  open the Nth search result in web browser
-      Enter                exit buku
+      double Enter         exit buku
 
 ## Operational notes
 
