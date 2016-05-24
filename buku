@@ -318,7 +318,6 @@ class BukuDb:
             self.cur.execute(query, arguments)
             self.conn.commit()
             if self.cur.rowcount == 1:
-                print('Index %d updated\n' % index)
                 self.print_bookmark(index)
             else:
                 print('No matching index')
@@ -515,7 +514,7 @@ class BukuDb:
                 self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
                 results = self.cur.fetchall()
                 if len(results) == 0:
-                    print('No mathcing index')
+                    print('No matching index')
                     return
             except IndexError:
                 print('Index out of bound')
