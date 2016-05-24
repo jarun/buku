@@ -66,26 +66,26 @@ class BMHTMLParser(HTMLParser.HTMLParser):
     def __init__(self):
         HTMLParser.HTMLParser.__init__(self)
         self.inTitle = False
-        self.data = ""
+        self.data = ''
         self.lasttag = None
 
     def handle_starttag(self, tag, attrs):
         self.inTitle = False
-        if tag == "title":
+        if tag == 'title':
             self.inTitle = True
             self.lasttag = tag
 
     def handle_endtag(self, tag):
         global titleData
 
-        if tag == "title":
+        if tag == 'title':
             self.inTitle = False
-            if self.data != "":
+            if self.data != '':
                 titleData = self.data
                 self.reset()  # We have received title data, exit parsing
 
     def handle_data(self, data):
-        if self.lasttag == "title" and self.inTitle == True:
+        if self.lasttag == 'title' and self.inTitle == True:
             self.data += data
 
     def error(self, message):
@@ -133,14 +133,14 @@ class BukuDb:
         newdbfile = os.path.join(newdbpath, 'bookmarks.db')
 
         if os.path.exists(newdbfile):
-            print("Both old (%s) and new (%s) databases exist, need manual action" % (olddbfile, newdbfile))
+            print('Both old (%s) and new (%s) databases exist, need manual action' % (olddbfile, newdbfile))
             sys.exit(1)
 
         if not os.path.exists(newdbpath):
             os.makedirs(newdbpath)
 
         os.rename(olddbfile, newdbfile)
-        print("Database was moved from old (%s) to new (%s) location.\n" % (olddbfile, newdbfile))
+        print('Database was moved from old (%s) to new (%s) location.\n' % (olddbfile, newdbfile))
 
         os.rmdir(olddbpath)
 
@@ -162,12 +162,12 @@ class BukuDb:
         encpath = os.path.join(dbpath, 'bookmarks.db.enc')
         # Notify if DB file needs to be decrypted first
         if os.path.exists(encpath) and not os.path.exists(dbfile):
-            print("Unlock database first")
+            print('Unlock database first')
             sys.exit(1)
 
         # Show info on first creation
         if no_crypto == False and not os.path.exists(dbfile):
-            print("DB file is being created. You may want to encrypt it later.")
+            print('DB file is being created. You may want to encrypt it later.')
 
         try:
             # Create a connection
@@ -175,16 +175,16 @@ class BukuDb:
             cur = conn.cursor()
 
             # Create table if it doesn't exist
-            cur.execute('''CREATE TABLE if not exists bookmarks \
-                       (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text default \'\', tags text default \',\', desc text default \'\')''')
+            cur.execute("CREATE TABLE if not exists bookmarks \
+                       (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text default \'\', tags text default \',\', desc text default \'\')")
             conn.commit()
         except Exception as e:
-            print("\x1b[1mEXCEPTION\x1b[21m [initdb]: (%s) %s" % (type(e).__name__, e))
+            print('\x1b[1mEXCEPTION\x1b[21m [initdb]: (%s) %s' % (type(e).__name__, e))
             sys.exit(1)
 
         # Add description column in existing DB (from version 2.1)
         try:
-            cur.execute("""ALTER TABLE bookmarks ADD COLUMN desc text default \'\'""")
+            cur.execute("ALTER TABLE bookmarks ADD COLUMN desc text default \'\'")
             conn.commit()
         except:
             pass
@@ -199,7 +199,7 @@ class BukuDb:
         Returns: DB index if URL found, else -1
         """
 
-        self.cur.execute("SELECT id FROM bookmarks WHERE URL = ?", (url,))
+        self.cur.execute('SELECT id FROM bookmarks WHERE URL = ?', (url,))
         resultset = self.cur.fetchall()
         if len(resultset) == 0:
             return -1
@@ -219,7 +219,7 @@ class BukuDb:
         # Ensure that the URL does not exist in DB already
         id = self.get_bookmark_index(url)
         if id != -1:
-            print("URL already exists at index %d" % id)
+            print('URL already exists at index %d' % id)
             return
 
         # Process title
@@ -228,9 +228,9 @@ class BukuDb:
         else:
             meta = network_handler(url)
             if meta == '':
-                print("\x1B[91mTitle: []\x1B[0m\n")
+                print('\x1B[91mTitle: []\x1B[0m\n')
             elif debug:
-                print("Title: [%s]\n" % meta)
+                print('Title: [%s]\n' % meta)
 
         # Process tags
         if tag_manual is None:
@@ -245,7 +245,7 @@ class BukuDb:
             self.conn.commit()
             self.print_bookmark(self.cur.lastrowid)
         except Exception as e:
-            print("\x1b[1mEXCEPTION\x1b[21m [add_bookmark]: (%s) %s" % (type(e).__name__, e))
+            print('\x1b[1mEXCEPTION\x1b[21m [add_bookmark]: (%s) %s' % (type(e).__name__, e))
 
 
     def update_bookmark(self, index, url='', tag_manual=None, title_manual=None, desc=None):
@@ -260,24 +260,24 @@ class BukuDb:
         """
 
         arguments = []
-        query = "UPDATE bookmarks SET"
+        query = 'UPDATE bookmarks SET'
         to_update = False
 
         # Update URL if passed as argument
         if url != '':
-            query += " URL = ?,"
+            query += ' URL = ?,'
             arguments.append(url)
             to_update = True
 
         # Update tags if passed as argument
         if tag_manual is not None:
-            query += " tags = ?,"
+            query += ' tags = ?,'
             arguments.append(tag_manual)
             to_update = True
 
         # Update description if passed as an argument
         if desc is not None:
-            query += " desc = ?,"
+            query += ' desc = ?,'
             arguments.append(desc)
             to_update = True
 
@@ -294,36 +294,36 @@ class BukuDb:
         elif url != '':
             meta = network_handler(url)
             if meta == '':
-                print("\x1B[91mTitle: []\x1B[0m")
+                print('\x1B[91mTitle: []\x1B[0m')
             else:
-                print("Title: [%s]" % meta)
+                print('Title: [%s]' % meta)
         elif not to_update:
             self.refreshdb(index)
             self.print_bookmark(index)
 
         if meta is not None:
-            query += " metadata = ?,"
+            query += ' metadata = ?,'
             arguments.append(meta)
             to_update = True
 
         if not to_update:       # Nothing to update
             return
 
-        query = query[:-1] + " WHERE id = ?"
+        query = query[:-1] + ' WHERE id = ?'
         arguments.append(index)
         if debug:
-            print("query: [%s], args: [%s]" % (query, arguments))
+            print('query: [%s], args: [%s]' % (query, arguments))
 
         try:
             self.cur.execute(query, arguments)
             self.conn.commit()
             if self.cur.rowcount == 1:
-                print("Index %d updated\n" % index)
+                print('Index %d updated\n' % index)
                 self.print_bookmark(index)
             else:
-                print("No matching index")
+                print('No matching index')
         except sqlite3.IntegrityError:
-            print("URL already exists")
+            print('URL already exists')
 
 
     def refreshdb(self, index, title_manual=None):
@@ -337,30 +337,30 @@ class BukuDb:
         """
 
         if index == 0:
-            self.cur.execute("SELECT id, url FROM bookmarks ORDER BY id ASC")
+            self.cur.execute('SELECT id, url FROM bookmarks ORDER BY id ASC')
         else:
-            self.cur.execute("SELECT id, url FROM bookmarks WHERE id = ?", (index,))
+            self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ?', (index,))
 
         resultset = self.cur.fetchall()
         if title_manual is None:
             for row in resultset:
                 title = network_handler(row[1])
                 if title == '':
-                    print("\x1b[1mIndex %d: empty title\x1b[21m\x1B[0m\n" % row[0])
+                    print('\x1b[1mIndex %d: empty title\x1b[21m\x1B[0m\n' % row[0])
                     continue
                 else:
-                    print("Title: [%s]" % title)
+                    print('Title: [%s]' % title)
 
-                self.cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
+                self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
                 self.conn.commit()
-                print("Index %d updated\n" % row[0])
+                print('Index %d updated\n' % row[0])
         else:
             title = title_manual
 
             for row in resultset:
-                self.cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
+                self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
                 self.conn.commit()
-                print("Index %d updated\n" % row[0])
+                print('Index %d updated\n' % row[0])
 
 
     def searchdb(self, keywords, all_keywords=False, json=False):
@@ -446,7 +446,7 @@ class BukuDb:
                     self.conn.commit()
                     self.cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (index, row[1], row[2], row[3], row[4],))
                     self.conn.commit()
-                    print("Index %d moved to %d" % (row[0], index))
+                    print('Index %d moved to %d' % (row[0], index))
 
 
     def delete_bookmark(self, index):
@@ -456,25 +456,25 @@ class BukuDb:
         """
 
         if index == 0:  # Remove the table
-            resp = input("ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ")
+            resp = input('ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ')
             if resp != 'y':
-                print("No bookmarks deleted")
+                print('No bookmarks deleted')
                 return
 
             self.cur.execute('DROP TABLE if exists bookmarks')
             self.conn.commit()
-            print("All bookmarks deleted")
+            print('All bookmarks deleted')
         else: # Remove a single entry
             try:
                 self.cur.execute('DELETE FROM bookmarks WHERE id = ?', (index,))
                 self.conn.commit()
                 if self.cur.rowcount == 1:
-                    print("Removed index %d" % index)
+                    print('Removed index %d' % index)
                     self.compactdb(index)
                 else:
-                    print("No matching index")
+                    print('No matching index')
             except IndexError:
-                print("Index out of bound")
+                print('Index out of bound')
 
 
     def print_bookmark(self, index, empty=False):
@@ -496,7 +496,7 @@ class BukuDb:
             else:
                 self.cur.execute("SELECT * FROM bookmarks WHERE metadata = '' OR tags = ','")
                 resultset = self.cur.fetchall()
-                print("\x1b[1m%d records found\x1b[21m\n" % len(resultset))
+                print('\x1b[1m%d records found\x1b[21m\n' % len(resultset))
 
             if jsonOutput == False:
                 if showOpt == 0:
@@ -504,21 +504,21 @@ class BukuDb:
                         print_record(row)
                 elif showOpt == 1:
                     for row in resultset:
-                        print("%s %s" % (row[0], row[1]))
+                        print('%s %s' % (row[0], row[1]))
                 elif showOpt == 2:
                     for row in resultset:
-                        print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
+                        print('%s %s        %s' % (row[0], row[1], row[3][1:-1]))
             else:
                 print(format_json(resultset))
         else:  # Show record at index
             try:
-                self.cur.execute("SELECT * FROM bookmarks WHERE id = ?", (index,))
+                self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
                 results = self.cur.fetchall()
                 if len(results) == 0:
-                    print("No mathcing index")
+                    print('No mathcing index')
                     return
             except IndexError:
-                print("Index out of bound")
+                print('Index out of bound')
                 return
 
             if jsonOutput == False:
@@ -526,9 +526,9 @@ class BukuDb:
                     if showOpt == 0:
                         print_record(row)
                     elif showOpt == 1:
-                        print("%s %s" % (row[0], row[1]))
+                        print('%s %s' % (row[0], row[1]))
                     elif showOpt == 2:
-                        print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
+                        print('%s %s        %s' % (row[0], row[1], row[3][1:-1]))
             else:
                 print(format_json(results, True))
 
@@ -552,7 +552,7 @@ class BukuDb:
 
         Tags = sorted(uniqueTags, key=str.lower)
         for tag in Tags:
-            print("%6d. %s" % (count, tag))
+            print('%6d. %s' % (count, tag))
             count += 1
 
 
@@ -576,7 +576,7 @@ class BukuDb:
                 delete = True
 
         if orig == newtags:
-            print("Tags are same.")
+            print('Tags are same.')
             return
 
         self.cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE ?", ('%' + orig + '%',))
@@ -590,7 +590,7 @@ class BukuDb:
 
             newtags = row[1].replace(orig, newtags)
             self.cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
-            print("Index %d updated" % row[0])
+            print('Index %d updated' % row[0])
             update = True
 
         if update:
@@ -604,13 +604,13 @@ class BukuDb:
         """
 
         try:
-            for row in self.cur.execute("SELECT URL FROM bookmarks WHERE id = ?", (index,)):
+            for row in self.cur.execute('SELECT URL FROM bookmarks WHERE id = ?', (index,)):
                 url = unquote(row[0])
                 browser_open(url)
                 return
-            print("No matching index")
+            print('No matching index')
         except IndexError:
-                print("Index out of bound")
+                print('Index out of bound')
 
     def close_quit(self, exitval=0):
         """Close a DB connection and exit"""
@@ -632,7 +632,7 @@ class BukuDb:
         """
 
         if not os.path.exists(fp):
-            printmsg((fp + " not found"), "ERROR")
+            printmsg((fp + ' not found'), 'ERROR')
             sys.exit(1)
 
         import bs4
@@ -670,17 +670,17 @@ def connect_server(url, fullurl=False, forced=False):
     Returns: connection, HTTP(S) GET response
     """
 
-    if url.find("%20") != -1:
-        url = unquote(url).replace(" ", "%20")
+    if url.find('%20') != -1:
+        url = unquote(url).replace(' ', '%20')
     else:
         url = unquote(url)
 
     if debug:
-        print("unquoted: %s" % url)
+        print('unquoted: %s' % url)
 
-    if url.find("https://") >= 0: # Secure connection
+    if url.find('https://') >= 0: # Secure connection
         server = url[8:]
-        marker = server.find("/")
+        marker = server.find('/')
         if marker > 0:
             if fullurl == False and forced == False:
                 url = server[marker:]
@@ -688,9 +688,9 @@ def connect_server(url, fullurl=False, forced=False):
         elif forced == False:           # Handle domain name without trailing /
             url = '/'
         urlconn = HTTPSConnection(server, timeout=30)
-    elif url.find("http://") >= 0: # Insecure connection
+    elif url.find('http://') >= 0: # Insecure connection
         server = url[7:]
-        marker = server.find("/")
+        marker = server.find('/')
         if marker > 0:
             if fullurl == False and forced == False:
                 url = server[marker:]
@@ -699,13 +699,13 @@ def connect_server(url, fullurl=False, forced=False):
             url = '/'
         urlconn = HTTPConnection(server, timeout=30)
     else:
-        printmsg("Not a valid HTTP(S) url", "WARNING")
-        if url.find(":") == -1:
-            printmsg("Doesn't appear to be a valid url either", "WARNING")
+        printmsg('Not a valid HTTP(S) url', 'WARNING')
+        if url.find(':') == -1:
+            printmsg("Doesn't appear to be a valid url either", 'WARNING')
         return (None, None)
 
     if debug:
-        print("server [%s] url [%s]" % (server, url))
+        print('server [%s] url [%s]' % (server, url))
 
     # Handle URLs passed with %xx escape
     try:
@@ -713,8 +713,8 @@ def connect_server(url, fullurl=False, forced=False):
     except:
         url = quote(url)
 
-    urlconn.request("GET", url, None, {
-        "Accept-encoding": "gzip",
+    urlconn.request('GET', url, None, {
+        'Accept-encoding': 'gzip',
     })
     return (urlconn, urlconn.getresponse())
 
@@ -730,7 +730,7 @@ def get_page_title(resp):
 
     if resp.headers.get('Content-Encoding') == 'gzip':
         if debug:
-            print("gzip response")
+            print('gzip response')
         data = gzip.GzipFile(fileobj=io.BytesIO(resp.read())).read()
     else:
         data = resp.read()
@@ -738,21 +738,21 @@ def get_page_title(resp):
     if charset == None:
         charset = 'utf-8'
         if debug:
-            printmsg("Charset missing in response", "WARNING")
+            printmsg('Charset missing in response', 'WARNING')
 
     if debug:
-        print("charset: %s" % charset)
+        print('charset: %s' % charset)
 
     parser = BMHTMLParser()
     try:
         if charset == 'utf-8':
-            parser.feed(data.decode(charset, "replace"))
+            parser.feed(data.decode(charset, 'replace'))
         else:
             parser.feed(data.decode(charset))
     except Exception as e:
-        if debug and str(e) != "we should not get here!":
+        if debug and str(e) != 'we should not get here!':
             # Suppress Exception due to intentional self.reset() in HTMLParser
-            print("\x1b[1mEXCEPTION\x1b[21m [get_page_title]: (%s) %s" % (type(e).__name__, e))
+            print('\x1b[1mEXCEPTION\x1b[21m [get_page_title]: (%s) %s' % (type(e).__name__, e))
 
 
 def network_handler(url):
@@ -779,20 +779,20 @@ def network_handler(url):
             elif resp.status in [301, 302]:
                 redirurl = urljoin(url, resp.getheader('location', ''))
                 if debug:
-                    printmsg(redirurl, "REDIRECTION")
+                    printmsg(redirurl, 'REDIRECTION')
                 retry = False       # Reset retry, start fresh on redirection
 
-                if redirurl.find("sorry/IndexRedirect?") >= 0:          # gracefully handle Google blocks
-                    printmsg("Connection blocked due to unusual activity", "ERROR")
+                if redirurl.find('sorry/IndexRedirect?') >= 0:          # gracefully handle Google blocks
+                    printmsg('Connection blocked due to unusual activity', 'ERROR')
                     break
 
-                marker = redirurl.find("redirectUrl=")
+                marker = redirurl.find('redirectUrl=')
                 if marker != -1:
                     redirurl = redirurl[marker + 12:]
 
                 # break same URL redirection loop
                 if url == redirurl:
-                    printmsg("Detected repeated redirection to same URL", "ERROR")
+                    printmsg('Detected repeated redirection to same URL', 'ERROR')
                     break
 
                 url = redirurl
@@ -806,7 +806,7 @@ def network_handler(url):
                 """
                 urlconn.close()
                 if debug:
-                    print("Received status 403: retrying.")
+                    print('Received status 403: retrying.')
                 # Remove trailing /
                 if url[-1] == '/':
                     url = url[:-1]
@@ -818,20 +818,20 @@ def network_handler(url):
                 """
                 urlconn.close()
                 if debug:
-                    print("Received status 500: retrying.")
+                    print('Received status 500: retrying.')
                 urlconn, resp = connect_server(url, False)
                 retry = True
             else:
-                printmsg(("[" + str(resp.status) + "] " + resp.reason), "ERROR")
+                printmsg(('[' + str(resp.status) + '] ' + resp.reason), 'ERROR')
                 break
     except Exception as e:
-        print("\x1b[1mEXCEPTION\x1b[21m [network_handler]: (%s) %s" % (type(e).__name__, e))
+        print('\x1b[1mEXCEPTION\x1b[21m [network_handler]: (%s) %s' % (type(e).__name__, e))
     finally:
         if urlconn is not None:
             urlconn.close()
         if titleData is None:
             return ''
-        return titleData.strip().replace("\n","")
+        return titleData.strip().replace('\n','')
 
 
 def parse_tags(keywords=[]):
@@ -894,9 +894,9 @@ def prompt(results):
 
     while True:
         try:
-            nav = input("Result number to open: ")
+            nav = input('Result number to open: ')
             if not nav:
-                nav = input("Result number to open: ")
+                nav = input('Result number to open: ')
                 if not nav:
                     # Quit on double enter
                     break
@@ -906,13 +906,13 @@ def prompt(results):
         if is_int(nav):
             index = int(nav) - 1
             if index < 0 or index >= count:
-                print("Index out of bound")
+                print('Index out of bound')
                 continue
 
             try:
                 browser_open(unquote(results[index][1]))
             except Exception as e:
-                print("\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s" % (type(e).__name__, e))
+                print('\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s' % (type(e).__name__, e))
         else:
             break
 
@@ -924,23 +924,23 @@ def print_record(row, count=0):
 
     # Print index and URL
     if count != 0:
-        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\t[%d]" % (count, row[1], row[0]))
+        print('\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\t[%d]' % (count, row[1], row[0]))
     else:
-        print("\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m" % (row[0], row[1]))
+        print('\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m' % (row[0], row[1]))
 
     # Print title
     if row[2] != '':
-        print("   \x1B[91m>\x1B[0m %s" % row[2])
+        print('   \x1B[91m>\x1B[0m %s' % row[2])
 
     # Print description
     if row[4] != '':
-        print("   \x1B[91m+\x1B[0m %s" % row[4])
+        print('   \x1B[91m+\x1B[0m %s' % row[4])
 
     # Print tags IF not default (',')
     if row[3] != ',':
-        print("   \x1B[91m#\x1B[0m %s" % row[3][1:-1])
+        print('   \x1B[91m#\x1B[0m %s' % row[3][1:-1])
 
-    print("")
+    print('')
 
 
 def format_json(resultset, single=False):
@@ -996,7 +996,7 @@ def browser_open(url):
     Params: url to open
     """
 
-    url = url.replace("%22", "\"")
+    url = url.replace('%22', "\"")
 
     _stderr = os.dup(2)
     os.close(2)
@@ -1008,7 +1008,7 @@ def browser_open(url):
     try:
         webbrowser.open(url)
     except Exception as e:
-        print("\x1b[1mEXCEPTION\x1b[21m [browser_open]: (%s) %s" % (type(e).__name__, e))
+        print('\x1b[1mEXCEPTION\x1b[21m [browser_open]: (%s) %s' % (type(e).__name__, e))
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
@@ -1037,19 +1037,19 @@ def encrypt_file(iterations):
     dbpath = os.path.join(BukuDb.get_dbfile_path(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(dbpath):
-        print("%s missing. Already encrypted?" % dbpath)
+        print('%s missing. Already encrypted?' % dbpath)
         sys.exit(1)
 
     # If both encrypted file and flat file exist, error out
     if os.path.exists(dbpath) and os.path.exists(encpath):
-        printmsg("Both encrypted and flat DB files exist!", "ERROR")
+        printmsg('Both encrypted and flat DB files exist!', 'ERROR')
         sys.exit(1)
 
     password = ''
     password = getpass.getpass()
     passconfirm = getpass.getpass()
     if password == '':
-        print("Empty password");
+        print('Empty password');
         sys.exit(1)
     if password != passconfirm:
         print("Passwords don't match");
@@ -1060,7 +1060,7 @@ def encrypt_file(iterations):
 
     # Generate random 256-bit salt and key
     salt = Random.get_random_bytes(SALT_SIZE)
-    key = (password + salt.decode('utf-8', "replace")).encode('utf-8')
+    key = (password + salt.decode('utf-8', 'replace')).encode('utf-8')
     for i in range(iterations):
         key = hashlib.sha256(key).digest()
 
@@ -1087,7 +1087,7 @@ def encrypt_file(iterations):
                 outfile.write(cipher.encrypt(chunk))
 
     os.remove(dbpath)
-    print("File encrypted")
+    print('File encrypted')
     sys.exit(0)
 
 
@@ -1097,18 +1097,18 @@ def decrypt_file(iterations):
     dbpath = os.path.join(BukuDb.get_dbfile_path(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
-        printmsg((encpath + " missing"), "ERROR")
+        printmsg((encpath + ' missing'), 'ERROR')
         sys.exit(1)
 
     # If both encrypted file and flat file exist, error out
     if os.path.exists(dbpath) and os.path.exists(encpath):
-        printmsg("Both encrypted and flat DB files exist!", "ERROR")
+        printmsg('Both encrypted and flat DB files exist!', 'ERROR')
         sys.exit(1)
 
     password = ''
     password = getpass.getpass()
     if password == '':
-        printmsg("Decryption failed", "ERROR");
+        printmsg('Decryption failed', 'ERROR');
         sys.exit(1)
 
     with open(encpath, 'rb') as infile:
@@ -1116,7 +1116,7 @@ def decrypt_file(iterations):
 
         # Read 256-bit salt and generate key
         salt = infile.read(32)
-        key = (password + salt.decode('utf-8', "replace")).encode('utf-8')
+        key = (password + salt.decode('utf-8', 'replace')).encode('utf-8')
         for i in range(iterations):
             key = hashlib.sha256(key).digest()
 
@@ -1140,11 +1140,11 @@ def decrypt_file(iterations):
     dbhash = get_filehash(dbpath)
     if dbhash != enchash:
         os.remove(dbpath)
-        printmsg("Decryption failed", "ERROR");
+        printmsg('Decryption failed', 'ERROR');
         sys.exit(1)
     else:
         os.remove(encpath)
-        print("File decrypted")
+        print('File decrypted')
 
 
 def sigint_handler(signum, frame):
@@ -1163,9 +1163,9 @@ def printmsg(msg, level=None):
     """
 
     if level is not None:
-        print("\x1b[1m%s: \x1b[21m%s\x1b[0m" % (level, msg))
+        print('\x1b[1m%s: \x1b[21m%s\x1b[0m' % (level, msg))
     else:
-        print("%s" % msg)
+        print('%s' % msg)
 
 
 # Custom Action classes for argparse
@@ -1263,7 +1263,7 @@ def main(argv = sys.argv):
         for s in sys.stdin.readlines():
             pipeargs.extend(s.split())
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     try:
         main(sys.argv)
     except KeyboardInterrupt:
@@ -1286,7 +1286,7 @@ argparser = ExtendedArgumentParser(
 )
 
 # General options
-general_group = argparser.add_argument_group(title="general options",
+general_group = argparser.add_argument_group(title='general options',
     description='''-a, --add URL [tags ...]
                      bookmark URL with comma-separated tags
 -u, --update [N]     update fields of bookmark at DB index N
@@ -1305,7 +1305,7 @@ general_group.add_argument('-i', '--import', nargs=1, dest='imports', metavar='p
 general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
 # Edit options
-edit_group=argparser.add_argument_group(title="edit options",
+edit_group=argparser.add_argument_group(title='edit options',
     description='''--url keyword        specify url, works with -u only
 --tag [...]          set comma-separated tags, works with -a, -u
                      clears tags, if no arguments
@@ -1320,7 +1320,7 @@ edit_group.add_argument('-t', '--title', nargs='*', dest='title', action=CustomT
 edit_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=CustomDescAction, metavar='desc', help=argparse.SUPPRESS)
 
 # Search options
-search_group=argparser.add_argument_group(title="search options",
+search_group=argparser.add_argument_group(title='search options',
     description='''-s, --sany keyword [...]
                      search bookmarks for ANY matching keyword
 -S, --sall keyword [...]
@@ -1334,7 +1334,7 @@ search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=arg
 search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=CustomTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
 
 # Encryption options
-crypto_group=argparser.add_argument_group(title="encryption options",
+crypto_group=argparser.add_argument_group(title='encryption options',
     description='''-l, --lock [N]       encrypt DB file with N (> 0, default 8)
                      hash iterations to generate key
 -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
@@ -1343,7 +1343,7 @@ crypto_group.add_argument('-k', '--unlock', nargs='?', dest='decrypt', type=int,
 crypto_group.add_argument('-l', '--lock', nargs='?', dest='encrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
 
 # Power toys
-power_group=argparser.add_argument_group(title="power toys",
+power_group=argparser.add_argument_group(title='power toys',
     description='''-p, --print [N]      show details of bookmark at DB index N
                      show all bookmarks, if no arguments
 -f, --format N       modify -p output
@@ -1380,9 +1380,9 @@ if args.showOpt is not None:
 if tagManual is not None and len(args.tag) > 0:
     tagManual = args.tag
 if titleManual is not None and len(args.title) > 0:
-    titleManual = " ".join(args.title)
+    titleManual = ' '.join(args.title)
 if description is not None and len(args.desc) > 0:
-    description = " ".join(args.desc)
+    description = ' '.join(args.desc)
 if args.jsonOutput:
     import json
     jsonOutput = args.jsonOutput
@@ -1390,7 +1390,7 @@ debug = args.debug
 
 # Show version in debug logs
 if debug:
-    print("Version %s" % _VERSION_)
+    print('Version %s' % _VERSION_)
 
 # Move pre-1.9 database to new location
 BukuDb.move_legacy_dbfile()
@@ -1398,19 +1398,19 @@ BukuDb.move_legacy_dbfile()
 # Handle encrypt/decrypt options at top priority
 if args.encrypt is not None:
     if no_crypto:
-        printmsg("PyCrypto missing", "ERROR")
+        printmsg('PyCrypto missing', 'ERROR')
         sys.exit(1)
     if args.encrypt < 1:
-        printmsg("Iterations must be >= 1", "ERROR")
+        printmsg('Iterations must be >= 1', 'ERROR')
         sys.exit(1)
     encrypt_file(args.encrypt)
 
 if args.decrypt is not None:
     if no_crypto:
-        printmsg("PyCrypto missing", "ERROR")
+        printmsg('PyCrypto missing', 'ERROR')
         sys.exit(1)
     if args.decrypt < 1:
-        printmsg("Decryption failed", "ERROR");
+        printmsg('Decryption failed', 'ERROR');
         sys.exit(1)
     decrypt_file(args.decrypt)
 
@@ -1435,7 +1435,7 @@ if update == True:
     if len(args.update) == 0:
         bdb.refreshdb(0, titleManual)
     elif not args.update[0].isdigit():
-        printmsg("Index must be a number >= 0", "ERROR")
+        printmsg('Index must be a number >= 0', 'ERROR')
         bdb.close_quit(1)
     elif int(args.update[0]) == 0:
         bdb.refreshdb(0, titleManual)
@@ -1459,7 +1459,7 @@ if args.imports is not None:
 # Delete record(s)
 if args.delete is not None:
     if args.delete < 0:
-        printmsg("Index must be >= 0", "ERROR")
+        printmsg('Index must be >= 0', 'ERROR')
         bdb.close_quit(1)
     bdb.delete_bookmark(args.delete)
 
@@ -1477,7 +1477,7 @@ if args.sall is not None:
 # Search bookmarks by tag
 if tagsearch == True:
     if len(args.stag) > 0:
-        tag = ',' + " ".join(args.stag) + ','
+        tag = ',' + ' '.join(args.stag) + ','
         bdb.search_by_tag(tag, jsonOutput)
     else:
         bdb.list_tags()
@@ -1485,7 +1485,7 @@ if tagsearch == True:
 # Print all records
 if args.printindex is not None:
     if args.printindex < 0:
-        printmsg("Index must be >= 0", "ERROR")
+        printmsg('Index must be >= 0', 'ERROR')
         bdb.close_quit(1)
     bdb.print_bookmark(args.printindex)
 
@@ -1499,7 +1499,7 @@ if args.replace is not None:
 # Open URL in browser
 if args.openurl is not None:
     if args.openurl < 1:
-        printmsg("Index must be >= 1", "ERROR")
+        printmsg('Index must be >= 1', 'ERROR')
         bdb.close_quit(1)
     bdb.browse_by_index(args.openurl)
 
