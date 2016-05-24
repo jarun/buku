@@ -223,9 +223,9 @@ class BukuDb:
         else:
             meta = network_handler(url)
             if meta == '':
-                print("\x1B[91mTitle: []\x1B[0m")
-            else:
-                print("Title: [%s]" % meta)
+                print("\x1B[91mTitle: []\x1B[0m\n")
+            elif debug:
+                print("Title: [%s]\n" % meta)
 
         # Process tags
         if tag_manual is None:
@@ -238,7 +238,6 @@ class BukuDb:
         try:
             self.cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tag_manual, desc))
             self.conn.commit()
-            print("Added at index %d\n" % self.cur.lastrowid)
             self.print_bookmark(self.cur.lastrowid)
         except Exception as e:
             print("\x1b[1mEXCEPTION\x1b[21m [add_bookmark]: (%s) %s" % (type(e).__name__, e))
@@ -314,7 +313,7 @@ class BukuDb:
             self.cur.execute(query, arguments)
             self.conn.commit()
             if self.cur.rowcount == 1:
-                print("Updated index %d\n" % index)
+                print("Index %d updated\n" % index)
                 self.print_bookmark(index)
             else:
                 print("No matching index")
@@ -342,22 +341,21 @@ class BukuDb:
             for row in resultset:
                 title = network_handler(row[1])
                 if title == '':
-                    print("\x1B[91mTitle: []")
-                    print("\x1b[1mNOT updating index %d\x1b[21m\x1B[0m\n" % row[0])
+                    print("\x1b[1mIndex %d: empty title\x1b[21m\x1B[0m\n" % row[0])
                     continue
                 else:
                     print("Title: [%s]" % title)
 
                 self.cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
                 self.conn.commit()
-                print("Updated index %d\n" % row[0])
+                print("Index %d updated\n" % row[0])
         else:
             title = title_manual
 
             for row in resultset:
                 self.cur.execute("UPDATE bookmarks SET metadata = ? WHERE id = ?", (title, row[0],))
                 self.conn.commit()
-                print("Updated index %d\n" % row[0])
+                print("Index %d updated\n" % row[0])
 
 
     def searchdb(self, keywords, all_keywords=False, json=False):
@@ -584,7 +582,7 @@ class BukuDb:
 
             newtags = row[1].replace(orig, newtags)
             self.cur.execute("UPDATE bookmarks SET tags = ? WHERE id = ?", (newtags, row[0],))
-            print("Updated index %d" % row[0])
+            print("Index %d updated" % row[0])
             update = True
 
         if update:
@@ -771,7 +769,8 @@ def network_handler(url):
                 break
             elif resp.status in [301, 302]:
                 redirurl = urljoin(url, resp.getheader('location', ''))
-                printmsg(redirurl, "REDIRECTION")
+                if debug:
+                    printmsg(redirurl, "REDIRECTION")
                 retry = False       # Reset retry, start fresh on redirection
 
                 if redirurl.find("sorry/IndexRedirect?") >= 0:          # gracefully handle Google blocks
