@@ -98,7 +98,7 @@ Install shell completion scripts:
 Remove shell completion scripts:
 
     $ sudo make uninstall.comp
-`PREFIX` is supported.
+`DESTDIR` is supported.
 
 ## Installing with a package manager
 

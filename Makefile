@@ -2,9 +2,10 @@ PREFIX ?= /usr/local
 BINDIR ?= $(DESTDIR)$(PREFIX)/bin
 MANDIR ?= $(DESTDIR)$(PREFIX)/share/man/man1
 DOCDIR ?= $(DESTDIR)$(PREFIX)/share/doc/buku
-BASHCOMPDIR = $(DESTDIR)$(PREFIX)/etc/bash_completion.d
-FISHCOMPDIR = $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d
-ZSHCOMPDIR = $(DESTDIR)$(PREFIX)/share/zsh/site-functions
+
+BASHCOMPDIR = $(DESTDIR)/etc/bash_completion.d
+FISHCOMPDIR = $(DESTDIR)/usr/share/fish/vendor_completions.d
+ZSHCOMPDIR = $(DESTDIR)/usr/share/zsh/site-functions
 
 .PHONY: all install install.comp uninstall uninstall.comp
 
