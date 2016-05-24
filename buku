@@ -98,6 +98,7 @@ class BukuDb:
         self.conn = conn
         self.cur = cur
 
+
     @staticmethod
     def get_dbfile_path():
         """Determine the DB file path:
@@ -114,6 +115,7 @@ class BukuDb:
                 data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
 
         return os.path.join(data_home, 'buku')
+
 
     @staticmethod
     def move_legacy_dbfile():
@@ -141,6 +143,7 @@ class BukuDb:
         print("Database was moved from old (%s) to new (%s) location.\n" % (olddbfile, newdbfile))
 
         os.rmdir(olddbpath)
+
 
     @staticmethod
     def initdb():
@@ -188,6 +191,7 @@ class BukuDb:
 
         return (conn, cur)
 
+
     def get_bookmark_index(self, url):
         """Check if URL already exists in DB
 
@@ -201,6 +205,7 @@ class BukuDb:
             return -1
 
         return resultset[0][0]
+
 
     def add_bookmark(self, url, tag_manual=None, title_manual=None, desc=None):
         """Add a new bookmark
@@ -419,6 +424,7 @@ class BukuDb:
         else:
             print(format_json(results))
 
+
     def compactdb(self, index):
         """When an entry at index is deleted, move the last
         entry in DB to index, if index is lesser.
@@ -469,6 +475,7 @@ class BukuDb:
                     print("No matching index")
             except IndexError:
                 print("Index out of bound")
+
 
     def print_bookmark(self, index, empty=False):
         """Print bookmark details at index or all bookmarks if index is None
@@ -524,6 +531,7 @@ class BukuDb:
                         print("%s %s        %s" % (row[0], row[1], row[3][1:-1]))
             else:
                 print(format_json(results, True))
+
 
     def list_tags(self):
         """Print all unique tags ordered alphabetically
@@ -587,6 +595,7 @@ class BukuDb:
 
         if update:
             self.conn.commit()
+
 
     def browse_by_index(self, index):
         """Open URL at index in browser
@@ -1153,6 +1162,8 @@ def printmsg(msg, level=None):
     else:
         print("%s" % msg)
 
+
+# Custom Action classes for argparse
 
 class CustomUpdateAction(argparse.Action):
     """Class to capture if optional param 'update'
