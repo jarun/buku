@@ -13,7 +13,7 @@
 
 `buku` is a powerful cmdline bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a portable database. Hence, `Buku` (after my son's nickname).
 
-`buku` can handle piped input, which lets you combine it with `xsel` (on Linux) and use a shortcut to add selected or copied text as bookmark without touching the terminal.
+`buku` can handle piped input, which lets you combine it with `xsel` (on Linux) and add bookmarks from anywhere without touching the terminal.
 
 Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2016/03/26/buku-xsel/)
 
