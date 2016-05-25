@@ -89,16 +89,7 @@ To remove, run:
 
 ## Shell completion
 
-Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/buku/blob/master/auto-completion).
-
-Install shell completion scripts:
-
-    $ sudo make install.comp
-
-Remove shell completion scripts:
-
-    $ sudo make uninstall.comp
-`DESTDIR` is supported.
+Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
 
 ## Installing with a package manager
 
