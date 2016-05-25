@@ -1276,26 +1276,26 @@ if __name__ == '__main__':
         description='A private command-line bookmark manager. Your mini web!',
         formatter_class=argparse.RawTextHelpFormatter,
         usage='''buku [-a URL [tags ...]] [-u [N]] [-i path] [-d [N]]
-                [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
-                [-s keyword [...]] [-S keyword [...]] [--st [...]]
-                [-k [N]] [-l [N]] [-p [N]] [-f N]
-                [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]''',
+            [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
+            [-s keyword [...]] [-S keyword [...]] [--st [...]]
+            [-k [N]] [-l [N]] [-p [N]] [-f N]
+            [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]''',
         add_help=False
     )
 
     # General options
     general_group = argparser.add_argument_group(title='general options',
         description='''-a, --add URL [tags ...]
-                         bookmark URL with comma-separated tags
-    -u, --update [N]     update fields of bookmark at DB index N
-                         refresh all titles, if no arguments
-                         refresh title of bookmark at N, if only
-                         N is specified without any edit options
-    -d, --delete [N]     delete bookmark at DB index N
-                         delete all bookmarks, if no arguments
-    -i, --import path    import bookmarks from html file; Firefox,
-                         Google Chrome and IE formats supported
-    -h, --help           show this information''')
+                     bookmark URL with comma-separated tags
+-u, --update [N]     update fields of bookmark at DB index N
+                     refresh all titles, if no arguments
+                     refresh title of bookmark at N, if only
+                     N is specified without any edit options
+-d, --delete [N]     delete bookmark at DB index N
+                     delete all bookmarks, if no arguments
+-i, --import path    import bookmarks from html file; Firefox,
+                     Google Chrome and IE formats supported
+-h, --help           show this information''')
     general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
     general_group.add_argument('-u', '--update', nargs='*', dest='update', action=CustomUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
     general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
@@ -1305,13 +1305,13 @@ if __name__ == '__main__':
     # Edit options
     edit_group=argparser.add_argument_group(title='edit options',
         description='''--url keyword        specify url, works with -u only
-    --tag [...]          set comma-separated tags, works with -a, -u
-                         clears tags, if no arguments
-    -t, --title [...]    manually set title, works with -a, -u
-                         if no arguments:
-                         -a: do not set title, -u: clear title
-    -c, --comment [...]  description of the bookmark, works with
-                         -a, -u; clears comment, if no arguments''')
+--tag [...]          set comma-separated tags, works with -a, -u
+                     clears tags, if no arguments
+-t, --title [...]    manually set title, works with -a, -u
+                     if no arguments:
+                     -a: do not set title, -u: clear title
+-c, --comment [...]  description of the bookmark, works with
+                     -a, -u; clears comment, if no arguments''')
     edit_group.add_argument('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
     edit_group.add_argument('--tag', nargs='*', dest='tag', action=CustomTagAction, metavar='tag', help=argparse.SUPPRESS)
     edit_group.add_argument('-t', '--title', nargs='*', dest='title', action=CustomTitleAction, metavar='title', help=argparse.SUPPRESS)
@@ -1320,13 +1320,13 @@ if __name__ == '__main__':
     # Search options
     search_group=argparser.add_argument_group(title='search options',
         description='''-s, --sany keyword [...]
-                         search bookmarks for ANY matching keyword
-    -S, --sall keyword [...]
-                         search bookmarks with ALL keywords
-                         special keyword -
-                         "blank": list entries with empty title/tag
-    --st, --stag [...]   search bookmarks by tag
-                         list all tags alphabetically, if no arguments''')
+                     search bookmarks for ANY matching keyword
+-S, --sall keyword [...]
+                     search bookmarks with ALL keywords
+                     special keyword -
+                     "blank": list entries with empty title/tag
+--st, --stag [...]   search bookmarks by tag
+                     list all tags alphabetically, if no arguments''')
     search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
     search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
     search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=CustomTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
@@ -1334,24 +1334,24 @@ if __name__ == '__main__':
     # Encryption options
     crypto_group=argparser.add_argument_group(title='encryption options',
         description='''-l, --lock [N]       encrypt DB file with N (> 0, default 8)
-                         hash iterations to generate key
-    -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
-                         hash iterations to generate key''')
+                     hash iterations to generate key
+-k, --unlock [N]     decrypt DB file with N (> 0, default 8)
+                     hash iterations to generate key''')
     crypto_group.add_argument('-k', '--unlock', nargs='?', dest='decrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
     crypto_group.add_argument('-l', '--lock', nargs='?', dest='encrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
 
     # Power toys
     power_group=argparser.add_argument_group(title='power toys',
         description='''-p, --print [N]      show details of bookmark at DB index N
-                         show all bookmarks, if no arguments
-    -f, --format N       modify -p output
-                         N=1: show only URL, N=2: show URL and tag
-    -r, --replace oldtag [newtag ...]
-                         replace oldtag with newtag everywhere
-                         delete oldtag, if no newtag
-    -j, --json           Json formatted output for -p, -s, -S, --st
-    -o, --open N         open bookmark at DB index N in web browser
-    -z, --debug          show debug information and additional logs''')
+                     show all bookmarks, if no arguments
+-f, --format N       modify -p output
+                     N=1: show only URL, N=2: show URL and tag
+-r, --replace oldtag [newtag ...]
+                     replace oldtag with newtag everywhere
+                     delete oldtag, if no newtag
+-j, --json           Json formatted output for -p, -s, -S, --st
+-o, --open N         open bookmark at DB index N in web browser
+-z, --debug          show debug information and additional logs''')
     power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
