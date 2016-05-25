@@ -98,7 +98,6 @@ class BukuDb:
         self.conn = conn
         self.cur = cur
 
-
     @staticmethod
     def get_dbdir_path():
         """Determine the directory path where dbfile will be stored:
@@ -1268,239 +1267,239 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
 
-# If piped input, set argument vector
-if len(pipeargs) > 0:
-    sys.argv = pipeargs
+    # If piped input, set argument vector
+    if len(pipeargs) > 0:
+        sys.argv = pipeargs
 
-# Setup custom argument parser
-argparser = ExtendedArgumentParser(
-    description='A private command-line bookmark manager. Your mini web!',
-    formatter_class=argparse.RawTextHelpFormatter,
-    usage='''buku [-a URL [tags ...]] [-u [N]] [-i path] [-d [N]]
-            [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
-            [-s keyword [...]] [-S keyword [...]] [--st [...]]
-            [-k [N]] [-l [N]] [-p [N]] [-f N]
-            [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]''',
-    add_help=False
-)
+    # Setup custom argument parser
+    argparser = ExtendedArgumentParser(
+        description='A private command-line bookmark manager. Your mini web!',
+        formatter_class=argparse.RawTextHelpFormatter,
+        usage='''buku [-a URL [tags ...]] [-u [N]] [-i path] [-d [N]]
+                [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
+                [-s keyword [...]] [-S keyword [...]] [--st [...]]
+                [-k [N]] [-l [N]] [-p [N]] [-f N]
+                [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]''',
+        add_help=False
+    )
 
-# General options
-general_group = argparser.add_argument_group(title='general options',
-    description='''-a, --add URL [tags ...]
-                     bookmark URL with comma-separated tags
--u, --update [N]     update fields of bookmark at DB index N
-                     refresh all titles, if no arguments
-                     refresh title of bookmark at N, if only
-                     N is specified without any edit options
--d, --delete [N]     delete bookmark at DB index N
-                     delete all bookmarks, if no arguments
--i, --import path    import bookmarks from html file; Firefox,
-                     Google Chrome and IE formats supported
--h, --help           show this information''')
-general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
-general_group.add_argument('-u', '--update', nargs='*', dest='update', action=CustomUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
-general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
-general_group.add_argument('-i', '--import', nargs=1, dest='imports', metavar='path', help=argparse.SUPPRESS)
-general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
+    # General options
+    general_group = argparser.add_argument_group(title='general options',
+        description='''-a, --add URL [tags ...]
+                         bookmark URL with comma-separated tags
+    -u, --update [N]     update fields of bookmark at DB index N
+                         refresh all titles, if no arguments
+                         refresh title of bookmark at N, if only
+                         N is specified without any edit options
+    -d, --delete [N]     delete bookmark at DB index N
+                         delete all bookmarks, if no arguments
+    -i, --import path    import bookmarks from html file; Firefox,
+                         Google Chrome and IE formats supported
+    -h, --help           show this information''')
+    general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
+    general_group.add_argument('-u', '--update', nargs='*', dest='update', action=CustomUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
+    general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
+    general_group.add_argument('-i', '--import', nargs=1, dest='imports', metavar='path', help=argparse.SUPPRESS)
+    general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
-# Edit options
-edit_group=argparser.add_argument_group(title='edit options',
-    description='''--url keyword        specify url, works with -u only
---tag [...]          set comma-separated tags, works with -a, -u
-                     clears tags, if no arguments
--t, --title [...]    manually set title, works with -a, -u
-                     if no arguments:
-                     -a: do not set title, -u: clear title
--c, --comment [...]  description of the bookmark, works with
-                     -a, -u; clears comment, if no arguments''')
-edit_group.add_argument('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
-edit_group.add_argument('--tag', nargs='*', dest='tag', action=CustomTagAction, metavar='tag', help=argparse.SUPPRESS)
-edit_group.add_argument('-t', '--title', nargs='*', dest='title', action=CustomTitleAction, metavar='title', help=argparse.SUPPRESS)
-edit_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=CustomDescAction, metavar='desc', help=argparse.SUPPRESS)
+    # Edit options
+    edit_group=argparser.add_argument_group(title='edit options',
+        description='''--url keyword        specify url, works with -u only
+    --tag [...]          set comma-separated tags, works with -a, -u
+                         clears tags, if no arguments
+    -t, --title [...]    manually set title, works with -a, -u
+                         if no arguments:
+                         -a: do not set title, -u: clear title
+    -c, --comment [...]  description of the bookmark, works with
+                         -a, -u; clears comment, if no arguments''')
+    edit_group.add_argument('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
+    edit_group.add_argument('--tag', nargs='*', dest='tag', action=CustomTagAction, metavar='tag', help=argparse.SUPPRESS)
+    edit_group.add_argument('-t', '--title', nargs='*', dest='title', action=CustomTitleAction, metavar='title', help=argparse.SUPPRESS)
+    edit_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=CustomDescAction, metavar='desc', help=argparse.SUPPRESS)
 
-# Search options
-search_group=argparser.add_argument_group(title='search options',
-    description='''-s, --sany keyword [...]
-                     search bookmarks for ANY matching keyword
--S, --sall keyword [...]
-                     search bookmarks with ALL keywords
-                     special keyword -
-                     "blank": list entries with empty title/tag
---st, --stag [...]   search bookmarks by tag
-                     list all tags alphabetically, if no arguments''')
-search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
-search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
-search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=CustomTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
+    # Search options
+    search_group=argparser.add_argument_group(title='search options',
+        description='''-s, --sany keyword [...]
+                         search bookmarks for ANY matching keyword
+    -S, --sall keyword [...]
+                         search bookmarks with ALL keywords
+                         special keyword -
+                         "blank": list entries with empty title/tag
+    --st, --stag [...]   search bookmarks by tag
+                         list all tags alphabetically, if no arguments''')
+    search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
+    search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
+    search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=CustomTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
 
-# Encryption options
-crypto_group=argparser.add_argument_group(title='encryption options',
-    description='''-l, --lock [N]       encrypt DB file with N (> 0, default 8)
-                     hash iterations to generate key
--k, --unlock [N]     decrypt DB file with N (> 0, default 8)
-                     hash iterations to generate key''')
-crypto_group.add_argument('-k', '--unlock', nargs='?', dest='decrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
-crypto_group.add_argument('-l', '--lock', nargs='?', dest='encrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
+    # Encryption options
+    crypto_group=argparser.add_argument_group(title='encryption options',
+        description='''-l, --lock [N]       encrypt DB file with N (> 0, default 8)
+                         hash iterations to generate key
+    -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
+                         hash iterations to generate key''')
+    crypto_group.add_argument('-k', '--unlock', nargs='?', dest='decrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
+    crypto_group.add_argument('-l', '--lock', nargs='?', dest='encrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
 
-# Power toys
-power_group=argparser.add_argument_group(title='power toys',
-    description='''-p, --print [N]      show details of bookmark at DB index N
-                     show all bookmarks, if no arguments
--f, --format N       modify -p output
-                     N=1: show only URL, N=2: show URL and tag
--r, --replace oldtag [newtag ...]
-                     replace oldtag with newtag everywhere
-                     delete oldtag, if no newtag
--j, --json           Json formatted output for -p, -s, -S, --st
--o, --open N         open bookmark at DB index N in web browser
--z, --debug          show debug information and additional logs''')
-power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
-power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
-power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
-power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true', help=argparse.SUPPRESS)
-power_group.add_argument('-o', '--open', dest='openurl', type=int, metavar='N', help=argparse.SUPPRESS)
-power_group.add_argument('-z', '--debug', dest='debug', action='store_true', help=argparse.SUPPRESS)
+    # Power toys
+    power_group=argparser.add_argument_group(title='power toys',
+        description='''-p, --print [N]      show details of bookmark at DB index N
+                         show all bookmarks, if no arguments
+    -f, --format N       modify -p output
+                         N=1: show only URL, N=2: show URL and tag
+    -r, --replace oldtag [newtag ...]
+                         replace oldtag with newtag everywhere
+                         delete oldtag, if no newtag
+    -j, --json           Json formatted output for -p, -s, -S, --st
+    -o, --open N         open bookmark at DB index N in web browser
+    -z, --debug          show debug information and additional logs''')
+    power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
+    power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
+    power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
+    power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true', help=argparse.SUPPRESS)
+    power_group.add_argument('-o', '--open', dest='openurl', type=int, metavar='N', help=argparse.SUPPRESS)
+    power_group.add_argument('-z', '--debug', dest='debug', action='store_true', help=argparse.SUPPRESS)
 
-# Show help and exit if no arguments
-if len(sys.argv) < 2:
-    argparser.print_help(sys.stderr)
-    sys.exit(1)
-
-# Parse the arguments
-args = argparser.parse_args()
-
-# Show help and exit if help requested
-if args.help == True:
-    argparser.print_help(sys.stderr)
-    sys.exit(0)
-
-# Assign the values to globals
-if args.showOpt is not None:
-    showOpt = args.showOpt
-if tagManual is not None and len(args.tag) > 0:
-    tagManual = args.tag
-if titleManual is not None and len(args.title) > 0:
-    titleManual = ' '.join(args.title)
-if description is not None and len(args.desc) > 0:
-    description = ' '.join(args.desc)
-if args.jsonOutput:
-    import json
-    jsonOutput = args.jsonOutput
-debug = args.debug
-
-# Show version in debug logs
-if debug:
-    print('Version %s' % _VERSION_)
-
-# Move pre-1.9 database to new location
-BukuDb.move_legacy_dbfile()
-
-# Handle encrypt/decrypt options at top priority
-if args.encrypt is not None:
-    if no_crypto:
-        printmsg('PyCrypto missing', 'ERROR')
+    # Show help and exit if no arguments
+    if len(sys.argv) < 2:
+        argparser.print_help(sys.stderr)
         sys.exit(1)
-    if args.encrypt < 1:
-        printmsg('Iterations must be >= 1', 'ERROR')
-        sys.exit(1)
-    encrypt_file(args.encrypt)
 
-if args.decrypt is not None:
-    if no_crypto:
-        printmsg('PyCrypto missing', 'ERROR')
-        sys.exit(1)
-    if args.decrypt < 1:
-        printmsg('Decryption failed', 'ERROR');
-        sys.exit(1)
-    decrypt_file(args.decrypt)
+    # Parse the arguments
+    args = argparser.parse_args()
 
-# Initialize the database and get handles
-bdb = BukuDb()
+    # Show help and exit if help requested
+    if args.help == True:
+        argparser.print_help(sys.stderr)
+        sys.exit(0)
 
-# Add a record
-if args.addurl is not None:
-    # Parse tags into a comma-separated string
-    tags = ','
-    keywords = args.addurl
-    if tagManual is not None and not (tagManual[0] == ',' and len(tagManual) == 1):
-        keywords = args.addurl + [','] + tagManual
+    # Assign the values to globals
+    if args.showOpt is not None:
+        showOpt = args.showOpt
+    if tagManual is not None and len(args.tag) > 0:
+        tagManual = args.tag
+    if titleManual is not None and len(args.title) > 0:
+        titleManual = ' '.join(args.title)
+    if description is not None and len(args.desc) > 0:
+        description = ' '.join(args.desc)
+    if args.jsonOutput:
+        import json
+        jsonOutput = args.jsonOutput
+    debug = args.debug
 
-    if len(keywords) > 1:
-        tags = parse_tags(keywords[1:])
+    # Show version in debug logs
+    if debug:
+        print('Version %s' % _VERSION_)
 
-    bdb.add_bookmark(args.addurl[0], tags, titleManual, description)
+    # Move pre-1.9 database to new location
+    BukuDb.move_legacy_dbfile()
 
-# Update record
-if update == True:
-    if len(args.update) == 0:
-        bdb.refreshdb(0, titleManual)
-    elif not args.update[0].isdigit():
-        printmsg('Index must be a number >= 0', 'ERROR')
-        bdb.close_quit(1)
-    elif int(args.update[0]) == 0:
-        bdb.refreshdb(0, titleManual)
-    else:
-        if args.url is not None:
-            new_url = args.url[0]
-        else:
-            new_url = ''
+    # Handle encrypt/decrypt options at top priority
+    if args.encrypt is not None:
+        if no_crypto:
+            printmsg('PyCrypto missing', 'ERROR')
+            sys.exit(1)
+        if args.encrypt < 1:
+            printmsg('Iterations must be >= 1', 'ERROR')
+            sys.exit(1)
+        encrypt_file(args.encrypt)
 
+    if args.decrypt is not None:
+        if no_crypto:
+            printmsg('PyCrypto missing', 'ERROR')
+            sys.exit(1)
+        if args.decrypt < 1:
+            printmsg('Decryption failed', 'ERROR');
+            sys.exit(1)
+        decrypt_file(args.decrypt)
+
+    # Initialize the database and get handles
+    bdb = BukuDb()
+
+    # Add a record
+    if args.addurl is not None:
         # Parse tags into a comma-separated string
-        tags = None
+        tags = ','
+        keywords = args.addurl
         if tagManual is not None and not (tagManual[0] == ',' and len(tagManual) == 1):
-            tags = parse_tags(tagManual)
+            keywords = args.addurl + [','] + tagManual
 
-        bdb.update_bookmark(int(args.update[0]), new_url, tags, titleManual, description)
+        if len(keywords) > 1:
+            tags = parse_tags(keywords[1:])
 
-# Import bookmarks
-if args.imports is not None:
-    bdb.import_bookmark(args.imports[0])
+        bdb.add_bookmark(args.addurl[0], tags, titleManual, description)
 
-# Delete record(s)
-if args.delete is not None:
-    if args.delete < 0:
-        printmsg('Index must be >= 0', 'ERROR')
-        bdb.close_quit(1)
-    bdb.delete_bookmark(args.delete)
+    # Update record
+    if update == True:
+        if len(args.update) == 0:
+            bdb.refreshdb(0, titleManual)
+        elif not args.update[0].isdigit():
+            printmsg('Index must be a number >= 0', 'ERROR')
+            bdb.close_quit(1)
+        elif int(args.update[0]) == 0:
+            bdb.refreshdb(0, titleManual)
+        else:
+            if args.url is not None:
+                new_url = args.url[0]
+            else:
+                new_url = ''
 
-# Search URLs, titles, tags for any keyword
-if args.sany is not None:
-    bdb.searchdb(args.sany, False, jsonOutput)
+            # Parse tags into a comma-separated string
+            tags = None
+            if tagManual is not None and not (tagManual[0] == ',' and len(tagManual) == 1):
+                tags = parse_tags(tagManual)
 
-# Search URLs, titles, tags with all keywords
-if args.sall is not None:
-    if args.sall[0] == 'blank' and len(args.sall) == 1:
-        bdb.print_bookmark(0, True)
-    else:
-        bdb.searchdb(args.sall, True, jsonOutput)
+            bdb.update_bookmark(int(args.update[0]), new_url, tags, titleManual, description)
 
-# Search bookmarks by tag
-if tagsearch == True:
-    if len(args.stag) > 0:
-        tag = ',' + ' '.join(args.stag) + ','
-        bdb.search_by_tag(tag, jsonOutput)
-    else:
-        bdb.list_tags()
+    # Import bookmarks
+    if args.imports is not None:
+        bdb.import_bookmark(args.imports[0])
 
-# Print all records
-if args.printindex is not None:
-    if args.printindex < 0:
-        printmsg('Index must be >= 0', 'ERROR')
-        bdb.close_quit(1)
-    bdb.print_bookmark(args.printindex)
+    # Delete record(s)
+    if args.delete is not None:
+        if args.delete < 0:
+            printmsg('Index must be >= 0', 'ERROR')
+            bdb.close_quit(1)
+        bdb.delete_bookmark(args.delete)
 
-# Replace a tag in DB
-if args.replace is not None:
-    if len(args.replace) == 1:
-        bdb.replace_tag(args.replace[0])
-    else:
-        bdb.replace_tag(args.replace[0], args.replace[1:])
+    # Search URLs, titles, tags for any keyword
+    if args.sany is not None:
+        bdb.searchdb(args.sany, False, jsonOutput)
 
-# Open URL in browser
-if args.openurl is not None:
-    if args.openurl < 1:
-        printmsg('Index must be >= 1', 'ERROR')
-        bdb.close_quit(1)
-    bdb.browse_by_index(args.openurl)
+    # Search URLs, titles, tags with all keywords
+    if args.sall is not None:
+        if args.sall[0] == 'blank' and len(args.sall) == 1:
+            bdb.print_bookmark(0, True)
+        else:
+            bdb.searchdb(args.sall, True, jsonOutput)
 
-# Close DB connection and quit
-bdb.close_quit(0)
+    # Search bookmarks by tag
+    if tagsearch == True:
+        if len(args.stag) > 0:
+            tag = ',' + ' '.join(args.stag) + ','
+            bdb.search_by_tag(tag, jsonOutput)
+        else:
+            bdb.list_tags()
+
+    # Print all records
+    if args.printindex is not None:
+        if args.printindex < 0:
+            printmsg('Index must be >= 0', 'ERROR')
+            bdb.close_quit(1)
+        bdb.print_bookmark(args.printindex)
+
+    # Replace a tag in DB
+    if args.replace is not None:
+        if len(args.replace) == 1:
+            bdb.replace_tag(args.replace[0])
+        else:
+            bdb.replace_tag(args.replace[0], args.replace[1:])
+
+    # Open URL in browser
+    if args.openurl is not None:
+        if args.openurl < 1:
+            printmsg('Index must be >= 1', 'ERROR')
+            bdb.close_quit(1)
+        bdb.browse_by_index(args.openurl)
+
+    # Close DB connection and quit
+    bdb.close_quit(0)
