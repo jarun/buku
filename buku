@@ -100,8 +100,8 @@ class BukuDb:
 
 
     @staticmethod
-    def get_dbfile_path():
-        """Determine the DB file path:
+    def get_dbdir_path():
+        """Determine the directory path where dbfile will be stored:
         if $XDG_DATA_HOME is defined, use it
         else if $HOME exists, use it
         else use the current directory
@@ -116,7 +116,6 @@ class BukuDb:
 
         return os.path.join(data_home, 'buku')
 
-
     @staticmethod
     def move_legacy_dbfile():
         """Move database file from earlier path used in versions <= 1.8
@@ -129,7 +128,7 @@ class BukuDb:
         if not os.path.exists(olddbfile):
             return
 
-        newdbpath = BukuDb.get_dbfile_path()
+        newdbpath = BukuDb.get_dbdir_path()
         newdbfile = os.path.join(newdbpath, 'bookmarks.db')
 
         if os.path.exists(newdbfile):
@@ -153,7 +152,7 @@ class BukuDb:
         Returns: connection, cursor
         """
 
-        dbpath = BukuDb.get_dbfile_path()
+        dbpath = BukuDb.get_dbdir_path()
         if not os.path.exists(dbpath):
             os.makedirs(dbpath)
 
@@ -1034,7 +1033,7 @@ def get_filehash(filepath):
 def encrypt_file(iterations):
     """Encrypt the bookmarks database file"""
 
-    dbpath = os.path.join(BukuDb.get_dbfile_path(), 'bookmarks.db')
+    dbpath = os.path.join(BukuDb.get_dbdir_path(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(dbpath):
         print('%s missing. Already encrypted?' % dbpath)
@@ -1094,7 +1093,7 @@ def encrypt_file(iterations):
 def decrypt_file(iterations):
     """Decrypt the bookmarks database file"""
 
-    dbpath = os.path.join(BukuDb.get_dbfile_path(), 'bookmarks.db')
+    dbpath = os.path.join(BukuDb.get_dbdir_path(), 'bookmarks.db')
     encpath = dbpath + '.enc'
     if not os.path.exists(encpath):
         printmsg((encpath + ' missing'), 'ERROR')
