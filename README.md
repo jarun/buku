@@ -24,6 +24,8 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 # Features
 
+[![Join the chat at https://gitter.im/jarun/Buku](https://badges.gitter.im/jarun/Buku.svg)](https://gitter.im/jarun/Buku?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 - Add, tag, comment on, search, update, remove bookmarks
 - Fetch page title from the web (default) or add manually
 - Import HTML bookmark exports from Firefox, Google Chrome or IE (**not released yet**)
