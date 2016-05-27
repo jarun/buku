@@ -26,7 +26,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 - Add, tag, comment on, search, update, remove bookmarks
 - Fetch page title from the web (default) or add manually
-- Import HTML bookmark exports from Firefox, Google Chrome or IE
+- Import HTML bookmark exports from Firefox, Google Chrome or IE (**not released yet**)
 - Open search results directly in browser
 - Manual password protection using AES256 encryption
 - Modify or delete tags, list all unique tags alphabetically
