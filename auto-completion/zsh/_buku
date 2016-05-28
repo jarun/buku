@@ -16,6 +16,7 @@ args=(
     '(-h --help)'{-i,--import}'[import bookmarks]:html bookmark file'
     '(-k --unlock)'{-k,--unlock}'[decrypt database]'
     '(-l --lock)'{-l,--lock}'[encrypt database]'
+    '(--noprompt)'{--noprompt}'[noninteractive mode]'
     '(-o --open)'{-o,--open}'[open bookmark in browser]:bookmark index'
     '(-p --print)'{-p,--print}'[show bookmark details]'
     '(-r --replace)'{-r,--replace}'[replace a tag]:tag to replace'
