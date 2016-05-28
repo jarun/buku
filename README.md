@@ -28,7 +28,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 - Add, tag, comment on, search, update, remove bookmarks
 - Fetch page title from the web (default) or add manually
-- Import HTML bookmark exports from Firefox, Google Chrome or IE (**not released yet**)
+- Import HTML bookmark exports from Firefox, Google Chrome or IE
 - Open search results directly in browser
 - Manual password protection using AES256 encryption
 - Modify or delete tags, list all unique tags alphabetically
@@ -60,12 +60,16 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 `buku` requires Python 3.x to work.
 
-For optional encryption support, install PyCrypto module. Run:
+Optional dependencies:
+- Encryption: PyCrypto
+- Import bookmarks: Beautiful Soup
 
-    $ sudo pip3 install pycrypto
+Run:
+
+    $ sudo pip3 install pycrypto beautifulsoup4
 or on Ubuntu:
 
-    $ sudo apt-get install python3-crypto
+    $ sudo apt-get install python3-crypto python3-bs4
 
 ## Installing from this repository
 
@@ -162,6 +166,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
       -j, --json           Json formatted output for -p, -s, -S, --st
+      --noprompt           do not show the prompt, run and exit
       -o, --open N         open bookmark at DB index N in web browser
       -z, --debug          show debug information and additional logs
 

@@ -633,9 +633,13 @@ class BukuDb:
 
         if not os.path.exists(fp):
             printmsg((fp + ' not found'), 'ERROR')
-            sys.exit(1)
+            self.close_quit(1)
 
-        import bs4
+        try:
+            import bs4
+        except ImportError:
+            printmsg('Beautiful Soup not found', 'ERROR')
+            self.close_quit(1)
 
         with open(fp, encoding='utf-8') as f:
             soup = bs4.BeautifulSoup(f, 'html.parser')
