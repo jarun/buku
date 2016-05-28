@@ -57,6 +57,7 @@ jsonOutput = False      # Output json formatted result
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
+noninteractive = False  # Show the prompt or not
 _VERSION_ = '2.1'       # Program version
 
 
@@ -97,6 +98,7 @@ class BukuDb:
         conn, cur = BukuDb.initdb()
         self.conn = conn
         self.cur = cur
+        self.noninteractive = noninteractive
 
     @staticmethod
     def get_dbdir_path():
@@ -399,7 +401,7 @@ class BukuDb:
             return
 
         if json == False:
-            prompt(results)
+            prompt(results, self.noninteractive)
         else:
             print(format_json(results))
 
@@ -417,7 +419,7 @@ class BukuDb:
             return
 
         if json == False:
-            prompt(results)
+            prompt(results, self.noninteractive)
         else:
             print(format_json(results))
 
@@ -882,13 +884,16 @@ def parse_tags(keywords=[]):
     return ',' + ','.join(sortedTags) + ','
 
 
-def prompt(results):
+def prompt(results, noninteractive=False):
     """Show each matching result from a search and prompt"""
 
     count = 0
     for row in results:
         count += 1
         print_record(row, count)
+
+    if noninteractive == True:
+        return
 
     while True:
         try:
@@ -1350,12 +1355,14 @@ if __name__ == '__main__':
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
 -j, --json           Json formatted output for -p, -s, -S, --st
+--noprompt           do not show the prompt, run and exit
 -o, --open N         open bookmark at DB index N in web browser
 -z, --debug          show debug information and additional logs''')
     power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
     power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true', help=argparse.SUPPRESS)
+    power_group.add_argument('--noprompt', dest='noninteractive', action='store_true', help=argparse.SUPPRESS)
     power_group.add_argument('-o', '--open', dest='openurl', type=int, metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-z', '--debug', dest='debug', action='store_true', help=argparse.SUPPRESS)
 
@@ -1384,6 +1391,7 @@ if __name__ == '__main__':
     if args.jsonOutput:
         import json
         jsonOutput = args.jsonOutput
+    noninteractive = args.noninteractive
     debug = args.debug
 
     # Show version in debug logs
