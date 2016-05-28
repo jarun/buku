@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/6x3nu7ez9t0flk1knhiabwduv"><img src="https://asciinema.org/a/6x3nu7ez9t0flk1knhiabwduv.png" alt="Asciicast" width="600"/></a>
+<a href="https://asciinema.org/a/b7ymahqwgt92jev32q4cmcm8h"><img src="https://asciinema.org/a/b7ymahqwgt92jev32q4cmcm8h.png" alt="Asciicast" width="600"/></a>
 </p>
 
 `buku` is a powerful cmdline bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a portable database. Hence, `Buku` (after my son's nickname).
