@@ -16,6 +16,7 @@ args=(
     '(-h --help)'{-i,--import}'[import bookmarks]:html bookmark file'
     '(-k --unlock)'{-k,--unlock}'[decrypt database]'
     '(-l --lock)'{-l,--lock}'[encrypt database]'
+    '(--merge)'{--merge}'[merge another buku database]:buku db file'
     '(--noprompt)'{--noprompt}'[noninteractive mode]'
     '(-o --open)'{-o,--open}'[open bookmark in browser]:bookmark index'
     '(-p --print)'{-p,--print}'[show bookmark details]'

@@ -11,9 +11,9 @@ _buku () {
     local cur=$2 prev=$3
     local -a opts opts_with_args
     opts=(-a --add -c --comment -d --delete -h --help -i --import -k --unlock
-          -l --lock --noprompt -o --open -p --print -r --replace -s --sany
+          -l --lock --merge --noprompt -o --open -p --print -r --replace -s --sany
           -S --sall --st --stag --tag -t --title -u --update --url)
-    opts_with_arg=(-a --add -i --import -o --open -r --replace -s --sany -S --sall)
+    opts_with_arg=(-a --add -i --import --merge -o --open -r --replace -s --sany -S --sall)
 
     # Do not complete non option names
     [[ $cur == -* ]] || return 1
