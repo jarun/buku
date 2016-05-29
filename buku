@@ -301,7 +301,7 @@ class BukuDb:
             meta = network_handler(url)
             if meta == '':
                 print('\x1B[91mTitle: []\x1B[0m')
-            else:
+            elif debug:
                 print('Title: [%s]' % meta)
         elif not to_update:
             self.refreshdb(index)
