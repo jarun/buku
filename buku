@@ -167,7 +167,7 @@ class BukuDb:
             sys.exit(1)
 
         # Show info on first creation
-        if no_crypto == False and not os.path.exists(dbfile):
+        if not os.path.exists(dbfile):
             print('DB file is being created. You may want to encrypt it later.')
 
         try:
@@ -568,7 +568,6 @@ class BukuDb:
         Params: original and new tags
         """
 
-        print('orig: %s new: %s' % (orig, new))
         update = False
         delete = False
         newtags = DELIMITER

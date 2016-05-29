@@ -29,10 +29,11 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 - Add, tag, comment on, search, update, remove bookmarks
 - Fetch page title from the web (default) or add manually
 - Import HTML bookmark exports from Firefox, Google Chrome or IE
+- Merge portable `buku` databases from different systems (not released yet)
 - Open search results directly in browser
 - Manual password protection using AES256 encryption
 - Modify or delete tags, list all unique tags alphabetically
-- Refresh all bookmarks online in one shot
+- Refresh all bookmark titles from web in a go
 - Tab-completion scripts for Bash, Fish and Zsh
 - Man page with examples
 - Several options for power users (see help or man page)
@@ -185,7 +186,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double (`'`/`"`) quotes.
 - URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
-- For tags, comma (`,`) is the delimiter in DB. Tags are comma separated, filtered (for unique tags) and sorted. Hence, a tag cannot have comma(s) in it. In-tag commas are replaced by spaces.
+- **Tags**:
+  - Comma (`,`) is the tag delimiter in DB. Tags are filtered (for unique tags) and sorted. Hence, any tag cannot have comma(s) in it. In-tag commas are replaced by spaces.
 - **Update** operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
