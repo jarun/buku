@@ -110,11 +110,11 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
-    usage: buku [-a URL [tags ...]] [-u [N]] [-i path] [-d [N]]
+    usage: buku [-a URL [tags ...]] [-u [N]] [-i file] [-d [N]]
                 [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
                 [-s keyword [...]] [-S keyword [...]] [--st [...]]
-                [-k [N]] [-l [N]] [-p [N]] [-f N]
-                [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]
+                [-k [N]] [-l [N]] [-p [N]] [-f N] [-r oldtag [newtag ...]]
+                [-j] [--merge file] [--noprompt] [-o N] [-z] [-h]
 
     A private command-line bookmark manager. Your mini web!
 
@@ -127,7 +127,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            N is specified without any edit options
       -d, --delete [N]     delete bookmark at DB index N
                            delete all bookmarks, if no arguments
-      -i, --import path    import bookmarks from html file; Firefox,
+      -i, --import file    import bookmarks from html file; Firefox,
                            Google Chrome and IE formats supported
       -h, --help           show this information
 
@@ -166,6 +166,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
       -j, --json           Json formatted output for -p, -s, -S, --st
+      --merge file         merge bookmarks from another buku database
       --noprompt           do not show the prompt, run and exit
       -o, --open N         open bookmark at DB index N in web browser
       -z, --debug          show debug information and additional logs

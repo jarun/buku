@@ -1321,11 +1321,11 @@ if __name__ == '__main__':
     argparser = ExtendedArgumentParser(
         description='A private command-line bookmark manager. Your mini web!',
         formatter_class=argparse.RawTextHelpFormatter,
-        usage='''buku [-a URL [tags ...]] [-u [N]] [-i path] [-d [N]]
+        usage='''buku [-a URL [tags ...]] [-u [N]] [-i file] [-d [N]]
             [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
             [-s keyword [...]] [-S keyword [...]] [--st [...]]
-            [-k [N]] [-l [N]] [-p [N]] [-f N]
-            [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]''',
+            [-k [N]] [-l [N]] [-p [N]] [-f N] [-r oldtag [newtag ...]]
+            [-j] [--merge file] [--noprompt] [-o N] [-z] [-h]''',
         add_help=False
     )
 
@@ -1339,13 +1339,13 @@ if __name__ == '__main__':
                      N is specified without any edit options
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
--i, --import path    import bookmarks from html file; Firefox,
+-i, --import file    import bookmarks from html file; Firefox,
                      Google Chrome and IE formats supported
 -h, --help           show this information''')
     general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
     general_group.add_argument('-u', '--update', nargs='*', dest='update', action=CustomUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
     general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
-    general_group.add_argument('-i', '--import', nargs=1, dest='imports', metavar='path', help=argparse.SUPPRESS)
+    general_group.add_argument('-i', '--import', nargs=1, dest='imports', metavar='file', help=argparse.SUPPRESS)
     general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
     # Edit options
@@ -1396,7 +1396,7 @@ if __name__ == '__main__':
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
 -j, --json           Json formatted output for -p, -s, -S, --st
---merge              merge bookmarks from another database file
+--merge file         merge bookmarks from another buku database
 --noprompt           do not show the prompt, run and exit
 -o, --open N         open bookmark at DB index N in web browser
 -z, --debug          show debug information and additional logs''')
@@ -1404,7 +1404,7 @@ if __name__ == '__main__':
     power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
     power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true', help=argparse.SUPPRESS)
-    general_group.add_argument('--merge', nargs=1, dest='merge', metavar='path', help=argparse.SUPPRESS)
+    general_group.add_argument('--merge', nargs=1, dest='merge', metavar='file', help=argparse.SUPPRESS)
     power_group.add_argument('--noprompt', dest='noninteractive', action='store_true', help=argparse.SUPPRESS)
     power_group.add_argument('-o', '--open', dest='openurl', type=int, metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-z', '--debug', dest='debug', action='store_true', help=argparse.SUPPRESS)

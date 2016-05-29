@@ -3,15 +3,15 @@
 buku \- A private command-line bookmark manager. Your mini web!
 .SH SYNOPSIS
 .B buku
-[-a URL [tags ...]] [-u [N]] [-i path] [-d [N]]
+[-a URL [tags ...]] [-u [N]] [-i file] [-d [N]]
 .br
      [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
 .br
      [-s keyword [...]] [-S keyword [...]] [--st [...]]
 .br
-     [-k [N]] [-l [N]] [-p [N]] [-f N]
+     [-k [N]] [-l [N]] [-p [N]] [-f N] [-r oldtag [newtag ...]]
 .br
-     [-r oldtag [newtag ...]] [-j] [-o N] [-z] [-h]
+     [-j] [--merge file] [--noprompt] [-o N] [-z] [-h]
 .SH DESCRIPTION
 .B buku
 is a command-line tool to save, tag and search bookmarks.
@@ -61,7 +61,7 @@ in DB. If
 .I N
 and other options are omitted, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only N is passed without any edit options, title is fetched and updated (if not empty).
 .TP
-.BI \-i " " \--import " path"
+.BI \-i " " \--import " file"
 Import bookmarks exported from Firefox, Google Chrome or IE in HTML format.
 .TP
 .BI \-d " " \--delete " [N]"
@@ -142,6 +142,9 @@ is omitted.
 .TP
 .BI \-j " " \--json
 Output data formatted as json, works with -p, -s, -S, --st.
+.TP
+.BI \--merge " file"
+Merge bookmarks from another Buku database file.
 .TP
 .BI \--noprompt
 Do not show the prompt, run and exit.
