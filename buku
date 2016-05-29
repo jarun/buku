@@ -248,7 +248,7 @@ class BukuDb:
             print('\x1b[1mEXCEPTION\x1b[21m [add_bookmark]: (%s) %s' % (type(e).__name__, e))
 
 
-    def update_bookmark(self, index, url='', tag_manual=None, title_manual=None, desc=None):
+    def update_bookmark(self, index, url='', title_manual=None, tag_manual=None, desc=None):
         """ Update an existing record at index
 
         :param index: int position to update
@@ -1502,7 +1502,7 @@ if __name__ == '__main__':
             if tagManual is not None and not (tagManual[0] == ',' and len(tagManual) == 1):
                 tags = parse_tags(tagManual)
 
-            bdb.update_bookmark(int(args.update[0]), new_url, tags, titleManual, description)
+            bdb.update_bookmark(int(args.update[0]), new_url, titleManual, tags, description)
 
     # Delete record(s)
     if args.delete is not None:
