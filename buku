@@ -893,9 +893,9 @@ def parse_tags(keywords=[]):
                 tags += ','
 
         if tag[-1] == ',':          # if delimiter is present, maintain it (e.g. token1, token2)
-            tag = tag.strip(',') + ','
+            tag = tag.strip(',').replace(',', ' ') + ','
         else:                       # a token in a multi-word tag (e.g. token1 token2)
-            tag = tag.strip(',')
+            tag = tag.strip(',').replace(',', ' ')
 
         if tag == ',':              # isolated delimiter (e.g. token1 , token2)
             if tags[-1] != ',':

@@ -185,6 +185,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double (`'`/`"`) quotes.
 - URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
+- For tags, comma (`,`) is the delimiter in DB. Tags are comma separated, filtered (for unique tags) and sorted. Hence, a tag cannot have comma(s) in it. In-tag commas are replaced by spaces.
 - **Update** operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.

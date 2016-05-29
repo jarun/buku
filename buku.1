@@ -30,6 +30,8 @@ If the URL contains characters like ';', '&' or brackets they may be interpreted
 .PP
 URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
 .PP
+For tags, comma (',') is the delimiter in DB. Tags are comma separated, filtered (for unique tags) and sorted. Hence, a tag cannot have comma(s) in it. In-tag commas are replaced by spaces.
+.PP
 \fBUpdate\fR operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
