@@ -235,6 +235,11 @@ class BukuDb:
         # Process tags
         if tag_manual is None:
             tag_manual = ','
+        else:
+            if tag_manual[0] != ',':
+                tag_manual = ',' + tag_manual
+            if tag_manual[-1] != ',':
+                tag_manual = tag_manual + ','
 
         # Process description
         if desc is None:
