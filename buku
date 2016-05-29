@@ -58,6 +58,7 @@ showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
 noninteractive = False  # Show the prompt or not
+DELIMITER = ','         # Delimiter used to store tags in DB
 _VERSION_ = '2.1'       # Program version
 
 
@@ -234,12 +235,12 @@ class BukuDb:
 
         # Process tags
         if tag_manual is None:
-            tag_manual = ','
+            tag_manual = DELIMITER
         else:
-            if tag_manual[0] != ',':
-                tag_manual = ',' + tag_manual
-            if tag_manual[-1] != ',':
-                tag_manual = tag_manual + ','
+            if tag_manual[0] != DELIMITER:
+                tag_manual = DELIMITER + tag_manual
+            if tag_manual[-1] != DELIMITER:
+                tag_manual = tag_manual + DELIMITER
 
         # Process description
         if desc is None:
@@ -498,7 +499,7 @@ class BukuDb:
                 self.cur.execute('SELECT * FROM bookmarks')
                 resultset = self.cur.fetchall()
             else:
-                self.cur.execute("SELECT * FROM bookmarks WHERE metadata = '' OR tags = ','")
+                self.cur.execute("SELECT * FROM bookmarks WHERE metadata = '' OR tags = ?", (DELIMITER,))
                 resultset = self.cur.fetchall()
                 print('\x1b[1m%d records found\x1b[21m\n' % len(resultset))
 
@@ -545,10 +546,10 @@ class BukuDb:
         Tags = []
         uniqueTags = []
         for row in self.cur.execute('SELECT DISTINCT tags FROM bookmarks'):
-            if row[0] == ',':
+            if row[0] == DELIMITER:
                 continue
 
-            Tags.extend(row[0].strip(',').split(','))
+            Tags.extend(row[0].strip(DELIMITER).split(DELIMITER))
 
         for tag in Tags:
             if tag not in uniqueTags:
@@ -570,14 +571,14 @@ class BukuDb:
         print('orig: %s new: %s' % (orig, new))
         update = False
         delete = False
-        newtags = ','
+        newtags = DELIMITER
 
-        orig = ',' + orig + ','
+        orig = DELIMITER + orig + DELIMITER
         if new is None:
             delete = True
         else:
             newtags = parse_tags(new)
-            if newtags == ',':
+            if newtags == DELIMITER:
                 delete = True
 
         if orig == newtags:
@@ -591,7 +592,7 @@ class BukuDb:
             if delete == False:
                 # Check if tag newtags is already added
                 if row[1].find(newtags) >= 0:
-                    newtags = ','
+                    newtags = DELIMITER
 
             tags = row[1].replace(orig, newtags)
             self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (tags, row[0],))
@@ -660,7 +661,7 @@ class BukuDb:
 
             self.add_bookmark(tag['href'],
                               tag.string,
-                              (',' + tag['tags'] + ',') if tag.has_attr('tags') else None,
+                              (DELIMITER + tag['tags'] + DELIMITER) if tag.has_attr('tags') else None,
                               desc)
 
 
@@ -879,7 +880,7 @@ def parse_tags(keywords=[]):
     """Format and get tag string from tokens"""
     # TODO: Simplify this logic
 
-    tags = ','
+    tags = DELIMITER
     origTags = []
     uniqueTags = []
 
@@ -888,32 +889,32 @@ def parse_tags(keywords=[]):
         if tag == '':
             continue
 
-        if tag[0] == ',':           # delimiter precedes token (e.g. token1 ,token2)
-            if tags[-1] != ',':
-                tags += ','
+        if tag[0] == DELIMITER:     # delimiter precedes token (e.g. token1 ,token2)
+            if tags[-1] != DELIMITER:
+                tags += DELIMITER
 
-        if tag[-1] == ',':          # if delimiter is present, maintain it (e.g. token1, token2)
-            tag = tag.strip(',').replace(',', ' ') + ','
+        if tag[-1] == DELIMITER:    # if delimiter is present, maintain it (e.g. token1, token2)
+            tag = tag.strip(DELIMITER).replace(DELIMITER, ' ') + DELIMITER
         else:                       # a token in a multi-word tag (e.g. token1 token2)
-            tag = tag.strip(',').replace(',', ' ')
+            tag = tag.strip(DELIMITER).replace(DELIMITER, ' ')
 
-        if tag == ',':              # isolated delimiter (e.g. token1 , token2)
-            if tags[-1] != ',':
+        if tag == DELIMITER:        # isolated delimiter (e.g. token1 , token2)
+            if tags[-1] != DELIMITER:
                 tags += tag
             continue
 
-        if tags[-1] == ',':
+        if tags[-1] == DELIMITER:
             tags += tag
         else:
             tags += ' ' + tag
 
-    if tags == ',':
+    if tags == DELIMITER:
         return tags
 
-    if tags[-1] != ',':
-        tags += ','
+    if tags[-1] != DELIMITER:
+        tags += DELIMITER
 
-    origTags.extend(tags.strip(',').split(','))
+    origTags.extend(tags.strip(DELIMITER).split(DELIMITER))
     for tag in origTags:
         if tag not in uniqueTags:
             uniqueTags.append(tag)  # Select unique tags
@@ -922,7 +923,7 @@ def parse_tags(keywords=[]):
     sortedTags = sorted(uniqueTags, key=str.lower)
 
     # Wrap with delimiter
-    return ',' + ','.join(sortedTags) + ','
+    return DELIMITER + DELIMITER.join(sortedTags) + DELIMITER
 
 
 def prompt(results, noninteractive=False):
@@ -980,8 +981,8 @@ def print_record(row, count=0):
     if row[4] != '':
         print('   \x1B[91m+\x1B[0m %s' % row[4])
 
-    # Print tags IF not default (',')
-    if row[3] != ',':
+    # Print tags IF not default (DELIMITER)
+    if row[3] != DELIMITER:
         print('   \x1B[91m#\x1B[0m %s' % row[3][1:-1])
 
     print('')
@@ -1235,7 +1236,7 @@ class CustomTagAction(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
         global tagManual
 
-        tagManual = [',',]
+        tagManual = [DELIMITER,]
         setattr(args, self.dest, values)
 
 
@@ -1477,10 +1478,10 @@ if __name__ == '__main__':
     # Add a record
     if args.addurl is not None:
         # Parse tags into a comma-separated string
-        tags = ','
+        tags = DELIMITER
         keywords = args.addurl
-        if tagManual is not None and not (tagManual[0] == ',' and len(tagManual) == 1):
-            keywords = args.addurl + [','] + tagManual
+        if tagManual is not None and not (tagManual[0] == DELIMITER and len(tagManual) == 1):
+            keywords = args.addurl + [DELIMITER] + tagManual
 
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
@@ -1504,7 +1505,7 @@ if __name__ == '__main__':
 
             # Parse tags into a comma-separated string
             tags = None
-            if tagManual is not None and not (tagManual[0] == ',' and len(tagManual) == 1):
+            if tagManual is not None and not (tagManual[0] == DELIMITER and len(tagManual) == 1):
                 tags = parse_tags(tagManual)
 
             bdb.update_bookmark(int(args.update[0]), new_url, titleManual, tags, description)
@@ -1530,7 +1531,7 @@ if __name__ == '__main__':
     # Search bookmarks by tag
     if tagsearch == True:
         if len(args.stag) > 0:
-            tag = ',' + ' '.join(args.stag) + ','
+            tag = DELIMITER + ' '.join(args.stag) + DELIMITER
             bdb.search_by_tag(tag, jsonOutput)
         else:
             bdb.list_tags()
