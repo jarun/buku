@@ -877,41 +877,35 @@ def network_handler(url):
 
 def parse_tags(keywords=[]):
     """Format and get tag string from tokens"""
-    # TODO: Simplify this logic
 
     tags = DELIMITER
     origTags = []
     uniqueTags = []
 
     # Cleanse and get the tags
-    for tag in keywords:
-        if tag == '':
+    tagstr = ' '.join(keywords)
+    marker = tagstr.find(',')
+
+    while marker >= 0:
+        token = tagstr[0:marker]
+        tagstr = tagstr[marker+1:]
+        marker = tagstr.find(',')
+        token = token.strip()
+        if token == '':
             continue
 
-        if tag[0] == DELIMITER:     # delimiter precedes token (e.g. token1 ,token2)
-            if tags[-1] != DELIMITER:
-                tags += DELIMITER
+        tags += token + ','
 
-        if tag[-1] == DELIMITER:    # if delimiter is present, maintain it (e.g. token1, token2)
-            tag = tag.strip(DELIMITER).replace(DELIMITER, ' ') + DELIMITER
-        else:                       # a token in a multi-word tag (e.g. token1 token2)
-            tag = tag.strip(DELIMITER).replace(DELIMITER, ' ')
+    tagstr = tagstr.strip()
+    if tagstr != '':
+        tags += tagstr + ','
 
-        if tag == DELIMITER:        # isolated delimiter (e.g. token1 , token2)
-            if tags[-1] != DELIMITER:
-                tags += tag
-            continue
-
-        if tags[-1] == DELIMITER:
-            tags += tag
-        else:
-            tags += ' ' + tag
+    if debug:
+        print(keywords)
+        print('tags: [%s]' % tags)
 
     if tags == DELIMITER:
         return tags
-
-    if tags[-1] != DELIMITER:
-        tags += DELIMITER
 
     origTags.extend(tags.strip(DELIMITER).split(DELIMITER))
     for tag in origTags:
