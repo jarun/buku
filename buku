@@ -207,7 +207,7 @@ class BukuDb:
         return resultset[0][0]
 
 
-    def add_bookmark(self, url, tag_manual=None, title_manual=None, desc=None):
+    def add_bookmark(self, url, title_manual=None, tag_manual=None, desc=None):
         """Add a new bookmark
 
         :param url: url to bookmark
@@ -219,7 +219,7 @@ class BukuDb:
         # Ensure that the URL does not exist in DB already
         id = self.get_bookmark_index(url)
         if id != -1:
-            print('URL already exists at index %d' % id)
+            print('URL [%s] already exists at index %d' % (url, id))
             return
 
         # Process title
@@ -612,6 +612,7 @@ class BukuDb:
         except IndexError:
                 print('Index out of bound')
 
+
     def close_quit(self, exitval=0):
         """Close a DB connection and exit"""
 
@@ -653,8 +654,39 @@ class BukuDb:
                 desc = comment_tag.text[0:comment_tag.text.find('\n')]
 
             self.add_bookmark(tag['href'],
+                              tag.string,
                               (',' + tag['tags'] + ',') if tag.has_attr('tags') else None,
-                              tag.string, desc)
+                              desc)
+
+
+    def mergedb(self, fp):
+        """Merge bookmarks from another Buku database file
+
+        Params: Path to file to merge
+        """
+
+        if not os.path.exists(fp):
+            printmsg((fp + ' not found'), 'ERROR')
+            self.close_quit(1)
+
+        try:
+            # Create a connection
+            connfp = sqlite3.connect(fp)
+            curfp = connfp.cursor()
+        except Exception as e:
+            print('\x1b[1mEXCEPTION\x1b[21m [mergedb]: (%s) %s' % (type(e).__name__, e))
+            sys.exit(1)
+
+        curfp.execute('SELECT * FROM bookmarks')
+        resultset = curfp.fetchall()
+        for row in resultset:
+            self.add_bookmark(row[1], row[2], row[3], row[4])
+
+        try:
+            curfp.close()
+            connfp.close()
+        except:
+            pass
 
 
 # Generic functions
@@ -1359,6 +1391,7 @@ if __name__ == '__main__':
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
 -j, --json           Json formatted output for -p, -s, -S, --st
+--merge              merge bookmarks from another database file
 --noprompt           do not show the prompt, run and exit
 -o, --open N         open bookmark at DB index N in web browser
 -z, --debug          show debug information and additional logs''')
@@ -1366,6 +1399,7 @@ if __name__ == '__main__':
     power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
     power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true', help=argparse.SUPPRESS)
+    general_group.add_argument('--merge', nargs=1, dest='merge', metavar='path', help=argparse.SUPPRESS)
     power_group.add_argument('--noprompt', dest='noninteractive', action='store_true', help=argparse.SUPPRESS)
     power_group.add_argument('-o', '--open', dest='openurl', type=int, metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-z', '--debug', dest='debug', action='store_true', help=argparse.SUPPRESS)
@@ -1427,6 +1461,14 @@ if __name__ == '__main__':
     # Initialize the database and get handles
     bdb = BukuDb()
 
+    # Import bookmarks
+    if args.imports is not None:
+        bdb.import_bookmark(args.imports[0])
+
+    # Merge a database file and exit
+    if args.merge is not None:
+        bdb.mergedb(args.merge[0])
+
     # Add a record
     if args.addurl is not None:
         # Parse tags into a comma-separated string
@@ -1438,7 +1480,7 @@ if __name__ == '__main__':
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_bookmark(args.addurl[0], tags, titleManual, description)
+        bdb.add_bookmark(args.addurl[0], titleManual, tags, description)
 
     # Update record
     if update == True:
@@ -1461,10 +1503,6 @@ if __name__ == '__main__':
                 tags = parse_tags(tagManual)
 
             bdb.update_bookmark(int(args.update[0]), new_url, tags, titleManual, description)
-
-    # Import bookmarks
-    if args.imports is not None:
-        bdb.import_bookmark(args.imports[0])
 
     # Delete record(s)
     if args.delete is not None:
