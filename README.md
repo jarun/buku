@@ -27,15 +27,12 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 # Features
 
 - Add, tag, comment on, search, update, remove bookmarks
-- Fetch page title from the web (default) or add manually
+- Merge-able portable database, to sync between systems (not released yet)
 - Import HTML bookmark exports from Firefox, Google Chrome or IE
-- Merge portable `buku` databases from different systems (not released yet)
+- Fetch page title from web (default), refresh all titles in a go
 - Open search results directly in browser
 - Manual password protection using AES256 encryption
-- Modify or delete tags, list all unique tags alphabetically
-- Refresh all bookmark titles from web in a go
-- Tab-completion scripts for Bash, Fish and Zsh
-- Man page with examples
+- Tab-completion scripts (Bash, Fish, Zsh), man page with examples
 - Several options for power users (see help or man page)
 - Fast and clean interface
 - Minimal dependencies
