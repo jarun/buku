@@ -50,6 +50,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
   - [Operational notes](#operational-notes)
 - [Examples](#examples)
 - [Contributions](#contributions)
+- [Mentions](#mentions)
 - [Developers](#developers)
 
 # Installation
@@ -297,6 +298,10 @@ The same number of iterations must be used for one lock & unlock instance. Defau
 # Contributions
 
 Pull requests are welcome. Please visit [#14](https://github.com/jarun/Buku/issues/14) for a list of TODOs.
+
+# Mentions
+
+- [One Thing Well](http://onethingwell.org/post/144952807044/buku)
 
 # Developers
 
