@@ -21,7 +21,6 @@ import sys
 import os
 import sqlite3
 import argparse
-import readline
 import webbrowser
 import html.parser as HTMLParser
 from http.client import HTTPConnection, HTTPSConnection
@@ -41,7 +40,7 @@ try:
     no_crypto = False
     BLOCKSIZE = 65536
     SALT_SIZE = 32
-    CHUNKSIZE = 0x80000 # Read/write 512 KB chunks
+    CHUNKSIZE = 0x80000  # Read/write 512 KB chunks
 except ImportError:
     no_crypto = True
 
@@ -87,11 +86,12 @@ class BMHTMLParser(HTMLParser.HTMLParser):
                 self.reset()  # We have received title data, exit parsing
 
     def handle_data(self, data):
-        if self.lasttag == 'title' and self.inTitle == True:
+        if self.lasttag == 'title' and self.inTitle:
             self.data += data
 
     def error(self, message):
         pass
+
 
 class BukuDb:
 
@@ -145,7 +145,6 @@ class BukuDb:
 
         os.rmdir(olddbpath)
 
-
     @staticmethod
     def initdb():
         """Initialize the database connection. Create DB file and/or bookmarks table
@@ -187,11 +186,10 @@ class BukuDb:
         try:
             cur.execute("ALTER TABLE bookmarks ADD COLUMN desc text default \'\'")
             conn.commit()
-        except:
+        except Exception:
             pass
 
         return (conn, cur)
-
 
     def get_bookmark_index(self, url):
         """Check if URL already exists in DB
@@ -206,7 +204,6 @@ class BukuDb:
             return -1
 
         return resultset[0][0]
-
 
     def add_bookmark(self, url, title_manual=None, tag_manual=None, desc=None):
         """Add a new bookmark
@@ -252,7 +249,6 @@ class BukuDb:
             self.print_bookmark(self.cur.lastrowid)
         except Exception as e:
             print('\x1b[1mEXCEPTION\x1b[21m [add_bookmark]: (%s) %s' % (type(e).__name__, e))
-
 
     def update_bookmark(self, index, url='', title_manual=None, tag_manual=None, desc=None):
         """ Update an existing record at index
@@ -330,7 +326,6 @@ class BukuDb:
         except sqlite3.IntegrityError:
             print('URL already exists')
 
-
     def refreshdb(self, index, title_manual=None):
         """Refresh ALL records in the database. Fetch title for each
         bookmark from the web and update the records. Doesn't udpate
@@ -367,7 +362,6 @@ class BukuDb:
                 self.conn.commit()
                 print('Index %d updated\n' % row[0])
 
-
     def searchdb(self, keywords, all_keywords=False, json=False):
         """Search the database for an entries with tags or URL
         or title info matching keywords and list those.
@@ -381,7 +375,7 @@ class BukuDb:
         placeholder = "'%' || ? || '%'"
         query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE"
 
-        if all_keywords == True: # Match all keywords in URL or Title
+        if all_keywords:  # Match all keywords in URL or Title
             for token in keywords:
                 query += " (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s)) AND" % (placeholder, placeholder, placeholder, placeholder)
                 arguments.append(token)
@@ -389,7 +383,7 @@ class BukuDb:
                 arguments.append(token)
                 arguments.append(token)
             query = query[:-4]
-        else: # Match any keyword in URL or Title
+        else:  # Match any keyword in URL or Title
             for token in keywords:
                 query += " tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s) OR" % (placeholder, placeholder, placeholder, placeholder)
                 arguments.append(token)
@@ -406,11 +400,10 @@ class BukuDb:
         if len(results) == 0:
             return
 
-        if json == False:
+        if not json:
             prompt(results, self.noninteractive)
         else:
             print(format_json(results))
-
 
     def search_by_tag(self, tag, json=False):
         """Search and list bookmarks with a tag
@@ -424,11 +417,10 @@ class BukuDb:
         if len(results) == 0:
             return
 
-        if json == False:
+        if not json:
             prompt(results, self.noninteractive)
         else:
             print(format_json(results))
-
 
     def compactdb(self, index):
         """When an entry at index is deleted, move the last
@@ -439,7 +431,7 @@ class BukuDb:
 
         self.cur.execute('SELECT MAX(id) from bookmarks')
         results = self.cur.fetchall()
-        if len(results) == 1 and results[0][0] is None: # Return if the last index was just deleted
+        if len(results) == 1 and results[0][0] is None:  # Return if the last index was just deleted
             return
 
         for row in results:
@@ -452,7 +444,6 @@ class BukuDb:
                     self.cur.execute('INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)', (index, row[1], row[2], row[3], row[4],))
                     self.conn.commit()
                     print('Index %d moved to %d' % (row[0], index))
-
 
     def delete_bookmark(self, index):
         """Delete a single record or remove the table if index is None
@@ -469,7 +460,7 @@ class BukuDb:
             self.cur.execute('DROP TABLE if exists bookmarks')
             self.conn.commit()
             print('All bookmarks deleted')
-        else: # Remove a single entry
+        else:  # Remove a single entry
             try:
                 self.cur.execute('DELETE FROM bookmarks WHERE id = ?', (index,))
                 self.conn.commit()
@@ -480,7 +471,6 @@ class BukuDb:
                     print('No matching index')
             except IndexError:
                 print('Index out of bound')
-
 
     def print_bookmark(self, index, empty=False):
         """Print bookmark details at index or all bookmarks if index is None
@@ -494,8 +484,8 @@ class BukuDb:
         global jsonOutput
 
         resultset = None
-        if index == 0: # Show all entries
-            if empty == False:
+        if index == 0:  # Show all entries
+            if not empty:
                 self.cur.execute('SELECT * FROM bookmarks')
                 resultset = self.cur.fetchall()
             else:
@@ -503,7 +493,7 @@ class BukuDb:
                 resultset = self.cur.fetchall()
                 print('\x1b[1m%d records found\x1b[21m\n' % len(resultset))
 
-            if jsonOutput == False:
+            if not jsonOutput:
                 if showOpt == 0:
                     for row in resultset:
                         print_record(row)
@@ -526,7 +516,7 @@ class BukuDb:
                 print('Index out of bound')
                 return
 
-            if jsonOutput == False:
+            if not jsonOutput:
                 for row in results:
                     if showOpt == 0:
                         print_record(row)
@@ -536,7 +526,6 @@ class BukuDb:
                         print('%s %s        %s' % (row[0], row[1], row[3][1:-1]))
             else:
                 print(format_json(results, True))
-
 
     def list_tags(self):
         """Print all unique tags ordered alphabetically
@@ -559,7 +548,6 @@ class BukuDb:
         for tag in Tags:
             print('%6d. %s' % (count, tag))
             count += 1
-
 
     def replace_tag(self, orig, new=None):
         """Replace orig tags with new tags in DB for all records.
@@ -588,7 +576,7 @@ class BukuDb:
         results = self.cur.fetchall()
 
         for row in results:
-            if delete == False:
+            if not delete:
                 # Check if tag newtags is already added
                 if row[1].find(newtags) >= 0:
                     newtags = DELIMITER
@@ -600,7 +588,6 @@ class BukuDb:
 
         if update:
             self.conn.commit()
-
 
     def browse_by_index(self, index):
         """Open URL at index in browser
@@ -615,8 +602,7 @@ class BukuDb:
                 return
             print('No matching index')
         except IndexError:
-                print('Index out of bound')
-
+            print('Index out of bound')
 
     def close_quit(self, exitval=0):
         """Close a DB connection and exit"""
@@ -625,10 +611,9 @@ class BukuDb:
             try:
                 self.cur.close()
                 self.conn.close()
-            except:  # we don't really care about errors, we're closing down anyway
+            except Exception:  # we don't really care about errors, we're closing down anyway
                 pass
         sys.exit(exitval)
-
 
     def import_bookmark(self, fp):
         """Import bookmarks from a html file.
@@ -663,7 +648,6 @@ class BukuDb:
                               (DELIMITER + tag['tags'] + DELIMITER) if tag.has_attr('tags') else None,
                               desc)
 
-
     def mergedb(self, fp):
         """Merge bookmarks from another Buku database file
 
@@ -690,7 +674,7 @@ class BukuDb:
         try:
             curfp.close()
             connfp.close()
-        except:
+        except Exception:
             pass
 
 
@@ -719,24 +703,24 @@ def connect_server(url, fullurl=False, forced=False):
     if debug:
         print('unquoted: %s' % url)
 
-    if url.find('https://') >= 0: # Secure connection
+    if url.find('https://') >= 0:  # Secure connection
         server = url[8:]
         marker = server.find('/')
         if marker > 0:
-            if fullurl == False and forced == False:
+            if not fullurl and not forced:
                 url = server[marker:]
             server = server[:marker]
-        elif forced == False:           # Handle domain name without trailing /
+        elif not forced:  # Handle domain name without trailing /
             url = '/'
         urlconn = HTTPSConnection(server, timeout=30)
-    elif url.find('http://') >= 0: # Insecure connection
+    elif url.find('http://') >= 0:  # Insecure connection
         server = url[7:]
         marker = server.find('/')
         if marker > 0:
-            if fullurl == False and forced == False:
+            if not fullurl and not forced:
                 url = server[marker:]
             server = server[:marker]
-        elif forced == False:
+        elif not forced:
             url = '/'
         urlconn = HTTPConnection(server, timeout=30)
     else:
@@ -751,7 +735,7 @@ def connect_server(url, fullurl=False, forced=False):
     # Handle URLs passed with %xx escape
     try:
         url.encode('ascii')
-    except:
+    except Exception:
         url = quote(url)
 
     urlconn.request('GET', url, None, {
@@ -776,7 +760,7 @@ def get_page_title(resp):
     else:
         data = resp.read()
 
-    if charset == None:
+    if charset is None:
         charset = 'utf-8'
         if debug:
             printmsg('Charset missing in response', 'WARNING')
@@ -811,7 +795,7 @@ def network_handler(url):
     try:
         urlconn, resp = connect_server(url, False)
 
-        while 1:
+        while True:
             if resp is None:
                 break
             elif resp.status == 200:
@@ -840,7 +824,7 @@ def network_handler(url):
                 urlconn.close()
                 # Try with complete URL on redirection
                 urlconn, resp = connect_server(url, True)
-            elif resp.status == 403 and retry == False:
+            elif resp.status == 403 and not retry:
                 """Handle URLs of the form https://www.domain.com or
                 https://www.domain.com/ which fails when trying to fetch
                 resource '/', retry with full path.
@@ -853,7 +837,7 @@ def network_handler(url):
                     url = url[:-1]
                 urlconn, resp = connect_server(url, False, True)
                 retry = True
-            elif resp.status == 500 and retry == False:
+            elif resp.status == 500 and not retry:
                 """Retry on status 500 (Internal Server Error) with truncated
                 URL. Some servers support truncated request URL on redirection.
                 """
@@ -872,11 +856,14 @@ def network_handler(url):
             urlconn.close()
         if titleData is None:
             return ''
-        return titleData.strip().replace('\n','')
+        return titleData.strip().replace('\n', '')
 
 
-def parse_tags(keywords=[]):
+def parse_tags(keywords=None):
     """Format and get tag string from tokens"""
+
+    if keywords is None:
+        keywords = []
 
     tags = DELIMITER
     origTags = []
@@ -888,7 +875,7 @@ def parse_tags(keywords=[]):
 
     while marker >= 0:
         token = tagstr[0:marker]
-        tagstr = tagstr[marker+1:]
+        tagstr = tagstr[marker + 1:]
         marker = tagstr.find(',')
         token = token.strip()
         if token == '':
@@ -927,7 +914,7 @@ def prompt(results, noninteractive=False):
         count += 1
         print_record(row, count)
 
-    if noninteractive == True:
+    if noninteractive:
         return
 
     while True:
@@ -986,15 +973,15 @@ def format_json(resultset, single=False):
 
     global showOpt
 
-    if single == False:
+    if not single:
         marks = []
         for row in resultset:
             if showOpt == 1:
-                record = { 'uri': row[1] }
+                record = {'uri': row[1]}
             elif showOpt == 2:
-                record = { 'uri': row[1], 'tags': row[3][1:-1] }
+                record = {'uri': row[1], 'tags': row[3][1:-1]}
             else:
-                record = { 'uri': row[1], 'title': row[2], 'description': row[4], 'tags': row[3][1:-1]}
+                record = {'uri': row[1], 'title': row[2], 'description': row[4], 'tags': row[3][1:-1]}
 
             marks.append(record)
     else:
@@ -1004,12 +991,12 @@ def format_json(resultset, single=False):
                 marks['uri'] = row[1]
             elif showOpt == 2:
                 marks['uri'] = row[1]
-                marks['tags']  = row[3][1:-1]
+                marks['tags'] = row[3][1:-1]
             else:
-                marks['uri']   = row[1]
+                marks['uri'] = row[1]
                 marks['title'] = row[2]
                 marks['description'] = row[4]
-                marks['tags']  = row[3][1:-1]
+                marks['tags'] = row[3][1:-1]
 
     return json.dumps(marks, sort_keys=True, indent=4)
 
@@ -1023,7 +1010,7 @@ def is_int(string):
     try:
         int(string)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -1087,10 +1074,10 @@ def encrypt_file(iterations):
     password = getpass.getpass()
     passconfirm = getpass.getpass()
     if password == '':
-        print('Empty password');
+        print('Empty password')
         sys.exit(1)
     if password != passconfirm:
-        print("Passwords don't match");
+        print("Passwords don't match")
         sys.exit(1)
 
     # Get SHA256 hash of DB file
@@ -1099,7 +1086,7 @@ def encrypt_file(iterations):
     # Generate random 256-bit salt and key
     salt = Random.get_random_bytes(SALT_SIZE)
     key = (password + salt.decode('utf-8', 'replace')).encode('utf-8')
-    for i in range(iterations):
+    for _ in range(iterations):
         key = hashlib.sha256(key).digest()
 
     iv = Random.get_random_bytes(16)
@@ -1146,7 +1133,7 @@ def decrypt_file(iterations):
     password = ''
     password = getpass.getpass()
     if password == '':
-        printmsg('Decryption failed', 'ERROR');
+        printmsg('Decryption failed', 'ERROR')
         sys.exit(1)
 
     with open(encpath, 'rb') as infile:
@@ -1155,7 +1142,7 @@ def decrypt_file(iterations):
         # Read 256-bit salt and generate key
         salt = infile.read(32)
         key = (password + salt.decode('utf-8', 'replace')).encode('utf-8')
-        for i in range(iterations):
+        for _ in range(iterations):
             key = hashlib.sha256(key).digest()
 
         iv = infile.read(16)
@@ -1168,7 +1155,7 @@ def decrypt_file(iterations):
             while True:
                 chunk = infile.read(CHUNKSIZE)
                 if len(chunk) == 0:
-                    break;
+                    break
 
                 outfile.write(cipher.decrypt(chunk))
 
@@ -1178,7 +1165,7 @@ def decrypt_file(iterations):
     dbhash = get_filehash(dbpath)
     if dbhash != enchash:
         os.remove(dbpath)
-        printmsg('Decryption failed', 'ERROR');
+        printmsg('Decryption failed', 'ERROR')
         sys.exit(1)
     else:
         os.remove(encpath)
@@ -1229,7 +1216,7 @@ class CustomTagAction(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
         global tagManual
 
-        tagManual = [DELIMITER,]
+        tagManual = [DELIMITER, ]
         setattr(args, self.dest, values)
 
 
@@ -1294,10 +1281,11 @@ Webpage: https://github.com/jarun/buku
 
 """main starts here"""
 
+
 # Handle piped input
-def main(argv = sys.argv):
+def main(argv):
     if not sys.stdin.isatty():
-        pipeargs.extend(sys.argv)
+        pipeargs.extend(argv)
         for s in sys.stdin.readlines():
             pipeargs.extend(s.split())
 
@@ -1324,7 +1312,8 @@ if __name__ == '__main__':
     )
 
     # General options
-    general_group = argparser.add_argument_group(title='general options',
+    general_group = argparser.add_argument_group(
+        title='general options',
         description='''-a, --add URL [tags ...]
                      bookmark URL with comma-separated tags
 -u, --update [N]     update fields of bookmark at DB index N
@@ -1343,7 +1332,8 @@ if __name__ == '__main__':
     general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
     # Edit options
-    edit_group=argparser.add_argument_group(title='edit options',
+    edit_group = argparser.add_argument_group(
+        title='edit options',
         description='''--url keyword        specify url, works with -u only
 --tag [...]          set comma-separated tags, works with -a, -u
                      clears tags, if no arguments
@@ -1358,7 +1348,8 @@ if __name__ == '__main__':
     edit_group.add_argument('-c', '--comment', nargs='*', dest='desc', type=str, action=CustomDescAction, metavar='desc', help=argparse.SUPPRESS)
 
     # Search options
-    search_group=argparser.add_argument_group(title='search options',
+    search_group = argparser.add_argument_group(
+        title='search options',
         description='''-s, --sany keyword [...]
                      search bookmarks for ANY matching keyword
 -S, --sall keyword [...]
@@ -1372,7 +1363,8 @@ if __name__ == '__main__':
     search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=CustomTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
 
     # Encryption options
-    crypto_group=argparser.add_argument_group(title='encryption options',
+    crypto_group = argparser.add_argument_group(
+        title='encryption options',
         description='''-l, --lock [N]       encrypt DB file with N (> 0, default 8)
                      hash iterations to generate key
 -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
@@ -1381,7 +1373,8 @@ if __name__ == '__main__':
     crypto_group.add_argument('-l', '--lock', nargs='?', dest='encrypt', type=int, const=8, metavar='N', help=argparse.SUPPRESS)
 
     # Power toys
-    power_group=argparser.add_argument_group(title='power toys',
+    power_group = argparser.add_argument_group(
+        title='power toys',
         description='''-p, --print [N]      show details of bookmark at DB index N
                      show all bookmarks, if no arguments
 -f, --format N       modify -p output
@@ -1412,7 +1405,7 @@ if __name__ == '__main__':
     args = argparser.parse_args()
 
     # Show help and exit if help requested
-    if args.help == True:
+    if args.help:
         argparser.print_help(sys.stderr)
         sys.exit(0)
 
@@ -1453,7 +1446,7 @@ if __name__ == '__main__':
             printmsg('PyCrypto missing', 'ERROR')
             sys.exit(1)
         if args.decrypt < 1:
-            printmsg('Decryption failed', 'ERROR');
+            printmsg('Decryption failed', 'ERROR')
             sys.exit(1)
         decrypt_file(args.decrypt)
 
@@ -1482,7 +1475,7 @@ if __name__ == '__main__':
         bdb.add_bookmark(args.addurl[0], titleManual, tags, description)
 
     # Update record
-    if update == True:
+    if update:
         if len(args.update) == 0:
             bdb.refreshdb(0, titleManual)
         elif not args.update[0].isdigit():
@@ -1522,7 +1515,7 @@ if __name__ == '__main__':
             bdb.searchdb(args.sall, True, jsonOutput)
 
     # Search bookmarks by tag
-    if tagsearch == True:
+    if tagsearch:
         if len(args.stag) > 0:
             tag = DELIMITER + ' '.join(args.stag) + DELIMITER
             bdb.search_by_tag(tag, jsonOutput)
