@@ -1,9 +1,10 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from genericpath import exists
 import imp
 import os
 from tempfile import TemporaryDirectory
-from unittest import TestCase
+import unittest
 from os.path import join, expanduser
 import sqlite3
 
@@ -17,7 +18,7 @@ TEST_TEMP_DBFILE_PATH = join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
 from buku import BukuDb, parse_tags
 
 
-class TestBukuDb(TestCase):
+class TestBukuDb(unittest.TestCase):
 
     def setUp(self):
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
@@ -25,6 +26,7 @@ class TestBukuDb(TestCase):
     def tearDown(self):
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
+    # @unittest.skip('skipping')
     def test_get_dbdir_path(self):
         dbdir_expected = TEST_TEMP_DBDIR_PATH
         dbdir_local_expected = join(expanduser('~'), '.local', 'share', 'buku')
@@ -55,6 +57,7 @@ class TestBukuDb(TestCase):
     # def test_move_legacy_dbfile(self):
     #     self.fail()
 
+    # @unittest.skip('skipping')
     def test_initdb(self):
         if exists(TEST_TEMP_DBFILE_PATH):
             os.remove(TEST_TEMP_DBFILE_PATH)
@@ -67,6 +70,7 @@ class TestBukuDb(TestCase):
         conn.close()
 
 
+    # @unittest.skip('skipping')
     def test_add_and_retrieve_bookmark(self):
         URL = 'http://slashdot.org'
         TITLE = 'SLASHDOT'
@@ -89,38 +93,43 @@ class TestBukuDb(TestCase):
         # TODO: retrieve and compare
         # TODO: tags should be passed to the api as a sequence...
 
-    def test_update_bookmark(self):
-        self.fail()
+    # @unittest.skip('skipping')
+    # def test_update_bookmark(self):
+        # self.fail()
 
-    def test_refreshdb(self):
-        self.fail()
+    # def test_refreshdb(self):
+        # self.fail()
 
-    def test_searchdb(self):
-        self.fail()
+    # def test_searchdb(self):
+        # self.fail()
 
-    def test_search_by_tag(self):
-        self.fail()
+    # def test_search_by_tag(self):
+        # self.fail()
 
-    def test_compactdb(self):
-        self.fail()
+    # def test_compactdb(self):
+        # self.fail()
 
-    def test_delete_bookmark(self):
-        self.fail()
+    # def test_delete_bookmark(self):
+        # self.fail()
 
-    def test_print_bookmark(self):
-        self.fail()
+    # def test_print_bookmark(self):
+        # self.fail()
 
-    def test_list_tags(self):
-        self.fail()
+    # def test_list_tags(self):
+        # self.fail()
 
-    def test_replace_tag(self):
-        self.fail()
+    # def test_replace_tag(self):
+        # self.fail()
 
-    def test_browse_by_index(self):
-        self.fail()
+    # def test_browse_by_index(self):
+        # self.fail()
 
-    def test_close_quit(self):
-        self.fail()
+    # def test_close_quit(self):
+        # self.fail()
 
-    def test_import_bookmark(self):
-        self.fail()
+    # def test_import_bookmark(self):
+        # self.fail()
+
+
+if __name__ == "__main__":
+    unittest.main()
