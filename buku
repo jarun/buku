@@ -1335,7 +1335,7 @@ if __name__ == '__main__':
                      delete all bookmarks, if no arguments
 -i, --import file    import bookmarks from html file; Firefox,
                      Google Chrome and IE formats supported
--h, --help           show this information''')
+-h, --help           show this information and exit''')
     general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
     general_group.add_argument('-u', '--update', nargs='*', dest='update', action=CustomUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
     general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)

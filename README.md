@@ -127,7 +127,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            delete all bookmarks, if no arguments
       -i, --import file    import bookmarks from html file; Firefox,
                            Google Chrome and IE formats supported
-      -h, --help           show this information
+      -h, --help           show this information and exit
 
     edit options:
       --url keyword        specify url, works with -u only
