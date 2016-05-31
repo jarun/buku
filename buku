@@ -856,7 +856,7 @@ def parse_tags(keywords=None):
     """Format and get tag string from tokens"""
 
     if keywords is None:
-        keywords = []
+        return None
 
     tags = DELIMITER
     origTags = []
@@ -1459,7 +1459,7 @@ if __name__ == '__main__':
         # Parse tags into a comma-separated string
         tags = DELIMITER
         keywords = args.addurl
-        if tagManual is not None and not (tagManual[0] == DELIMITER and len(tagManual) == 1):
+        if tagManual is not None:
             # Add DELIMITER as url+tags may not end with comma
             keywords = args.addurl + [DELIMITER] + tagManual
 
@@ -1484,10 +1484,7 @@ if __name__ == '__main__':
                 new_url = ''
 
             # Parse tags into a comma-separated string
-            tags = None
-            if tagManual is not None and not (tagManual[0] == DELIMITER and len(tagManual) == 1):
-                tags = parse_tags(tagManual)
-
+            tags = parse_tags(tagManual)
             bdb.update_bookmark(int(args.update[0]), new_url, titleManual, tags, description)
 
     # Delete record(s)
