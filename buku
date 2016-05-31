@@ -268,19 +268,19 @@ class BukuDb:
         # Update URL if passed as argument
         if url != '':
             query = '%s URL = ?,' % query
-            arguments.append(url)
+            arguments += (url,)
             to_update = True
 
         # Update tags if passed as argument
         if tag_manual is not None:
             query = '%s tags = ?,' % query
-            arguments.append(tag_manual)
+            arguments += (tag_manual,)
             to_update = True
 
         # Update description if passed as an argument
         if desc is not None:
             query = '%s desc = ?,' % query
-            arguments.append(desc)
+            arguments += (desc,)
             to_update = True
 
         # Update title
@@ -305,14 +305,14 @@ class BukuDb:
 
         if meta is not None:
             query = '%s metadata = ?,' % query
-            arguments.append(meta)
+            arguments += (meta,)
             to_update = True
 
         if not to_update:       # Nothing to update
             return
 
         query = '%s WHERE id = ?' % query[:-1]
-        arguments.append(index)
+        arguments += (index,)
         if debug:
             print('query: [%s], args: [%s]' % (query, arguments))
 
@@ -378,18 +378,12 @@ class BukuDb:
         if all_keywords:  # Match all keywords in URL or Title
             for token in keywords:
                 query = '%s (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s)) AND' % (query, placeholder, placeholder, placeholder, placeholder)
-                arguments.append(token)
-                arguments.append(token)
-                arguments.append(token)
-                arguments.append(token)
+                arguments += (token, token, token, token)
             query = query[:-4]
         else:  # Match any keyword in URL or Title
             for token in keywords:
                 query = '%s tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s) OR' % (query, placeholder, placeholder, placeholder, placeholder)
-                arguments.append(token)
-                arguments.append(token)
-                arguments.append(token)
-                arguments.append(token)
+                arguments += (token, token, token, token)
             query = query[:-3]
 
         if debug:
@@ -533,18 +527,17 @@ class BukuDb:
         count = 1
         Tags = []
         uniqueTags = []
-        for row in self.cur.execute('SELECT DISTINCT tags FROM bookmarks'):
-            if row[0] == DELIMITER:
-                continue
+        for row in self.cur.execute('SELECT DISTINCT tags FROM bookmarks ORDER BY tags ASC'):
+            tagset = row[0].strip(DELIMITER).split(DELIMITER)
+            for tag in tagset:
+                if tag not in Tags:
+                    Tags += (tag,)
 
-            Tags.extend(row[0].strip(DELIMITER).split(DELIMITER))
-
-        for tag in Tags:
-            if tag not in uniqueTags:
-                uniqueTags.append(tag)
-
-        Tags = sorted(uniqueTags, key=str.lower)
-        for tag in Tags:
+        if Tags[0] == '':
+            uniqueTags = sorted(Tags[1:], key=str.lower)
+        else:
+            uniqueTags = sorted(Tags, key=str.lower)
+        for tag in uniqueTags:
             print('%6d. %s' % (count, tag))
             count += 1
 
@@ -897,7 +890,7 @@ def parse_tags(keywords=None):
     origTags.extend(tags.strip(DELIMITER).split(DELIMITER))
     for tag in origTags:
         if tag not in uniqueTags:
-            uniqueTags.append(tag)  # Select unique tags
+            uniqueTags += (tag, )  # Select unique tags
 
     # Sort the tags
     sortedTags = sorted(uniqueTags, key=str.lower)
