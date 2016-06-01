@@ -60,15 +60,15 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 `buku` requires Python 3.x to work.
 
 Optional dependencies:
-- Encryption: PyCrypto
+- Encryption: cryptography
 - Import bookmarks: Beautiful Soup
 
 Run:
 
-    $ sudo pip3 install pycrypto beautifulsoup4
+    $ sudo pip3 install cryptography beautifulsoup4
 or on Ubuntu:
 
-    $ sudo apt-get install python3-crypto python3-bs4
+    $ sudo apt-get install python3-cryptography python3-bs4
 
 ## Installing from this repository
 
