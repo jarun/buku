@@ -352,15 +352,15 @@ class BukuDb:
                     print('Title: [%s]' % title)
 
                 self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
-                self.conn.commit()
                 print('Index %d updated\n' % row[0])
         else:
             title = title_manual
 
             for row in resultset:
                 self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
-                self.conn.commit()
                 print('Index %d updated\n' % row[0])
+
+        self.conn.commit()
 
     def searchdb(self, keywords, all_keywords=False, json=False):
         """Search the database for an entries with tags or URL
@@ -527,7 +527,7 @@ class BukuDb:
         count = 1
         Tags = []
         uniqueTags = []
-        for row in self.cur.execute('SELECT DISTINCT tags FROM bookmarks ORDER BY tags ASC'):
+        for row in self.cur.execute('SELECT DISTINCT tags FROM bookmarks ORDER BY tags'):
             tagset = row[0].strip(DELIMITER).split(DELIMITER)
             for tag in tagset:
                 if tag not in Tags:
@@ -705,7 +705,7 @@ def connect_server(url, fullurl=False, forced=False):
             server = server[:marker]
         elif not forced:  # Handle domain name without trailing /
             url = '/'
-        urlconn = HTTPSConnection(server, timeout=45)
+        urlconn = HTTPSConnection(server, timeout=30)
     elif url.find('http://') >= 0:  # Insecure connection
         server = url[7:]
         marker = server.find('/')
@@ -715,7 +715,7 @@ def connect_server(url, fullurl=False, forced=False):
             server = server[:marker]
         elif not forced:
             url = '/'
-        urlconn = HTTPConnection(server, timeout=45)
+        urlconn = HTTPConnection(server, timeout=30)
     else:
         printmsg('Not a valid HTTP(S) url', 'WARNING')
         if url.find(':') == -1:
