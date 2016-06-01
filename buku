@@ -57,6 +57,7 @@ showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
 noninteractive = False  # Show the prompt or not
+interrupted = False     # Received SIGINT
 DELIMITER = ','         # Delimiter used to store tags in DB
 _VERSION_ = '2.1'       # Program version
 
@@ -353,6 +354,9 @@ class BukuDb:
 
                 self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
                 print('Index %d updated\n' % row[0])
+                if interrupted:
+                    printmsg('Aborting refreshdb ...', 'WARNING')
+                    break
         else:
             title = title_manual
 
@@ -1168,6 +1172,9 @@ def decrypt_file(iterations):
 def sigint_handler(signum, frame):
     """Custom SIGINT handler"""
 
+    global interrupted
+
+    interrupted = True
     print('\nInterrupted.', file=sys.stderr)
     sys.exit(1)
 
