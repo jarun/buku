@@ -23,6 +23,23 @@ class TestBukuDb(unittest.TestCase):
     def setUp(self):
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
+        # start every test from a clean state
+        if exists(TEST_TEMP_DBFILE_PATH):
+            os.remove(TEST_TEMP_DBFILE_PATH)
+
+        self.bookmarks = [ ['http://slashdot.org',
+                            'SLASHDOT',
+                            parse_tags(['old', 'news']),
+                            "News for old nerds, stuff that doesn't matter",
+                            ],
+
+                           ['http://www.zażółćgęśląjaźń.pl/',
+                            'ZAŻÓŁĆ',
+                            parse_tags(['zażółć', 'gęślą', 'jaźń']),
+                            "Testing UTF-8, zażółć gęślą jaźń.",
+                            ],
+        ]
+
     def tearDown(self):
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
@@ -72,25 +89,21 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_add_and_retrieve_bookmark(self):
-        URL = 'http://slashdot.org'
-        TITLE = 'SLASHDOT'
-        TAGS = ['old', 'news']
-        DESC = "News for old nerds, stuff that doesn't matter"
-
-        # start from clean slate
-        if exists(TEST_TEMP_DBFILE_PATH):
-            os.remove(TEST_TEMP_DBFILE_PATH)
-
         bdb = BukuDb()
-        bdb.add_bookmark(URL,
-                         tag_manual=parse_tags(TAGS),
-                         title_manual=TITLE,
-                         desc=DESC)
 
-        index = bdb.get_bookmark_index(URL)
+        for idx, bookmark in enumerate(self.bookmarks):
+            # adding bookmark from self.bookmarks to database
+            bdb.add_bookmark(*bookmark)
+            # checking indexes
+            index = bdb.get_bookmark_index(bookmark[0])
+            self.assertEqual(idx + 1, index)
+            # retrieving bookmark from database
+            from_db = bdb.get_bookmark_by_id(index)
+            self.assertIsNotNone(from_db)
+            # comparing data
+            for pair in zip(from_db[1:], bookmark):
+                self.assertEqual(*pair)
 
-        self.assertEqual(1, index)
-        # TODO: retrieve and compare
         # TODO: tags should be passed to the api as a sequence...
 
     # @unittest.skip('skipping')
