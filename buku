@@ -614,12 +614,14 @@ class BukuDb:
 
         try:
             import bs4
+            with open(fp, encoding='utf-8') as f:
+                soup = bs4.BeautifulSoup(f, 'html.parser')
         except ImportError:
             printmsg('Beautiful Soup not found', 'ERROR')
             self.close_quit(1)
-
-        with open(fp, encoding='utf-8') as f:
-            soup = bs4.BeautifulSoup(f, 'html.parser')
+        except Exception as e:
+            print('\x1b[1mEXCEPTION\x1b[21m [import_bookmark]: (%s) %s' % (type(e).__name__, e))
+            self.close_quit(1)
 
         html_tags = soup.findAll('a')
         for tag in html_tags:
@@ -636,6 +638,7 @@ class BukuDb:
                     True)
 
         self.conn.commit()
+        f.close()
 
     def mergedb(self, fp):
         """Merge bookmarks from another Buku database file
