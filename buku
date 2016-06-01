@@ -630,10 +630,11 @@ class BukuDb:
                 desc = comment_tag.text[0:comment_tag.text.find('\n')]
 
             self.add_bookmark(tag['href'],
-                              tag.string,
-                              ('%s%s%s' % (DELIMITER, tag['tags'], DELIMITER)) if tag.has_attr('tags') else None,
-                              desc,
-                              True)
+                    tag.string,
+                    ('%s%s%s' % (DELIMITER, tag['tags'], DELIMITER)) if tag.has_attr('tags') else None,
+                    desc,
+                    True)
+
         self.conn.commit()
 
     def mergedb(self, fp):
@@ -657,7 +658,9 @@ class BukuDb:
         curfp.execute('SELECT * FROM bookmarks')
         resultset = curfp.fetchall()
         for row in resultset:
-            self.add_bookmark(row[1], row[2], row[3], row[4])
+            self.add_bookmark(row[1], row[2], row[3], row[4], True)
+
+        self.conn.commit()
 
         try:
             curfp.close()
