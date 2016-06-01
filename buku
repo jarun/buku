@@ -614,7 +614,7 @@ class BukuDb:
 
         try:
             import bs4
-            with open(fp, encoding='utf-8') as f:
+            with open(fp, mode='r', encoding='utf-8') as f:
                 soup = bs4.BeautifulSoup(f, 'html.parser')
         except ImportError:
             printmsg('Beautiful Soup not found', 'ERROR')
@@ -653,6 +653,8 @@ class BukuDb:
         try:
             # Create a connection
             connfp = sqlite3.connect(fp)
+            # Python 3.4.4 and above
+            # connfp = sqlite3.connect('file:%s?mode=ro' % fp, uri=True)
             curfp = connfp.cursor()
         except Exception as e:
             print('\x1b[1mEXCEPTION\x1b[21m [mergedb]: (%s) %s' % (type(e).__name__, e))
