@@ -33,8 +33,9 @@ import signal
 try:
     import getpass
     import hashlib
-    from Crypto.Cipher import AES
     import struct
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
     no_crypto = False
     BLOCKSIZE = 65536
@@ -1088,7 +1089,11 @@ def encrypt_file(iterations):
         key = hashlib.sha256(key).digest()
 
     iv = os.urandom(16)
-    cipher = AES.new(key, AES.MODE_CBC, iv)
+    encryptor = Cipher(
+        algorithms.AES(key),
+        modes.CBC(iv),
+        backend=default_backend()
+    ).encryptor()
     filesize = os.path.getsize(dbpath)
 
     with open(dbpath, 'rb') as infile:
@@ -1107,7 +1112,7 @@ def encrypt_file(iterations):
                 elif len(chunk) % 16 != 0:
                     chunk = '%s%s' % (chunk, ' ' * (16 - len(chunk) % 16))
 
-                outfile.write(cipher.encrypt(chunk))
+                outfile.write(encryptor.update(chunk) + encryptor.finalize())
 
     os.remove(dbpath)
     print('File encrypted')
@@ -1144,7 +1149,11 @@ def decrypt_file(iterations):
             key = hashlib.sha256(key).digest()
 
         iv = infile.read(16)
-        cipher = AES.new(key, AES.MODE_CBC, iv)
+        decryptor = Cipher(
+            algorithms.AES(key),
+            modes.CBC(iv),
+            backend=default_backend(),
+        ).decryptor()
 
         # Get original DB file's SHA256 hash from encrypted file
         enchash = infile.read(32)
@@ -1155,7 +1164,7 @@ def decrypt_file(iterations):
                 if len(chunk) == 0:
                     break
 
-                outfile.write(cipher.decrypt(chunk))
+                outfile.write(decryptor.update(chunk) + decryptor.finalize())
 
             outfile.truncate(origsize)
 
@@ -1435,7 +1444,7 @@ if __name__ == '__main__':
     # Handle encrypt/decrypt options at top priority
     if args.encrypt is not None:
         if no_crypto:
-            printmsg('PyCrypto missing', 'ERROR')
+            printmsg('cryptography missing', 'ERROR')
             sys.exit(1)
         if args.encrypt < 1:
             printmsg('Iterations must be >= 1', 'ERROR')
@@ -1444,7 +1453,7 @@ if __name__ == '__main__':
 
     if args.decrypt is not None:
         if no_crypto:
-            printmsg('PyCrypto missing', 'ERROR')
+            printmsg('cryptography missing', 'ERROR')
             sys.exit(1)
         if args.decrypt < 1:
             printmsg('Decryption failed', 'ERROR')
