@@ -34,7 +34,6 @@ try:
     import getpass
     import hashlib
     from Crypto.Cipher import AES
-    from Crypto import Random
     import struct
 
     no_crypto = False
@@ -662,7 +661,6 @@ class BukuDb:
         except Exception:
             pass
 
-
     def close_quit(self, exitval=0):
         """Close a DB connection and exit"""
 
@@ -1081,12 +1079,12 @@ def encrypt_file(iterations):
     dbhash = get_filehash(dbpath)
 
     # Generate random 256-bit salt and key
-    salt = Random.get_random_bytes(SALT_SIZE)
+    salt = os.urandom(SALT_SIZE)
     key = ('%s%s' % (password, salt.decode('utf-8', 'replace'))).encode('utf-8')
     for _ in range(iterations):
         key = hashlib.sha256(key).digest()
 
-    iv = Random.get_random_bytes(16)
+    iv = os.urandom(16)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     filesize = os.path.getsize(dbpath)
 
