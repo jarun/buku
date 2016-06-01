@@ -205,7 +205,7 @@ class BukuDb:
 
         return resultset[0][0]
 
-    def add_bookmark(self, url, title_manual=None, tag_manual=None, desc=None):
+    def add_bookmark(self, url, title_manual=None, tag_manual=None, desc=None, delayed_commit=False):
         """Add a new bookmark
 
         :param url: url to bookmark
@@ -245,7 +245,8 @@ class BukuDb:
 
         try:
             self.cur.execute('INSERT INTO bookmarks(URL, metadata, tags, desc) VALUES (?, ?, ?, ?)', (url, meta, tag_manual, desc))
-            self.conn.commit()
+            if not delayed_commit:
+                self.conn.commit()
             self.print_bookmark(self.cur.lastrowid)
         except Exception as e:
             print('\x1b[1mEXCEPTION\x1b[21m [add_bookmark]: (%s) %s' % (type(e).__name__, e))
@@ -630,7 +631,9 @@ class BukuDb:
             self.add_bookmark(tag['href'],
                               tag.string,
                               ('%s%s%s' % (DELIMITER, tag['tags'], DELIMITER)) if tag.has_attr('tags') else None,
-                              desc)
+                              desc,
+                              True)
+        self.conn.commit()
 
     def mergedb(self, fp):
         """Merge bookmarks from another Buku database file
