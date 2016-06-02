@@ -845,10 +845,10 @@ class BukuDb:
                 soup = bs4.BeautifulSoup(f, 'html.parser')
         except ImportError:
             printmsg('Beautiful Soup not found', 'ERROR')
-            self.close_quit(1)
+            return
         except Exception as e:
             print('\x1b[1mEXCEPTION\x1b[21m [import_bookmark]: (%s) %s' % (type(e).__name__, e))
-            self.close_quit(1)
+            return
 
         html_tags = soup.findAll('a')
         for tag in html_tags:
@@ -875,7 +875,7 @@ class BukuDb:
 
         if not os.path.exists(fp):
             printmsg('%s not found' % fp, 'ERROR')
-            self.close_quit(1)
+            return
 
         try:
             # Create a connection
