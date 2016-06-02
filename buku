@@ -678,10 +678,10 @@ class BukuDb:
                         print_record(row)
                 elif showOpt == 1:
                     for row in resultset:
-                        print('%s %s' % (row[0], row[1]))
+                        print('%s\t%s' % (row[0], row[1]))
                 elif showOpt == 2:
                     for row in resultset:
-                        print('%s %s        %s' % (row[0], row[1], row[3][1:-1]))
+                        print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
             else:
                 print(format_json(resultset))
         else:  # Show record at index
@@ -700,9 +700,9 @@ class BukuDb:
                     if showOpt == 0:
                         print_record(row)
                     elif showOpt == 1:
-                        print('%s %s' % (row[0], row[1]))
+                        print('%s\t%s' % (row[0], row[1]))
                     elif showOpt == 2:
-                        print('%s %s        %s' % (row[0], row[1], row[3][1:-1]))
+                        print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
             else:
                 print(format_json(results, True))
 
