@@ -473,7 +473,9 @@ class BukuDb:
 
         self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
         results = self.cur.fetchall()
-        if len(results) > 0:
+        if len(results) == 0:
+            return None
+        else:
             return results[0]
 
     def print_bookmark(self, index, empty=False):
