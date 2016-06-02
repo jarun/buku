@@ -781,16 +781,63 @@ class BukuDb:
         except IndexError:
             print('Index out of bound')
 
+    def export_bookmark(self, fp):
+        """Export bookmarks to a Firefox
+        bookmarks formatted html file.
+
+        Params: Path to file to export to
+        """
+
+        import time
+
+        if os.path.exists(fp):
+            resp = input('%s exists. Overwrite? Enter \x1b[1my\x1b[21m to confirm: ' % fp)
+            if resp != 'y':
+                return
+
+        try:
+            f = open(fp, mode='w', encoding='utf-8')
+        except Exception as e:
+            print('\x1b[1mEXCEPTION\x1b[21m [export_bookmark]: (%s) %s' % (type(e).__name__, e))
+            return
+
+        count = 0
+        timestamp = int(time.time())
+        self.cur.execute('SELECT * FROM bookmarks')
+        resultset = self.cur.fetchall()
+
+        f.write("""<!DOCTYPE NETSCAPE-Bookmark-file-1>
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+
+<DL><p>
+    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>
+    <DL><p>
+""" % (timestamp, timestamp))
+
+        for row in resultset:
+            entry = '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row[1], timestamp, timestamp)
+            if row[3] != DELIMITER:
+                entry = '%s TAGS="%s"' % (entry, row[3][1:-1])
+            entry = '%s>%s</A>\n' % (entry, row[2])
+            if row[4] != '':
+                entry = '%s        <DD>%s\n' % (entry, row[4])
+
+            f.write(entry)
+            count += 1
+
+        f.write("    </DL><p>\n</DL><p>")
+        f.close()
+        print('%s bookmarks exported' % count)
+
     def import_bookmark(self, fp):
         """Import bookmarks from a html file.
         Supports Firefox, Google Chrome and IE imports
 
         Params: Path to file to import
         """
-
-        if not os.path.exists(fp):
-            printmsg('%s not found' % fp, 'ERROR')
-            self.close_quit(1)
 
         try:
             import bs4
@@ -1357,11 +1404,11 @@ if __name__ == '__main__':
     argparser = ExtendedArgumentParser(
         description='A private command-line bookmark manager. Your mini web!',
         formatter_class=argparse.RawTextHelpFormatter,
-        usage='''buku [-a URL [tags ...]] [-u [N]] [-i file] [-d [N]]
+        usage='''buku [-a URL [tags ...]] [-u [N]] [-d [N]] [-h]
             [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
             [-s keyword [...]] [-S keyword [...]] [--st [...]]
             [-k [N]] [-l [N]] [-p [N]] [-f N] [-r oldtag [newtag ...]]
-            [-j] [--merge file] [--noprompt] [-o N] [-z] [-h]''',
+            [-j] [-e file] [-i file] [-m file] [--noprompt] [-o N]''',
         add_help=False
     )
 
@@ -1376,13 +1423,10 @@ if __name__ == '__main__':
                      N is specified without any edit options
 -d, --delete [N]     delete bookmark at DB index N
                      delete all bookmarks, if no arguments
--i, --import file    import bookmarks from html file; Firefox,
-                     Google Chrome and IE formats supported
 -h, --help           show this information and exit''')
     general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
     general_group.add_argument('-u', '--update', nargs='*', dest='update', action=CustomUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
     general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
-    general_group.add_argument('-i', '--import', nargs=1, dest='imports', metavar='file', help=argparse.SUPPRESS)
     general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
     # Edit options
@@ -1437,7 +1481,10 @@ if __name__ == '__main__':
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
 -j, --json           Json formatted output for -p, -s, -S, --st
---merge file         merge bookmarks from another buku database
+-e, --export file    export bookmarks to Firefox format html
+-i, --import file    import bookmarks from html file; Firefox,
+                     Google Chrome and IE formats supported
+-m, --merge file     merge bookmarks from another buku database
 --noprompt           do not show the prompt, run and exit
 -o, --open N         open bookmark at DB index N in web browser
 -z, --debug          show debug information and additional logs''')
@@ -1445,7 +1492,9 @@ if __name__ == '__main__':
     power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
     power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true', help=argparse.SUPPRESS)
-    general_group.add_argument('--merge', nargs=1, dest='merge', metavar='file', help=argparse.SUPPRESS)
+    general_group.add_argument('-e', '--export', nargs=1, dest='export', metavar='file', help=argparse.SUPPRESS)
+    general_group.add_argument('-i', '--import', nargs=1, dest='imports', metavar='file', help=argparse.SUPPRESS)
+    general_group.add_argument('-m', '--merge', nargs=1, dest='merge', metavar='file', help=argparse.SUPPRESS)
     power_group.add_argument('--noprompt', dest='noninteractive', action='store_true', help=argparse.SUPPRESS)
     power_group.add_argument('-o', '--open', dest='openurl', type=int, metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-z', '--debug', dest='debug', action='store_true', help=argparse.SUPPRESS)
@@ -1494,14 +1543,6 @@ if __name__ == '__main__':
 
     # Initialize the database and get handles
     bdb = BukuDb()
-
-    # Import bookmarks
-    if args.imports is not None:
-        bdb.import_bookmark(args.imports[0])
-
-    # Merge a database file and exit
-    if args.merge is not None:
-        bdb.mergedb(args.merge[0])
 
     # Add a record
     if args.addurl is not None:
@@ -1575,6 +1616,18 @@ if __name__ == '__main__':
             bdb.replace_tag(args.replace[0])
         else:
             bdb.replace_tag(args.replace[0], args.replace[1:])
+
+    # Export bookmarks
+    if args.export is not None:
+        bdb.export_bookmark(args.export[0])
+
+    # Import bookmarks
+    if args.imports is not None:
+        bdb.import_bookmark(args.imports[0])
+
+    # Merge a database file and exit
+    if args.merge is not None:
+        bdb.mergedb(args.merge[0])
 
     # Open URL in browser
     if args.openurl is not None:

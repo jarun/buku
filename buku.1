@@ -3,7 +3,7 @@
 buku \- A private command-line bookmark manager. Your mini web!
 .SH SYNOPSIS
 .B buku
-[-a URL [tags ...]] [-u [N]] [-i file] [-d [N]]
+[-a URL [tags ...]] [-u [N]] [-d [N]] [-h]
 .br
      [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
 .br
@@ -11,7 +11,7 @@ buku \- A private command-line bookmark manager. Your mini web!
 .br
      [-k [N]] [-l [N]] [-p [N]] [-f N] [-r oldtag [newtag ...]]
 .br
-     [-j] [--merge file] [--noprompt] [-o N] [-z] [-h]
+     [-j] [-e file] [-i file] [-m file] [--noprompt] [-o N]
 .SH DESCRIPTION
 .B buku
 is a command-line tool to save, tag and search bookmarks.
@@ -63,9 +63,6 @@ Update fields of the bookmark at index
 in DB. If
 .I N
 and other options are omitted, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only N is passed without any edit options, title is fetched and updated (if not empty).
-.TP
-.BI \-i " " \--import " file"
-Import bookmarks exported from Firefox, Google Chrome or IE in HTML format.
 .TP
 .BI \-d " " \--delete " [N]"
 Delete bookmark at index
@@ -146,7 +143,13 @@ is omitted.
 .BI \-j " " \--json
 Output data formatted as json, works with -p, -s, -S, --st.
 .TP
-.BI \--merge " file"
+.BI \-e " " \--export " file"
+Export bookmarks to Firefox bookmarks formatted HTML.
+.TP
+.BI \-i " " \--import " file"
+Import bookmarks exported from Firefox, Google Chrome or IE in HTML format.
+.TP
+.BI \-m " " \--merge " file"
 Merge bookmarks from another Buku database file.
 .TP
 .BI \--noprompt

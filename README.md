@@ -28,7 +28,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 - Add, tag, comment on, search, update, remove bookmarks
 - Merge-able portable database, to sync between systems (not released yet)
-- Import HTML bookmark exports from Firefox, Google Chrome or IE
+- Import/export bookmarks HTML (Firefox, Google Chrome, IE compatible)
 - Fetch page title from web (default), refresh all titles in a go
 - Open search results directly in browser
 - Manual password protection using AES256 encryption
@@ -109,11 +109,11 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
-    usage: buku [-a URL [tags ...]] [-u [N]] [-i file] [-d [N]]
+    usage: buku [-a URL [tags ...]] [-u [N]] [-d [N]] [-h]
                 [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
                 [-s keyword [...]] [-S keyword [...]] [--st [...]]
                 [-k [N]] [-l [N]] [-p [N]] [-f N] [-r oldtag [newtag ...]]
-                [-j] [--merge file] [--noprompt] [-o N] [-z] [-h]
+                [-j] [-e file] [-i file] [-m file] [--noprompt] [-o N]
 
     A private command-line bookmark manager. Your mini web!
 
@@ -126,8 +126,6 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            N is specified without any edit options
       -d, --delete [N]     delete bookmark at DB index N
                            delete all bookmarks, if no arguments
-      -i, --import file    import bookmarks from html file; Firefox,
-                           Google Chrome and IE formats supported
       -h, --help           show this information and exit
 
     edit options:
@@ -165,7 +163,10 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
       -j, --json           Json formatted output for -p, -s, -S, --st
-      --merge file         merge bookmarks from another buku database
+      -e, --export file    export bookmarks to Firefox format html
+      -i, --import file    import bookmarks from html file; Firefox,
+                           Google Chrome and IE formats supported
+      -m, --merge file     merge bookmarks from another buku database
       --noprompt           do not show the prompt, run and exit
       -o, --open N         open bookmark at DB index N in web browser
       -z, --debug          show debug information and additional logs
