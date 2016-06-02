@@ -98,7 +98,7 @@ class TestBukuDb(unittest.TestCase):
             index = bdb.get_bookmark_index(bookmark[0])
             self.assertEqual(idx + 1, index)
             # retrieving bookmark from database
-            from_db = bdb.get_bookmark_by_id(index)
+            from_db = bdb.get_bookmark_by_index(index)
             self.assertIsNotNone(from_db)
             # comparing data
             for pair in zip(from_db[1:], bookmark):

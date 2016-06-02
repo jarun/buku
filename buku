@@ -364,6 +364,18 @@ class BukuDb:
 
         return (conn, cur)
 
+    def get_bookmark_by_index(self, index):
+        """Get a bookmark from database by its ID.
+        Return data as a tuple. Return None if index not found.
+        """
+
+        self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return None
+        else:
+            return results[0]
+
     def get_bookmark_index(self, url):
         """Check if URL already exists in DB
 
@@ -642,18 +654,6 @@ class BukuDb:
                     print('No matching index')
             except IndexError:
                 print('Index out of bound')
-
-    def get_bookmark_by_id(self, index):
-        """Get a bookmark from database by its ID.
-        Return data as a tuple. Return None if index not found.
-        """
-
-        self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
-        results = self.cur.fetchall()
-        if len(results) == 0:
-            return None
-        else:
-            return results[0]
 
     def print_bookmark(self, index, empty=False):
         """Print bookmark details at index or all bookmarks if index is None
