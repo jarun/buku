@@ -1183,19 +1183,23 @@ def print_record(row, count=0):
 
     # Print index and URL
     if count != 0:
-        print("""\x1B[1m\x1B[93m%s. \x1B[0m\x1B[92m%s\x1B[0m\t[%s]
-   \x1B[91m>\x1B[0m %s
-   \x1B[91m+\x1B[0m %s
-   \x1B[91m#\x1B[0m %s
-"""
-                % (count, row[1], row[0], row[2], row[4], row[3][1:-1]))
+        printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\t[%d]\n' % (count, row[1], row[0])
     else:
-        print("""\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m
-   \x1B[91m>\x1B[0m %s
-   \x1B[91m+\x1B[0m %s
-   \x1B[91m#\x1B[0m %s
-"""
-                % (row[0], row[1], row[2], row[4], row[3][1:-1]))
+        printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n' % (row[0], row[1])
+
+    # Print title
+    if row[2] != '':
+        printstr = '%s   \x1B[91m>\x1B[0m %s\n' % (printstr, row[2])
+
+    # Print description
+    if row[4] != '':
+        printstr = '%s   \x1B[91m+\x1B[0m %s\n' % (printstr, row[4])
+
+    # Print tags IF not default (DELIMITER)
+    if row[3] != DELIMITER:
+        printstr = '%s   \x1B[91m#\x1B[0m %s\n' % (printstr, row[3][1:-1])
+
+    print(printstr)
 
 
 def format_json(resultset, single=False):
