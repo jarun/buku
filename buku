@@ -44,7 +44,7 @@ pipeargs = []           # Holds arguments piped to the program
 noninteractive = False  # Show the prompt or not
 interrupted = False     # Received SIGINT
 DELIMITER = ','         # Delimiter used to store tags in DB
-_VERSION_ = '2.1'       # Program version
+_VERSION_ = '2.2'       # Program version
 
 
 # Crypto globals
