@@ -6,4 +6,4 @@ python:
   - "3.5"
 install: "pip install -r requirements.txt"
 script: 
-  - ./tests/run_tests.py
+  - ./tests/run_tests.sh
