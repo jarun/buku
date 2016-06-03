@@ -107,8 +107,22 @@ class TestBukuDb(unittest.TestCase):
         # TODO: tags should be passed to the api as a sequence...
 
     # @unittest.skip('skipping')
-    # def test_update_bookmark(self):
-        # self.fail()
+    def test_update_bookmark(self):
+        bdb = BukuDb()
+        old_values = self.bookmarks[0]
+        new_values = self.bookmarks[1]
+
+        # adding bookmark and getting index
+        bdb.add_bookmark(*old_values)
+        index = bdb.get_bookmark_index(old_values[0])
+        # updating with new values
+        bdb.update_bookmark(index, *new_values)
+        # retrieving bookmark from database
+        from_db = bdb.get_bookmark_by_index(index)
+        self.assertIsNotNone(from_db)
+        # checking if values are updated
+        for pair in zip(from_db[1:], new_values):
+            self.assertEqual(*pair)
 
     # def test_refreshdb(self):
         # self.fail()
@@ -122,8 +136,18 @@ class TestBukuDb(unittest.TestCase):
     # def test_compactdb(self):
         # self.fail()
 
-    # def test_delete_bookmark(self):
-        # self.fail()
+    def test_delete_bookmark(self):
+        bdb = BukuDb()
+        # adding bookmark and getting index
+        bdb.add_bookmark(*self.bookmarks[0])
+        index = bdb.get_bookmark_index(self.bookmarks[0][0])
+        # deleting bookmark
+        bdb.delete_bookmark(index)
+        # asserting it doesn't exist
+        from_db = bdb.get_bookmark_by_index(index)
+        self.assertIsNone(from_db)
+
+        # TODO: test deleting all bookmarks (index == 0)
 
     # def test_print_bookmark(self):
         # self.fail()
