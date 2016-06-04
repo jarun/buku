@@ -1128,7 +1128,7 @@ def parse_tags(keywords=None):
     if tags == DELIMITER:
         return tags
 
-    origTags.extend(tags.strip(DELIMITER).split(DELIMITER))
+    origTags += tags.strip(DELIMITER).split(DELIMITER)
     for tag in origTags:
         if tag not in uniqueTags:
             uniqueTags += (tag, )  # Select unique tags
