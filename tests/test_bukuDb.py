@@ -124,8 +124,27 @@ class TestBukuDb(unittest.TestCase):
         for pair in zip(from_db[1:], new_values):
             self.assertEqual(*pair)
 
-    # def test_refreshdb(self):
-        # self.fail()
+    # @unittest.skip('skipping')
+    def test_refreshdb(self):
+        bdb = BukuDb()
+        indices = []
+        for bookmark in self.bookmarks:
+            # adding bookmark, getting index
+            bdb.add_bookmark(*bookmark)
+            index = bdb.get_bookmark_index(bookmark[0])
+            indices += [index]
+            # refreshing bookmark, comparing values
+            bdb.refreshdb(index, "__refresh_01")
+            from_db = bdb.get_bookmark_by_index(index)
+            self.assertEqual(from_db[2], "__refresh_01")
+
+        # refreshing all bookmarks (index 0)
+        bdb.refreshdb(0, "__refresh_02")
+        for index in indices:
+            from_db = bdb.get_bookmark_by_index(index)
+            self.assertEqual(from_db[2], "__refresh_02")
+
+        # TODO: test refreshdb without title_manual (url fetch)
 
     # def test_searchdb(self):
         # self.fail()
@@ -136,6 +155,7 @@ class TestBukuDb(unittest.TestCase):
     # def test_compactdb(self):
         # self.fail()
 
+    # @unittest.skip('skipping')
     def test_delete_bookmark(self):
         bdb = BukuDb()
         # adding bookmark and getting index
