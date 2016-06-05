@@ -1,0 +1,167 @@
+-------------------------------------------------------------------------------
+
+Buku v2.1
+2016-05-28
+
+Modifications
+- Import bookmarks from Firefox, Google Chrome or IE html bookmark exports
+- Support comments on bookmarks
+- Prettier output using symbols (`>` title, `+` comments, `#` tags)
+- New option (`--st`, `--stag`) to search by tag
+- New option (`--noprompt`) for noninteractive mode
+- New options (`--url` and `--tag`)
+- `--update` now handles each option (url, tag, title, comment) independently
+- Several messages removed or moved to debug
+
+-------------------------------------------------------------------------------
+
+Buku v2.0
+2016-05-15
+
+Modifications
+To begin with, 2.0 is a significant release with respect to options. `Buku` now has fewer options with more (and merged) functionality. Please go through the program help at least once to understand the changes.
+
+- Replace getopt with argparse for parsing arguments
+- Long options for each short option
+- Options changed
+    - insert: removed as automatic DB compaction serves the purpose (previously `-i`)
+    - iterations: removed as optional argument to `-l` and `-k` (previously `-t`)
+    - title: `-t` is now the short option to set title manually (previously `-m`)
+    - Special search keywords for ALL search (`-S`):
+        - tags: show all tags (previously `-g`)
+        - blank: show bookmarks with empty tags (previously `-e`)
+    - lock/unlock: now accepts number of hash iterations to generate key
+    - format: print formatting option changed to `-f` (previously `-x`)
+    - help: option added to show program help
+- Following options apply to ALL bookmarks without arguments
+    - `-u`, `--update`
+    - `-d`, `--delete`
+    - `-p`, `--print`
+- Shell-completion scripts for Bash, Fish and Zsh
+- Warn if URL is not HTTP(S)
+- More comprehensive help
+- Fix a bug with deletion when only one entry in DB
+- Some import dependencies removed or late loaded (if optional)
+- Handle exception if DB file is encrypted or invalid
+
+-------------------------------------------------------------------------------
+
+Buku 1.9
+2016-04-23
+
+Modifications
+- **New location for database file** (refer to README or man page). The old database file, if exists, is migrated automatically.
+- **Removed options**
+    - `-P`: (print all) is now `-p 0`
+    - `-D`: (delete all) is now `-d 0`
+    - `-R`: (update all) is now `-u 0`
+    - `-w`: title web fetch is now the default behaviour, override with `-m title` option
+- **Change in search behaviour**
+    - `-s`: search bookmarks for ANY keyword in URL, title or tags
+    - `-S`: search bookmarks for ALL keywords in URL, title or tags
+- Update only title of a bookmark (`-u N`)
+- Set empty title (`-m none`)
+- Support HTTP(S) gzip compression
+- Optional JSON output for `-p` and `-s` options (thanks @CaptainQuirk)
+- Reformatted help and man page with general options on top
+- Optimize add and insert: ensure URL is not in DB already
+- Handle URLs passed with %xx escape
+- Retry with truncated resource path on HTTP error 500
+- Several code optimizations
+- Catchier errors and warnings
+- Version added to debug logs
+
+-------------------------------------------------------------------------------
+
+Buku 1.8
+2016-03-26
+
+Modifications
+- Auto compact DB on single record removal
+- Handle piped input
+- Better tag management
+    - Tag modify or delete support
+    - Show unique tags alphabetically
+- Full DB refresh
+    - Fix stuff broken earlier
+    - Optimize to update titles only
+    - Update titles only if non-empty to preserve earlier data
+- Redirection
+    - Handle multiple redirections
+    - Detect redirection loop and break
+    - Show redirected link in bold
+- List all bookmarks with no title or tags (for manual bookkeeping)
+- Confirm full DB removal
+- Better comma (`,`) separator handling for tags
+- Help
+    - Place regular options before power options in program help
+    - Help added in man page for quick reference
+    - Additional examples for new features
+- Errors & warnings
+    - Error out if both encrypted and flat DB files exist
+    - Catchier error and warning messages
+
+-------------------------------------------------------------------------------
+
+Buku 1.7
+2016-03-15
+
+Modifications
+- Add title manually using option `-m`
+- Unquote redirected URL
+- Quit on `Ctrl-d` at prompt
+- More dynamic shebang for python3
+
+-------------------------------------------------------------------------------
+
+Buku 1.6
+2016-01-22
+
+Modifications
+- Stronger encryption: 256-bit salt, multi-hash key.
+- Allow user to specify number of iterations to generate key (check option `-t`).
+
+-------------------------------------------------------------------------------
+
+Buku 1.5
+2015-12-20
+
+Modifications
+- Project name changed to `Buku` to avoid any copyright issues. This also means old users have to move the database file. Run:
+<pre>$ mkdir ~/.cache/buku/
+$ mv ~/.cache/markit/bookmarks.db ~/.cache/buku/bookmarks.db
+$ rm -rf ~/.cache/markit/bookmarks.db</pre>
+- Manual AES256 encryption and decryption support (password protection) implemented. This adds dependency on PyCrypto module. Installation instructions updated in README.
+- Some typos fixed (thanks @GuilhermeHideki)
+
+-------------------------------------------------------------------------------
+
+MarkIt v1.4
+2015-11-13
+
+Modifications
+- Refresh full bookmark database. Fetch titles from the web, retain tags.
+- Notify empty titles in red during online add or update.
+
+-------------------------------------------------------------------------------
+
+MarkIt v1.2
+2015-11-11
+
+Modifications
+- Introduced `-S` search option to match ALL keywords in URL or title
+- Introduced `-x` option to show unformatted selective output (for creating batch scripts)
+- Added examples on batch add and update (refresh) scripts
+- Handle multiple title tags in page
+- Handle title data within another tag (e.g. head)
+- Show DB index in search results, removal and update confirmation message
+
+-------------------------------------------------------------------------------
+
+MarkIt v1.1
+2015-11-10
+
+Modifications
+- Replace Unicode chars in title data before UTF-8 decoding (for parser to succeed).
+
+-------------------------------------------------------------------------------
