@@ -438,6 +438,8 @@ class BukuDb:
 
     def update_bookmark(self, index, url='', title_manual=None, tag_manual=None, desc=None):
         """ Update an existing record at index
+        Update all records if index is 0 and url is not specified.
+        URL is an exception because URLs are unique in DB.
 
         :param index: int position to update
         :param url: address
@@ -487,7 +489,9 @@ class BukuDb:
                 print('Title: [%s]' % meta)
         elif not to_update:
             self.refreshdb(index)
-            self.print_bookmark(index)
+            if index > 0:
+                self.print_bookmark(index)
+            return
 
         if meta is not None:
             query = '%s metadata = ?,' % query
@@ -497,8 +501,20 @@ class BukuDb:
         if not to_update:       # Nothing to update
             return
 
-        query = '%s WHERE id = ?' % query[:-1]
-        arguments += (index,)
+        if index == 0:  # Update all records
+            if url != '':
+                printmsg('All URLs cannot be same', 'ERROR')
+                return
+
+            resp = input('ALL bookmarks will be updated. Enter \x1b[1my\x1b[21m to confirm: ')
+            if resp != 'y':
+                return
+
+            query = query[:-1]
+        else:
+            query = '%s WHERE id = ?' % query[:-1]
+            arguments += (index,)
+
         if debug:
             print('query: [%s], args: [%s]' % (query, arguments))
 
@@ -507,7 +523,7 @@ class BukuDb:
             self.conn.commit()
             if self.cur.rowcount == 1:
                 self.print_bookmark(index)
-            else:
+            elif self.cur.rowcount == 0:
                 print('No matching index')
         except sqlite3.IntegrityError:
             print('URL already exists')
@@ -543,10 +559,8 @@ class BukuDb:
                     printmsg('Aborting refreshdb ...', 'WARNING')
                     break
         else:
-            title = title_manual
-
             for row in resultset:
-                self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
+                self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title_manual, row[0],))
                 print('Index %d updated\n' % row[0])
 
         self.conn.commit()
@@ -1565,21 +1579,22 @@ if __name__ == '__main__':
     # Update record
     if update:
         if len(args.update) == 0:
-            bdb.refreshdb(0, titleManual)
+            update_index = 0
         elif not args.update[0].isdigit():
             printmsg('Index must be a number >= 0', 'ERROR')
             bdb.close_quit(1)
-        elif int(args.update[0]) == 0:
-            bdb.refreshdb(0, titleManual)
         else:
-            if args.url is not None:
-                new_url = args.url[0]
-            else:
-                new_url = ''
+            update_index = int(args.update[0])
 
-            # Parse tags into a comma-separated string
-            tags = parse_tags(tagManual)
-            bdb.update_bookmark(int(args.update[0]), new_url, titleManual, tags, description)
+        if args.url is not None:
+            new_url = args.url[0]
+        else:
+            new_url = ''
+
+        # Parse tags into a comma-separated string
+        tags = parse_tags(tagManual)
+
+        bdb.update_bookmark(update_index, new_url, titleManual, tags, description)
 
     # Delete record(s)
     if args.delete is not None:
