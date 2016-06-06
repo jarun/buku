@@ -199,7 +199,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - -S : match all the keywords in URL, title or tags.
   - --st : search bookmarks by tag, or show all tags alphabetically.
   - You can search bookmarks by tag (see [examples](#examples)).
-  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the URL.
+  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - Auto DB compaction: when a record is deleted, the last record is moved to the index.
 - **Encryption** is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 

@@ -1183,7 +1183,7 @@ def print_record(row, count=0):
 
     # Print index and URL
     if count != 0:
-        printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\t[%d]\n' % (count, row[1], row[0])
+        printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m    \x1B[1m[%s]\x1B[0m\n' % (count, row[1], row[0])
     else:
         printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n' % (row[0], row[1])
 
