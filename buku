@@ -728,39 +728,40 @@ class BukuDb:
 
     def replace_tag(self, orig, new=None):
         """Replace orig tags with new tags in DB for all records.
-        Remove orig tag is new tag is empty.
+        Remove orig tag if new tag is empty.
 
         Params: original and new tags
         """
 
         update = False
-        delete = False
-        newtags = DELIMITER
+        newtags = parse_tags(new)
 
-        orig = '%s%s%s' % (DELIMITER, orig, DELIMITER)
-        if new is None:
-            delete = True
-        else:
-            newtags = parse_tags(new)
-            if newtags == DELIMITER:
-                delete = True
-
-        if orig == newtags:
+        if parse_tags([orig]) == newtags:
             print('Tags are same.')
             return
 
         self.cur.execute('SELECT id, tags FROM bookmarks WHERE tags LIKE ?', ('%' + orig + '%',))
         results = self.cur.fetchall()
+        if len(results) == 0:
+            print("Tag not found.")
+            return
 
-        for row in results:
-            if not delete:
-                # Check if tag newtags is already added
-                if row[1].find(newtags) >= 0:
-                    newtags = DELIMITER
+        for index, tags in results:
+            tag_list = tags.strip(DELIMITER).split(" ")
 
-            tags = row[1].replace(orig, newtags)
-            self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (tags, row[0],))
-            print('Index %d updated' % row[0])
+            try:
+                if new is None:
+                    tag_list.remove(orig)
+                else:
+                    replace_idx = tag_list.index(orig)
+                    tag_list[replace_idx] = newtags[1:-1]
+            except ValueError:
+                print("Tag not found.")
+                return
+
+            tags = parse_tags(tag_list)
+            self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (tags, index,))
+            print('Index %d updated' % index)
             update = True
 
         if update:
