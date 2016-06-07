@@ -742,7 +742,7 @@ class BukuDb:
 
     def replace_tag(self, orig, new=None):
         """Replace orig tags with new tags in DB for all records.
-        Remove orig tag is new tag is empty.
+        Remove orig tag if new tag is empty.
 
         Params: original and new tags
         """
@@ -773,6 +773,7 @@ class BukuDb:
                     newtags = DELIMITER
 
             tags = row[1].replace(orig, newtags)
+            tags = parse_tags([tags])
             self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (tags, row[0],))
             print('Index %d updated' % row[0])
             update = True
