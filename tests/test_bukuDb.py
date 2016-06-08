@@ -29,14 +29,20 @@ class TestBukuDb(unittest.TestCase):
 
         self.bookmarks = [ ['http://slashdot.org',
                             'SLASHDOT',
-                            parse_tags(['old', 'news']),
+                            parse_tags(['old,news']),
                             "News for old nerds, stuff that doesn't matter",
                             ],
 
                            ['http://www.zażółćgęśląjaźń.pl/',
                             'ZAŻÓŁĆ',
-                            parse_tags(['zażółć', 'gęślą', 'jaźń']),
+                            parse_tags(['zażółć,gęślą,jaźń']),
                             "Testing UTF-8, zażółć gęślą jaźń.",
+                            ],
+
+                           ['https://test.com:8080',
+                            'test',
+                            parse_tags(['test,tes,est,es']),
+                            "a case for replace_tag test",
                             ],
         ]
 
@@ -124,8 +130,14 @@ class TestBukuDb(unittest.TestCase):
         for pair in zip(from_db[1:], new_values):
             self.assertEqual(*pair)
 
-    # def test_refreshdb(self):
-        # self.fail()
+    # @unittest.skip('skipping')
+    def test_refreshdb(self):
+        bdb = BukuDb()
+
+        bdb.add_bookmark("https://www.google.com/ncr", "?")
+        bdb.refreshdb(1)
+        from_db = bdb.get_bookmark_by_index(1)
+        self.assertEqual(from_db[2], "Google")
 
     # def test_searchdb(self):
         # self.fail()
@@ -136,6 +148,7 @@ class TestBukuDb(unittest.TestCase):
     # def test_compactdb(self):
         # self.fail()
 
+    # @unittest.skip('skipping')
     def test_delete_bookmark(self):
         bdb = BukuDb()
         # adding bookmark and getting index
@@ -155,8 +168,39 @@ class TestBukuDb(unittest.TestCase):
     # def test_list_tags(self):
         # self.fail()
 
-    # def test_replace_tag(self):
-        # self.fail()
+    # @unittest.skip('skipping')
+    def test_replace_tag(self):
+        bdb = BukuDb()
+        indices = []
+        for bookmark in self.bookmarks:
+            # adding bookmark, getting index
+            bdb.add_bookmark(*bookmark)
+            index = bdb.get_bookmark_index(bookmark[0])
+            indices += [index]
+        # replacing tags
+        bdb.replace_tag("news", ["__01"])
+        bdb.replace_tag("zażółć", ["__02,__03"])
+        # replacing tag which is also a substring of other tag
+        bdb.replace_tag("es", ["__04"])
+        # removing tags
+        bdb.replace_tag("gęślą")
+        bdb.replace_tag("old")
+        # removing nonexistent tag
+        bdb.replace_tag("_")
+        # removing nonexistent tag which is also a substring of other tag
+        bdb.replace_tag("e")
+
+        for url, title, _, _  in self.bookmarks:
+            # retrieving from db
+            index = bdb.get_bookmark_index(url)
+            from_db = bdb.get_bookmark_by_index(index)
+            # asserting tags were replaced
+            if title == "SLASHDOT":
+                self.assertEqual(from_db[3], parse_tags(["__01"]))
+            elif title == "ZAŻÓŁĆ":
+                self.assertEqual(from_db[3], parse_tags(["__02,__03,jaźń"]))
+            elif title == "test":
+                self.assertEqual(from_db[3], parse_tags(["test,tes,est,__04"]))
 
     # def test_browse_by_index(self):
         # self.fail()
