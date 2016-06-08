@@ -438,6 +438,8 @@ class BukuDb:
 
     def update_bookmark(self, index, url='', title_manual=None, tag_manual=None, desc=None):
         """ Update an existing record at index
+        Update all records if index is 0 and url is not specified.
+        URL is an exception because URLs are unique in DB.
 
         :param index: int position to update
         :param url: address
@@ -487,7 +489,9 @@ class BukuDb:
                 print('Title: [%s]' % meta)
         elif not to_update:
             self.refreshdb(index)
-            self.print_bookmark(index)
+            if index > 0:
+                self.print_bookmark(index)
+            return
 
         if meta is not None:
             query = '%s metadata = ?,' % query
@@ -497,8 +501,20 @@ class BukuDb:
         if not to_update:       # Nothing to update
             return
 
-        query = '%s WHERE id = ?' % query[:-1]
-        arguments += (index,)
+        if index == 0:  # Update all records
+            if url != '':
+                printmsg('All URLs cannot be same', 'ERROR')
+                return
+
+            resp = input('ALL bookmarks will be updated. Enter \x1b[1my\x1b[21m to confirm: ')
+            if resp != 'y':
+                return
+
+            query = query[:-1]
+        else:
+            query = '%s WHERE id = ?' % query[:-1]
+            arguments += (index,)
+
         if debug:
             print('query: [%s], args: [%s]' % (query, arguments))
 
@@ -507,19 +523,18 @@ class BukuDb:
             self.conn.commit()
             if self.cur.rowcount == 1:
                 self.print_bookmark(index)
-            else:
+            elif self.cur.rowcount == 0:
                 print('No matching index')
         except sqlite3.IntegrityError:
             print('URL already exists')
 
-    def refreshdb(self, index, title_manual=None):
+    def refreshdb(self, index):
         """Refresh ALL records in the database. Fetch title for each
         bookmark from the web and update the records. Doesn't udpate
         the record if title is empty.
         This API doesn't change DB index, URL or tags of a bookmark.
 
         :param index: index of record to update, or 0 for all records
-        :param title_manual: custom title
         """
 
         if index == 0:
@@ -528,26 +543,19 @@ class BukuDb:
             self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ?', (index,))
 
         resultset = self.cur.fetchall()
-        if title_manual is None:
-            for row in resultset:
-                title = network_handler(row[1])
-                if title == '':
-                    print('\x1b[1mIndex %d: empty title\x1b[21m\x1B[0m\n' % row[0])
-                    continue
-                else:
-                    print('Title: [%s]' % title)
+        for row in resultset:
+            title = network_handler(row[1])
+            if title == '':
+                print('\x1b[1mIndex %d: empty title\x1b[21m\x1B[0m\n' % row[0])
+                continue
+            else:
+                print('Title: [%s]' % title)
 
-                self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
-                print('Index %d updated\n' % row[0])
-                if interrupted:
-                    printmsg('Aborting refreshdb ...', 'WARNING')
-                    break
-        else:
-            title = title_manual
-
-            for row in resultset:
-                self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
-                print('Index %d updated\n' % row[0])
+            self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
+            print('Index %d updated\n' % row[0])
+            if interrupted:
+                printmsg('Aborting refreshdb ...', 'WARNING')
+                break
 
         self.conn.commit()
 
@@ -728,7 +736,7 @@ class BukuDb:
 
     def replace_tag(self, orig, new=None):
         """Replace orig tags with new tags in DB for all records.
-        Remove orig tag is new tag is empty.
+        Remove orig tag if new tag is empty.
 
         Params: original and new tags
         """
@@ -759,6 +767,7 @@ class BukuDb:
                     newtags = DELIMITER
 
             tags = row[1].replace(orig, newtags)
+            tags = parse_tags([tags])
             self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (tags, row[0],))
             print('Index %d updated' % row[0])
             update = True
@@ -1183,7 +1192,7 @@ def print_record(row, count=0):
 
     # Print index and URL
     if count != 0:
-        printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\t[%d]\n' % (count, row[1], row[0])
+        printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m    \x1B[1m[%s]\x1B[0m\n' % (count, row[1], row[0])
     else:
         printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n' % (row[0], row[1])
 
@@ -1565,21 +1574,22 @@ if __name__ == '__main__':
     # Update record
     if update:
         if len(args.update) == 0:
-            bdb.refreshdb(0, titleManual)
+            update_index = 0
         elif not args.update[0].isdigit():
             printmsg('Index must be a number >= 0', 'ERROR')
             bdb.close_quit(1)
-        elif int(args.update[0]) == 0:
-            bdb.refreshdb(0, titleManual)
         else:
-            if args.url is not None:
-                new_url = args.url[0]
-            else:
-                new_url = ''
+            update_index = int(args.update[0])
 
-            # Parse tags into a comma-separated string
-            tags = parse_tags(tagManual)
-            bdb.update_bookmark(int(args.update[0]), new_url, titleManual, tags, description)
+        if args.url is not None:
+            new_url = args.url[0]
+        else:
+            new_url = ''
+
+        # Parse tags into a comma-separated string
+        tags = parse_tags(tagManual)
+
+        bdb.update_bookmark(update_index, new_url, titleManual, tags, description)
 
     # Delete record(s)
     if args.delete is not None:
