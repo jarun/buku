@@ -528,14 +528,13 @@ class BukuDb:
         except sqlite3.IntegrityError:
             print('URL already exists')
 
-    def refreshdb(self, index, title_manual=None):
+    def refreshdb(self, index):
         """Refresh ALL records in the database. Fetch title for each
         bookmark from the web and update the records. Doesn't udpate
         the record if title is empty.
         This API doesn't change DB index, URL or tags of a bookmark.
 
         :param index: index of record to update, or 0 for all records
-        :param title_manual: custom title
         """
 
         if index == 0:
@@ -544,24 +543,19 @@ class BukuDb:
             self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ?', (index,))
 
         resultset = self.cur.fetchall()
-        if title_manual is None:
-            for row in resultset:
-                title = network_handler(row[1])
-                if title == '':
-                    print('\x1b[1mIndex %d: empty title\x1b[21m\x1B[0m\n' % row[0])
-                    continue
-                else:
-                    print('Title: [%s]' % title)
+        for row in resultset:
+            title = network_handler(row[1])
+            if title == '':
+                print('\x1b[1mIndex %d: empty title\x1b[21m\x1B[0m\n' % row[0])
+                continue
+            else:
+                print('Title: [%s]' % title)
 
-                self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
-                print('Index %d updated\n' % row[0])
-                if interrupted:
-                    printmsg('Aborting refreshdb ...', 'WARNING')
-                    break
-        else:
-            for row in resultset:
-                self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title_manual, row[0],))
-                print('Index %d updated\n' % row[0])
+            self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
+            print('Index %d updated\n' % row[0])
+            if interrupted:
+                printmsg('Aborting refreshdb ...', 'WARNING')
+                break
 
         self.conn.commit()
 
