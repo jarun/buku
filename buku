@@ -1417,11 +1417,7 @@ if __name__ == '__main__':
     argparser = ExtendedArgumentParser(
         description='A private command-line bookmark manager. Your mini web!',
         formatter_class=argparse.RawTextHelpFormatter,
-        usage='''buku [-a URL [tags ...]] [-u [N]] [-d [N]] [-h]
-            [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
-            [-s keyword [...]] [-S keyword [...]] [--st [...]]
-            [-k [N]] [-l [N]] [-p [N]] [-f N] [-r oldtag [newtag ...]]
-            [-j] [-e file] [-i file] [-m file] [--noprompt] [-o N]''',
+        usage='''buku [OPTIONS] [KEYWORD [KEYWORD ...]]''',
         add_help=False
     )
 
@@ -1468,7 +1464,7 @@ if __name__ == '__main__':
                      special keyword -
                      "blank": list entries with empty title/tag
 --st, --stag [...]   search bookmarks by tag
-                     list all tags alphabetically, if no arguments''')
+                     list tags alphabetically, if no arguments''')
     search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
     search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
     search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=CustomTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)

@@ -110,11 +110,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
-    usage: buku [-a URL [tags ...]] [-u [N]] [-d [N]] [-h]
-                [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
-                [-s keyword [...]] [-S keyword [...]] [--st [...]]
-                [-k [N]] [-l [N]] [-p [N]] [-f N] [-r oldtag [newtag ...]]
-                [-j] [-e file] [-i file] [-m file] [--noprompt] [-o N]
+    usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 
     A private command-line bookmark manager. Your mini web!
 
@@ -147,7 +143,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            special keyword -
                            "blank": list entries with empty title/tag
       --st, --stag [...]   search bookmarks by tag
-                           list all tags alphabetically, if no arguments
+                           list tags alphabetically, if no arguments
 
     encryption options:
       -l, --lock [N]       encrypt DB file with N (> 0, default 8)
