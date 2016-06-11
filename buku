@@ -882,15 +882,14 @@ class BukuDb:
         Params: Path to file to merge
         """
 
-        if not os.path.exists(fp):
-            printmsg('%s not found' % fp, 'ERROR')
-            return
-
         try:
-            # Create a connection
-            connfp = sqlite3.connect(fp)
-            # Python 3.4.4 and above
-            # connfp = sqlite3.connect('file:%s?mode=ro' % fp, uri=True)
+            # Connect to input DB
+            if sys.version_info >= (3,4,4):
+                # Python 3.4.4 and above
+                connfp = sqlite3.connect('file:%s?mode=ro' % fp, uri=True)
+            else:
+                connfp = sqlite3.connect(fp)
+
             curfp = connfp.cursor()
         except Exception as e:
             print('\x1b[1mEXCEPTION\x1b[21m [mergedb]: (%s) %s' % (type(e).__name__, e))
