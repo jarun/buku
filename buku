@@ -1471,8 +1471,9 @@ if __name__ == '__main__':
     edit_group = argparser.add_argument_group(
         title='edit options',
         description='''--url keyword        specify url, works with -u only
---tag [...]          set comma-separated tags, works with -a, -u
+--tag [+] [...]      set comma-separated tags, works with -a, -u
                      clears tags, if no arguments
+                     appends tags, if preceded by '+'
 -t, --title [...]    manually set title, works with -a, -u
                      if no arguments:
                      -a: do not set title, -u: clear title

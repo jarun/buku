@@ -127,8 +127,9 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     edit options:
       --url keyword        specify url, works with -u only
-      --tag [...]          set comma-separated tags, works with -a, -u
+      --tag [+] [...]      set comma-separated tags, works with -a, -u
                            clears tags, if no arguments
+                           appends tags, if preceded by '+'
       -t, --title [...]    manually set title, works with -a, -u
                            if no arguments:
                            -a: do not set title, -u: clear title
@@ -282,13 +283,16 @@ The same number of iterations must be used for one lock & unlock instance. Defau
 20. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-21. **Open URL** at index 15012014 in browser:
+21. **Append tags** 'tag 1', 'tag 2' to existing tags of bookmark at index 15012014:
+
+        $ buku -u 15012014 --tag + tag 1, tag 2
+22. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-22. To list bookmarks with no title or tags for **bookkeeping**:
+23. To list bookmarks with no title or tags for **bookkeeping**:
 
         $ buku -S blank
-23. More **help**:
+24. More **help**:
 
         $ buku
         $ man buku
