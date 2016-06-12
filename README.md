@@ -28,7 +28,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 # Features
 
 - Add, tag, comment on, search, update, remove bookmarks
-- Merge-able portable database, to sync between systems (not released yet)
+- Merge-able portable database, to sync between systems
 - Import/export bookmarks HTML (Firefox, Google Chrome, IE compatible)
 - Fetch page title from web (default), refresh all titles in a go
 - Open search results directly in browser
@@ -46,6 +46,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
   - [Running as a standalone utility](#running-as-a-standalone-utility)
   - [Shell completion](#shell-completion)
   - [Installing with a package manager](#installing-with-a-package-manager)
+  - [Debian package](#debian-package)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
   - [Operational notes](#operational-notes)
@@ -58,9 +59,9 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 ## Dependencies
 
-`buku` requires Python 3.x to work.
+`buku` requires Python 3.3 or later.
 
-Optional dependencies:
+Package dependencies:
 - Encryption: cryptography
 - Import bookmarks: Beautiful Soup
 
@@ -104,17 +105,21 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
  - Void Linux repos ( `$ sudo xbps-install -S buku` )
  - [Homebrew](http://braumeister.org/formula/buku) for OS X, or its Linux fork, [Linuxbrew](https://github.com/Linuxbrew/linuxbrew/blob/master/Library/Formula/buku.rb)
 
+## Debian package
+
+If you are on a Debian (including Ubuntu) based system visit [the latest stable release](https://github.com/jarun/Buku/releases/latest) and download the`.deb`package. To install, run:
+
+    $ sudo dpkg -i buku-$version-all.deb
+
+Please substitute `$version` with the appropriate package version.
+
 # Usage
 
 ## Cmdline options
 
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
-    usage: buku [-a URL [tags ...]] [-u [N]] [-d [N]] [-h]
-                [--url keyword] [--tag [...]] [-t [...]] [-c [...]]
-                [-s keyword [...]] [-S keyword [...]] [--st [...]]
-                [-k [N]] [-l [N]] [-p [N]] [-f N] [-r oldtag [newtag ...]]
-                [-j] [-e file] [-i file] [-m file] [--noprompt] [-o N]
+    usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 
     A private command-line bookmark manager. Your mini web!
 
@@ -131,8 +136,9 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     edit options:
       --url keyword        specify url, works with -u only
-      --tag [...]          set comma-separated tags, works with -a, -u
+      --tag [+] [...]      set comma-separated tags, works with -a, -u
                            clears tags, if no arguments
+                           appends tags, if preceded by '+'
       -t, --title [...]    manually set title, works with -a, -u
                            if no arguments:
                            -a: do not set title, -u: clear title
@@ -147,7 +153,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            special keyword -
                            "blank": list entries with empty title/tag
       --st, --stag [...]   search bookmarks by tag
-                           list all tags alphabetically, if no arguments
+                           list tags alphabetically, if no arguments
 
     encryption options:
       -l, --lock [N]       encrypt DB file with N (> 0, default 8)
@@ -286,13 +292,16 @@ The same number of iterations must be used for one lock & unlock instance. Defau
 20. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-21. **Open URL** at index 15012014 in browser:
+21. **Append tags** 'tag 1', 'tag 2' to existing tags of bookmark at index 15012014:
+
+        $ buku -u 15012014 --tag + tag 1, tag 2
+22. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-22. To list bookmarks with no title or tags for **bookkeeping**:
+23. To list bookmarks with no title or tags for **bookkeeping**:
 
         $ buku -S blank
-23. More **help**:
+24. More **help**:
 
         $ buku
         $ man buku

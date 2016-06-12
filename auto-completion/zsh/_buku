@@ -25,7 +25,7 @@ args=(
     '(-s --sany)'{-s,--sany}'[search any keyword]:keyword(s)'
     '(-s --sall)'{-s,--sall}'[search all keywords]:keyword(s)'
     '(-st --stag)'{--st,--stag}'[search by tag or show tags]'
-    '(--tag)'{--tag}'[set tags]'
+    '(--tag)'{--tag}'[set tags, use + to append]'
     '(-t --title)'{-t,--title}'[set custom title]'
     '(-u --update)'{-u,--update}'[update bookmark]'
     '(--url)'{--url}'[set url]'
