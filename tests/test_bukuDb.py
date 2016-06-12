@@ -205,8 +205,19 @@ class TestBukuDb(unittest.TestCase):
     # def test_browse_by_index(self):
         # self.fail()
 
-    # def test_close_quit(self):
-        # self.fail()
+    # @unittest.skip('skipping')
+    def test_close_quit(self):
+        bdb=BukuDb()
+        # quitting with no args
+        try:
+            bdb.close_quit()
+        except SystemExit as err:
+            self.assertEqual(err.args[0], 0)
+        # quitting with custom arg
+        try:
+            bdb.close_quit(1)
+        except SystemExit as err:
+            self.assertEqual(err.args[0], 1)
 
     # def test_import_bookmark(self):
         # self.fail()
