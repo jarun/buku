@@ -28,7 +28,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 # Features
 
 - Add, tag, comment on, search, update, remove bookmarks
-- Merge-able portable database, to sync between systems (not released yet)
+- Merge-able portable database, to sync between systems
 - Import/export bookmarks HTML (Firefox, Google Chrome, IE compatible)
 - Fetch page title from web (default), refresh all titles in a go
 - Open search results directly in browser
@@ -46,6 +46,7 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
   - [Running as a standalone utility](#running-as-a-standalone-utility)
   - [Shell completion](#shell-completion)
   - [Installing with a package manager](#installing-with-a-package-manager)
+  - [Debian package](#debian-package)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
   - [Operational notes](#operational-notes)
@@ -58,9 +59,9 @@ Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 
 ## Dependencies
 
-`buku` requires Python 3.x to work.
+`buku` requires Python 3.3 or later.
 
-Optional dependencies:
+Package dependencies:
 - Encryption: cryptography
 - Import bookmarks: Beautiful Soup
 
@@ -103,6 +104,14 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
  - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux
  - Void Linux repos ( `$ sudo xbps-install -S buku` )
  - [Homebrew](http://braumeister.org/formula/buku) for OS X, or its Linux fork, [Linuxbrew](https://github.com/Linuxbrew/linuxbrew/blob/master/Library/Formula/buku.rb)
+
+## Debian package
+
+If you are on a Debian (including Ubuntu) based system visit [the latest stable release](https://github.com/jarun/Buku/releases/latest) and download the`.deb`package. To install, run:
+
+    $ sudo dpkg -i buku-$version-all.deb
+
+Please substitute `$version` with the appropriate package version.
 
 # Usage
 

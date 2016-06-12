@@ -1,3 +1,17 @@
+Buku v2.2
+2016-06-12
+
+Modifications
+- Export bookmarks to Firefox bookmarks formatted HTML
+- Merge Buku database
+- .deb package for Debian and Ubuntu family
+- Switch from PyCrypto to cryptography (thanks @asergi)
+- Append tags support
+- Filter tags for duplicates and sort alphabetically
+- Travis CI integration, more test cases (thanks @poikjhn)
+- Show DB index in bold in search results
+- Several performance optimizations
+
 -------------------------------------------------------------------------------
 
 Buku v2.1
