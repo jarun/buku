@@ -5,6 +5,7 @@ import imp, unittest
 buku = imp.load_source('buku', '../buku')
 
 from buku import parse_tags
+from buku import *
 
 
 class TestHelpers(unittest.TestCase):
@@ -32,6 +33,14 @@ class TestHelpers(unittest.TestCase):
         # combo
         parsed = parse_tags([",,z_tag, a tag ,\t,,,  ,n_tag ,n_tag, a_tag, \na tag  ,\r, \"a_tag\""])
         self.assertEqual(parsed, ",\"a_tag\",a tag,a_tag,n_tag,z_tag,")
+
+    # @unittest.skip('skipping')
+    def test_is_int(self):
+        self.assertTrue(is_int('0'))
+        self.assertTrue(is_int('1'))
+        self.assertTrue(is_int('-1'))
+        self.assertFalse(is_int(''))
+        self.assertFalse(is_int('one'))
 
 
 if __name__ == "__main__":
