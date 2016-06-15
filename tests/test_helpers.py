@@ -4,7 +4,6 @@ import imp, unittest
 
 buku = imp.load_source('buku', '../buku')
 
-from buku import parse_tags
 from buku import *
 
 
@@ -42,6 +41,26 @@ class TestHelpers(unittest.TestCase):
         self.assertFalse(is_int(''))
         self.assertFalse(is_int('one'))
 
+    # @unittest.skip('skipping')
+    def test_sigint_handler(self):
+        # class for mocking stderr object
+        class StderrCapture:
+            capture = ""
+            def write(self, data):
+                self.capture += data
+        # assigning stderr to temp, mock object to stderr
+        sys.stderr, temp = StderrCapture(), sys.stderr
+        try:
+            # sending SIGINT to self
+            os.kill(os.getpid(), signal.SIGINT)
+        except SystemExit as err:
+            # assering exited with 1
+            self.assertEqual(err.args[0], 1)
+            # assering proper error message
+            self.assertEqual(sys.stderr.capture, "\nInterrupted.\n")
+        finally:
+            # reassigning stderr
+            sys.stderr = temp
 
 if __name__ == "__main__":
     unittest.main()
