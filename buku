@@ -664,13 +664,23 @@ class BukuDb:
                     self.conn.commit()
                     print('Index %d moved to %d' % (row[0], index))
 
-    def delete_bookmark(self, index):
+    def delete_bookmark(self, index, low=0, high=0, is_range=False):
         """Delete a single record or remove the table if index is None
 
         Params: index to delete
         """
 
-        if index == 0:  # Remove the table
+        if is_range:
+            try:
+                self.cur.execute('DELETE from bookmarks where id BETWEEN ? AND ?', (low, high))
+                self.conn.commit()
+                print('Bookmarks from index %s to %s deleted' % (low, high))
+            except IndexError:
+                print('Index out of bound')
+
+            for index in range(low, high):
+                self.compactdb(index)
+        elif index == 0:  # Remove the table
             resp = input('ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ')
             if resp != 'y':
                 print('No bookmarks deleted')
@@ -1459,12 +1469,14 @@ if __name__ == '__main__':
                      refresh all titles, if no arguments
                      refresh title of bookmark at N, if only
                      N is specified without any edit options
--d, --delete [N]     delete bookmark at DB index N
+-d, --delete [...]   delete bookmarks. Valid inputs: either
+                     a hyphenated single range (100-200),
+                     OR space-separated indices (100 15 200)
                      delete all bookmarks, if no arguments
 -h, --help           show this information and exit''')
     general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)
     general_group.add_argument('-u', '--update', nargs='*', dest='update', action=CustomUpdateAction, metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
-    general_group.add_argument('-d', '--delete', nargs='?', dest='delete', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
+    general_group.add_argument('-d', '--delete', nargs='*', dest='delete', metavar='N', help=argparse.SUPPRESS)
     general_group.add_argument('-h', '--help', dest='help', action='store_true', help=argparse.SUPPRESS)
 
     # Edit options
@@ -1634,10 +1646,33 @@ if __name__ == '__main__':
 
     # Delete record(s)
     if args.delete is not None:
-        if args.delete < 0:
-            printmsg('Index must be >= 0', 'ERROR')
-            bdb.close_quit(1)
-        bdb.delete_bookmark(args.delete)
+        if len(args.delete) == 0:
+            bdb.delete_bookmark(0)
+        elif len(args.delete) == 1 and '-' in args.delete[0]:
+            vals = str(args.delete[0]).split('-')
+            if len(vals) == 2 and is_int(vals[0]) and is_int(vals[1]):
+                if int(vals[0]) == int(vals[1]):
+                    bdb.delete_bookmark(int(vals[0]))
+                elif int(vals[0]) < int(vals[1]):
+                    bdb.delete_bookmark(0, int(vals[0]), int(vals[1]), True)
+                else:
+                    bdb.delete_bookmark(0, int(vals[1]), int(vals[0]), True)
+            else:
+                printmsg('Incorrect range', 'ERROR')
+                bdb.close_quit(1)
+        else:
+            ids = []
+            for idx in args.delete:
+                if idx not in ids:
+                    ids += (idx,)
+
+            ids.sort(key=lambda x: int(x), reverse=True)
+            for idx in ids:
+                if is_int(idx):
+                    bdb.delete_bookmark(int(idx))
+                else:
+                    printmsg('Incorrect index %s' % idx, 'ERROR')
+                    bdb.close_quit(1)
 
     # Search URLs, titles, tags for any keyword
     if args.sany is not None:
