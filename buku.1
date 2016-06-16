@@ -9,9 +9,9 @@ is a command-line tool to save, tag and search bookmarks.
 .SH OPERATIONAL NOTES
 .PP
 The SQLite3 database file is stored in:
-  - \fB$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined (first preference) or
-  - \fB$HOME/.local/share/buku/bookmarks.db\fR, if HOME is defined (second preference) or
-  - the \fBcurrent directory\fR.
+  - \fI$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined (first preference) or
+  - \fI$HOME/.local/share/buku/bookmarks.db\fR, if HOME is defined (second preference) or
+  - the \fIcurrent directory\fR.
 .PP
 Before version 1.9, buku stored its database in $HOME/.cache/buku/bookmarks.db. If the file exists, buku automatically moves it to new location.
 .PP
@@ -21,15 +21,15 @@ If the URL contains characters like ';', '&' or brackets they may be interpreted
 .PP
 URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
 .PP
-\fBTags\fR:
+\fITags\fR:
   - Comma (',') is the tag delimiter in DB. Any tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted.
 .PP
-\fBUpdate\fR operation:
+\fIUpdate\fR operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
   - If index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web.
 .PP
-\fBSearch\fR works in mysterious ways:
+\fISearch\fR works in mysterious ways:
   - Case-insensitive.
   - Substrings match ('match' matches 'rematched') for URL, title and tags.
   - -s : match any of the keywords in URL, title or tags.
@@ -40,7 +40,7 @@ URLs are unique in DB. The same URL cannot be added twice. You can update tags a
 .PP
 Auto DB compaction: when a record is deleted, the last record is moved to the index.
 .PP
-\fBEncryption\fR is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
+\fIEncryption\fR is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
 .SH GENERAL OPTIONS
 .TP
 .BI \-a " " \--add " URL [tags ...]"
