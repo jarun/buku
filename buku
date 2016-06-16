@@ -678,7 +678,7 @@ class BukuDb:
             except IndexError:
                 print('Index out of bound')
 
-            for index in range(low, high):
+            for index in range(low, high + 1):
                 self.compactdb(index)
         elif index == 0:  # Remove the table
             resp = input('ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ')
