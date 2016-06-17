@@ -202,7 +202,7 @@ Please substitute `$version` with the appropriate package version.
   - If index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web.
 - **Delete** operation:
   - When a record is deleted, the last record is moved to the index.
-  - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact.
+  - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
 - **Search** works in mysterious ways:
   - Case-insensitive.
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
