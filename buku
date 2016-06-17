@@ -1662,17 +1662,18 @@ if __name__ == '__main__':
                 bdb.close_quit(1)
         else:
             ids = []
+            # Select the unique indices
             for idx in args.delete:
                 if idx not in ids:
                     ids += (idx,)
 
-            ids.sort(key=lambda x: int(x), reverse=True)
-            for idx in ids:
-                if is_int(idx):
+            try:
+                # Index delete order - highest to lowest
+                ids.sort(key=lambda x: int(x), reverse=True)
+                for idx in ids:
                     bdb.delete_bookmark(int(idx))
-                else:
-                    printmsg('Incorrect index %s' % idx, 'ERROR')
-                    bdb.close_quit(1)
+            except ValueError as e:
+                printmsg('Index should be numerical (>= 0)', 'ERROR')
 
     # Search URLs, titles, tags for any keyword
     if args.sany is not None:
