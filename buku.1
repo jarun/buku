@@ -26,7 +26,7 @@ URLs are unique in DB. The same URL cannot be added twice. You can update tags a
 .PP
 \fIDelete\fR operation:
   - When a record is deleted, the last record is moved to the index.
-  - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact.
+  - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
 .PP
 \fIUpdate\fR operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
