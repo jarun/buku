@@ -130,7 +130,9 @@ Please substitute `$version` with the appropriate package version.
                            refresh all titles, if no arguments
                            refresh title of bookmark at N, if only
                            N is specified without any edit options
-      -d, --delete [N]     delete bookmark at DB index N
+      -d, --delete [...]   delete bookmarks. Valid inputs: either
+                           a hyphenated single range (100-200),
+                           OR space-separated indices (100 15 200)
                            delete all bookmarks, if no arguments
       -h, --help           show this information and exit
 
@@ -198,6 +200,9 @@ Please substitute `$version` with the appropriate package version.
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
   - If index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web.
+- **Delete** operation:
+  - When a record is deleted, the last record is moved to the index.
+  - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
 - **Search** works in mysterious ways:
   - Case-insensitive.
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
@@ -206,7 +211,6 @@ Please substitute `$version` with the appropriate package version.
   - --st : search bookmarks by tag, or show all tags alphabetically.
   - You can search bookmarks by tag (see [examples](#examples)).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
-- Auto DB compaction: when a record is deleted, the last record is moved to the index.
 - **Encryption** is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 
 # Examples
@@ -260,48 +264,52 @@ The last index is moved to the deleted index to keep the DB compact.
 11. **Delete all** bookmarks:
 
         $ buku -d
-12. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
+12. **Delete** a **range or list** of bookmarks:
+
+        $ buku -d 100-200     // delete bookmarks from index 100 to 200
+        $ buku 100 15 200     // delete bookmarks at indices 100, 15 and 200
+13. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -s kernel debugging
-13. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
+14. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -S kernel debugging
 
-14. **Search** bookmarks with **tag** `general kernel concepts`:
+15. **Search** bookmarks with **tag** `general kernel concepts`:
 
         $ buku --st general kernel concepts
 Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
-15. List **all unique tags** alphabetically:
+16. List **all unique tags** alphabetically:
 
         $ buku --st
-16. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+17. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
 The same number of iterations must be used for one lock & unlock instance. Default is 8.
-17. **Show details** of bookmark at index 15012014:
+18. **Show details** of bookmark at index 15012014:
 
         $ buku -p 15012014
-18. **Show all** bookmarks with real index from database:
+19. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-19. **Replace tag** 'old tag' with 'new tag':
+20. **Replace tag** 'old tag' with 'new tag':
 
         $ buku -r 'old tag' new tag
-20. **Delete tag** 'old tag' from DB:
+21. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-21. **Append tags** 'tag 1', 'tag 2' to existing tags of bookmark at index 15012014:
+22. **Append tags** 'tag 1', 'tag 2' to existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
-22. **Open URL** at index 15012014 in browser:
+23. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-23. To list bookmarks with no title or tags for **bookkeeping**:
+24. To list bookmarks with no title or tags for **bookkeeping**:
 
         $ buku -S blank
-24. More **help**:
+25. More **help**:
 
         $ buku
         $ man buku
