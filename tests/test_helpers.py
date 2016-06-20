@@ -4,7 +4,7 @@ import imp, unittest
 
 buku = imp.load_source('buku', '../buku')
 
-from buku import parse_tags
+from buku import *
 
 
 class TestHelpers(unittest.TestCase):
@@ -32,6 +32,40 @@ class TestHelpers(unittest.TestCase):
         # combo
         parsed = parse_tags([",,z_tag, a tag ,\t,,,  ,n_tag ,n_tag, a_tag, \na tag  ,\r, \"a_tag\""])
         self.assertEqual(parsed, ",\"a_tag\",a tag,a_tag,n_tag,z_tag,")
+
+    # @unittest.skip('skipping')
+    def test_is_int(self):
+        self.assertTrue(is_int('0'))
+        self.assertTrue(is_int('1'))
+        self.assertTrue(is_int('-1'))
+        self.assertFalse(is_int(''))
+        self.assertFalse(is_int('one'))
+
+
+def test_sigint_handler(capsys):
+    try:
+        # sending SIGINT to self
+        os.kill(os.getpid(), signal.SIGINT)
+    except SystemExit as error:
+        out, err = capsys.readouterr()
+        # assering exited with 1
+        assert error.args[0] == 1
+        # assering proper error message
+        assert out == ''
+        assert err == "\nInterrupted.\n"
+
+def test_printmsg(capsys):
+    # call with two args
+    printmsg("test", "ERROR")
+    out, err = capsys.readouterr()
+    assert out == "\x1b[1mERROR: \x1b[21mtest\x1b[0m\n"
+    assert err == ''
+
+    # call with one arg
+    printmsg("message")
+    out, err = capsys.readouterr()
+    assert out == "message\n"
+    assert err == ''
 
 
 if __name__ == "__main__":

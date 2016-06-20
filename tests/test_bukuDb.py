@@ -92,18 +92,29 @@ class TestBukuDb(unittest.TestCase):
         curr.close()
         conn.close()
 
-
     # @unittest.skip('skipping')
-    def test_add_and_retrieve_bookmark(self):
+    def test_get_bookmark_index(self):
         bdb = BukuDb()
-
         for idx, bookmark in enumerate(self.bookmarks):
             # adding bookmark from self.bookmarks to database
             bdb.add_bookmark(*bookmark)
-            # checking indexes
-            index = bdb.get_bookmark_index(bookmark[0])
-            self.assertEqual(idx + 1, index)
+            # asserting index is in order
+            idx_from_db = bdb.get_bookmark_index(bookmark[0])
+            self.assertEqual(idx + 1, idx_from_db)
+
+        # asserting -1 is returned for nonexistent url
+        idx_from_db = bdb.get_bookmark_index("http://nonexistent.url")
+        self.assertEqual(-1, idx_from_db)
+
+    # @unittest.skip('skipping')
+    def test_add_bookmark(self):
+        bdb = BukuDb()
+
+        for bookmark in self.bookmarks:
+            # adding bookmark from self.bookmarks to database
+            bdb.add_bookmark(*bookmark)
             # retrieving bookmark from database
+            index = bdb.get_bookmark_index(bookmark[0])
             from_db = bdb.get_bookmark_by_index(index)
             self.assertIsNotNone(from_db)
             # comparing data
