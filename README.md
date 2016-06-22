@@ -121,7 +121,7 @@ Please substitute `$version` with the appropriate package version.
 
     usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 
-    A private command-line bookmark manager. Your mini web!
+    A powerful command-line bookmark manager. Your mini web!
 
     general options:
       -a, --add URL [tags ...]
