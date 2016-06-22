@@ -1454,7 +1454,7 @@ if __name__ == '__main__':
 
     # Setup custom argument parser
     argparser = ExtendedArgumentParser(
-        description='A private command-line bookmark manager. Your mini web!',
+        description='A powerful command-line bookmark manager. Your mini web!',
         formatter_class=argparse.RawTextHelpFormatter,
         usage='''buku [OPTIONS] [KEYWORD [KEYWORD ...]]''',
         add_help=False
