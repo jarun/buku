@@ -4,7 +4,7 @@ from genericpath import exists
 import imp
 import os
 from tempfile import TemporaryDirectory
-import unittest
+import unittest, pytest
 from os.path import join, expanduser
 import sqlite3
 
@@ -17,6 +17,13 @@ TEST_TEMP_DBFILE_PATH = join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
 
 from buku import BukuDb, parse_tags
 
+@pytest.fixture()
+def setup():
+    os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
+    # start every test from a clean state
+    if exists(TEST_TEMP_DBFILE_PATH):
+        os.remove(TEST_TEMP_DBFILE_PATH)
 
 class TestBukuDb(unittest.TestCase):
 
@@ -218,7 +225,7 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_close_quit(self):
-        bdb=BukuDb()
+        bdb = BukuDb()
         # quitting with no args
         try:
             bdb.close_quit()
@@ -232,6 +239,40 @@ class TestBukuDb(unittest.TestCase):
 
     # def test_import_bookmark(self):
         # self.fail()
+
+def test_print_bookmark(capsys, setup):
+    bdb = BukuDb()
+    out, err = capsys.readouterr()
+    # calling with nonexistent index
+    bdb.print_bookmark(1)
+    out, err = capsys.readouterr()
+    assert out == "No matching index\n"
+    assert err == ''
+
+    # adding bookmarks
+    bdb.add_bookmark("http://full-bookmark.com", "full", parse_tags(['full,bookmark']), "full bookmark")
+    bdb.add_bookmark("http://blank-title.com", "", parse_tags(['blank,title']), "blank title")
+    bdb.add_bookmark("http://empty-tags.com", "empty tags", parse_tags(['']), "empty tags")
+    bdb.add_bookmark("http://all-empty.com", "", parse_tags(['']), "all empty")
+    out, err = capsys.readouterr()
+
+    # printing first bookmark
+    bdb.print_bookmark(1)
+    out, err = capsys.readouterr()
+    assert out == "\x1b[1m\x1b[93m1. \x1b[0m\x1b[92mhttp://full-bookmark.com\x1b[0m\n   \x1b[91m>\x1b[0m full\n   \x1b[91m+\x1b[0m full bookmark\n   \x1b[91m#\x1b[0m bookmark,full\n\n"
+    assert err == ''
+
+    # printing all bookmarks
+    bdb.print_bookmark(0)
+    out, err = capsys.readouterr()
+    assert out == "\x1b[1m\x1b[93m1. \x1b[0m\x1b[92mhttp://full-bookmark.com\x1b[0m\n   \x1b[91m>\x1b[0m full\n   \x1b[91m+\x1b[0m full bookmark\n   \x1b[91m#\x1b[0m bookmark,full\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m4. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
+    assert err == ''
+
+    # printing all bookmarks with empty fields
+    bdb.print_bookmark(0, empty=True)
+    out, err = capsys.readouterr()
+    assert out == "\x1b[1m3 records found\x1b[21m\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m4. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
+    assert err == ''
 
 
 if __name__ == "__main__":
