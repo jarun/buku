@@ -180,12 +180,6 @@ class TestBukuDb(unittest.TestCase):
 
         # TODO: test deleting all bookmarks (index == 0)
 
-    # def test_print_bookmark(self):
-        # self.fail()
-
-    # def test_list_tags(self):
-        # self.fail()
-
     # @unittest.skip('skipping')
     def test_replace_tag(self):
         bdb = BukuDb()
@@ -274,6 +268,21 @@ def test_print_bookmark(capsys, setup):
     assert out == "\x1b[1m3 records found\x1b[21m\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m4. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
     assert err == ''
 
+def test_list_tags(capsys, setup):
+    bdb = BukuDb()
+    out, err = capsys.readouterr()
+
+    # adding bookmarks
+    bdb.add_bookmark("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
+    bdb.add_bookmark("http://two.com", "", parse_tags(['Cat,Ant,bee,1']), "")
+    bdb.add_bookmark("http://three.com", "", parse_tags(['Cat,Ant,3,Bee,2']), "")
+    out, err = capsys.readouterr()
+
+    # listing tags, asserting output
+    bdb.list_tags()
+    out, err = capsys.readouterr()
+    assert out == "     1. 1\n     2. 2\n     3. 3\n     4. Ant\n     5. ant\n     6. bee\n     7. Bee\n     8. Cat\n     9. cat\n"
+    assert err == ''
 
 if __name__ == "__main__":
     unittest.main()
