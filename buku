@@ -1583,7 +1583,7 @@ if __name__ == '__main__':
         print('Version %s' % _VERSION_)
 
     # Move pre-1.9 database to new location
-    BukuDb.move_legacy_dbfile()
+    #BukuDb.move_legacy_dbfile()
 
     # Handle encrypt/decrypt options at top priority
     if args.encrypt is not None:
