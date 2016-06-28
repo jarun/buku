@@ -15,7 +15,7 @@ The SQLite3 database file is stored in:
 .PP
 It's advisable to copy URLs directly from the browser address bar, i.e., along with the leading 'http://' or 'https://' token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 .PP
-If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double ('/") qoutes.
+If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes ('/").
 .PP
 URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
 .PP
@@ -92,12 +92,12 @@ Search bookmarks by tag. List all tags alphabetically, if no arguments.
 .BI \-l " " \--lock " [N]"
 Encrypt (lock) the DB file with
 .I N
-(> 0, defualt 8) hash passes to generate key.
+(> 0, default 8) hash passes to generate key.
 .TP
 .BI \-k " " \--unlock " [N]"
 Decrypt (unlock) the DB file with
 .I N
-(> 0, defualt 8) hash passes to generate key.
+(> 0, default 8) hash passes to generate key.
 .SH POWER OPTIONS
 .TP
 .BI \-p " " \--print " [N]"
