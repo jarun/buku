@@ -702,7 +702,7 @@ class BukuDb:
                 print('Index out of bound')
 
     def print_bookmark(self, index, empty=False):
-        """Print bookmark details at index or all bookmarks if index is None
+        """Print bookmark details at index or all bookmarks if index is 0
         Print only bookmarks with blank title or tag if empty is True
         Note: URL is printed on top because title may be blank
 
