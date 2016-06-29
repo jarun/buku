@@ -41,7 +41,6 @@ jsonOutput = False      # Output json formatted result
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
-noninteractive = False  # Show the prompt or not
 interrupted = False     # Received SIGINT
 DELIMITER = ','         # Delimiter used to store tags in DB
 _VERSION_ = '2.3'       # Program version
@@ -268,7 +267,7 @@ class BukuCrypt:
 
 class BukuDb:
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, noninteractive=False):
         conn, cur = BukuDb.initdb()
         self.conn = conn
         self.cur = cur
@@ -1575,7 +1574,6 @@ if __name__ == '__main__':
     if args.jsonOutput:
         import json
         jsonOutput = args.jsonOutput
-    noninteractive = args.noninteractive
     debug = args.debug
 
     # Show version in debug logs
@@ -1593,7 +1591,7 @@ if __name__ == '__main__':
         BukuCrypt.decrypt_file(args.decrypt)
 
     # Initialize the database and get handles
-    bdb = BukuDb()
+    bdb = BukuDb(noninteractive=args.noninteractive)
 
     # Add a record
     if args.addurl is not None:
