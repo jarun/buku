@@ -37,7 +37,6 @@ titleManual = None      # Manually add a title offline
 description = None      # Description of the bookmark
 tagsearch = False       # Search bookmarks by tag
 titleData = None        # Title fetched from a page
-showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
 interrupted = False     # Received SIGINT
@@ -266,12 +265,13 @@ class BukuCrypt:
 
 class BukuDb:
 
-    def __init__(self, noninteractive=False, json=False):
+    def __init__(self, noninteractive=False, json=False, showOpt=0):
         conn, cur = BukuDb.initdb()
         self.conn = conn
         self.cur = cur
         self.noninteractive = noninteractive
         self.json = json
+        self.showOpt = showOpt
 
     @staticmethod
     def get_dbdir_path():
@@ -620,7 +620,7 @@ class BukuDb:
         if not self.json:
             prompt(results, self.noninteractive)
         else:
-            print(format_json(results))
+            print(format_json(results, showOpt=self.showOpt))
 
     def search_by_tag(self, tag):
         """Search and list bookmarks with a tag
@@ -636,7 +636,7 @@ class BukuDb:
         if not self.json:
             prompt(results, self.noninteractive)
         else:
-            print(format_json(results))
+            print(format_json(results, showOpt=self.showOpt))
 
     def compactdb(self, index):
         """When an entry at index is deleted, move the last
@@ -717,17 +717,17 @@ class BukuDb:
                 print('\x1b[1m%s records found\x1b[21m\n' % len(resultset))
 
             if not self.json:
-                if showOpt == 0:
+                if self.showOpt == 0:
                     for row in resultset:
                         print_record(row)
-                elif showOpt == 1:
+                elif self.showOpt == 1:
                     for row in resultset:
                         print('%s\t%s' % (row[0], row[1]))
-                elif showOpt == 2:
+                elif self.showOpt == 2:
                     for row in resultset:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
             else:
-                print(format_json(resultset))
+                print(format_json(resultset, showOpt=self.showOpt))
         else:  # Show record at index
             try:
                 self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
@@ -741,14 +741,14 @@ class BukuDb:
 
             if not self.json:
                 for row in results:
-                    if showOpt == 0:
+                    if self.showOpt == 0:
                         print_record(row)
-                    elif showOpt == 1:
+                    elif self.showOpt == 1:
                         print('%s\t%s' % (row[0], row[1]))
-                    elif showOpt == 2:
+                    elif self.showOpt == 2:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
             else:
-                print(format_json(results, True))
+                print(format_json(results, True, self.showOpt))
 
     def list_tags(self):
         """Print all unique tags ordered alphabetically"""
@@ -1247,10 +1247,8 @@ def print_record(row, count=0):
     print(printstr)
 
 
-def format_json(resultset, single=False):
+def format_json(resultset, single=False, showOpt=0):
     """Return results in Json format"""
-
-    global showOpt
 
     if not single:
         marks = []
@@ -1537,7 +1535,7 @@ if __name__ == '__main__':
 -o, --open N         open bookmark at DB index N in web browser
 -z, --debug          show debug information and additional logs''')
     power_group.add_argument('-p', '--print', nargs='?', dest='printindex', type=int, const=0, metavar='N', help=argparse.SUPPRESS)
-    power_group.add_argument('-f', '--format', dest='showOpt', type=int, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
+    power_group.add_argument('-f', '--format', dest='showOpt', type=int, default=0, choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
     power_group.add_argument('-r', '--replace', nargs='+', dest='replace', metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
     power_group.add_argument('-j', '--json', dest='jsonOutput', action='store_true', help=argparse.SUPPRESS)
     general_group.add_argument('-e', '--export', nargs=1, dest='export', metavar='file', help=argparse.SUPPRESS)
@@ -1561,8 +1559,6 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Assign the values to globals
-    if args.showOpt is not None:
-        showOpt = args.showOpt
     if tagManual is not None and len(args.tag) > 0:
         tagManual = args.tag
     if titleManual is not None and len(args.title) > 0:
@@ -1588,7 +1584,7 @@ if __name__ == '__main__':
         BukuCrypt.decrypt_file(args.decrypt)
 
     # Initialize the database and get handles
-    bdb = BukuDb(args.noninteractive, args.jsonOutput)
+    bdb = BukuDb(args.noninteractive, args.jsonOutput, args.showOpt)
 
     # Add a record
     if args.addurl is not None:
