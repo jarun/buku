@@ -37,7 +37,6 @@ titleManual = None      # Manually add a title offline
 description = None      # Description of the bookmark
 tagsearch = False       # Search bookmarks by tag
 titleData = None        # Title fetched from a page
-jsonOutput = False      # Output json formatted result
 showOpt = 0             # Modify show. 1: show only URL, 2: show URL and tag
 debug = False           # Enable debug logs
 pipeargs = []           # Holds arguments piped to the program
@@ -267,11 +266,12 @@ class BukuCrypt:
 
 class BukuDb:
 
-    def __init__(self, noninteractive=False):
+    def __init__(self, noninteractive=False, json=False):
         conn, cur = BukuDb.initdb()
         self.conn = conn
         self.cur = cur
         self.noninteractive = noninteractive
+        self.json = json
 
     @staticmethod
     def get_dbdir_path():
@@ -586,13 +586,12 @@ class BukuDb:
 
         self.conn.commit()
 
-    def searchdb(self, keywords, all_keywords=False, json=False):
+    def searchdb(self, keywords, all_keywords=False):
         """Search the database for an entries with tags or URL
         or title info matching keywords and list those.
 
         :param keywords: keywords to search
         :param all_keywords: search any or all keywords
-        :param json: json formatted output
         """
 
         arguments = []
@@ -618,16 +617,15 @@ class BukuDb:
         if len(results) == 0:
             return
 
-        if not json:
+        if not self.json:
             prompt(results, self.noninteractive)
         else:
             print(format_json(results))
 
-    def search_by_tag(self, tag, json=False):
+    def search_by_tag(self, tag):
         """Search and list bookmarks with a tag
 
         :param tag: tag to search
-        :param json: print in json format
         """
 
         self.cur.execute("SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%'", (tag,))
@@ -635,7 +633,7 @@ class BukuDb:
         if len(results) == 0:
             return
 
-        if not json:
+        if not self.json:
             prompt(results, self.noninteractive)
         else:
             print(format_json(results))
@@ -718,7 +716,7 @@ class BukuDb:
                 resultset = self.cur.fetchall()
                 print('\x1b[1m%s records found\x1b[21m\n' % len(resultset))
 
-            if not jsonOutput:
+            if not self.json:
                 if showOpt == 0:
                     for row in resultset:
                         print_record(row)
@@ -741,7 +739,7 @@ class BukuDb:
                 print('Index out of bound')
                 return
 
-            if not jsonOutput:
+            if not self.json:
                 for row in results:
                     if showOpt == 0:
                         print_record(row)
@@ -1573,7 +1571,6 @@ if __name__ == '__main__':
         description = ' '.join(args.desc)
     if args.jsonOutput:
         import json
-        jsonOutput = args.jsonOutput
     debug = args.debug
 
     # Show version in debug logs
@@ -1591,7 +1588,7 @@ if __name__ == '__main__':
         BukuCrypt.decrypt_file(args.decrypt)
 
     # Initialize the database and get handles
-    bdb = BukuDb(noninteractive=args.noninteractive)
+    bdb = BukuDb(args.noninteractive, args.jsonOutput)
 
     # Add a record
     if args.addurl is not None:
@@ -1675,20 +1672,20 @@ if __name__ == '__main__':
 
     # Search URLs, titles, tags for any keyword
     if args.sany is not None:
-        bdb.searchdb(args.sany, False, jsonOutput)
+        bdb.searchdb(args.sany, False)
 
     # Search URLs, titles, tags with all keywords
     if args.sall is not None:
         if args.sall[0] == 'blank' and len(args.sall) == 1:
             bdb.print_bookmark(0, True)
         else:
-            bdb.searchdb(args.sall, True, jsonOutput)
+            bdb.searchdb(args.sall, True)
 
     # Search bookmarks by tag
     if tagsearch:
         if len(args.stag) > 0:
             tag = '%s%s%s' % (DELIMITER, ' '.join(args.stag).strip(DELIMITER), DELIMITER)
-            bdb.search_by_tag(tag, jsonOutput)
+            bdb.search_by_tag(tag)
         else:
             bdb.list_tags()
 
