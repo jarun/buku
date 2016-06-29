@@ -121,7 +121,7 @@ class BukuCrypt:
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except Exception:
-            print('cryptography missing')
+            print('cryptography lib(s) missing')
             sys.exit(1)
 
         if iterations < 1:
@@ -199,7 +199,7 @@ class BukuCrypt:
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except Exception:
-            print('cryptography missing')
+            print('cryptography lib(s) missing')
             sys.exit(1)
 
         if iterations < 1:
