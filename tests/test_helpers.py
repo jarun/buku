@@ -54,19 +54,6 @@ def test_sigint_handler(capsys):
         assert out == ''
         assert err == "\nInterrupted.\n"
 
-def test_printmsg(capsys):
-    # call with two args
-    printmsg("test", "ERROR")
-    out, err = capsys.readouterr()
-    assert out == "\x1b[1mERROR: \x1b[21mtest\x1b[0m\n"
-    assert err == ''
-
-    # call with one arg
-    printmsg("message")
-    out, err = capsys.readouterr()
-    assert out == "message\n"
-    assert err == ''
-
 
 if __name__ == "__main__":
     unittest.main()
