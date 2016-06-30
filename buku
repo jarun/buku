@@ -29,7 +29,9 @@ import gzip
 import io
 import signal
 import logging
+import inspect
 import atexit
+import readline
 
 
 # Globals
@@ -356,7 +358,8 @@ class BukuDb:
                        (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text default \'\', tags text default \',\', desc text default \'\')")
             conn.commit()
         except Exception as e:
-            logger.error(e)
+            _, _, linenumber, func, _, _ = inspect.stack()[0]
+            logger.error('%s(), ln %d: %s', func, linenumber, e)
             sys.exit(1)
 
         # Add description column in existing DB (from version 2.1)
@@ -437,7 +440,8 @@ class BukuDb:
                 self.conn.commit()
             self.print_bookmark(self.cur.lastrowid)
         except Exception as e:
-            logger.exception(e)
+            _, _, linenumber, func, _, _ = inspect.stack()[0]
+            logger.error('%s(), ln %d: %s', func, linenumber, e)
 
     def append_tag_at_index(self, index, tag_manual):
         """ Append tags for bookmark at index
@@ -928,7 +932,8 @@ class BukuDb:
 
             curfp = connfp.cursor()
         except Exception as e:
-            logger.error(e)
+            _, _, linenumber, func, _, _ = inspect.stack()[0]
+            logger.error('%s(), ln %d: %s', func, linenumber, e)
             sys.exit(1)
 
         curfp.execute('SELECT * FROM bookmarks')
@@ -1051,7 +1056,8 @@ def get_page_title(resp):
     except Exception as e:
         # Suppress Exception due to intentional self.reset() in HTMLParser
         if logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!':
-            logger.exception(e)
+            _, _, linenumber, func, _, _ = inspect.stack()[0]
+            logger.error('%s(), ln %d: %s', func, linenumber, e)
 
 
 def network_handler(url):
@@ -1121,7 +1127,8 @@ def network_handler(url):
                 logger.error('[%s] %s', resp.status, resp.reason)
                 break
     except Exception as e:
-        logger.error(e)
+        _, _, linenumber, func, _, _ = inspect.stack()[0]
+        logger.error('%s(), ln %d: %s', func, linenumber, e)
     finally:
         if urlconn is not None:
             urlconn.close()
@@ -1207,7 +1214,8 @@ def prompt(results, noninteractive=False):
             try:
                 browser_open(unquote(results[index][1]))
             except Exception as e:
-                logger.error(e)
+                _, _, linenumber, func, _, _ = inspect.stack()[0]
+                logger.error('%s(), ln %d: %s', func, linenumber, e)
         else:
             break
 
@@ -1301,7 +1309,8 @@ def browser_open(url):
     try:
         webbrowser.open(url)
     except Exception as e:
-        logger.error(e)
+        _, _, linenumber, func, _, _ = inspect.stack()[0]
+        logger.error('%s(), ln %d: %s', func, linenumber, e)
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
