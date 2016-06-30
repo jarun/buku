@@ -38,7 +38,6 @@ description = None      # Description of the bookmark
 tagsearch = False       # Search bookmarks by tag
 titleData = None        # Title fetched from a page
 debug = False           # Enable debug logs
-pipeargs = []           # Holds arguments piped to the program
 interrupted = False     # Received SIGINT
 DELIMITER = ','         # Delimiter used to store tags in DB
 _VERSION_ = '2.3'       # Program version
@@ -1431,15 +1430,17 @@ Webpage: https://github.com/jarun/buku
 
 
 # Handle piped input
-def main(argv):
+def main(argv, pipeargs = None):
     if not sys.stdin.isatty():
         pipeargs.extend(argv)
         for s in sys.stdin.readlines():
             pipeargs.extend(s.split())
 
 if __name__ == '__main__':
+    pipeargs = []
+
     try:
-        main(sys.argv)
+        main(sys.argv, pipeargs)
     except KeyboardInterrupt:
         pass
 
