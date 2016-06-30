@@ -234,14 +234,17 @@ class TestBukuDb(unittest.TestCase):
     # def test_import_bookmark(self):
         # self.fail()
 
-def test_print_bookmark(capsys, setup):
+def test_print_bookmark(capsys, caplog, setup):
     bdb = BukuDb()
     out, err = capsys.readouterr()
     # calling with nonexistent index
     bdb.print_bookmark(1)
     out, err = capsys.readouterr()
-    #assert out == "[ERROR] No matching index"
-    assert err == ''
+
+    for record in caplog.records:
+        assert record.levelname == "ERROR"
+        assert record.getMessage() == "No matching index"
+    assert (out, err) == ('', '')
 
     # adding bookmarks
     bdb.add_bookmark("http://full-bookmark.com", "full", parse_tags(['full,bookmark']), "full bookmark")
