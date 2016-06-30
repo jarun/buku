@@ -126,7 +126,7 @@ class BukuCrypt:
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except Exception:
-            print('cryptography lib(s) missing')
+            logger.error('cryptography lib(s) missing')
             sys.exit(1)
 
         if iterations < 1:
@@ -136,7 +136,7 @@ class BukuCrypt:
         dbpath = os.path.join(BukuDb.get_dbdir_path(), 'bookmarks.db')
         encpath = '%s.enc' % dbpath
         if not os.path.exists(dbpath):
-            print('%s missing. Already encrypted?' % dbpath)
+            logger.error('%s missing. Already encrypted?', dbpath)
             sys.exit(1)
 
         # If both encrypted file and flat file exist, error out
@@ -148,10 +148,10 @@ class BukuCrypt:
         password = getpass()
         passconfirm = getpass()
         if password == '':
-            print('Empty password')
+            logger.error('Empty password')
             sys.exit(1)
         if password != passconfirm:
-            print("Passwords don't match")
+            logger.error("Passwords don't match")
             sys.exit(1)
 
         # Get SHA256 hash of DB file
@@ -204,7 +204,7 @@ class BukuCrypt:
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except Exception:
-            print('cryptography lib(s) missing')
+            logger.error('cryptography lib(s) missing')
             sys.exit(1)
 
         if iterations < 1:
@@ -311,7 +311,7 @@ class BukuDb:
         newdbfile = os.path.join(newdbpath, 'bookmarks.db')
 
         if os.path.exists(newdbfile):
-            print('Both old (%s) and new (%s) databases exist, need manual action' % (olddbfile, newdbfile))
+            logger.error('Both old (%s) and new (%s) databases exist, need manual action', olddbfile, newdbfile)
             sys.exit(1)
 
         if not os.path.exists(newdbpath):
@@ -339,7 +339,7 @@ class BukuDb:
         encpath = os.path.join(dbpath, 'bookmarks.db.enc')
         # Notify if DB file needs to be decrypted first
         if os.path.exists(encpath) and not os.path.exists(dbfile):
-            print('Unlock database first')
+            logger.error('Unlock database first')
             sys.exit(1)
 
         # Show info on first creation
@@ -406,7 +406,7 @@ class BukuDb:
         # Ensure that the URL does not exist in DB already
         id = self.get_bookmark_index(url)
         if id != -1:
-            print('URL [%s] already exists at index %d' % (url, id))
+            logger.error('URL [%s] already exists at index %d', url, id)
             return
 
         # Process title
@@ -552,7 +552,7 @@ class BukuDb:
             if self.cur.rowcount == 1:
                 self.print_bookmark(index)
             elif self.cur.rowcount == 0:
-                print('No matching index')
+                logger.error('No matching index')
         except sqlite3.IntegrityError:
             print('URL already exists')
 
@@ -673,7 +673,7 @@ class BukuDb:
                 self.conn.commit()
                 print('Bookmarks from index %s to %s deleted' % (low, high))
             except IndexError:
-                print('Index out of bound')
+                logger.error('Index out of bound')
 
             for index in range(low, high + 1):
                 self.compactdb(index)
@@ -694,9 +694,9 @@ class BukuDb:
                     print('Removed index %d' % index)
                     self.compactdb(index)
                 else:
-                    print('No matching index')
+                    logger.error('No matching index')
             except IndexError:
-                print('Index out of bound')
+                logger.error('Index out of bound')
 
     def print_bookmark(self, index, empty=False):
         """Print bookmark details at index or all bookmarks if index is 0
@@ -733,10 +733,10 @@ class BukuDb:
                 self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
                 results = self.cur.fetchall()
                 if len(results) == 0:
-                    print('No matching index')
+                    logger.error('No matching index')
                     return
             except IndexError:
-                print('Index out of bound')
+                logger.error('Index out of bound')
                 return
 
             if not self.json:
@@ -822,9 +822,9 @@ class BukuDb:
                 url = unquote(row[0])
                 browser_open(url)
                 return
-            print('No matching index')
+            logger.error('No matching index')
         except IndexError:
-            print('Index out of bound')
+            logger.error('Index out of bound')
 
     def export_bookmark(self, fp):
         """Export bookmarks to a Firefox
@@ -1201,7 +1201,7 @@ def prompt(results, noninteractive=False):
         if is_int(nav):
             index = int(nav) - 1
             if index < 0 or index >= count:
-                print('Index out of bound')
+                logger.error('Index out of bound')
                 continue
 
             try:
