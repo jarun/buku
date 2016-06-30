@@ -28,6 +28,8 @@ from urllib.parse import urljoin, quote, unquote
 import gzip
 import io
 import signal
+import logging
+import atexit
 
 
 # Globals
@@ -36,8 +38,7 @@ tagManual = None        # Tags for update command
 titleManual = None      # Manually add a title offline
 description = None      # Description of the bookmark
 tagsearch = False       # Search bookmarks by tag
-titleData = None        # Title fetched from a page
-debug = False           # Enable debug logs
+titleData = None        # Title fetched from a webpage
 interrupted = False     # Received SIGINT
 DELIMITER = ','         # Delimiter used to store tags in DB
 _VERSION_ = '2.3'       # Program version
@@ -47,6 +48,11 @@ _VERSION_ = '2.3'       # Program version
 BLOCKSIZE = 65536
 SALT_SIZE = 32
 CHUNKSIZE = 0x80000     # Read/write 512 KB chunks
+
+
+# Set up logging
+logging.basicConfig(format='[%(levelname)s] %(message)s')
+logger = logging.getLogger()
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
@@ -124,7 +130,7 @@ class BukuCrypt:
             sys.exit(1)
 
         if iterations < 1:
-            printmsg('Iterations must be >= 1', 'ERROR')
+            logger.error('Iterations must be >= 1')
             sys.exit(1)
 
         dbpath = os.path.join(BukuDb.get_dbdir_path(), 'bookmarks.db')
@@ -135,7 +141,7 @@ class BukuCrypt:
 
         # If both encrypted file and flat file exist, error out
         if os.path.exists(dbpath) and os.path.exists(encpath):
-            printmsg('Both encrypted and flat DB files exist!', 'ERROR')
+            logger.error('Both encrypted and flat DB files exist!')
             sys.exit(1)
 
         password = ''
@@ -202,24 +208,24 @@ class BukuCrypt:
             sys.exit(1)
 
         if iterations < 1:
-            printmsg('Decryption failed', 'ERROR')
+            logger.error('Decryption failed')
             sys.exit(1)
 
         dbpath = os.path.join(BukuDb.get_dbdir_path(), 'bookmarks.db')
         encpath = '%s.enc' % dbpath
         if not os.path.exists(encpath):
-            printmsg('%s missing' % encpath, 'ERROR')
+            logger.error('%s missing', encpath)
             sys.exit(1)
 
         # If both encrypted file and flat file exist, error out
         if os.path.exists(dbpath) and os.path.exists(encpath):
-            printmsg('Both encrypted and flat DB files exist!', 'ERROR')
+            logger.error('Both encrypted and flat DB files exist!')
             sys.exit(1)
 
         password = ''
         password = getpass()
         if password == '':
-            printmsg('Decryption failed', 'ERROR')
+            logger.error('Decryption failed')
             sys.exit(1)
 
         with open(encpath, 'rb') as infile:
@@ -255,7 +261,7 @@ class BukuCrypt:
         dbhash = BukuCrypt.get_filehash(dbpath)
         if dbhash != enchash:
             os.remove(dbpath)
-            printmsg('Decryption failed', 'ERROR')
+            logger.error('Decryption failed')
             sys.exit(1)
         else:
             os.remove(encpath)
@@ -350,7 +356,7 @@ class BukuDb:
                        (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, metadata text default \'\', tags text default \',\', desc text default \'\')")
             conn.commit()
         except Exception as e:
-            print('\x1b[1mEXCEPTION\x1b[21m [initdb]: (%s) %s' % (type(e).__name__, e))
+            logger.error(e)
             sys.exit(1)
 
         # Add description column in existing DB (from version 2.1)
@@ -410,8 +416,7 @@ class BukuDb:
             meta = network_handler(url)
             if meta == '':
                 print('\x1B[91mTitle: []\x1B[0m\n')
-            elif debug:
-                print('Title: [%s]\n' % meta)
+            logger.debug('Title: [%s]', meta)
 
         # Process tags
         if tag_manual is None:
@@ -432,7 +437,7 @@ class BukuDb:
                 self.conn.commit()
             self.print_bookmark(self.cur.lastrowid)
         except Exception as e:
-            print('\x1b[1mEXCEPTION\x1b[21m [add_bookmark]: (%s) %s' % (type(e).__name__, e))
+            logger.exception(e)
 
     def append_tag_at_index(self, index, tag_manual):
         """ Append tags for bookmark at index
@@ -478,6 +483,9 @@ class BukuDb:
 
         # Update URL if passed as argument
         if url != '':
+            if index == 0:
+                logger.error('All URLs cannot be same')
+                return
             query = '%s URL = ?,' % query
             arguments += (url,)
             to_update = True
@@ -511,8 +519,7 @@ class BukuDb:
             meta = network_handler(url)
             if meta == '':
                 print('\x1B[91mTitle: []\x1B[0m')
-            elif debug:
-                print('Title: [%s]' % meta)
+            logger.debug('Title: [%s]', meta)
         elif not to_update and not append_tag:
             self.refreshdb(index)
             if index > 0:
@@ -528,10 +535,6 @@ class BukuDb:
             return
 
         if index == 0:  # Update all records
-            if url != '':
-                printmsg('All URLs cannot be same', 'ERROR')
-                return
-
             resp = input('ALL bookmarks will be updated. Enter \x1b[1my\x1b[21m to confirm: ')
             if resp != 'y':
                 return
@@ -541,8 +544,7 @@ class BukuDb:
             query = '%s WHERE id = ?' % query[:-1]
             arguments += (index,)
 
-        if debug:
-            print('query: [%s], args: [%s]' % (query, arguments))
+        logger.debug('query: "%s", args: %s', query, arguments)
 
         try:
             self.cur.execute(query, arguments)
@@ -580,7 +582,7 @@ class BukuDb:
             self.cur.execute('UPDATE bookmarks SET metadata = ? WHERE id = ?', (title, row[0],))
             print('Index %d updated\n' % row[0])
             if interrupted:
-                printmsg('Aborting refreshdb ...', 'WARNING')
+                logger.warning('^C pressed. Aborting DB refresh...')
                 break
 
         self.conn.commit()
@@ -608,8 +610,7 @@ class BukuDb:
                 arguments += (token, token, token, token)
             query = query[:-3]
 
-        if debug:
-            print("\"%s\", (%s)" % (query, arguments))
+        logger.debug('query: "%s", args: %s', query, arguments)
 
         self.cur.execute(query, arguments)
         results = self.cur.fetchall()
@@ -842,7 +843,7 @@ class BukuDb:
         try:
             f = open(fp, mode='w', encoding='utf-8')
         except Exception as e:
-            print('\x1b[1mEXCEPTION\x1b[21m [export_bookmark]: (%s) %s' % (type(e).__name__, e))
+            logger.error(e)
             return
 
         count = 0
@@ -888,10 +889,10 @@ class BukuDb:
             with open(fp, mode='r', encoding='utf-8') as f:
                 soup = bs4.BeautifulSoup(f, 'html.parser')
         except ImportError:
-            printmsg('Beautiful Soup not found', 'ERROR')
+            logger.error('Beautiful Soup not found')
             return
         except Exception as e:
-            print('\x1b[1mEXCEPTION\x1b[21m [import_bookmark]: (%s) %s' % (type(e).__name__, e))
+            logger.error(e)
             return
 
         html_tags = soup.findAll('a')
@@ -927,7 +928,7 @@ class BukuDb:
 
             curfp = connfp.cursor()
         except Exception as e:
-            print('\x1b[1mEXCEPTION\x1b[21m [mergedb]: (%s) %s' % (type(e).__name__, e))
+            logger.error(e)
             sys.exit(1)
 
         curfp.execute('SELECT * FROM bookmarks')
@@ -977,8 +978,7 @@ def connect_server(url, fullurl=False, forced=False):
     else:
         url = unquote(url)
 
-    if debug:
-        print('unquoted: %s' % url)
+    logger.debug('unquoted: %s', url)
 
     if url.find('https://') >= 0:  # Secure connection
         server = url[8:]
@@ -1001,13 +1001,12 @@ def connect_server(url, fullurl=False, forced=False):
             url = '/'
         urlconn = HTTPConnection(server, timeout=30)
     else:
-        printmsg('Not a valid HTTP(S) url', 'WARNING')
+        logger.warning('Not a valid HTTP(S) url')
         if url.find(':') == -1:
-            printmsg("Doesn't appear to be a valid url either", 'WARNING')
+            logger.warning("Doesn't appear to be a valid url either")
         return (None, None)
 
-    if debug:
-        print('server [%s] url [%s]' % (server, url))
+    logger.debug('server [%s] url [%s]', server, url)
 
     # Handle URLs passed with %xx escape
     try:
@@ -1032,19 +1031,16 @@ def get_page_title(resp):
     charset = resp.headers.get_content_charset()
 
     if resp.headers.get('Content-Encoding') == 'gzip':
-        if debug:
-            print('gzip response')
+        logger.debug('gzip response')
         data = gzip.GzipFile(fileobj=io.BytesIO(resp.read())).read()
     else:
         data = resp.read()
 
     if charset is None:
+        logger.warning('Charset missing in response')
         charset = 'utf-8'
-        if debug:
-            printmsg('Charset missing in response', 'WARNING')
 
-    if debug:
-        print('charset: %s' % charset)
+    logger.debug('charset: %s', charset)
 
     parser = BMHTMLParser()
     try:
@@ -1053,9 +1049,9 @@ def get_page_title(resp):
         else:
             parser.feed(data.decode(charset))
     except Exception as e:
-        if debug and str(e) != 'we should not get here!':
-            # Suppress Exception due to intentional self.reset() in HTMLParser
-            print('\x1b[1mEXCEPTION\x1b[21m [get_page_title]: (%s) %s' % (type(e).__name__, e))
+        # Suppress Exception due to intentional self.reset() in HTMLParser
+        if logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!':
+            logger.exception(e)
 
 
 def network_handler(url):
@@ -1081,12 +1077,11 @@ def network_handler(url):
                 break
             elif resp.status in [301, 302]:
                 redirurl = urljoin(url, resp.getheader('location', ''))
-                if debug:
-                    printmsg(redirurl, 'REDIRECTION')
+                logger.debug('REDIRECTION: %s', redirurl)
                 retry = False       # Reset retry, start fresh on redirection
 
                 if redirurl.find('sorry/IndexRedirect?') >= 0:          # gracefully handle Google blocks
-                    printmsg('Connection blocked due to unusual activity', 'ERROR')
+                    logger.error('Connection blocked due to unusual activity')
                     break
 
                 marker = redirurl.find('redirectUrl=')
@@ -1095,7 +1090,7 @@ def network_handler(url):
 
                 # break same URL redirection loop
                 if url == redirurl:
-                    printmsg('Detected repeated redirection to same URL', 'ERROR')
+                    logger.error('Detected repeated redirection to same URL')
                     break
 
                 url = redirurl
@@ -1108,8 +1103,7 @@ def network_handler(url):
                 resource '/', retry with full path.
                 """
                 urlconn.close()
-                if debug:
-                    print('Received status 403: retrying.')
+                logger.debug('Received status 403: retrying...')
                 # Remove trailing /
                 if url[-1] == '/':
                     url = url[:-1]
@@ -1120,15 +1114,14 @@ def network_handler(url):
                 URL. Some servers support truncated request URL on redirection.
                 """
                 urlconn.close()
-                if debug:
-                    print('Received status 500: retrying.')
+                logger.debug('Received status 500: retrying...')
                 urlconn, resp = connect_server(url, False)
                 retry = True
             else:
-                printmsg('[%s] %s' % (resp.status, resp.reason), 'ERROR')
+                logger.error('[%s] %s', resp.status, resp.reason)
                 break
     except Exception as e:
-        print('\x1b[1mEXCEPTION\x1b[21m [network_handler]: (%s) %s' % (type(e).__name__, e))
+        logger.error(e)
     finally:
         if urlconn is not None:
             urlconn.close()
@@ -1165,9 +1158,8 @@ def parse_tags(keywords=None):
     if tagstr != '':
         tags = '%s%s%s' % (tags, tagstr, DELIMITER)
 
-    if debug:
-        print(keywords)
-        print('tags: [%s]' % tags)
+    logger.debug('keywords: %s', keywords)
+    logger.debug('parsed tags: [%s]', tags)
 
     if tags == DELIMITER:
         return tags
@@ -1215,7 +1207,7 @@ def prompt(results, noninteractive=False):
             try:
                 browser_open(unquote(results[index][1]))
             except Exception as e:
-                print('\x1b[1mEXCEPTION\x1b[21m [searchdb]: (%s) %s' % (type(e).__name__, e))
+                logger.error(e)
         else:
             break
 
@@ -1309,7 +1301,7 @@ def browser_open(url):
     try:
         webbrowser.open(url)
     except Exception as e:
-        print('\x1b[1mEXCEPTION\x1b[21m [browser_open]: (%s) %s' % (type(e).__name__, e))
+        logger.error(e)
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
@@ -1326,18 +1318,6 @@ def sigint_handler(signum, frame):
     sys.exit(1)
 
 signal.signal(signal.SIGINT, sigint_handler)
-
-
-def printmsg(msg, level=None):
-    """Print a message in 2 parts, with the level in bold
-
-    Params: msg, level
-    """
-
-    if level is not None:
-        print('\x1b[1m%s: \x1b[21m%s\x1b[0m' % (level, msg))
-    else:
-        print('%s' % msg)
 
 
 # Custom Action classes for argparse
@@ -1438,6 +1418,7 @@ def main(argv, pipeargs = None):
 
 if __name__ == '__main__':
     pipeargs = []
+    atexit.register(logging.shutdown)
 
     try:
         main(sys.argv, pipeargs)
@@ -1568,11 +1549,9 @@ if __name__ == '__main__':
         description = ' '.join(args.desc)
     if args.jsonOutput:
         import json
-    debug = args.debug
-
-    # Show version in debug logs
-    if debug:
-        print('Version %s' % _VERSION_)
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+        logger.debug('Version %s', _VERSION_)
 
     # Move pre-1.9 database to new location
     #BukuDb.move_legacy_dbfile()
@@ -1613,7 +1592,7 @@ if __name__ == '__main__':
         if len(args.update) == 0:
             update_index = 0
         elif not args.update[0].isdigit():
-            printmsg('Index must be a number >= 0', 'ERROR')
+            logger.error('Index must be a number >= 0')
             bdb.close_quit(1)
         else:
             update_index = int(args.update[0])
@@ -1650,7 +1629,7 @@ if __name__ == '__main__':
                 else:
                     bdb.delete_bookmark(0, int(vals[1]), int(vals[0]), True)
             else:
-                printmsg('Incorrect range', 'ERROR')
+                logger.error('Incorrect index or range')
                 bdb.close_quit(1)
         else:
             ids = []
@@ -1665,7 +1644,7 @@ if __name__ == '__main__':
                 for idx in ids:
                     bdb.delete_bookmark(int(idx))
             except ValueError as e:
-                printmsg('Index should be numerical (>= 0)', 'ERROR')
+                logger.error('Index should be numerical (>= 0)')
 
     # Search URLs, titles, tags for any keyword
     if args.sany is not None:
@@ -1689,7 +1668,7 @@ if __name__ == '__main__':
     # Print all records
     if args.printindex is not None:
         if args.printindex < 0:
-            printmsg('Index must be >= 0', 'ERROR')
+            logger.error('Index must be >= 0')
             bdb.close_quit(1)
         bdb.print_bookmark(args.printindex)
 
@@ -1715,7 +1694,7 @@ if __name__ == '__main__':
     # Open URL in browser
     if args.openurl is not None:
         if args.openurl < 1:
-            printmsg('Index must be >= 1', 'ERROR')
+            logger.error('Index must be >= 1')
             bdb.close_quit(1)
         bdb.browse_by_index(args.openurl)
 
