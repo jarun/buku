@@ -933,9 +933,8 @@ class BukuDb:
 
             curfp = connfp.cursor()
         except Exception as e:
-            _, _, linenumber, func, _, _ = inspect.stack()[0]
-            logger.error('%s(), ln %d: %s', func, linenumber, e)
-            sys.exit(1)
+            logger.error(e)
+            return
 
         curfp.execute('SELECT * FROM bookmarks')
         resultset = curfp.fetchall()
