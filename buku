@@ -1394,6 +1394,11 @@ prompt keys:
   1-N                  open the Nth search result in web browser
   double Enter         exit buku
 
+symbols:
+  >                    title
+  +                    comment
+  #                    tags
+
 Version %s
 Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
 License: GPLv3

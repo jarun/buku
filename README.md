@@ -184,6 +184,11 @@ Please substitute `$version` with the appropriate package version.
       1-N                  open the Nth search result in web browser
       double Enter         exit buku
 
+    symbols:
+      >                    title
+      +                    comment
+      #                    tags
+
 ## Operational notes
 
 - The SQLite3 database file is stored in:
