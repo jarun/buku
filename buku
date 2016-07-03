@@ -708,7 +708,7 @@ class BukuDb:
         Note: URL is printed on top because title may be blank
 
         Params: index to print (0 for all)
-	        empty flag to show only bookmarks with no title or tags
+        empty flag to show only bookmarks with no title or tags
         """
 
         if index == 0:  # Show all entries
@@ -962,18 +962,11 @@ class BukuDb:
 
 # Generic functions
 
-def connect_server(url, fullurl=False, forced=False):
+def connect_server(url):
     """Connect to a server and fetch the requested page data.
     Supports gzip compression.
 
-    If forced is True, for URLs like http://www.domain.com
-    or http://www.domain.com/ path is www.domain.com or
-    www.domain.com/ correspondingly.
-
-    If fullurl is False, for URLs like http://www.domain.com/,
-    path is /, else www.domain.com/.
-
-    Params: URL to fetch, use complete url as path, force flag
+    Params: URL to fetch
     Returns: connection, HTTP(S) GET response
     """
 
@@ -988,20 +981,18 @@ def connect_server(url, fullurl=False, forced=False):
         server = url[8:]
         marker = server.find('/')
         if marker > 0:
-            if not fullurl and not forced:
-                url = server[marker:]
+            url = server[marker:]
             server = server[:marker]
-        elif not forced:  # Handle domain name without trailing /
+        else:  # Handle domain name without trailing /
             url = '/'
         urlconn = HTTPSConnection(server, timeout=30)
     elif url.find('http://') >= 0:  # Insecure connection
         server = url[7:]
         marker = server.find('/')
         if marker > 0:
-            if not fullurl and not forced:
-                url = server[marker:]
+            url = server[marker:]
             server = server[:marker]
-        elif not forced:
+        else:
             url = '/'
         urlconn = HTTPConnection(server, timeout=30)
     else:
@@ -1010,7 +1001,7 @@ def connect_server(url, fullurl=False, forced=False):
             logger.warning("Doesn't appear to be a valid url either")
         return (None, None)
 
-    logger.debug('server [%s] url [%s]', server, url)
+    logger.debug('server [%s] rel [%s]', server, url)
 
     # Handle URLs passed with %xx escape
     try:
@@ -1073,7 +1064,7 @@ def network_handler(url):
     retry = False
 
     try:
-        urlconn, resp = connect_server(url, False)
+        urlconn, resp = connect_server(url)
 
         while True:
             if resp is None:
@@ -1102,7 +1093,7 @@ def network_handler(url):
                 url = redirurl
                 urlconn.close()
                 # Try with complete URL on redirection
-                urlconn, resp = connect_server(url, False)
+                urlconn, resp = connect_server(url)
             elif resp.status == 403 and not retry:
                 """Handle URLs of the form https://www.domain.com or
                 https://www.domain.com/ which fails when trying to fetch
@@ -1113,16 +1104,16 @@ def network_handler(url):
                 # Remove trailing /
                 if url[-1] == '/':
                     url = url[:-1]
-                urlconn, resp = connect_server(url, False, True)
+                urlconn, resp = connect_server(url)
                 retry = True
-            elif resp.status == 500 and not retry:
-                """Retry on status 500 (Internal Server Error) with truncated
-                URL. Some servers support truncated request URL on redirection.
-                """
-                urlconn.close()
-                logger.debug('Received status 500: retrying...')
-                urlconn, resp = connect_server(url, False)
-                retry = True
+            #elif resp.status == 500 and not retry:
+                #"""Retry on status 500 (Internal Server Error) with truncated
+                #URL. Some servers support truncated request URL on redirection.
+                #"""
+                #urlconn.close()
+                #logger.debug('Received status 500: retrying...')
+                #urlconn, resp = connect_server(url)
+                #retry = True
             else:
                 logger.error('[%s] %s', resp.status, resp.reason)
                 break
