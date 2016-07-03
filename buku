@@ -44,7 +44,6 @@ titleData = None        # Title fetched from a webpage
 interrupted = False     # Received SIGINT
 DELIMITER = ','         # Delimiter used to store tags in DB
 _VERSION_ = '2.3'       # Program version
-USER_AGENT = ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0')
 
 
 # Crypto globals
@@ -1021,7 +1020,6 @@ def connect_server(url, fullurl=False, forced=False):
 
     urlconn.request('GET', url, None, {
         'Accept-encoding': 'gzip',
-        'User-Agent': USER_AGENT,
         'DNT': '1',
     })
     return (urlconn, urlconn.getresponse())
@@ -1037,8 +1035,9 @@ def get_page_title(resp):
     charset = resp.headers.get_content_charset()
 
     if resp.headers.get('Content-Encoding') == 'gzip':
+        payload = resp.read()
         logger.debug('gzip response')
-        data = gzip.GzipFile(fileobj=io.BytesIO(resp.read())).read()
+        data = gzip.GzipFile(fileobj=io.BytesIO(payload)).read()
     else:
         data = resp.read()
 
@@ -1103,7 +1102,7 @@ def network_handler(url):
                 url = redirurl
                 urlconn.close()
                 # Try with complete URL on redirection
-                urlconn, resp = connect_server(url, True)
+                urlconn, resp = connect_server(url, False)
             elif resp.status == 403 and not retry:
                 """Handle URLs of the form https://www.domain.com or
                 https://www.domain.com/ which fails when trying to fetch
