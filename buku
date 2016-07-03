@@ -468,8 +468,38 @@ class BukuDb:
 
         self.conn.commit()
 
+    def delete_tag_at_index(self, index, tag_manual):
+        """ Delete tags for bookmark at index
+
+        :param index: int position of record, 0 for all
+        :tag_manual: string of comma-separated tags to delete manually
+        """
+        tags_to_delete = tag_manual.strip(DELIMITER).split(DELIMITER)
+
+        if index == 0:
+            resp = input('Tags will be deleted for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
+            if resp != 'y':
+                return
+
+            for tag in tags_to_delete:
+                self.cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC", (tag,))
+        else:
+            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))
+
+        resultset = self.cur.fetchall()
+
+        for row in resultset:
+            tags = row[1]
+
+            for tag in tags_to_delete:
+                tags = tags.replace('%s%s%s' % (DELIMITER, tag, DELIMITER,), DELIMITER)
+
+            self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (parse_tags([tags]), row[0],))
+
+        self.conn.commit()
+
     def update_bookmark(self, index, url='', title_manual=None,
-                        tag_manual=None, desc=None, append_tag=False):
+                        tag_manual=None, desc=None, append_tag=False, delete_tag=False):
         """ Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
@@ -499,6 +529,8 @@ class BukuDb:
         if tag_manual is not None:
             if append_tag:
                 self.append_tag_at_index(index, tag_manual)
+            elif delete_tag:
+                self.delete_tag_at_index(index, tag_manual)
             else:
                 query = '%s tags = ?,' % query
                 arguments += (tag_manual,)
@@ -525,7 +557,7 @@ class BukuDb:
             if meta == '':
                 print('\x1B[91mTitle: []\x1B[0m')
             logger.debug('Title: [%s]', meta)
-        elif not to_update and not append_tag:
+        elif not to_update and not append_tag and not delete_tag:
             self.refreshdb(index)
             if index > 0:
                 self.print_bookmark(index)
@@ -1471,9 +1503,10 @@ if __name__ == '__main__':
     edit_group = argparser.add_argument_group(
         title='edit options',
         description='''--url keyword        specify url, works with -u only
---tag [+] [...]      set comma-separated tags, works with -a, -u
+--tag [+|-] [...]    set comma-separated tags, works with -a, -u
                      clears tags, if no arguments
                      appends tags, if preceded by '+'
+                     or delete tags, if preceded by '-'
 -t, --title [...]    manually set title, works with -a, -u
                      if no arguments:
                      -a: do not set title, -u: clear title
@@ -1614,17 +1647,21 @@ if __name__ == '__main__':
             new_url = ''
 
         append = False
+        delete = False
         if tagManual is not None:
-            if tagManual[0] == '+' and len(tagManual) == 1:
+            if (tagManual[0] == '+' or tagManual[0] == '-') and len(tagManual) == 1:
                 tagManual = None
             elif tagManual[0] == '+':
                 tagManual = tagManual[1:]
                 append = True
+            elif tagManual[0] == '-':
+                tagManual = tagManual[1:]
+                delete = True
 
         # Parse tags into a comma-separated string
         tags = parse_tags(tagManual)
 
-        bdb.update_bookmark(update_index, new_url, titleManual, tags, description, append)
+        bdb.update_bookmark(update_index, new_url, titleManual, tags, description, append, delete)
 
     # Delete record(s)
     if args.delete is not None:
