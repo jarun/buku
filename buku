@@ -45,12 +45,10 @@ interrupted = False     # Received SIGINT
 DELIMITER = ','         # Delimiter used to store tags in DB
 _VERSION_ = '2.3'       # Program version
 
-
 # Crypto globals
 BLOCKSIZE = 65536
 SALT_SIZE = 32
 CHUNKSIZE = 0x80000     # Read/write 512 KB chunks
-
 
 # Set up logging
 logging.basicConfig(format='[%(levelname)s] %(message)s')
