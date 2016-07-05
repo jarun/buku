@@ -33,7 +33,6 @@ import inspect
 import atexit
 import readline
 
-
 # Globals
 update = False          # Update a bookmark in DB
 tagManual = None        # Tags for update command
@@ -53,7 +52,6 @@ CHUNKSIZE = 0x80000     # Read/write 512 KB chunks
 # Set up logging
 logging.basicConfig(format='[%(levelname)s] %(message)s')
 logger = logging.getLogger()
-
 
 class BMHTMLParser(HTMLParser.HTMLParser):
     """Class to parse and fetch the title from a HTML page, if available"""
