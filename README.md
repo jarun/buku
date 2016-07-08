@@ -18,6 +18,8 @@
 
 Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2016/03/26/buku-xsel/)
 
+`buku` also has a [rofi frontend](https://github.com/carnager/buku_run) written by Rasmus Steinke.
+
 Got some suggestions? [![gitter chat](https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000)](https://gitter.im/jarun/Buku) with us.
 
 Find `buku` useful? If you would like to donate, visit the
