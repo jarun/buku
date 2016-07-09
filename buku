@@ -587,12 +587,13 @@ class BukuDb:
 
         self.conn.commit()
 
-    def searchdb(self, keywords, all_keywords=False):
+    def searchdb(self, keywords, all_keywords=False, delete=False):
         """Search the database for an entries with tags or URL
         or title info matching keywords and list those.
 
         :param keywords: keywords to search
         :param all_keywords: search any or all keywords
+        :param delete: delete search results
         """
 
         arguments = []
@@ -610,6 +611,8 @@ class BukuDb:
                 arguments += (token, token, token, token)
             query = query[:-3]
 
+        query = '%s ORDER BY id ASC' % query
+
         logger.debug('query: "%s", args: %s', query, arguments)
 
         self.cur.execute(query, arguments)
@@ -618,25 +621,36 @@ class BukuDb:
             return
 
         if not self.json:
-            prompt(results, self.noninteractive)
+            if not delete:
+                prompt(results, self.noninteractive, False)
+            else:
+                prompt(results, self.noninteractive, True)
         else:
             print(format_json(results, showOpt=self.showOpt))
 
-    def search_by_tag(self, tag):
+
+    def search_by_tag(self, tag, delete=False):
         """Search and list bookmarks with a tag
 
         :param tag: tag to search
         """
 
-        self.cur.execute("SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%'", (tag,))
+        query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC"
+        logger.debug('query: "%s", args: %s', query, tag)
+
+        self.cur.execute(query, (tag,))
         results = self.cur.fetchall()
         if len(results) == 0:
             return
 
         if not self.json:
-            prompt(results, self.noninteractive)
+            if not delete:
+                prompt(results, self.noninteractive, False)
+            else:
+                prompt(results, self.noninteractive, True)
         else:
             print(format_json(results, showOpt=self.showOpt))
+
 
     def compactdb(self, index):
         """When an entry at index is deleted, move the last
@@ -1170,7 +1184,7 @@ def parse_tags(keywords=None):
     return '%s%s%s' % (DELIMITER, DELIMITER.join(sortedTags), DELIMITER)
 
 
-def prompt(results, noninteractive=False):
+def prompt(results, noninteractive=False, delete=False):
     """Show each matching result from a search and prompt"""
 
     count = 0
@@ -1178,33 +1192,47 @@ def prompt(results, noninteractive=False):
         count += 1
         print_record(row, count)
 
-    if noninteractive:
-        return
-
-    while True:
-        try:
-            nav = input('Result number to open: ')
-            if not nav:
-                nav = input('Result number to open: ')
-                if not nav:
-                    # Quit on double enter
-                    break
-        except EOFError:
+    if delete:
+        resp = input('Delete the search results? Enter \x1b[1my\x1b[21m to confirm: ')
+        if resp != 'y'and resp != 'Y':
             return
 
-        if is_int(nav):
-            index = int(nav) - 1
-            if index < 0 or index >= count:
-                logger.error('Index out of bound')
-                continue
+        # delete records in reverse order
+        pos = len(results)-1;
+        while(pos >= 0):
+            idx = results[pos][0]
+            bdb.delete_bookmark(idx)
+            pos = pos -1
 
+    # prompt and open
+    else:
+        if noninteractive:
+            return
+
+        while True:
             try:
-                browser_open(unquote(results[index][1]))
-            except Exception as e:
-                _, _, linenumber, func, _, _ = inspect.stack()[0]
-                logger.error('%s(), ln %d: %s', func, linenumber, e)
-        else:
-            break
+                nav = input('Result number to open: ')
+                if not nav:
+                    nav = input('Result number to open: ')
+                    if not nav:
+                        # Quit on double enter
+                        break
+            except EOFError:
+                return
+
+            if is_int(nav):
+                index = int(nav) - 1
+                if index < 0 or index >= count:
+                    logger.error('Index out of bound')
+                    continue
+
+                try:
+                    browser_open(unquote(results[index][1]))
+                except Exception as e:
+                    _, _, linenumber, func, _, _ = inspect.stack()[0]
+                    logger.error('%s(), ln %d: %s', func, linenumber, e)
+            else:
+                break
 
 
 def print_record(row, count=0):
@@ -1616,8 +1644,27 @@ if __name__ == '__main__':
 
         bdb.update_bookmark(update_index, new_url, titleManual, tags, description, append)
 
-    # Delete record(s)
-    if args.delete is not None:
+    # Search URLs, titles, tags for any keyword and delete if wanted
+    if args.sany is not None:
+        bdb.searchdb(args.sany, False, (args.delete is not None))
+
+    # Search URLs, titles, tags with all keywords and delete if wanted
+    elif args.sall is not None:
+        if args.sall[0] == 'blank' and len(args.sall) == 1:
+            bdb.print_bookmark(0, True)
+        else:
+            bdb.searchdb(args.sall, True, (args.delete is not None))
+
+    # Search bookmarks by tag and delete if wanted
+    elif tagsearch:
+        if len(args.stag) > 0:
+            tag = '%s%s%s' % (DELIMITER, ' '.join(args.stag).strip(DELIMITER), DELIMITER)
+            bdb.search_by_tag(tag, (args.delete is not None))
+        else:
+            bdb.list_tags()
+
+    # Just delete record(s)
+    elif (args.delete is not None):
         if len(args.delete) == 0:
             bdb.delete_bookmark(0)
         elif len(args.delete) == 1 and '-' in args.delete[0]:
@@ -1646,25 +1693,6 @@ if __name__ == '__main__':
                     bdb.delete_bookmark(int(idx))
             except ValueError as e:
                 logger.error('Index should be numerical (>= 0)')
-
-    # Search URLs, titles, tags for any keyword
-    if args.sany is not None:
-        bdb.searchdb(args.sany, False)
-
-    # Search URLs, titles, tags with all keywords
-    if args.sall is not None:
-        if args.sall[0] == 'blank' and len(args.sall) == 1:
-            bdb.print_bookmark(0, True)
-        else:
-            bdb.searchdb(args.sall, True)
-
-    # Search bookmarks by tag
-    if tagsearch:
-        if len(args.stag) > 0:
-            tag = '%s%s%s' % (DELIMITER, ' '.join(args.stag).strip(DELIMITER), DELIMITER)
-            bdb.search_by_tag(tag)
-        else:
-            bdb.list_tags()
 
     # Print all records
     if args.printindex is not None:
