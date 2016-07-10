@@ -25,7 +25,7 @@ URLs are unique in DB. The same URL cannot be added twice. You can update tags a
 \fIDelete\fR operation:
   - When a record is deleted, the last record is moved to the index.
   - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
-  - Can delete the search results, when any of the search flag is combined with -d.
+  - Can delete bookmarks matching a search, when combined with any of the search options.
 .PP
 \fIUpdate\fR operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
@@ -57,7 +57,7 @@ in DB. If
 and other options are omitted, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only N is passed without any edit options, title is fetched and updated (if not empty).
 .TP
 .BI \-d " " \--delete " [...]"
-Delete bookmarks. You can either provide a single hyphenated range (e.g. 100-200) or a space-separated list of indices (e.g. 5 6 23 4 110 45). Note that range and list don't work together.
+Delete bookmarks. You can either provide a single hyphenated range (e.g. 100-200) or a space-separated list of indices (e.g. 5 6 23 4 110 45). Note that range and list don't work together. Deletes search results when combined with search options.
 .TP
 .BI \-h " " \--help
 Show program help and exit.

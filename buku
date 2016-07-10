@@ -621,10 +621,7 @@ class BukuDb:
             return
 
         if not self.json:
-            if not delete:
-                prompt(results, self.noninteractive, False)
-            else:
-                prompt(results, self.noninteractive, True)
+            prompt(results, self.noninteractive, delete)
         else:
             print(format_json(results, showOpt=self.showOpt))
 
@@ -644,10 +641,7 @@ class BukuDb:
             return
 
         if not self.json:
-            if not delete:
-                prompt(results, self.noninteractive, False)
-            else:
-                prompt(results, self.noninteractive, True)
+            prompt(results, self.noninteractive, delete)
         else:
             print(format_json(results, showOpt=self.showOpt))
 
@@ -1478,6 +1472,7 @@ if __name__ == '__main__':
 -d, --delete [...]   delete bookmarks. Valid inputs: either
                      a hyphenated single range (100-200),
                      OR space-separated indices (100 15 200)
+                     delete search results with search options
                      delete all bookmarks, if no arguments
 -h, --help           show this information and exit''')
     general_group.add_argument('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'), help=argparse.SUPPRESS)

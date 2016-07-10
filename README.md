@@ -135,6 +135,7 @@ Please substitute `$version` with the appropriate package version.
       -d, --delete [...]   delete bookmarks. Valid inputs: either
                            a hyphenated single range (100-200),
                            OR space-separated indices (100 15 200)
+                           delete search results with search options
                            delete all bookmarks, if no arguments
       -h, --help           show this information and exit
 
@@ -209,6 +210,7 @@ Please substitute `$version` with the appropriate package version.
 - **Delete** operation:
   - When a record is deleted, the last record is moved to the index.
   - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
+  - Can delete bookmarks matching a search, when combined with any of the search options.
 - **Search** works in mysterious ways:
   - Case-insensitive.
   - Substrings match (`match` matches `rematched`) for URL, title and tags.
