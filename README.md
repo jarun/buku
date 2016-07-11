@@ -141,9 +141,10 @@ Please substitute `$version` with the appropriate package version.
 
     edit options:
       --url keyword        specify url, works with -u only
-      --tag [+] [...]      set comma-separated tags, works with -a, -u
-                           clears tags, if no arguments
-                           appends tags, if preceded by '+'
+      --tag [+|-] [...]    set comma-separated tags, works with -a, -u
+                           clear tags, if no arguments
+                           append specified tags, if preceded by '+'
+                           remove specified tags, if preceded by '-'
       -t, --title [...]    manually set title, works with -a, -u
                            if no arguments:
                            -a: do not set title, -u: clear title
@@ -308,9 +309,10 @@ The same number of iterations must be used for one lock & unlock instance. Defau
 21. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-22. **Append tags** 'tag 1', 'tag 2' to existing tags of bookmark at index 15012014:
+22. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
+        $ buku -u 15012014 --tag - tag 1, tag 2
 23. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014

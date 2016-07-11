@@ -67,7 +67,7 @@ Show program help and exit.
 Specify the URL, works with -u only. Fetches and updates title if --title is not used.
 .TP
 .BI \--tag " [+|-] [...]"
-Specify comma separated tags, works with -a, -u. Clears the tags, if no arguments passed. Appends tags, if list of tags is preceded by '+'.Delete tags, if list of tags is preceded by '-'.
+Specify comma separated tags, works with -a, -u. Clears the tags, if no arguments passed. Appends or deletes tags, if list of tags is preceded by '+' or '-' respectively.
 .TP
 .BI \-t " " \--title " [...]"
 Manually specify the title, works with -a, -u. Omits or clears the title, if no arguments passed.
@@ -351,11 +351,12 @@ The same number of iterations must be used for one lock & unlock instance. Defau
 .B buku -r 'old tag'
 .PP
 .IP 22. 4
-\fBAppend tags\fR 'tag 1', 'tag 2' to existing tags of bookmark at index 15012014:
+\fBAppend (or delete) tags\fR 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 .PP
 .EX
 .IP
 .B buku -u 15012014 --tag + tag 1, tag 2
+.B buku -u 15012014 --tag - tag 1, tag 2
 .PP
 .IP 23. 4
 \fBOpen URL\fR at index 15012014 in browser:
