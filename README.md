@@ -12,32 +12,27 @@
 <a href="https://asciinema.org/a/b7ymahqwgt92jev32q4cmcm8h"><img src="https://asciinema.org/a/b7ymahqwgt92jev32q4cmcm8h.png" alt="Asciicast" width="625"/></a>
 </p>
 
-`buku` is a powerful cmdline bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable and merge-able database. Hence, `Buku` (after my son's nickname).
+`buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `Buku` (after my son's nickname).
 
-`buku` can handle piped input, which lets you combine it with `xsel` (on Linux) and add bookmarks from anywhere without touching the terminal.
+`buku` can handle piped input, which lets you combine it with `xsel` (on Linux) and add bookmarks from anywhere without touching the terminal. Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2016/03/26/buku-xsel/)
 
-Ref: [buku & xsel: add selected or copied URL as bookmark](http://tuxdiary.com/2016/03/26/buku-xsel/)
+`buku` has a [rofi frontend](https://github.com/carnager/buku_run) written by Rasmus Steinke.
 
-`buku` also has a [rofi frontend](https://github.com/carnager/buku_run) written by Rasmus Steinke.
+[![gitter chat](https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000)](https://gitter.im/jarun/Buku)
 
-Got some suggestions? [![gitter chat](https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000)](https://gitter.im/jarun/Buku) with us.
-
-Find `buku` useful? If you would like to donate, visit the
-[![Donate Button](https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q) page.
-
-Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
+[![Donate Button](https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q)
 
 # Features
 
-- Add, tag, comment on, search, update, remove bookmarks
+- Add, open, tag, comment on, search, update, remove bookmarks
 - Merge-able portable database, to sync between systems
 - Import/export bookmarks HTML (Firefox, Google Chrome, IE compatible)
-- Fetch page title from web (default), refresh all titles in a go
-- Open search results directly in browser
+- Fetch page title from web, refresh all titles in a go
+- Open search results directly in default browser
 - Manual password protection using AES256 encryption
 - Tab-completion scripts (Bash, Fish, Zsh), man page with examples
 - Several options for power users (see help or man page)
-- Fast and clean interface
+- Fast and clean interface, distinct symbols for record fields
 - Minimal dependencies
 
 # Table of Contents
@@ -334,6 +329,6 @@ Pull requests are welcome. Please visit [#14](https://github.com/jarun/Buku/issu
 
 # Developers
 
-[Arun Prakash Jana](mailto:engineerarun@gmail.com)
-
+[Arun Prakash Jana](mailto:engineerarun@gmail.com)  
+Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).  
 Special thanks to the community for valuable suggestions and ideas.
