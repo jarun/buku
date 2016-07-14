@@ -1,3 +1,21 @@
+-------------------------------------------------------------------------------
+
+Buku v2.3
+2016-07-14
+
+Modifications
+- Delete a range or a list of indices
+- Delete tag from tagset by bookmark index
+- Delete results of a particular search
+- Linked to rofi front-end script project for Buku
+- Use the logging framework for debug info instead of print
+- Fixed an issue with gzip stream decoding
+- Using only relative path to fetch resource on server
+- Fixed auto-completion errors with zsh
+- A lot of code cleanup and globals removed, additional test cases
+
+-------------------------------------------------------------------------------
+
 Buku v2.2
 2016-06-12
 
