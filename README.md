@@ -73,8 +73,8 @@ or on Ubuntu:
 
 If you have git installed, run:
 
-    $ git clone https://github.com/jarun/buku/
-or download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/buku/archive/master.zip).
+    $ git clone https://github.com/jarun/Buku/
+or download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip).
 
 Install to default location (`/usr/local`):
 
@@ -329,6 +329,6 @@ Pull requests are welcome. Please visit [#14](https://github.com/jarun/Buku/issu
 
 # Developers
 
-[Arun Prakash Jana](mailto:engineerarun@gmail.com)  
-Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).  
+[Arun Prakash Jana](mailto:engineerarun@gmail.com)
+Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
 Special thanks to the community for valuable suggestions and ideas.

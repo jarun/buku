@@ -1452,7 +1452,7 @@ symbols:
 Version %s
 Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
 License: GPLv3
-Webpage: https://github.com/jarun/buku
+Webpage: https://github.com/jarun/Buku
 ''' % _VERSION_)
 
     # Help
