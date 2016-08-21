@@ -723,8 +723,7 @@ class BukuDb:
                 print('No bookmarks deleted')
                 return
 
-            self.cur.execute('DROP TABLE if exists bookmarks')
-            self.conn.commit()
+            self.delete_all_bookmarks()
             print('All bookmarks deleted')
         else:  # Remove a single entry
             try:
@@ -737,6 +736,14 @@ class BukuDb:
                     logger.error('No matching index')
             except IndexError:
                 logger.error('Index out of bound')
+
+    def delete_all_bookmarks(self):
+        """Should only be called inside of delete_bookmark
+        Drops the bookmark table if it exists
+        """
+
+        self.cur.execute('DROP TABLE if exists bookmarks')
+        self.conn.commit()
 
     def print_bookmark(self, index, empty=False):
         """Print bookmark details at index or all bookmarks if index is 0

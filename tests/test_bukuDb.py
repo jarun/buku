@@ -178,7 +178,16 @@ class TestBukuDb(unittest.TestCase):
         from_db = bdb.get_bookmark_by_index(index)
         self.assertIsNone(from_db)
 
-        # TODO: test deleting all bookmarks (index == 0)
+    # @unittest.skip('skipping')
+    def test_delete_all_bookmarks(self):
+        bdb = BukuDb()
+        # adding bookmarks
+        bdb.add_bookmark(*self.bookmarks[0])
+        # deleting all bookmarks
+        bdb.delete_all_bookmarks()
+        # assert table has been dropped
+        with self.assertRaises(sqlite3.OperationalError):
+            bdb.get_bookmark_by_index(0)
 
     # @unittest.skip('skipping')
     def test_replace_tag(self):
