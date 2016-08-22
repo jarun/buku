@@ -103,6 +103,22 @@ class TestBukuDb(unittest.TestCase):
         conn.close()
 
     # @unittest.skip('skipping')
+    def test_get_bookmark_by_index(self):
+        bdb = BukuDb()
+        for bookmark in self.bookmarks:
+            # adding bookmark from self.bookmarks
+            bdb.add_bookmark(*bookmark)
+
+        # the expected bookmark at index 1
+        expected = (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,',
+                "News for old nerds, stuff that doesn't matter")
+        bookmark_from_db = bdb.get_bookmark_by_index(1)
+        # asserting bookmark matches expected
+        self.assertEqual(expected, bookmark_from_db)
+        # asserting None returned if index out of range
+        self.assertIsNone(bdb.get_bookmark_by_index(4))
+
+    # @unittest.skip('skipping')
     def test_get_bookmark_index(self):
         bdb = BukuDb()
         for idx, bookmark in enumerate(self.bookmarks):
