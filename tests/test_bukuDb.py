@@ -109,14 +109,14 @@ class TestBukuDb(unittest.TestCase):
             # adding bookmark from self.bookmarks
             bdb.add_bookmark(*bookmark)
 
-        # the expected bookmark at index 1
+        # the expected bookmark
         expected = (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,',
                 "News for old nerds, stuff that doesn't matter")
         bookmark_from_db = bdb.get_bookmark_by_index(1)
         # asserting bookmark matches expected
         self.assertEqual(expected, bookmark_from_db)
         # asserting None returned if index out of range
-        self.assertIsNone(bdb.get_bookmark_by_index(4))
+        self.assertIsNone(bdb.get_bookmark_by_index( len(self.bookmarks[0]) + 1 ))
 
     # @unittest.skip('skipping')
     def test_get_bookmark_index(self):
@@ -166,6 +166,24 @@ class TestBukuDb(unittest.TestCase):
         # checking if values are updated
         for pair in zip(from_db[1:], new_values):
             self.assertEqual(*pair)
+
+    # @unittest.skip('skipping')
+    def test_append_tag_at_index(self):
+        bdb = BukuDb()
+        for bookmark in self.bookmarks:
+            bdb.add_bookmark(*bookmark)
+
+        # tags to add
+        old_tags = bdb.get_bookmark_by_index(1)[3]
+        new_tags = ",foo,bar,baz"
+        bdb.append_tag_at_index(1, new_tags)
+        # updated list of tags
+        from_db = bdb.get_bookmark_by_index(1)[3]
+
+        # checking if new tags were added to the bookmark
+        self.assertTrue(any( x in new_tags.split(',') for x in from_db.split(',') ))
+        # checking if old tags still exist
+        self.assertTrue(any( x in old_tags.split(',') for x in from_db.split(',') ))
 
     # @unittest.skip('skipping')
     def test_refreshdb(self):
