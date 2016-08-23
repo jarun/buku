@@ -181,9 +181,9 @@ class TestBukuDb(unittest.TestCase):
         from_db = bdb.get_bookmark_by_index(1)[3]
 
         # checking if new tags were added to the bookmark
-        self.assertTrue(any( x in new_tags.split(',') for x in from_db.split(',') ))
+        self.assertTrue(all( x in from_db.split(',') for x in new_tags.split(',') ))
         # checking if old tags still exist
-        self.assertTrue(any( x in old_tags.split(',') for x in from_db.split(',') ))
+        self.assertTrue(all( x in from_db.split(',') for x in old_tags.split(',') ))
 
     # @unittest.skip('skipping')
     def test_refreshdb(self):
