@@ -446,6 +446,21 @@ class BukuDb:
         :tag_manual: string of comma-separated tags to add manually
         """
 
+        self.select_tags_from_bookmarks(index)
+        resultset = self.cur.fetchall()
+        for row in resultset:
+            tags = '%s%s' % (row[1], tag_manual[1:])
+            tags = parse_tags([tags])
+            self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (tags, row[0],))
+
+        self.conn.commit()
+
+    def select_tags_from_bookmarks(self, index):
+        """ Select either the tags for one bookmark or all bookmarks
+
+        :param index: int position of record, 0 for all
+        """
+
         if index == 0:
             resp = input('Tags will be appended for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
             if resp != 'y':
@@ -454,14 +469,6 @@ class BukuDb:
             self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
         else:
             self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))
-
-        resultset = self.cur.fetchall()
-        for row in resultset:
-            tags = '%s%s' % (row[1], tag_manual[1:])
-            tags = parse_tags([tags])
-            self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (tags, row[0],))
-
-        self.conn.commit()
 
     def delete_tag_at_index(self, index, tag_manual):
         """ Delete tags for bookmark at index
@@ -723,8 +730,7 @@ class BukuDb:
                 print('No bookmarks deleted')
                 return
 
-            self.cur.execute('DROP TABLE if exists bookmarks')
-            self.conn.commit()
+            self.delete_all_bookmarks()
             print('All bookmarks deleted')
         else:  # Remove a single entry
             try:
@@ -737,6 +743,14 @@ class BukuDb:
                     logger.error('No matching index')
             except IndexError:
                 logger.error('Index out of bound')
+
+    def delete_all_bookmarks(self):
+        """Should only be called inside of delete_bookmark
+        Drops the bookmark table if it exists
+        """
+
+        self.cur.execute('DROP TABLE if exists bookmarks')
+        self.conn.commit()
 
     def print_bookmark(self, index, empty=False):
         """Print bookmark details at index or all bookmarks if index is 0

@@ -103,6 +103,22 @@ class TestBukuDb(unittest.TestCase):
         conn.close()
 
     # @unittest.skip('skipping')
+    def test_get_bookmark_by_index(self):
+        bdb = BukuDb()
+        for bookmark in self.bookmarks:
+            # adding bookmark from self.bookmarks
+            bdb.add_bookmark(*bookmark)
+
+        # the expected bookmark
+        expected = (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,',
+                "News for old nerds, stuff that doesn't matter")
+        bookmark_from_db = bdb.get_bookmark_by_index(1)
+        # asserting bookmark matches expected
+        self.assertEqual(expected, bookmark_from_db)
+        # asserting None returned if index out of range
+        self.assertIsNone(bdb.get_bookmark_by_index( len(self.bookmarks[0]) + 1 ))
+
+    # @unittest.skip('skipping')
     def test_get_bookmark_index(self):
         bdb = BukuDb()
         for idx, bookmark in enumerate(self.bookmarks):
@@ -152,6 +168,24 @@ class TestBukuDb(unittest.TestCase):
             self.assertEqual(*pair)
 
     # @unittest.skip('skipping')
+    def test_append_tag_at_index(self):
+        bdb = BukuDb()
+        for bookmark in self.bookmarks:
+            bdb.add_bookmark(*bookmark)
+
+        # tags to add
+        old_tags = bdb.get_bookmark_by_index(1)[3]
+        new_tags = ",foo,bar,baz"
+        bdb.append_tag_at_index(1, new_tags)
+        # updated list of tags
+        from_db = bdb.get_bookmark_by_index(1)[3]
+
+        # checking if new tags were added to the bookmark
+        self.assertTrue(any( x in new_tags.split(',') for x in from_db.split(',') ))
+        # checking if old tags still exist
+        self.assertTrue(any( x in old_tags.split(',') for x in from_db.split(',') ))
+
+    # @unittest.skip('skipping')
     def test_refreshdb(self):
         bdb = BukuDb()
 
@@ -178,7 +212,16 @@ class TestBukuDb(unittest.TestCase):
         from_db = bdb.get_bookmark_by_index(index)
         self.assertIsNone(from_db)
 
-        # TODO: test deleting all bookmarks (index == 0)
+    # @unittest.skip('skipping')
+    def test_delete_all_bookmarks(self):
+        bdb = BukuDb()
+        # adding bookmarks
+        bdb.add_bookmark(*self.bookmarks[0])
+        # deleting all bookmarks
+        bdb.delete_all_bookmarks()
+        # assert table has been dropped
+        with self.assertRaises(sqlite3.OperationalError):
+            bdb.get_bookmark_by_index(0)
 
     # @unittest.skip('skipping')
     def test_replace_tag(self):
