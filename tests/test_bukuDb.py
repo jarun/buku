@@ -284,7 +284,7 @@ def test_print_bookmark(capsys, caplog, setup):
     bdb.print_bookmark(1)
     out, err = capsys.readouterr()
 
-    for record in caplog.records:
+    for record in caplog.records():
         assert record.levelname == "ERROR"
         assert record.getMessage() == "No matching index"
     assert (out, err) == ('', '')
