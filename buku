@@ -439,15 +439,17 @@ class BukuDb:
             _, _, linenumber, func, _, _ = inspect.stack()[0]
             logger.error('%s(), ln %d: %s', func, linenumber, e)
 
-    def append_tag_at_index(self, index, tag_manual):
+    def append_tag_at_index(self, index, tag_manual, input_func=None):
         """ Append tags for bookmark at index
 
         :param index: int position of record, 0 for all
         :tag_manual: string of comma-separated tags to add manually
         """
 
+        input_func = input_func or self.select_all_tags_from_bookmarks
+
         if index == 0:
-            if self.select_all_tags_from_bookmarks(self.prompt_append_all_bookmarks) == None:
+            if self.select_all_tags_from_bookmarks(input_func) == None:
                 return
         else:
             self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))

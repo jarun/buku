@@ -186,6 +186,28 @@ class TestBukuDb(unittest.TestCase):
         self.assertTrue(all( x in from_db.split(',') for x in old_tags.split(',') ))
 
     # @unittest.skip('skipping')
+    def test_append_tag_at_all_indices(self):
+        bdb = BukuDb()
+        for bookmark in self.bookmarks:
+            bdb.add_bookmark(*bookmark)
+
+        inclusive_range = lambda start, end: range(start, end + 1)
+        old_tags = [ bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) ]
+        # tag to add
+        new_tags = ",foo,bar,baz"
+        bdb.append_tag_at_index(0, new_tags, input_func=lambda: "y")
+        # updated list of all tags
+        # each element is a two-tuple containing the bookmark index in the db and the tags for that bookmark
+        from_db = [ bdb.get_bookmark_by_index(i)[:4:3] for i in inclusive_range(1, len(self.bookmarks)) ]
+
+        for index, tags in from_db:
+            index = index - 1
+            # checking if new tags were added
+            self.assertTrue(all( x in tags.split(',') for x in new_tags.split(',') ))
+            # checking if old togs still exist
+            self.assertTrue(all( x in tags.split(',') for x in old_tags[index].split(',') ))
+
+    @unittest.skip('skipping')
     def test_refreshdb(self):
         bdb = BukuDb()
 
