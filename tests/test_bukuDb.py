@@ -257,6 +257,20 @@ class TestBukuDb(unittest.TestCase):
             elif title == "test":
                 self.assertEqual(from_db[3], parse_tags(["test,tes,est,__04"]))
 
+    # @unittest.skip('skipping')
+    def test_select_all_tags_from_bookmarks(self):
+        bdb = BukuDb()
+
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            bdb.add_bookmark(*bookmark)
+
+        # checking if None returned for non-"y" response
+        self.assertIsNone(bdb.select_all_tags_from_bookmarks(lambda: "n"))
+        # checking if all tags are selected when response "y"
+        bdb.select_all_tags_from_bookmarks(lambda: "y")
+        self.assertEqual([(1, ',news,old,'), (2, ',gęślą,jaźń,zażółć,'), (3, ',es,est,tes,test,')], bdb.cur.fetchall())
+
     # def test_browse_by_index(self):
         # self.fail()
 

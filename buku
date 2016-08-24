@@ -446,7 +446,12 @@ class BukuDb:
         :tag_manual: string of comma-separated tags to add manually
         """
 
-        self.select_tags_from_bookmarks(index)
+        if index == 0:
+            if self.select_all_tags_from_bookmarks(self.prompt_append_all_bookmarks) == None:
+                return
+        else:
+            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))
+
         resultset = self.cur.fetchall()
         for row in resultset:
             tags = '%s%s' % (row[1], tag_manual[1:])
@@ -455,20 +460,21 @@ class BukuDb:
 
         self.conn.commit()
 
-    def select_tags_from_bookmarks(self, index):
-        """ Select either the tags for one bookmark or all bookmarks
+    def select_all_tags_from_bookmarks(self, input_function):
+        """ Return all tags for all bookmarks along with id's
 
-        :param index: int position of record, 0 for all
+        :param input_function: function to pass in to confirm selection
         """
 
-        if index == 0:
-            resp = input('Tags will be appended for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
-            if resp != 'y':
-                return
+        resp = input_function()
+        if resp != 'y':
+            return
 
-            self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
-        else:
-            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))
+        self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
+        return True
+
+    def prompt_append_all_bookmarks(self):
+        return input('Tags will be appended for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
 
     def delete_tag_at_index(self, index, tag_manual):
         """ Delete tags for bookmark at index
@@ -479,12 +485,8 @@ class BukuDb:
         tags_to_delete = tag_manual.strip(DELIMITER).split(DELIMITER)
 
         if index == 0:
-            resp = input('Tags will be deleted for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
-            if resp != 'y':
+            if self.select_all_tags_like(tags_to_delete, self.prompt_delete_all_bookmarks) == None:
                 return
-
-            for tag in tags_to_delete:
-                self.cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC", (tag,))
         else:
             self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))
 
@@ -499,6 +501,25 @@ class BukuDb:
             self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (parse_tags([tags]), row[0],))
 
         self.conn.commit()
+
+    def select_all_tags_like(self, tags, input_function):
+        """ Select all tags from a list of tags
+
+        :param tags: list of tags to look for
+        :param input_function: function to pass in to confirm selection
+        """
+
+        resp = input_function()
+        if resp != 'y':
+            return
+
+        for tag in tags:
+            self.cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC", (tag,))
+
+        return True
+
+    def prompt_delete_all_bookmarks(self):
+        return input('Tags will be deleted for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
 
     def update_bookmark(self, index, url='', title_manual=None,
                         tag_manual=None, desc=None, append_tag=False, delete_tag=False):
