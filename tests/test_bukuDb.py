@@ -186,6 +186,28 @@ class TestBukuDb(unittest.TestCase):
         self.assertTrue(all( x in from_db.split(',') for x in old_tags.split(',') ))
 
     # @unittest.skip('skipping')
+    def test_append_tag_at_all_indices(self):
+        bdb = BukuDb()
+        for bookmark in self.bookmarks:
+            bdb.add_bookmark(*bookmark)
+
+        inclusive_range = lambda start, end: range(start, end + 1)
+        old_tags = [ bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) ]
+        # tag to add
+        new_tags = ",foo,bar,baz"
+        bdb.append_tag_at_index(0, new_tags, input_func=lambda: "y")
+        # updated list of all tags
+        # each element is a two-tuple containing the bookmark index in the db and the tags for that bookmark
+        from_db = [ bdb.get_bookmark_by_index(i)[:4:3] for i in inclusive_range(1, len(self.bookmarks)) ]
+
+        for index, tags in from_db:
+            index = index - 1
+            # checking if new tags were added
+            self.assertTrue(all( x in tags.split(',') for x in new_tags.split(',') ))
+            # checking if old togs still exist
+            self.assertTrue(all( x in tags.split(',') for x in old_tags[index].split(',') ))
+
+    # @unittest.skip('skipping')
     def test_refreshdb(self):
         bdb = BukuDb()
 
@@ -218,10 +240,52 @@ class TestBukuDb(unittest.TestCase):
         # adding bookmarks
         bdb.add_bookmark(*self.bookmarks[0])
         # deleting all bookmarks
-        bdb.delete_all_bookmarks()
+        bdb.delete_all_bookmarks(lambda: "y")
         # assert table has been dropped
         with self.assertRaises(sqlite3.OperationalError):
             bdb.get_bookmark_by_index(0)
+
+    # @unittest.skip('skipping')
+    def test_delete_tag_at_index(self):
+        bdb = BukuDb()
+        # adding bookmark and getting index
+        bookmark_to_add = self.bookmarks[0]
+        tags = bookmark_to_add[3]
+        # adding bookmark
+        bdb.add_bookmark(*bookmark_to_add)
+        index = bdb.get_bookmark_index(bookmark_to_add[0])
+
+        # get tag to delete
+        target_tag = tags.split(',')[1]
+        # delete tag
+        bdb.delete_tag_at_index(index, target_tag)
+        from_db = bdb.get_bookmark_by_index(index)[3]
+        # checking tag no longer exists
+        self.assertFalse( target_tag in from_db.split(',') )
+        # checking non-"y" response returns None
+        self.assertIsNone( bdb.delete_tag_at_index(0, target_tag, input_func=lambda: "n") )
+
+    @unittest.skip('skipping')
+    def test_delete_tag_at_all_indices(self):
+        # test currently fails
+        # only the last tag in the tags_to_delete string is removed from all bookmarks
+
+        bdb = BukuDb()
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            bdb.add_bookmark(*bookmark)
+
+        inclusive_range = lambda start, end: range(start, end + 1)
+        # string of tags to remove
+        tags_to_delete = ',old,jaźń,est,'
+        # deleting tags
+        bdb.delete_tag_at_index(0, tags_to_delete, input_func=lambda: "y")
+        # list of strings; each string is tagset for a bookmark
+        all_tags = [ bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) ]
+
+        for tagset in all_tags:
+            # checking that no tags marked for deletion still exist
+            self.assertTrue(all( x not in tagset.split(',') for x in tags_to_delete.split(',') if x ))
 
     # @unittest.skip('skipping')
     def test_replace_tag(self):
@@ -257,6 +321,20 @@ class TestBukuDb(unittest.TestCase):
             elif title == "test":
                 self.assertEqual(from_db[3], parse_tags(["test,tes,est,__04"]))
 
+    # @unittest.skip('skipping')
+    def test_select_all_tags_from_bookmarks(self):
+        bdb = BukuDb()
+
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            bdb.add_bookmark(*bookmark)
+
+        # checking if None returned for non-"y" response
+        self.assertIsNone(bdb.select_all_tags_from_bookmarks(lambda: "n"))
+        # checking if all tags are selected when response "y"
+        bdb.select_all_tags_from_bookmarks(lambda: "y")
+        self.assertEqual([(1, ',news,old,'), (2, ',gęślą,jaźń,zażółć,'), (3, ',es,est,tes,test,')], bdb.cur.fetchall())
+
     # def test_browse_by_index(self):
         # self.fail()
 
@@ -284,7 +362,7 @@ def test_print_bookmark(capsys, caplog, setup):
     bdb.print_bookmark(1)
     out, err = capsys.readouterr()
 
-    for record in caplog.records:
+    for record in caplog.records():
         assert record.levelname == "ERROR"
         assert record.getMessage() == "No matching index"
     assert (out, err) == ('', '')

@@ -439,14 +439,21 @@ class BukuDb:
             _, _, linenumber, func, _, _ = inspect.stack()[0]
             logger.error('%s(), ln %d: %s', func, linenumber, e)
 
-    def append_tag_at_index(self, index, tag_manual):
+    def append_tag_at_index(self, index, tag_manual, input_func=None):
         """ Append tags for bookmark at index
 
         :param index: int position of record, 0 for all
         :tag_manual: string of comma-separated tags to add manually
         """
 
-        self.select_tags_from_bookmarks(index)
+
+        if index == 0:
+            input_func = input_func or self.prompt_append_all_bookmarks
+            if self.select_all_tags_from_bookmarks(input_func) == None:
+                return
+        else:
+            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))
+
         resultset = self.cur.fetchall()
         for row in resultset:
             tags = '%s%s' % (row[1], tag_manual[1:])
@@ -455,36 +462,36 @@ class BukuDb:
 
         self.conn.commit()
 
-    def select_tags_from_bookmarks(self, index):
-        """ Select either the tags for one bookmark or all bookmarks
+    def select_all_tags_from_bookmarks(self, input_function):
+        """ Return all tags for all bookmarks along with id's
 
-        :param index: int position of record, 0 for all
+        :param input_func: function to pass in which collects input for user selection
         """
 
-        if index == 0:
-            resp = input('Tags will be appended for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
-            if resp != 'y':
-                return
+        resp = input_function()
+        if resp != 'y':
+            return
 
-            self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
-        else:
-            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))
+        self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
+        return True
 
-    def delete_tag_at_index(self, index, tag_manual):
+    def prompt_append_all_bookmarks(self):
+        return input('Tags will be appended for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
+
+    def delete_tag_at_index(self, index, tag_manual, input_func=None):
         """ Delete tags for bookmark at index
 
         :param index: int position of record, 0 for all
         :tag_manual: string of comma-separated tags to delete manually
+        :param input_func: function to pass in which collects input for user selection
         """
+
         tags_to_delete = tag_manual.strip(DELIMITER).split(DELIMITER)
 
         if index == 0:
-            resp = input('Tags will be deleted for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
-            if resp != 'y':
+            input_func = input_func or self.prompt_delete_tags_all_bookmarks
+            if self.select_all_tags_like(tags_to_delete, input_func) == None:
                 return
-
-            for tag in tags_to_delete:
-                self.cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC", (tag,))
         else:
             self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))
 
@@ -499,6 +506,27 @@ class BukuDb:
             self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (parse_tags([tags]), row[0],))
 
         self.conn.commit()
+
+        return True
+
+    def select_all_tags_like(self, tags, input_func):
+        """ Select all tags from a list of tags
+
+        :param tags: list of tags to look for
+        :param input_func: function to pass in which collects input for user selection
+        """
+
+        resp = input_func()
+        if resp != 'y':
+            return
+
+        for tag in tags:
+            self.cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC", (tag,))
+
+        return True
+
+    def prompt_delete_tags_all_bookmarks(self):
+        return input('Tags will be deleted for ALL bookmarks. Enter \x1b[1my\x1b[21m to confirm: ')
 
     def update_bookmark(self, index, url='', title_manual=None,
                         tag_manual=None, desc=None, append_tag=False, delete_tag=False):
@@ -708,11 +736,13 @@ class BukuDb:
                     self.conn.commit()
                     print('Index %d moved to %d' % (row[0], index))
 
-    def delete_bookmark(self, index, low=0, high=0, is_range=False):
+    def delete_bookmark(self, index, low=0, high=0, is_range=False, input_func=None):
         """Delete a single record or remove the table if index is None
 
-        Params: index to delete
+        :param index: bookmark at index to delete, 0 for delete all bookmarks
+        :param input_func: function to pass in which collects input for user selection
         """
+
 
         if is_range:
             try:
@@ -725,9 +755,8 @@ class BukuDb:
             for index in range(low, high + 1):
                 self.compactdb(index)
         elif index == 0:  # Remove the table
-            resp = input('ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ')
-            if resp != 'y':
-                print('No bookmarks deleted')
+            input_func = input_func or self.prompt_delete_all_bookmarks
+            if self.delete_all_bookmarks(input_func) == None:
                 return
 
             self.delete_all_bookmarks()
@@ -744,13 +773,23 @@ class BukuDb:
             except IndexError:
                 logger.error('Index out of bound')
 
-    def delete_all_bookmarks(self):
+    def delete_all_bookmarks(self, input_func):
         """Should only be called inside of delete_bookmark
         Drops the bookmark table if it exists
         """
+        #resp = input('ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ')
+        resp = input_func()
+        if resp != 'y':
+            print('No bookmarks deleted')
+            return
 
         self.cur.execute('DROP TABLE if exists bookmarks')
         self.conn.commit()
+
+        return True
+
+    def prompt_delete_all_bookmarks(self):
+        return input('ALL bookmarks will be removed. Enter \x1b[1my\x1b[21m to confirm: ')
 
     def print_bookmark(self, index, empty=False):
         """Print bookmark details at index or all bookmarks if index is 0
