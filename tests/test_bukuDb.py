@@ -4,6 +4,7 @@
 from genericpath import exists
 import imp
 import os
+import re
 from tempfile import TemporaryDirectory
 import unittest, pytest
 from unittest import mock
@@ -185,6 +186,49 @@ class TestBukuDb(unittest.TestCase):
         self.assertTrue(all( x in from_db.split(',') for x in new_tags.split(',') ))
         # checking if old tags still exist
         self.assertTrue(all( x in from_db.split(',') for x in old_tags.split(',') ))
+
+    # @unittest.skip('skipping')
+    def test_append_tag_at_all_indices(self):
+        bdb = BukuDb()
+        for bookmark in self.bookmarks:
+            bdb.add_bookmark(*bookmark)
+
+        inclusive_range = lambda start, end: range(start, end + 1)
+        # tags to add
+        new_tags = ",foo,bar,baz"
+        # record of original tags for each bookmark
+        old_tagsets = { i: bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
+
+        with mock.patch('builtins.input', return_value='y'):
+            bdb.append_tag_at_index(0, new_tags)
+            # updated tags for each bookmark
+            from_db = [ (i, bdb.get_bookmark_by_index(i)[3]) for i in inclusive_range(1, len(self.bookmarks)) ]
+            for index, tagset in from_db:
+                # checking if new tags added to bookmark
+                self.assertTrue(all( x in tagset.split(',') for x in new_tags.split(',') ))
+                # checking if old tags still exist for boomark
+                self.assertTrue(all( x in tagset.split(',') for x in old_tagsets[index].split(',') ))
+
+
+    # @unittest.skip('skipping')
+    def test_delete_tag_at_index(self):
+        bdb = BukuDb()
+
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            bdb.add_bookmark(*bookmark)
+
+        inclusive_range = lambda start, end: range(start, end + 1)
+        # dictionary of db bookmark index: tags
+        tags_by_index = { i: bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
+
+        for i, tags in tags_by_index.items():
+            # get the first tag from the bookmark
+            to_delete = re.match(',.*?,', tags).group(0)
+            bdb.delete_tag_at_index(i, to_delete)
+            # get updated tags from db
+            from_db = bdb.get_bookmark_by_index(i)[3]
+            self.assertNotIn(to_delete, from_db)
 
     # @unittest.skip('skipping')
     def test_refreshdb(self):
