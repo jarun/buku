@@ -6,6 +6,7 @@ import imp
 import os
 from tempfile import TemporaryDirectory
 import unittest, pytest
+from unittest import mock
 from os.path import join, expanduser
 import sqlite3
 
@@ -213,6 +214,20 @@ class TestBukuDb(unittest.TestCase):
         self.assertIsNone(from_db)
 
     # @unittest.skip('skipping')
+    def test_delete_bookmark_yes(self):
+        bdb = BukuDb()
+        # checking that "y" response causes delete_bookmark to return True
+        with mock.patch('builtins.input', return_value='y'):
+            self.assertTrue(bdb.delete_bookmark(0))
+
+    # @unittest.skip('skipping')
+    def test_delete_bookmark_no(self):
+        bdb = BukuDb()
+        # checking that non-"y" response causes delete_bookmark to return None
+        with mock.patch('builtins.input', return_value='n'):
+            self.assertIsNone(bdb.delete_bookmark(0))
+
+    # @unittest.skip('skipping')
     def test_delete_all_bookmarks(self):
         bdb = BukuDb()
         # adding bookmarks
@@ -284,7 +299,7 @@ def test_print_bookmark(capsys, caplog, setup):
     bdb.print_bookmark(1)
     out, err = capsys.readouterr()
 
-    for record in caplog.records:
+    for record in caplog.records():
         assert record.levelname == "ERROR"
         assert record.getMessage() == "No matching index"
     assert (out, err) == ('', '')
