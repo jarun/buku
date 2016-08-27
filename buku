@@ -1688,7 +1688,8 @@ if __name__ == '__main__':
         delete = False
         if tagManual is not None:
             if (tagManual[0] == '+' or tagManual[0] == '-') and len(tagManual) == 1:
-                tagManual = None
+                logger.error('Please specify a tag')
+                bdb.close_quit(1)
             elif tagManual[0] == '+':
                 tagManual = tagManual[1:]
                 append = True
