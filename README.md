@@ -22,7 +22,7 @@
 
 [![Donate Button](https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q)
 
-# Features
+## Features
 
 - Add, open, tag, comment on, search, update, remove bookmarks
 - Merge-able portable database, to sync between systems
@@ -35,7 +35,7 @@
 - Fast and clean interface, distinct symbols for record fields
 - Minimal dependencies
 
-# Table of Contents
+## Table of Contents
 
 - [Installation](#installation)
   - [Dependencies](#dependencies)
@@ -52,9 +52,9 @@
 - [Mentions](#mentions)
 - [Developers](#developers)
 
-# Installation
+## Installation
 
-## Dependencies
+### Dependencies
 
 `buku` requires Python 3.3 or later.
 
@@ -69,7 +69,7 @@ or on Ubuntu:
 
     $ sudo apt-get install python3-cryptography python3-bs4
 
-## Installing from this repository
+### Installing from this repository
 
 If you have git installed, run:
 
@@ -85,24 +85,24 @@ To remove, run:
     $ sudo make uninstall
 `PREFIX` is supported. You may need to use `sudo` with `PREFIX` depending on your permissions on destination directory.
 
-## Running as a standalone utility
+### Running as a standalone utility
 
 `buku` is a standalone utility. From the containing directory, run:
 
     $ ./buku
 
-## Shell completion
+### Shell completion
 
 Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
 
-## Installing with a package manager
+### Installing with a package manager
 
 `buku` is also available on
  - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux
  - Void Linux repos ( `$ sudo xbps-install -S buku` )
  - [Homebrew](http://braumeister.org/formula/buku) for OS X, or its Linux fork, [Linuxbrew](https://github.com/Linuxbrew/linuxbrew/blob/master/Library/Formula/buku.rb)
 
-## Debian package
+### Debian package
 
 If you are on a Debian (including Ubuntu) based system visit [the latest stable release](https://github.com/jarun/Buku/releases/latest) and download the`.deb`package. To install, run:
 
@@ -110,9 +110,9 @@ If you are on a Debian (including Ubuntu) based system visit [the latest stable 
 
 Please substitute `$version` with the appropriate package version.
 
-# Usage
+## Usage
 
-## Cmdline options
+### Cmdline options
 
 **NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
@@ -188,7 +188,7 @@ Please substitute `$version` with the appropriate package version.
       +                    comment
       #                    tags
 
-## Operational notes
+### Operational notes
 
 - The SQLite3 database file is stored in:
   - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
@@ -217,7 +217,7 @@ Please substitute `$version` with the appropriate package version.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 
-# Examples
+## Examples
 
 1. **Add** a bookmark with **tags** `linux news` and `open source`, **comment** `Informative website on Linux and open source`, **fetch page title** from the web:
 
@@ -319,15 +319,15 @@ The same number of iterations must be used for one lock & unlock instance. Defau
         $ buku
         $ man buku
 
-# Contributions
+## Contributions
 
 Pull requests are welcome. Please visit [#14](https://github.com/jarun/Buku/issues/14) for a list of TODOs.
 
-# Mentions
+## Mentions
 
 - [One Thing Well](http://onethingwell.org/post/144952807044/buku)
 
-# Developers
+## Developers
 
 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
