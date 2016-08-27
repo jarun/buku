@@ -744,6 +744,8 @@ class BukuDb:
             except IndexError:
                 logger.error('Index out of bound')
 
+        return True
+
     def delete_all_bookmarks(self):
         """Should only be called inside of delete_bookmark
         Drops the bookmark table if it exists
