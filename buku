@@ -485,20 +485,27 @@ class BukuDb:
 
             for tag in tags_to_delete:
                 self.cur.execute("SELECT id, tags FROM bookmarks WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC", (tag,))
+                resultset = self.cur.fetchall()
+
+                for row in resultset:
+                    tags = row[1]
+
+                    tags = tags.replace('%s%s%s' % (DELIMITER, tag, DELIMITER,), DELIMITER)
+                    self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (parse_tags([tags]), row[0],))
+
+                self.conn.commit()
         else:
             self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?', (index,))
+            resultset = self.cur.fetchall()
 
-        resultset = self.cur.fetchall()
+            for row in resultset:
+                tags = row[1]
 
-        for row in resultset:
-            tags = row[1]
+                for tag in tags_to_delete:
+                    tags = tags.replace('%s%s%s' % (DELIMITER, tag, DELIMITER,), DELIMITER)
 
-            for tag in tags_to_delete:
-                tags = tags.replace('%s%s%s' % (DELIMITER, tag, DELIMITER,), DELIMITER)
-
-            self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (parse_tags([tags]), row[0],))
-
-        self.conn.commit()
+                self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (parse_tags([tags]), row[0],))
+                self.conn.commit()
 
     def update_bookmark(self, index, url='', title_manual=None,
                         tag_manual=None, desc=None, append_tag=False, delete_tag=False):
