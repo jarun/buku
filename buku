@@ -1087,7 +1087,7 @@ def get_page_title(resp):
     if resp.headers.get('Content-Encoding') == 'gzip':
         payload = resp.read()
         logger.debug('gzip response')
-        data = gzip.GzipFile(fileobj=io.BytesIO(payload)).read()
+        data = gzip.decompress(payload)
     else:
         data = resp.read()
 
