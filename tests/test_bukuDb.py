@@ -57,6 +57,7 @@ class TestBukuDb(unittest.TestCase):
             os.remove(TEST_TEMP_DBFILE_PATH)
 
         self.bookmarks = TEST_BOOKMARKS
+        self.bdb = BukuDb()
 
     def tearDown(self):
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
@@ -106,44 +107,40 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_get_bookmark_by_index(self):
-        bdb = BukuDb()
         for bookmark in self.bookmarks:
             # adding bookmark from self.bookmarks
-            bdb.add_bookmark(*bookmark)
+            self.bdb.add_bookmark(*bookmark)
 
         # the expected bookmark
         expected = (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,',
                 "News for old nerds, stuff that doesn't matter")
-        bookmark_from_db = bdb.get_bookmark_by_index(1)
+        bookmark_from_db = self.bdb.get_bookmark_by_index(1)
         # asserting bookmark matches expected
         self.assertEqual(expected, bookmark_from_db)
         # asserting None returned if index out of range
-        self.assertIsNone(bdb.get_bookmark_by_index( len(self.bookmarks[0]) + 1 ))
+        self.assertIsNone(self.bdb.get_bookmark_by_index( len(self.bookmarks[0]) + 1 ))
 
     # @unittest.skip('skipping')
     def test_get_bookmark_index(self):
-        bdb = BukuDb()
         for idx, bookmark in enumerate(self.bookmarks):
             # adding bookmark from self.bookmarks to database
-            bdb.add_bookmark(*bookmark)
+            self.bdb.add_bookmark(*bookmark)
             # asserting index is in order
-            idx_from_db = bdb.get_bookmark_index(bookmark[0])
+            idx_from_db = self.bdb.get_bookmark_index(bookmark[0])
             self.assertEqual(idx + 1, idx_from_db)
 
         # asserting -1 is returned for nonexistent url
-        idx_from_db = bdb.get_bookmark_index("http://nonexistent.url")
+        idx_from_db = self.bdb.get_bookmark_index("http://nonexistent.url")
         self.assertEqual(-1, idx_from_db)
 
     # @unittest.skip('skipping')
     def test_add_bookmark(self):
-        bdb = BukuDb()
-
         for bookmark in self.bookmarks:
             # adding bookmark from self.bookmarks to database
-            bdb.add_bookmark(*bookmark)
+            self.bdb.add_bookmark(*bookmark)
             # retrieving bookmark from database
-            index = bdb.get_bookmark_index(bookmark[0])
-            from_db = bdb.get_bookmark_by_index(index)
+            index = self.bdb.get_bookmark_index(bookmark[0])
+            from_db = self.bdb.get_bookmark_by_index(index)
             self.assertIsNotNone(from_db)
             # comparing data
             for pair in zip(from_db[1:], bookmark):
@@ -153,17 +150,16 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_update_bookmark(self):
-        bdb = BukuDb()
         old_values = self.bookmarks[0]
         new_values = self.bookmarks[1]
 
         # adding bookmark and getting index
-        bdb.add_bookmark(*old_values)
-        index = bdb.get_bookmark_index(old_values[0])
+        self.bdb.add_bookmark(*old_values)
+        index = self.bdb.get_bookmark_index(old_values[0])
         # updating with new values
-        bdb.update_bookmark(index, *new_values)
+        self.bdb.update_bookmark(index, *new_values)
         # retrieving bookmark from database
-        from_db = bdb.get_bookmark_by_index(index)
+        from_db = self.bdb.get_bookmark_by_index(index)
         self.assertIsNotNone(from_db)
         # checking if values are updated
         for pair in zip(from_db[1:], new_values):
@@ -171,16 +167,15 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_append_tag_at_index(self):
-        bdb = BukuDb()
         for bookmark in self.bookmarks:
-            bdb.add_bookmark(*bookmark)
+            self.bdb.add_bookmark(*bookmark)
 
         # tags to add
-        old_tags = bdb.get_bookmark_by_index(1)[3]
+        old_tags = self.bdb.get_bookmark_by_index(1)[3]
         new_tags = ",foo,bar,baz"
-        bdb.append_tag_at_index(1, new_tags)
+        self.bdb.append_tag_at_index(1, new_tags)
         # updated list of tags
-        from_db = bdb.get_bookmark_by_index(1)[3]
+        from_db = self.bdb.get_bookmark_by_index(1)[3]
 
         # checking if new tags were added to the bookmark
         self.assertTrue(all( x in from_db.split(',') for x in new_tags.split(',') ))
@@ -189,20 +184,19 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_append_tag_at_all_indices(self):
-        bdb = BukuDb()
         for bookmark in self.bookmarks:
-            bdb.add_bookmark(*bookmark)
+            self.bdb.add_bookmark(*bookmark)
 
         inclusive_range = lambda start, end: range(start, end + 1)
         # tags to add
         new_tags = ",foo,bar,baz"
         # record of original tags for each bookmark
-        old_tagsets = { i: bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
+        old_tagsets = { i: self.bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
 
         with mock.patch('builtins.input', return_value='y'):
-            bdb.append_tag_at_index(0, new_tags)
+            self.bdb.append_tag_at_index(0, new_tags)
             # updated tags for each bookmark
-            from_db = [ (i, bdb.get_bookmark_by_index(i)[3]) for i in inclusive_range(1, len(self.bookmarks)) ]
+            from_db = [ (i, self.bdb.get_bookmark_by_index(i)[3]) for i in inclusive_range(1, len(self.bookmarks)) ]
             for index, tagset in from_db:
                 # checking if new tags added to bookmark
                 self.assertTrue(all( x in tagset.split(',') for x in new_tags.split(',') ))
@@ -212,31 +206,27 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_delete_tag_at_index(self):
-        bdb = BukuDb()
-
         # adding bookmarks
         for bookmark in self.bookmarks:
-            bdb.add_bookmark(*bookmark)
+            self.bdb.add_bookmark(*bookmark)
 
         inclusive_range = lambda start, end: range(start, end + 1)
         # dictionary of db bookmark index: tags
-        tags_by_index = { i: bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
+        tags_by_index = { i: self.bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
 
         for i, tags in tags_by_index.items():
             # get the first tag from the bookmark
             to_delete = re.match(',.*?,', tags).group(0)
-            bdb.delete_tag_at_index(i, to_delete)
+            self.bdb.delete_tag_at_index(i, to_delete)
             # get updated tags from db
-            from_db = bdb.get_bookmark_by_index(i)[3]
+            from_db = self.bdb.get_bookmark_by_index(i)[3]
             self.assertNotIn(to_delete, from_db)
 
     # @unittest.skip('skipping')
     def test_refreshdb(self):
-        bdb = BukuDb()
-
-        bdb.add_bookmark("https://www.google.com/ncr", "?")
-        bdb.refreshdb(1)
-        from_db = bdb.get_bookmark_by_index(1)
+        self.bdb.add_bookmark("https://www.google.com/ncr", "?")
+        self.bdb.refreshdb(1)
+        from_db = self.bdb.get_bookmark_by_index(1)
         self.assertEqual(from_db[2], "Google")
 
     # def test_searchdb(self):
@@ -247,67 +237,62 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_delete_bookmark(self):
-        bdb = BukuDb()
         # adding bookmark and getting index
-        bdb.add_bookmark(*self.bookmarks[0])
-        index = bdb.get_bookmark_index(self.bookmarks[0][0])
+        self.bdb.add_bookmark(*self.bookmarks[0])
+        index = self.bdb.get_bookmark_index(self.bookmarks[0][0])
         # deleting bookmark
-        bdb.delete_bookmark(index)
+        self.bdb.delete_bookmark(index)
         # asserting it doesn't exist
-        from_db = bdb.get_bookmark_by_index(index)
+        from_db = self.bdb.get_bookmark_by_index(index)
         self.assertIsNone(from_db)
 
     # @unittest.skip('skipping')
     def test_delete_bookmark_yes(self):
-        bdb = BukuDb()
         # checking that "y" response causes delete_bookmark to return True
         with mock.patch('builtins.input', return_value='y'):
-            self.assertTrue(bdb.delete_bookmark(0))
+            self.assertTrue(self.bdb.delete_bookmark(0))
 
     # @unittest.skip('skipping')
     def test_delete_bookmark_no(self):
-        bdb = BukuDb()
         # checking that non-"y" response causes delete_bookmark to return None
         with mock.patch('builtins.input', return_value='n'):
-            self.assertIsNone(bdb.delete_bookmark(0))
+            self.assertIsNone(self.bdb.delete_bookmark(0))
 
     # @unittest.skip('skipping')
     def test_delete_all_bookmarks(self):
-        bdb = BukuDb()
         # adding bookmarks
-        bdb.add_bookmark(*self.bookmarks[0])
+        self.bdb.add_bookmark(*self.bookmarks[0])
         # deleting all bookmarks
-        bdb.delete_all_bookmarks()
+        self.bdb.delete_all_bookmarks()
         # assert table has been dropped
         with self.assertRaises(sqlite3.OperationalError):
-            bdb.get_bookmark_by_index(0)
+            self.bdb.get_bookmark_by_index(0)
 
     # @unittest.skip('skipping')
     def test_replace_tag(self):
-        bdb = BukuDb()
         indices = []
         for bookmark in self.bookmarks:
             # adding bookmark, getting index
-            bdb.add_bookmark(*bookmark)
-            index = bdb.get_bookmark_index(bookmark[0])
+            self.bdb.add_bookmark(*bookmark)
+            index = self.bdb.get_bookmark_index(bookmark[0])
             indices += [index]
         # replacing tags
-        bdb.replace_tag("news", ["__01"])
-        bdb.replace_tag("zażółć", ["__02,__03"])
+        self.bdb.replace_tag("news", ["__01"])
+        self.bdb.replace_tag("zażółć", ["__02,__03"])
         # replacing tag which is also a substring of other tag
-        bdb.replace_tag("es", ["__04"])
+        self.bdb.replace_tag("es", ["__04"])
         # removing tags
-        bdb.replace_tag("gęślą")
-        bdb.replace_tag("old")
+        self.bdb.replace_tag("gęślą")
+        self.bdb.replace_tag("old")
         # removing nonexistent tag
-        bdb.replace_tag("_")
+        self.bdb.replace_tag("_")
         # removing nonexistent tag which is also a substring of other tag
-        bdb.replace_tag("e")
+        self.bdb.replace_tag("e")
 
         for url, title, _, _  in self.bookmarks:
             # retrieving from db
-            index = bdb.get_bookmark_index(url)
-            from_db = bdb.get_bookmark_by_index(index)
+            index = self.bdb.get_bookmark_index(url)
+            from_db = self.bdb.get_bookmark_by_index(index)
             # asserting tags were replaced
             if title == "SLASHDOT":
                 self.assertEqual(from_db[3], parse_tags(["__01"]))
@@ -321,15 +306,14 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_close_quit(self):
-        bdb = BukuDb()
         # quitting with no args
         try:
-            bdb.close_quit()
+            self.bdb.close_quit()
         except SystemExit as err:
             self.assertEqual(err.args[0], 0)
         # quitting with custom arg
         try:
-            bdb.close_quit(1)
+            self.bdb.close_quit(1)
         except SystemExit as err:
             self.assertEqual(err.args[0], 1)
 
