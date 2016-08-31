@@ -1237,9 +1237,9 @@ def prompt(results, noninteractive=False, delete=False):
 
         while True:
             try:
-                nav = input('Result number or range (x-y) to open: ')
+                nav = input('Result number or range (x-y,(a)ll) to open: ')
                 if not nav:
-                    nav = input('Result number or range (x-y) to open: ')
+                    nav = input('Result number or range (x-y,(a)ll) to open: ')
                     if not nav:
                         # Quit on double enter
                         break
@@ -1257,6 +1257,13 @@ def prompt(results, noninteractive=False, delete=False):
                 except Exception as e:
                     _, _, linenumber, func, _, _ = inspect.stack()[0]
                     logger.error('%s(), ln %d: %s', func, linenumber, e)
+            elif nav == "a":
+                for index in range(0,count):
+                    try:
+                        browser_open(unquote(results[index][1]))
+                    except Exception as e:
+                        _, _, linenumber, func, _, _ = inspect.stack()[0]
+                        logger.error('%s(), ln %d: %s', func, linenumber, e)
             elif "-" in nav and is_int(nav.split("-")[0]) and  is_int(nav.split("-")[1]):
                 lower = int(nav.split("-")[0])
                 upper = int(nav.split("-")[1])
