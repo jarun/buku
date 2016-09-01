@@ -1296,6 +1296,13 @@ def prompt(results, noninteractive=False, delete=False):
                     except Exception as e:
                         _, _, linenumber, func, _, _ = inspect.stack()[0]
                         logger.error('%s(), ln %d: %s', func, linenumber, e)
+            elif " " in nav and is_int(nav.split(" ")[0]) and is_int(nav.split(" ")[1]):
+                for index in nav.strip().split(' '):
+                    try:
+                        browser_open(unquote(results[int(index)-1][1]))
+                    except Exception as e:
+                        _, _, linenumber, func, _, _ = inspect.stack()[0]
+                        logger.error('%s(), ln %d: %s', func, linenumber, e)
             else:
                 break
 
