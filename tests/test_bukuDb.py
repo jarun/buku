@@ -276,8 +276,11 @@ class TestBukuDb(unittest.TestCase):
         # deleting all bookmarks
         self.bdb.delete_all_bookmarks()
         # assert table has been dropped
-        with self.assertRaises(sqlite3.OperationalError):
+        with self.assertRaises(sqlite3.OperationalError) as ctx_man:
             self.bdb.get_bookmark_by_index(0)
+
+        err_msg = str(ctx_man.exception)
+        self.assertEqual(err_msg, 'no such table: bookmarks')
 
     # @unittest.skip('skipping')
     def test_replace_tag(self):
