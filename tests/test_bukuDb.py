@@ -39,8 +39,6 @@ TEST_BOOKMARKS = [ ['http://slashdot.org',
                     ],
 ]
 
-inclusive_range = lambda start, end: range(start, end + 1)
-
 @pytest.fixture()
 def setup():
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
@@ -146,8 +144,7 @@ class TestBukuDb(unittest.TestCase):
             self.assertIsNotNone(from_db)
             # comparing data
             for pair in zip(from_db[1:], bookmark):
-                with self.subTest(from_db=from_db[1:], bookmark=bookmark):
-                    self.assertEqual(*pair)
+                self.assertEqual(*pair)
 
         # TODO: tags should be passed to the api as a sequence...
 
@@ -164,11 +161,9 @@ class TestBukuDb(unittest.TestCase):
         # retrieving bookmark from database
         from_db = self.bdb.get_bookmark_by_index(index)
         self.assertIsNotNone(from_db)
-
         # checking if values are updated
         for pair in zip(from_db[1:], new_values):
-            with self.subTest(from_db=from_db[1:], new_values=new_values):
-                self.assertEqual(*pair)
+            self.assertEqual(*pair)
 
     # @unittest.skip('skipping')
     def test_append_tag_at_index(self):
@@ -176,27 +171,23 @@ class TestBukuDb(unittest.TestCase):
             self.bdb.add_bookmark(*bookmark)
 
         # tags to add
+        old_tags = self.bdb.get_bookmark_by_index(1)[3]
         new_tags = ",foo,bar,baz"
+        self.bdb.append_tag_at_index(1, new_tags)
+        # updated list of tags
+        from_db = self.bdb.get_bookmark_by_index(1)[3]
 
-        for idx, bookmark in enumerate(self.bookmarks):
-            bm_index = idx + 1
-            old_tags = self.bdb.get_bookmark_by_index(bm_index)[3]
-            # adding tags to existing
-            self.bdb.append_tag_at_index(bm_index, new_tags)
-            # get updated set of tags
-            from_db = self.bdb.get_bookmark_by_index(bm_index)[3]
-
-            with self.subTest(old_tags=old_tags, updated_tags=from_db):
-                # checking if new tags were added to the bookmark
-                self.assertTrue(all( x in from_db.split(',') for x in new_tags.split(',') ))
-                # checking if old tags still exist
-                self.assertTrue(all( x in from_db.split(',') for x in old_tags.split(',') ))
+        # checking if new tags were added to the bookmark
+        self.assertTrue(all( x in from_db.split(',') for x in new_tags.split(',') ))
+        # checking if old tags still exist
+        self.assertTrue(all( x in from_db.split(',') for x in old_tags.split(',') ))
 
     # @unittest.skip('skipping')
     def test_append_tag_at_all_indices(self):
         for bookmark in self.bookmarks:
             self.bdb.add_bookmark(*bookmark)
 
+        inclusive_range = lambda start, end: range(start, end + 1)
         # tags to add
         new_tags = ",foo,bar,baz"
         # record of original tags for each bookmark
@@ -207,11 +198,10 @@ class TestBukuDb(unittest.TestCase):
             # updated tags for each bookmark
             from_db = [ (i, self.bdb.get_bookmark_by_index(i)[3]) for i in inclusive_range(1, len(self.bookmarks)) ]
             for index, tagset in from_db:
-                with self.subTest():
-                    # checking if new tags added to bookmark
-                    self.assertTrue(all( x in tagset.split(',') for x in new_tags.split(',') ))
-                    # checking if old tags still exist for boomark
-                    self.assertTrue(all( x in tagset.split(',') for x in old_tagsets[index].split(',') ))
+                # checking if new tags added to bookmark
+                self.assertTrue(all( x in tagset.split(',') for x in new_tags.split(',') ))
+                # checking if old tags still exist for boomark
+                self.assertTrue(all( x in tagset.split(',') for x in old_tagsets[index].split(',') ))
 
 
     # @unittest.skip('skipping')
@@ -220,18 +210,17 @@ class TestBukuDb(unittest.TestCase):
         for bookmark in self.bookmarks:
             self.bdb.add_bookmark(*bookmark)
 
+        inclusive_range = lambda start, end: range(start, end + 1)
         # dictionary of db bookmark index: tags
-        tagsets = [ self.bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) ]
+        tags_by_index = { i: self.bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
 
-        for i, tags in enumerate(tagsets):
-            idx = i + 1
+        for i, tags in tags_by_index.items():
             # get the first tag from the bookmark
             to_delete = re.match(',.*?,', tags).group(0)
-            self.bdb.delete_tag_at_index(idx, to_delete)
+            self.bdb.delete_tag_at_index(i, to_delete)
             # get updated tags from db
-            from_db = self.bdb.get_bookmark_by_index(idx)[3]
-            with self.subTest(to_delete=to_delete, updated_tags=from_db):
-                self.assertNotIn(to_delete, from_db)
+            from_db = self.bdb.get_bookmark_by_index(i)[3]
+            self.assertNotIn(to_delete, from_db)
 
     # @unittest.skip('skipping')
     def test_refreshdb(self):
