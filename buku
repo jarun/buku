@@ -1262,14 +1262,13 @@ def prompt(results, noninteractive=False, delete=False):
             except EOFError:
                 return
 
-            #iterate over " " separated indices
+            # iterate over " " separated indices
             for nav in (" ".join(nav.split())).split():
                 if is_int(nav):
                     index = int(nav) - 1
                     if index < 0 or index >= count:
                         logger.error('Index out of bound')
                         continue
- 
                     try:
                         browser_open(unquote(results[index][1]))
                     except Exception as e:
