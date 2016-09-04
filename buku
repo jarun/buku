@@ -1273,23 +1273,23 @@ def prompt(results, noninteractive=False, delete=False):
                 except Exception as e:
                     _, _, linenumber, func, _, _ = inspect.stack()[0]
                     logger.error('%s(), ln %d: %s', func, linenumber, e)
-            elif nav == "a":
+            elif nav == 'a':
                 for index in range(0,count):
                     try:
                         browser_open(unquote(results[index][1]))
                     except Exception as e:
                         _, _, linenumber, func, _, _ = inspect.stack()[0]
                         logger.error('%s(), ln %d: %s', func, linenumber, e)
-            elif "-" in nav and is_int(nav.split("-")[0]) and is_int(nav.split("-")[1]):
-                lower = int(nav.split("-")[0])
-                upper = int(nav.split("-")[1])
+            elif '-' in nav and is_int(nav.split('-')[0]) and is_int(nav.split('-')[1]):
+                lower = int(nav.split('-')[0])
+                upper = int(nav.split('-')[1])
                 for index in range(lower-1,upper):
                     try:
                         browser_open(unquote(results[index][1]))
                     except Exception as e:
                         _, _, linenumber, func, _, _ = inspect.stack()[0]
                         logger.error('%s(), ln %d: %s', func, linenumber, e)
-            elif " " in nav and is_int(nav.split(" ")[0]) and is_int(nav.split(" ")[1]):
+            elif ' ' in nav and is_int(nav.split(' ')[0]) and is_int(nav.split(' ')[1]):
                 for index in nav.strip().split(' '):
                     try:
                         browser_open(unquote(results[int(index)-1][1]))
@@ -1377,7 +1377,7 @@ def browser_open(url):
     Params: url to open
     """
 
-    url = url.replace('%22', "\"")
+    url = url.replace('%22', '\"')
 
     _stderr = os.dup(2)
     os.close(2)
