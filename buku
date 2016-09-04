@@ -1481,6 +1481,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
         file.write('''
 prompt keys:
   1-N                  open the Nth search result in web browser
+                       a range OR space-separated indices work too
   double Enter         exit buku
 
 symbols:
