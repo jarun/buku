@@ -216,7 +216,6 @@ Please substitute `$version` with the appropriate package version.
   - -S : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --st : search bookmarks by tag, or show all tags alphabetically.
-  - You can search bookmarks by tag (see [examples](#examples)).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 
@@ -282,10 +281,9 @@ The last index is moved to the deleted index to keep the DB compact.
 
         $ buku -S kernel debugging
 
-15. **Search** bookmarks with **tag** `general kernel concepts`:
+15. **Search** bookmarks **tagged** `general kernel concepts`:
 
         $ buku --st general kernel concepts
-Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
 16. List **all unique tags** alphabetically:
 
         $ buku --st
@@ -293,7 +291,7 @@ Note the commas (,) before and after the tag. Comma is the tag delimiter in DB.
 
         $ buku -l 15
         $ buku -k 15
-The same number of iterations must be used for one lock & unlock instance. Default is 8.
+The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
 18. **Show details** of bookmark at index 15012014:
 
         $ buku -p 15012014
