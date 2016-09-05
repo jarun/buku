@@ -11,6 +11,7 @@ local -a args
 args=(
     '(-a --add)'{-a,--add}'[add bookmark]:URL tags'
     '(-c --comment)'{-c,--comment}'[comment on bookmark]'
+    '(--deep)--deep[search matching substrings]'
     '(-d --delete)'{-d,--delete}'[delete bookmark]'
     '(-e --export)'{-e,--export}'[export bookmarks]:html output file'
     '(-h --help)'{-h,--help}'[show help]'
@@ -29,6 +30,5 @@ args=(
     '(-t --title)'{-t,--title}'[set custom title]'
     '(-u --update)'{-u,--update}'[update bookmark]'
     '(--url)--url[set url]'
-    '(-x --exact)'{-x,--exact}'[match exact words]'
 )
 _arguments -S -s $args

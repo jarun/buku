@@ -628,14 +628,14 @@ class BukuDb:
 
         self.conn.commit()
 
-    def searchdb(self, keywords, all_keywords=False, delete=False, exact=False):
+    def searchdb(self, keywords, all_keywords=False, delete=False, deep=False):
         """Search the database for an entries with tags or URL
         or title info matching keywords and list those.
 
         :param keywords: keywords to search
         :param all_keywords: search any or all keywords
         :param delete: delete search results
-        :param exact: search exact words
+        :param deep: search for matching substrings
         """
 
         arguments = []
@@ -644,7 +644,7 @@ class BukuDb:
 
         if all_keywords:  # Match all keywords in URL or Title
             for token in keywords:
-                if exact:
+                if not deep:
                     token = '\\b' + token + '\\b'
                     query = '%s (tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc REGEXP ?) AND' % (query)
                 else:
@@ -654,7 +654,7 @@ class BukuDb:
             query = query[:-4]
         else:  # Match any keyword in URL or Title
             for token in keywords:
-                if exact:
+                if not deep:
                     token = '\\b' + token + '\\b'
                     query = '%s tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc REGEXP ? OR' % (query)
                 else:
@@ -1591,12 +1591,12 @@ if __name__ == '__main__':
                      search bookmarks with ALL keywords
                      special keyword -
                      "blank": list entries with empty title/tag
--x, --exact          match exact words, works with -s, -S
+--deep               match substrings ('pen' matches 'opened')
 --st, --stag [...]   search bookmarks by tag
                      list tags alphabetically, if no arguments''')
     search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
     search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
-    search_group.add_argument('-x', '--exact', dest='exact', action='store_true', help=argparse.SUPPRESS)
+    search_group.add_argument('--deep', dest='deep', action='store_true', help=argparse.SUPPRESS)
     search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=CustomTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
 
     # Encryption options
@@ -1733,14 +1733,14 @@ if __name__ == '__main__':
 
     # Search URLs, titles, tags for any keyword and delete if wanted
     if args.sany is not None:
-        bdb.searchdb(args.sany, False, (args.delete is not None), args.exact)
+        bdb.searchdb(args.sany, False, (args.delete is not None), args.deep)
 
     # Search URLs, titles, tags with all keywords and delete if wanted
     elif args.sall is not None:
         if args.sall[0] == 'blank' and len(args.sall) == 1:
             bdb.print_bookmark(0, True)
         else:
-            bdb.searchdb(args.sall, True, (args.delete is not None), args.exact)
+            bdb.searchdb(args.sall, True, (args.delete is not None), args.deep)
 
     # Search bookmarks by tag and delete if wanted
     elif tagsearch:

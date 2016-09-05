@@ -6,6 +6,7 @@
 #
 complete -c buku -s a -l add     -r --description 'add bookmark'
 complete -c buku -s c -l comment    --description 'comment on bookmark'
+complete -c buku -l deep            --description 'search matching substrings'
 complete -c buku -s d -l delete     --description 'delete bookmark'
 complete -c buku -s e -l export  -r --description 'export bookmarks'
 complete -c buku -s h -l help       --description 'show help'
@@ -24,4 +25,3 @@ complete -c buku -l tag             --description 'set tags, use + to append'
 complete -c buku -s t -l title      --description 'set custom title'
 complete -c buku -s u -l update     --description 'update bookmark'
 complete -c buku -l url             --description 'set url'
-complete -c buku -s x -l exact      --description 'match exact words'
