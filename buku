@@ -1262,42 +1262,37 @@ def prompt(results, noninteractive=False, delete=False):
             except EOFError:
                 return
 
-            if is_int(nav):
-                index = int(nav) - 1
-                if index < 0 or index >= count:
-                    logger.error('Index out of bound')
-                    continue
-
-                try:
-                    browser_open(unquote(results[index][1]))
-                except Exception as e:
-                    _, _, linenumber, func, _, _ = inspect.stack()[0]
-                    logger.error('%s(), ln %d: %s', func, linenumber, e)
-            elif nav == 'a':
-                for index in range(0,count):
+            # iterate over whitespace separated indices
+            for nav in (' '.join(nav.split())).split():
+                if is_int(nav):
+                    index = int(nav) - 1
+                    if index < 0 or index >= count:
+                        logger.error('Index out of bound')
+                        continue
                     try:
                         browser_open(unquote(results[index][1]))
                     except Exception as e:
                         _, _, linenumber, func, _, _ = inspect.stack()[0]
                         logger.error('%s(), ln %d: %s', func, linenumber, e)
-            elif '-' in nav and is_int(nav.split('-')[0]) and is_int(nav.split('-')[1]):
-                lower = int(nav.split('-')[0])
-                upper = int(nav.split('-')[1])
-                for index in range(lower-1,upper):
-                    try:
-                        browser_open(unquote(results[index][1]))
-                    except Exception as e:
-                        _, _, linenumber, func, _, _ = inspect.stack()[0]
-                        logger.error('%s(), ln %d: %s', func, linenumber, e)
-            elif ' ' in nav and is_int(nav.split(' ')[0]) and is_int(nav.split(' ')[1]):
-                for index in nav.strip().split(' '):
-                    try:
-                        browser_open(unquote(results[int(index)-1][1]))
-                    except Exception as e:
-                        _, _, linenumber, func, _, _ = inspect.stack()[0]
-                        logger.error('%s(), ln %d: %s', func, linenumber, e)
+                elif '-' in nav and is_int(nav.split('-')[0]) and is_int(nav.split('-')[1]):
+                    lower = int(nav.split('-')[0])
+                    upper = int(nav.split('-')[1])
+                    for index in range(lower-1,upper):
+                        try:
+                            browser_open(unquote(results[index][1]))
+                        except Exception as e:
+                            _, _, linenumber, func, _, _ = inspect.stack()[0]
+                            logger.error('%s(), ln %d: %s', func, linenumber, e)
+                else:
+                    break
             else:
-                break
+                if nav == 'a':
+                    for index in range(0, count):
+                        try:
+                            browser_open(unquote(results[index][1]))
+                        except Exception as e:
+                            _, _, linenumber, func, _, _ = inspect.stack()[0]
+                            logger.error('%s(), ln %d: %s', func, linenumber, e)
 
 
 def print_record(row, count=0):
