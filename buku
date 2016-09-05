@@ -1591,7 +1591,7 @@ if __name__ == '__main__':
                      search bookmarks with ALL keywords
                      special keyword -
                      "blank": list entries with empty title/tag
--x, --exact          match exact words
+-x, --exact          match exact words, works with -s, -S
 --st, --stag [...]   search bookmarks by tag
                      list tags alphabetically, if no arguments''')
     search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)

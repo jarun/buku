@@ -29,5 +29,6 @@ args=(
     '(-t --title)'{-t,--title}'[set custom title]'
     '(-u --update)'{-u,--update}'[update bookmark]'
     '(--url)--url[set url]'
+    '(-x --exact)'{-x,--exact}'[match exact words]'
 )
 _arguments -S -s $args

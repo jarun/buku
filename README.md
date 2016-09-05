@@ -153,6 +153,7 @@ Please substitute `$version` with the appropriate package version.
                            search bookmarks with ALL keywords
                            special keyword -
                            "blank": list entries with empty title/tag
+      -x, --exact          match exact words, works with -s, -S
       --st, --stag [...]   search bookmarks by tag
                            list tags alphabetically, if no arguments
 
@@ -210,9 +211,10 @@ Please substitute `$version` with the appropriate package version.
   - Can delete bookmarks matching a search, when combined with any of the search options.
 - **Search** works in mysterious ways:
   - Case-insensitive.
-  - Substrings match (`match` matches `rematched`) for URL, title and tags.
+  - Default behaviour: substrings match (`match` matches `rematched`) for URL, title and tags.
   - -s : match any of the keywords in URL, title or tags.
   - -S : match all the keywords in URL, title or tags.
+  - -x : modify search behaviour to **match exact words**.
   - --st : search bookmarks by tag, or show all tags alphabetically.
   - You can search bookmarks by tag (see [examples](#examples)).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
