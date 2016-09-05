@@ -1266,9 +1266,9 @@ def prompt(results, noninteractive=False, delete=False):
 
         while True:
             try:
-                nav = input('Result number or range (x-y,(a)ll) to open: ')
+                nav = input('Results, ranges (x-y,(a)ll) to open: ')
                 if not nav:
-                    nav = input('Result number or range (x-y,(a)ll) to open: ')
+                    nav = input('Results, ranges (x-y,(a)ll) to open: ')
                     if not nav:
                         # Quit on double enter
                         break
