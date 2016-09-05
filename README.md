@@ -181,6 +181,7 @@ Please substitute `$version` with the appropriate package version.
 
     prompt keys:
       1-N                  open the Nth search result in web browser
+                           ranges, space-separated result indices work
       double Enter         exit buku
 
     symbols:

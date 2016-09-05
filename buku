@@ -20,6 +20,7 @@
 import sys
 import os
 import sqlite3
+import re
 import argparse
 import webbrowser
 import html.parser as HTMLParser
@@ -347,6 +348,7 @@ class BukuDb:
         try:
             # Create a connection
             conn = sqlite3.connect(dbfile)
+            conn.create_function("REGEXP", 2, regexp)
             cur = conn.cursor()
 
             # Create table if it doesn't exist
@@ -626,13 +628,14 @@ class BukuDb:
 
         self.conn.commit()
 
-    def searchdb(self, keywords, all_keywords=False, delete=False):
+    def searchdb(self, keywords, all_keywords=False, delete=False, exact=False):
         """Search the database for an entries with tags or URL
         or title info matching keywords and list those.
 
         :param keywords: keywords to search
         :param all_keywords: search any or all keywords
         :param delete: delete search results
+        :param exact: search exact words
         """
 
         arguments = []
@@ -641,12 +644,22 @@ class BukuDb:
 
         if all_keywords:  # Match all keywords in URL or Title
             for token in keywords:
-                query = '%s (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s)) AND' % (query, placeholder, placeholder, placeholder, placeholder)
+                if exact:
+                    token = '\\b' + token + '\\b'
+                    query = '%s (tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc REGEXP ?) AND' % (query)
+                else:
+                    query = '%s (tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s)) AND' % (query, placeholder, placeholder, placeholder, placeholder)
+
                 arguments += (token, token, token, token)
             query = query[:-4]
         else:  # Match any keyword in URL or Title
             for token in keywords:
-                query = '%s tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s) OR' % (query, placeholder, placeholder, placeholder, placeholder)
+                if exact:
+                    token = '\\b' + token + '\\b'
+                    query = '%s tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc REGEXP ? OR' % (query)
+                else:
+                    query = '%s tags LIKE (%s) OR URL LIKE (%s) OR metadata LIKE (%s) OR desc LIKE (%s) OR' % (query, placeholder, placeholder, placeholder, placeholder)
+
                 arguments += (token, token, token, token)
             query = query[:-3]
 
@@ -1404,6 +1417,10 @@ def sigint_handler(signum, frame):
 signal.signal(signal.SIGINT, sigint_handler)
 
 
+def regexp(expr, item):
+    return re.search(expr, item, re.IGNORECASE) is not None
+
+
 # Custom Action classes for argparse
 
 class CustomUpdateAction(argparse.Action):
@@ -1476,7 +1493,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
         file.write('''
 prompt keys:
   1-N                  open the Nth search result in web browser
-                       a range OR space-separated indices work too
+                       ranges, space-separated result indices work
   double Enter         exit buku
 
 symbols:
@@ -1574,10 +1591,12 @@ if __name__ == '__main__':
                      search bookmarks with ALL keywords
                      special keyword -
                      "blank": list entries with empty title/tag
+-x, --exact          match exact words
 --st, --stag [...]   search bookmarks by tag
                      list tags alphabetically, if no arguments''')
     search_group.add_argument('-s', '--sany', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
     search_group.add_argument('-S', '--sall', nargs='+', metavar='keyword', help=argparse.SUPPRESS)
+    search_group.add_argument('-x', '--exact', dest='exact', action='store_true', help=argparse.SUPPRESS)
     search_group.add_argument('--st', '--stag', nargs='*', dest='stag', action=CustomTagSearchAction, metavar='keyword', help=argparse.SUPPRESS)
 
     # Encryption options
@@ -1714,14 +1733,14 @@ if __name__ == '__main__':
 
     # Search URLs, titles, tags for any keyword and delete if wanted
     if args.sany is not None:
-        bdb.searchdb(args.sany, False, (args.delete is not None))
+        bdb.searchdb(args.sany, False, (args.delete is not None), args.exact)
 
     # Search URLs, titles, tags with all keywords and delete if wanted
     elif args.sall is not None:
         if args.sall[0] == 'blank' and len(args.sall) == 1:
             bdb.print_bookmark(0, True)
         else:
-            bdb.searchdb(args.sall, True, (args.delete is not None))
+            bdb.searchdb(args.sall, True, (args.delete is not None), args.exact)
 
     # Search bookmarks by tag and delete if wanted
     elif tagsearch:
