@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/b7ymahqwgt92jev32q4cmcm8h"><img src="https://asciinema.org/a/b7ymahqwgt92jev32q4cmcm8h.png" alt="Asciicast" width="625"/></a>
+<a href="https://asciinema.org/a/2bc3vq5ndxfvg0sm9jp8xlz03"><img src="https://asciinema.org/a/2bc3vq5ndxfvg0sm9jp8xlz03.png" alt="Asciicast" width="625"/></a>
 </p>
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `Buku` (after my son's nickname).
@@ -22,21 +22,9 @@
 
 [![Donate Button](https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q)
 
-## Features
-
-- Add, open, tag, comment on, search, update, remove bookmarks
-- Merge-able portable database, to sync between systems
-- Import/export bookmarks HTML (Firefox, Google Chrome, IE compatible)
-- Fetch page title from web, refresh all titles in a go
-- Open search results directly in default browser
-- Manual password protection using AES256 encryption
-- Tab-completion scripts (Bash, Fish, Zsh), man page with examples
-- Several options for power users (see help or man page)
-- Fast and clean interface, distinct symbols for record fields
-- Minimal dependencies
-
 ## Table of Contents
 
+- [Features](#features)
 - [Installation](#installation)
   - [Dependencies](#dependencies)
   - [Installing from this repository](#installing-from-this-repository)
@@ -52,17 +40,26 @@
 - [Mentions](#mentions)
 - [Developers](#developers)
 
+## Features
+
+- Add, open, tag, comment on, search, update, remove bookmarks
+- Merge-able portable database, to sync between systems
+- Import/export bookmarks HTML (Firefox, Google Chrome, IE compatible)
+- Fetch page title from web, refresh all titles in a go
+- Open search results directly in default browser
+- Manual password protection using AES256 encryption
+- Tab-completion scripts (Bash, Fish, Zsh), man page with examples
+- Several options for power users (see help or man page)
+- Fast and clean interface, distinct symbols for record fields
+- Minimal dependencies
+
 ## Installation
 
 ### Dependencies
 
 `buku` requires Python 3.3 or later.
 
-Package dependencies:
-- Encryption: cryptography
-- Import bookmarks: Beautiful Soup
-
-Run:
+To install package dependencies, run:
 
     $ sudo pip3 install cryptography beautifulsoup4
 or on Ubuntu:
@@ -113,8 +110,6 @@ Please substitute `$version` with the appropriate package version.
 ## Usage
 
 ### Cmdline options
-
-**NOTE:** If you are using `buku` v1.9 or below please refer to the installed man page or program help.
 
     usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 
