@@ -209,7 +209,7 @@ class TestBukuDb(unittest.TestCase):
         for bookmark in self.bookmarks:
             self.bdb.add_bookmark(*bookmark)
 
-        get_tags_at_idx =  lambda i: self.bdb.get_bookmark_by_index(i)[3]
+        get_tags_at_idx = lambda i: self.bdb.get_bookmark_by_index(i)[3]
         # list of two-tuples, each containg bookmark index and corresponding tags
         tags_by_index = [ (i, get_tags_at_idx(i)) for i in inclusive_range(1, len(self.bookmarks)) ]
 
@@ -228,8 +228,28 @@ class TestBukuDb(unittest.TestCase):
         from_db = self.bdb.get_bookmark_by_index(1)
         self.assertEqual(from_db[2], "Google")
 
-    # def test_searchdb(self):
-        # self.fail()
+    # @unittest.skip('skipping')
+    def test_searchdb(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_bookmark(*bookmark)
+
+        with mock.patch('buku.prompt') as mock_prompt:
+            get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
+            for i, bookmark in enumerate(self.bookmarks):
+                tag_search = get_first_tag(bookmark)
+                # search by the domain name for url
+                url_search = re.match('https?://(.*)?\..*', bookmark[0]).group(1)
+                title_search = bookmark[1]
+                # Expect a five-tuple containing all bookmark data
+                # db index, URL, title, tags, description
+                expected = (i + 1,) + (self.bookmarks[i],)
+                # search db by tag, url (domain name), and title
+                for keyword in (tag_search, url_search, title_search):
+                    # search by keyword
+                    self.bdb.searchdb(keyword)
+                    # checking prompt called with the correct resultset from search
+                    self.assertTrue(mock_prompt.called_with(expected, False, False))
 
     # @unittest.skip('skipping')
     def test_search_by_tag(self):
@@ -242,8 +262,6 @@ class TestBukuDb(unittest.TestCase):
             for i in range(len(self.bookmarks)):
                 # search for bookmark with a tag that is known to exist
                 self.bdb.search_by_tag(get_first_tag(self.bookmarks[i]))
-                # collect args (the search results) passed to prompt
-                args, _ = mock_prompt.call_args
                 # Expect a five-tuple containing all bookmark data
                 # db index, URL, title, tags, description
                 expected = (i + 1,) + (self.bookmarks[i],)
