@@ -236,6 +236,31 @@ class TestBukuDb(unittest.TestCase):
         # self.fail()
 
     # @unittest.skip('skipping')
+    def test_search_and_open_in_broswer_by_range(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_bookmark(*bookmark)
+
+        # simulate user input, select range of indices 1-3
+        index_range = '1-%s' % len(self.bookmarks)
+        with mock.patch('builtins.input', side_effect=[index_range]):
+            with mock.patch('buku.browser_open') as mock_browser_open:
+                try:
+                    # search the db with keywords from each bookmark
+                    # searching using the first tag from bookmarks
+                    self.bdb.searchdb([ x[2].split(',')[1] for x in self.bookmarks ])
+                except StopIteration:
+                    # catch exception thrown by reaching the end of the side effect list
+                    pass
+
+                # collect arguments passed to browser_open
+                arg_list = [ args for args, _ in mock_browser_open.call_args_list ]
+                # expect a list of one-tuples that are bookmark URLs
+                expected = [ (x[0],) for x in self.bookmarks]
+                # checking if browser_open called with expected arguments
+                self.assertEqual(arg_list, expected)
+
+    # @unittest.skip('skipping')
     def test_delete_bookmark(self):
         # adding bookmark and getting index
         self.bdb.add_bookmark(*self.bookmarks[0])
