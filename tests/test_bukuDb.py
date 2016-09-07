@@ -178,16 +178,15 @@ class TestBukuDb(unittest.TestCase):
         from_db = self.bdb.get_bookmark_by_index(1)[3]
 
         # checking if new tags were added to the bookmark
-        self.assertTrue(all( x in from_db.split(',') for x in new_tags.split(',') ))
+        self.assertTrue(split_and_test_membership(new_tags, from_db))
         # checking if old tags still exist
-        self.assertTrue(all( x in from_db.split(',') for x in old_tags.split(',') ))
+        self.assertTrue(split_and_test_membership(old_tags, from_db))
 
     # @unittest.skip('skipping')
     def test_append_tag_at_all_indices(self):
         for bookmark in self.bookmarks:
             self.bdb.add_bookmark(*bookmark)
 
-        inclusive_range = lambda start, end: range(start, end + 1)
         # tags to add
         new_tags = ",foo,bar,baz"
         # record of original tags for each bookmark
@@ -199,9 +198,9 @@ class TestBukuDb(unittest.TestCase):
             from_db = [ (i, self.bdb.get_bookmark_by_index(i)[3]) for i in inclusive_range(1, len(self.bookmarks)) ]
             for index, tagset in from_db:
                 # checking if new tags added to bookmark
-                self.assertTrue(all( x in tagset.split(',') for x in new_tags.split(',') ))
+                self.assertTrue(split_and_test_membership(new_tags, tagset))
                 # checking if old tags still exist for boomark
-                self.assertTrue(all( x in tagset.split(',') for x in old_tagsets[index].split(',') ))
+                self.assertTrue(split_and_test_membership(old_tagsets[index], tagset))
 
 
     # @unittest.skip('skipping')
@@ -210,16 +209,16 @@ class TestBukuDb(unittest.TestCase):
         for bookmark in self.bookmarks:
             self.bdb.add_bookmark(*bookmark)
 
-        inclusive_range = lambda start, end: range(start, end + 1)
-        # dictionary of db bookmark index: tags
-        tags_by_index = { i: self.bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
+        get_tags_at_idx =  lambda i: self.bdb.get_bookmark_by_index(i)[3]
+        # list of two-tuples, each containg bookmark index and corresponding tags
+        tags_by_index = [ (i, get_tags_at_idx(i)) for i in inclusive_range(1, len(self.bookmarks)) ]
 
-        for i, tags in tags_by_index.items():
+        for i, tags in tags_by_index:
             # get the first tag from the bookmark
             to_delete = re.match(',.*?,', tags).group(0)
             self.bdb.delete_tag_at_index(i, to_delete)
             # get updated tags from db
-            from_db = self.bdb.get_bookmark_by_index(i)[3]
+            from_db = get_tags_at_idx(i)
             self.assertNotIn(to_delete, from_db)
 
     # @unittest.skip('skipping')
@@ -240,12 +239,16 @@ class TestBukuDb(unittest.TestCase):
 
         with mock.patch('buku.prompt') as mock_prompt:
             get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
-            self.bdb.search_by_tag(get_first_tag(self.bookmarks[0]))
-            args, _ = mock_prompt.call_args
-            # Expect a tuple of the bookmark from db
-            expected = (1,) + tuple(self.bookmarks[0])
-            # Checking prompt called with the correct resultset from search
-            self.assertTrue(mock_prompt.called_with(expected, False, False))
+            for i in range(len(self.bookmarks)):
+                # search for bookmark with a tag that is known to exist
+                self.bdb.search_by_tag(get_first_tag(self.bookmarks[i]))
+                # collect args (the search results) passed to prompt
+                args, _ = mock_prompt.call_args
+                # Expect a five-tuple containing all bookmark data
+                # db index, URL, title, tags, description
+                expected = (i + 1,) + (self.bookmarks[i],)
+                # Checking prompt called with the correct resultset from search
+                self.assertTrue(mock_prompt.called_with(expected, False, False))
 
     # @unittest.skip('skipping')
     def test_search_and_open_in_broswer_by_range(self):
@@ -263,7 +266,7 @@ class TestBukuDb(unittest.TestCase):
                     get_first_tag = lambda x: x[2].split(',')[1]
                     self.bdb.searchdb([ get_first_tag(bm) for bm in self.bookmarks ])
                 except StopIteration:
-                    # catch exception thrown by reaching the end of the side effect list
+                    # catch exception thrown by reaching the end of the side effect iterable
                     pass
 
                 # collect arguments passed to browser_open
@@ -428,6 +431,16 @@ def test_compactdb(setup):
     assert bdb.get_bookmark_by_index(1) == (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter")
     assert bdb.get_bookmark_by_index(2) == (2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test')
     assert bdb.get_bookmark_by_index(3) is None
+
+# Helper functions for testcases
+
+def split_and_test_membership(a, b):
+    # :param a, b: comma separated strings to split
+    # test everything in a in b
+    return all( x in b.split(',') for x in a.split(',') )
+
+def inclusive_range(start, end):
+    return range(start, end + 1)
 
 if __name__ == "__main__":
     unittest.main()
