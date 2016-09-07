@@ -232,8 +232,20 @@ class TestBukuDb(unittest.TestCase):
     # def test_searchdb(self):
         # self.fail()
 
-    # def test_search_by_tag(self):
-        # self.fail()
+    # @unittest.skip('skipping')
+    def test_search_by_tag(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_bookmark(*bookmark)
+
+        with mock.patch('buku.prompt') as mock_prompt:
+            get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
+            self.bdb.search_by_tag(get_first_tag(self.bookmarks[0]))
+            args, _ = mock_prompt.call_args
+            # Expect a tuple of the bookmark from db
+            expected = (1,) + tuple(self.bookmarks[0])
+            # Checking prompt called with the correct resultset from search
+            self.assertTrue(mock_prompt.called_with(expected, False, False))
 
     # @unittest.skip('skipping')
     def test_search_and_open_in_broswer_by_range(self):
@@ -248,15 +260,16 @@ class TestBukuDb(unittest.TestCase):
                 try:
                     # search the db with keywords from each bookmark
                     # searching using the first tag from bookmarks
-                    self.bdb.searchdb([ x[2].split(',')[1] for x in self.bookmarks ])
+                    get_first_tag = lambda x: x[2].split(',')[1]
+                    self.bdb.searchdb([ get_first_tag(bm) for bm in self.bookmarks ])
                 except StopIteration:
                     # catch exception thrown by reaching the end of the side effect list
                     pass
 
                 # collect arguments passed to browser_open
-                arg_list = [ args for args, _ in mock_browser_open.call_args_list ]
+                arg_list = [ args[0] for args, _ in mock_browser_open.call_args_list ]
                 # expect a list of one-tuples that are bookmark URLs
-                expected = [ (x[0],) for x in self.bookmarks]
+                expected = [ x[0] for x in self.bookmarks]
                 # checking if browser_open called with expected arguments
                 self.assertEqual(arg_list, expected)
 
