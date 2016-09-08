@@ -234,22 +234,22 @@ class TestBukuDb(unittest.TestCase):
         for bookmark in self.bookmarks:
             self.bdb.add_bookmark(*bookmark)
 
-        with mock.patch('buku.prompt') as mock_prompt:
-            get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
-            for i, bookmark in enumerate(self.bookmarks):
-                tag_search = get_first_tag(bookmark)
-                # search by the domain name for url
-                url_search = re.match('https?://(.*)?\..*', bookmark[0]).group(1)
-                title_search = bookmark[1]
-                # Expect a five-tuple containing all bookmark data
-                # db index, URL, title, tags, description
-                expected = (i + 1,) + (self.bookmarks[i],)
-                # search db by tag, url (domain name), and title
-                for keyword in (tag_search, url_search, title_search):
+        get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
+        for i, bookmark in enumerate(self.bookmarks):
+            tag_search = get_first_tag(bookmark)
+            # search by the domain name for url
+            url_search = re.match('https?://(.*)?\..*', bookmark[0]).group(1)
+            title_search = bookmark[1]
+            # Expect a five-tuple containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [(i + 1,) +  tuple(bookmark)]
+            # search db by tag, url (domain name), and title
+            for keyword in (tag_search, url_search, title_search):
+                with mock.patch('buku.prompt') as mock_prompt:
                     # search by keyword
-                    self.bdb.searchdb(keyword)
+                    self.bdb.searchdb([keyword])
                     # checking prompt called with the correct resultset from search
-                    self.assertTrue(mock_prompt.called_with(expected, False, False))
+                    mock_prompt.assert_called_with(expected, False, False)
 
     # @unittest.skip('skipping')
     def test_search_by_tag(self):
@@ -264,9 +264,9 @@ class TestBukuDb(unittest.TestCase):
                 self.bdb.search_by_tag(get_first_tag(self.bookmarks[i]))
                 # Expect a five-tuple containing all bookmark data
                 # db index, URL, title, tags, description
-                expected = (i + 1,) + (self.bookmarks[i],)
+                expected = [(i + 1,) + tuple(self.bookmarks[i])]
                 # Checking prompt called with the correct resultset from search
-                self.assertTrue(mock_prompt.called_with(expected, False, False))
+                mock_prompt.assert_called_with(expected, False, False)
 
     # @unittest.skip('skipping')
     def test_search_and_open_in_broswer_by_range(self):
