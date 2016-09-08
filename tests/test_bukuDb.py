@@ -248,7 +248,7 @@ class TestBukuDb(unittest.TestCase):
                 with mock.patch('buku.prompt') as mock_prompt:
                     # search by keyword
                     self.bdb.searchdb([keyword])
-                    # checking prompt called with the correct resultset from search
+                    # checking prompt called with the expected resultset from search
                     mock_prompt.assert_called_with(expected, False, False)
 
     # @unittest.skip('skipping')
@@ -265,7 +265,7 @@ class TestBukuDb(unittest.TestCase):
                 # Expect a five-tuple containing all bookmark data
                 # db index, URL, title, tags, description
                 expected = [(i + 1,) + tuple(self.bookmarks[i])]
-                # Checking prompt called with the correct resultset from search
+                # Checking prompt called with the expected resultset from search
                 mock_prompt.assert_called_with(expected, False, False)
 
     # @unittest.skip('skipping')
@@ -291,6 +291,31 @@ class TestBukuDb(unittest.TestCase):
                 arg_list = [ args[0] for args, _ in mock_browser_open.call_args_list ]
                 # expect a list of one-tuples that are bookmark URLs
                 expected = [ x[0] for x in self.bookmarks]
+                # checking if browser_open called with expected arguments
+                self.assertEqual(arg_list, expected)
+
+    # @unittest.skip('skipping')
+    def test_search_and_open_all_in_browser(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_bookmark(*bookmark)
+
+        # simulate user input, select 'a' to open all bookmarks in results
+        with mock.patch('builtins.input', side_effect=['a']):
+            with mock.patch('buku.browser_open') as mock_browser_open:
+                try:
+                    # search the db with keywords from each bookmark
+                    # searching using the first tag from bookmarks
+                    get_first_tag = lambda x: x[2].split(',')[1]
+                    self.bdb.searchdb([ get_first_tag(bm) for bm in self.bookmarks[:2] ])
+                except StopIteration:
+                    # catch exception thrown by reaching the end of the side effect iterable
+                    pass
+
+                # collect arguments passed to browser_open
+                arg_list = [ args[0] for args, _ in mock_browser_open.call_args_list ]
+                # expect a list of one-tuples that are bookmark URLs
+                expected = [ x[0] for x in self.bookmarks][:2]
                 # checking if browser_open called with expected arguments
                 self.assertEqual(arg_list, expected)
 
