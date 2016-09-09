@@ -277,7 +277,7 @@ class TestBukuDb(unittest.TestCase):
         # simulate user input, select range of indices 1-3
         index_range = '1-%s' % len(self.bookmarks)
         with mock.patch('builtins.input', side_effect=[index_range]):
-            with mock.patch('buku.browser_open') as mock_browser_open:
+            with mock.patch('buku.open_in_browser') as mock_open_in_browser:
                 try:
                     # search the db with keywords from each bookmark
                     # searching using the first tag from bookmarks
@@ -287,11 +287,11 @@ class TestBukuDb(unittest.TestCase):
                     # catch exception thrown by reaching the end of the side effect iterable
                     pass
 
-                # collect arguments passed to browser_open
-                arg_list = [ args[0] for args, _ in mock_browser_open.call_args_list ]
+                # collect arguments passed to open_in_browser
+                arg_list = [ args[0] for args, _ in mock_open_in_browser.call_args_list ]
                 # expect a list of one-tuples that are bookmark URLs
                 expected = [ x[0] for x in self.bookmarks]
-                # checking if browser_open called with expected arguments
+                # checking if open_in_browser called with expected arguments
                 self.assertEqual(arg_list, expected)
 
     # @unittest.skip('skipping')
@@ -302,7 +302,7 @@ class TestBukuDb(unittest.TestCase):
 
         # simulate user input, select 'a' to open all bookmarks in results
         with mock.patch('builtins.input', side_effect=['a']):
-            with mock.patch('buku.browser_open') as mock_browser_open:
+            with mock.patch('buku.open_in_browser') as mock_open_in_browser:
                 try:
                     # search the db with keywords from each bookmark
                     # searching using the first tag from bookmarks
@@ -312,11 +312,11 @@ class TestBukuDb(unittest.TestCase):
                     # catch exception thrown by reaching the end of the side effect iterable
                     pass
 
-                # collect arguments passed to browser_open
-                arg_list = [ args[0] for args, _ in mock_browser_open.call_args_list ]
+                # collect arguments passed to open_in_browser
+                arg_list = [ args[0] for args, _ in mock_open_in_browser.call_args_list ]
                 # expect a list of one-tuples that are bookmark URLs
                 expected = [ x[0] for x in self.bookmarks][:2]
-                # checking if browser_open called with expected arguments
+                # checking if open_in_browser called with expected arguments
                 self.assertEqual(arg_list, expected)
 
     # @unittest.skip('skipping')
