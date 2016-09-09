@@ -118,10 +118,11 @@ Please substitute `$version` with the appropriate package version.
     general options:
       -a, --add URL [tags ...]
                            bookmark URL with comma-separated tags
-      -u, --update [N]     update fields of bookmark at DB index N
+      -u, --update [...]   update fields of bookmark at DB indices
                            refresh all titles, if no arguments
-                           refresh title of bookmark at N, if only
-                           N is specified without any edit options
+                           refresh titles of bookmarks at indices,
+                           if no edit options are specified
+                           accepts indices and ranges
       -d, --delete [...]   delete bookmarks. Valid inputs: either
                            a hyphenated single range (100-200),
                            OR space-separated indices (100 15 200)
@@ -199,7 +200,7 @@ Please substitute `$version` with the appropriate package version.
 - **Update** operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
-  - If index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web.
+  - If indices are passed without any other options (--url, --title, --tag and --comment), read the URLs from DB and update titles from web.
 - **Delete** operation:
   - When a record is deleted, the last record is moved to the index.
   - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.

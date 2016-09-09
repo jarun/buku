@@ -30,7 +30,7 @@ URLs are unique in DB. The same URL cannot be added twice. You can update tags a
 \fIUpdate\fR operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
-  - If index number is passed without any other options (--url, --title, --tag and --comment), read the URL from DB and update title from web.
+  - If indices are passed without any other options (--url, --title, --tag and --comment), read the URLs from DB and update titles from web.
 .PP
 \fISearch\fR works in mysterious ways:
   - Case-insensitive.
@@ -49,12 +49,8 @@ Bookmark
 .I URL
 along with comma-separated tags. A tag can have multiple words.
 .TP
-.BI \-u " " \--update " [N]"
-Update fields of the bookmark at index
-.I N
-in DB. If
-.I N
-and other options are omitted, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only N is passed without any edit options, title is fetched and updated (if not empty).
+.BI \-u " " \--update " [...]"
+Update fields of the bookmarks at specified indices in DB. If no arguments are specified, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only indices are passed without any edit options, titles are fetched and updated (if not empty).
 .TP
 .BI \-d " " \--delete " [...]"
 Delete bookmarks. You can either provide a single hyphenated range (e.g. 100-200) or a space-separated list of indices (e.g. 5 6 23 4 110 45). Note that range and list don't work together. Deletes search results when combined with search options.

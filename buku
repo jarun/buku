@@ -593,9 +593,9 @@ class BukuDb:
             if self.cur.rowcount == 1:
                 self.print_bookmark(index)
             elif self.cur.rowcount == 0:
-                logger.error('No matching index')
+                logger.error('No matching index %s', index)
         except sqlite3.IntegrityError:
-            print('URL already exists')
+            logger.error('URL already exists')
 
     def refreshdb(self, index):
         """Refresh ALL records in the database. Fetch title for each
@@ -1552,10 +1552,11 @@ if __name__ == '__main__':
         title='general options',
         description='''-a, --add URL [tags ...]
                      bookmark URL with comma-separated tags
--u, --update [N]     update fields of bookmark at DB index N
+-u, --update [...]   update fields of bookmark at DB indices
                      refresh all titles, if no arguments
-                     refresh title of bookmark at N, if only
-                     N is specified without any edit options
+                     refresh titles of bookmarks at indices,
+                     if no edit options are specified
+                     accepts indices and ranges
 -d, --delete [...]   delete bookmarks. Valid inputs: either
                      a hyphenated single range (100-200),
                      OR space-separated indices (100 15 200)
@@ -1703,13 +1704,9 @@ if __name__ == '__main__':
 
     # Update record
     if update:
+        index_passed = None
         if len(args.update) == 0:
-            update_index = 0
-        elif not args.update[0].isdigit():
-            logger.error('Index must be a number >= 0')
-            bdb.close_quit(1)
-        else:
-            update_index = int(args.update[0])
+            index_passed = 0
 
         if args.url is not None:
             new_url = args.url[0]
@@ -1732,7 +1729,24 @@ if __name__ == '__main__':
         # Parse tags into a comma-separated string
         tags = parse_tags(tagManual)
 
-        bdb.update_bookmark(update_index, new_url, titleManual, tags, description, append, delete)
+        if index_passed is None:
+            for idx in args.update:
+                if is_int(idx):
+                    bdb.update_bookmark(int(idx), new_url, titleManual, tags,
+                                          description, append, delete)
+                elif '-' in idx and is_int(idx.split('-')[0]) and is_int(idx.split('-')[1]):
+                    lower = int(idx.split('-')[0])
+                    upper = int(idx.split('-')[1])
+                    if lower > upper:
+                        tmp = upper
+                        upper = lower
+                        lower = tmp
+                    for _id in range(lower, upper + 1):
+                        bdb.update_bookmark(_id, new_url, titleManual, tags,
+                                             description, append, delete)
+        else:
+            bdb.update_bookmark(index_passed, new_url, titleManual, tags,
+                                 description, append, delete)
 
     # Search URLs, titles, tags for any keyword and delete if wanted
     if args.sany is not None:
