@@ -85,7 +85,6 @@ class BMHTMLParser(HTMLParser.HTMLParser):
     def error(self, message):
         pass
 
-
 class BukuCrypt:
     """ Class to handle encryption and decryption
     of the database file. Functionally a separate entity.
@@ -265,7 +264,6 @@ class BukuCrypt:
         else:
             os.remove(encpath)
             print('File decrypted')
-
 
 class BukuDb:
 
@@ -677,7 +675,6 @@ class BukuDb:
         else:
             print(format_json(results, showOpt=self.showOpt))
 
-
     def search_by_tag(self, tag, delete=False):
         """Search and list bookmarks with a tag
 
@@ -696,7 +693,6 @@ class BukuDb:
             prompt(results, self.noninteractive, delete)
         else:
             print(format_json(results, showOpt=self.showOpt))
-
 
     def compactdb(self, index):
         """When an entry at index is deleted, move the last
@@ -1024,7 +1020,6 @@ class BukuDb:
                 pass
         sys.exit(exitval)
 
-
 # Generic functions
 
 def connect_server(url):
@@ -1080,7 +1075,6 @@ def connect_server(url):
     })
     return (urlconn, urlconn.getresponse())
 
-
 def get_page_title(resp):
     """Invoke HTML parser and extract title from HTTP response
 
@@ -1114,7 +1108,6 @@ def get_page_title(resp):
         if logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!':
             _, _, linenumber, func, _, _ = inspect.stack()[0]
             logger.error('%s(), ln %d: %s', func, linenumber, e)
-
 
 def network_handler(url):
     """Handle server connection and redirections
@@ -1184,7 +1177,6 @@ def network_handler(url):
             return ''
         return titleData.strip().replace('\n', '')
 
-
 def parse_tags(keywords=None):
     """Format and get tag string from tokens"""
 
@@ -1229,7 +1221,6 @@ def parse_tags(keywords=None):
 
     # Wrap with delimiter
     return '%s%s%s' % (DELIMITER, DELIMITER.join(sortedTags), DELIMITER)
-
 
 def prompt(results, noninteractive=False, delete=False):
     """Show each matching result from a search and prompt"""
@@ -1304,7 +1295,6 @@ def prompt(results, noninteractive=False, delete=False):
                 else:
                     break
 
-
 def print_record(row, count=0):
     """Print a single DB record
     Handles differently for search and print (count = 0)
@@ -1329,7 +1319,6 @@ def print_record(row, count=0):
         printstr = '%s   \x1B[91m#\x1B[0m %s\n' % (printstr, row[3][1:-1])
 
     print(printstr)
-
 
 def format_json(resultset, single=False, showOpt=0):
     """Return results in Json format"""
@@ -1361,7 +1350,6 @@ def format_json(resultset, single=False, showOpt=0):
 
     return json.dumps(marks, sort_keys=True, indent=4)
 
-
 def is_int(string):
     """Check if a string is a digit
 
@@ -1373,7 +1361,6 @@ def is_int(string):
         return True
     except Exception:
         return False
-
 
 def open_in_browser(url):
     """Duplicate stdin, stdout (to suppress showing errors
@@ -1401,7 +1388,6 @@ def open_in_browser(url):
         os.dup2(_stderr, 2)
         os.dup2(_stdout, 1)
 
-
 def sigint_handler(signum, frame):
     """Custom SIGINT handler"""
 
@@ -1413,10 +1399,8 @@ def sigint_handler(signum, frame):
 
 signal.signal(signal.SIGINT, sigint_handler)
 
-
 def regexp(expr, item):
     return re.search(expr, item, re.IGNORECASE) is not None
-
 
 # Custom Action classes for argparse
 
@@ -1432,7 +1416,6 @@ class CustomUpdateAction(argparse.Action):
         # NOTE: the following converts a None argument to an empty array []
         setattr(args, self.dest, values)
 
-
 class CustomTagAction(argparse.Action):
     """Class to capture if optional param 'tag'
     is actually used, even if sans arguments
@@ -1443,7 +1426,6 @@ class CustomTagAction(argparse.Action):
 
         tagManual = [DELIMITER, ]
         setattr(args, self.dest, values)
-
 
 class CustomTitleAction(argparse.Action):
     """Class to capture if optional param 'title'
@@ -1456,7 +1438,6 @@ class CustomTitleAction(argparse.Action):
         titleManual = ''
         setattr(args, self.dest, values)
 
-
 class CustomDescAction(argparse.Action):
     """Class to capture if optional param 'comment'
     is actually used, even if sans arguments
@@ -1468,7 +1449,6 @@ class CustomDescAction(argparse.Action):
         description = ''
         setattr(args, self.dest, values)
 
-
 class CustomTagSearchAction(argparse.Action):
     """Class to capture if optional param 'stag'
     is actually used, even if sans arguments
@@ -1479,7 +1459,6 @@ class CustomTagSearchAction(argparse.Action):
 
         tagsearch = True
         setattr(args, self.dest, values)
-
 
 class ExtendedArgumentParser(argparse.ArgumentParser):
     """Extend classic argument parser"""
@@ -1509,9 +1488,7 @@ Webpage: https://github.com/jarun/Buku
         super(ExtendedArgumentParser, self).print_help(file)
         self.print_extended_help(file)
 
-
 """main starts here"""
-
 
 # Handle piped input
 def main(argv, pipeargs = None):
