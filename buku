@@ -348,7 +348,7 @@ class BukuDb:
         try:
             # Create a connection
             conn = sqlite3.connect(dbfile)
-            conn.create_function("REGEXP", 2, regexp)
+            conn.create_function('REGEXP', 2, regexp)
             cur = conn.cursor()
 
             # Create table if it doesn't exist
@@ -942,7 +942,7 @@ class BukuDb:
             f.write(entry)
             count += 1
 
-        f.write("    </DL><p>\n</DL><p>")
+        f.write('    </DL><p>\n</DL><p>')
         f.close()
         print('%s bookmarks exported' % count)
 
@@ -1171,14 +1171,6 @@ def network_handler(url):
                     url = url[:-1]
                 urlconn, resp = connect_server(url)
                 retry = True
-            #elif resp.status == 500 and not retry:
-                #"""Retry on status 500 (Internal Server Error) with truncated
-                #URL. Some servers support truncated request URL on redirection.
-                #"""
-                #urlconn.close()
-                #logger.debug('Received status 500: retrying...')
-                #urlconn, resp = connect_server(url)
-                #retry = True
             else:
                 logger.error('[%s] %s', resp.status, resp.reason)
                 break
