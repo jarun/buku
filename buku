@@ -889,7 +889,7 @@ class BukuDb:
         try:
             for row in self.cur.execute('SELECT URL FROM bookmarks WHERE id = ?', (index,)):
                 url = unquote(row[0])
-                browser_open(url)
+                open_in_browser(url)
                 return
             logger.error('No matching index')
         except IndexError:
@@ -1279,7 +1279,7 @@ def prompt(results, noninteractive=False, delete=False):
             if nav == 'a':
                 for index in range(0, count):
                     try:
-                        browser_open(unquote(results[index][1]))
+                        open_in_browser(unquote(results[index][1]))
                     except Exception as e:
                         _, _, linenumber, func, _, _ = inspect.stack()[0]
                         logger.error('%s(), ln %d: %s', func, linenumber, e)
@@ -1294,16 +1294,18 @@ def prompt(results, noninteractive=False, delete=False):
                         logger.error('Index out of bound')
                         continue
                     try:
-                        browser_open(unquote(results[index][1]))
+                        open_in_browser(unquote(results[index][1]))
                     except Exception as e:
                         _, _, linenumber, func, _, _ = inspect.stack()[0]
                         logger.error('%s(), ln %d: %s', func, linenumber, e)
                 elif '-' in nav and is_int(nav.split('-')[0]) and is_int(nav.split('-')[1]):
                     lower = int(nav.split('-')[0])
                     upper = int(nav.split('-')[1])
+                    if lower > upper:
+                        lower, upper = upper, lower
                     for index in range(lower-1,upper):
                         try:
-                            browser_open(unquote(results[index][1]))
+                            open_in_browser(unquote(results[index][1]))
                         except Exception as e:
                             _, _, linenumber, func, _, _ = inspect.stack()[0]
                             logger.error('%s(), ln %d: %s', func, linenumber, e)
@@ -1381,7 +1383,7 @@ def is_int(string):
         return False
 
 
-def browser_open(url):
+def open_in_browser(url):
     """Duplicate stdin, stdout (to suppress showing errors
     on the terminal) and open URL in default browser
 
@@ -1738,9 +1740,7 @@ if __name__ == '__main__':
                     lower = int(idx.split('-')[0])
                     upper = int(idx.split('-')[1])
                     if lower > upper:
-                        tmp = upper
-                        upper = lower
-                        lower = tmp
+                        lower, upper = upper, lower
                     for _id in range(lower, upper + 1):
                         bdb.update_bookmark(_id, new_url, titleManual, tags,
                                              description, append, delete)
