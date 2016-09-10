@@ -100,6 +100,15 @@ Decrypt (unlock) the DB file with
 (> 0, default 8) hash passes to generate key.
 .SH POWER OPTIONS
 .TP
+.BI \-e " " \--export " file"
+Export bookmarks to Firefox bookmarks formatted HTML.
+.TP
+.BI \-i " " \--import " file"
+Import bookmarks exported from Firefox, Google Chrome or IE in HTML format.
+.TP
+.BI \-m " " \--merge " file"
+Merge bookmarks from another Buku database file.
+.TP
 .BI \-p " " \--print " [N]"
 Show details (URL, title and tags) of bookmark record stored at index
 .I N
@@ -129,15 +138,6 @@ is omitted.
 .TP
 .BI \-j " " \--json
 Output data formatted as json, works with -p, -s, -S, --st.
-.TP
-.BI \-e " " \--export " file"
-Export bookmarks to Firefox bookmarks formatted HTML.
-.TP
-.BI \-i " " \--import " file"
-Import bookmarks exported from Firefox, Google Chrome or IE in HTML format.
-.TP
-.BI \-m " " \--merge " file"
-Merge bookmarks from another Buku database file.
 .TP
 .BI \--noprompt
 Do not show the prompt, run and exit.

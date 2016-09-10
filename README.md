@@ -160,6 +160,10 @@ Please substitute `$version` with the appropriate package version.
                            hash iterations to generate key
 
     power toys:
+      -e, --export file    export bookmarks to Firefox format html
+      -i, --import file    import bookmarks from html file; Firefox,
+                           Google Chrome and IE formats supported
+      -m, --merge file     merge bookmarks from another buku database
       -p, --print [N]      show details of bookmark at DB index N
                            show all bookmarks, if no arguments
       -f, --format N       modify -p output
@@ -168,10 +172,6 @@ Please substitute `$version` with the appropriate package version.
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
       -j, --json           Json formatted output for -p, -s, -S, --st
-      -e, --export file    export bookmarks to Firefox format html
-      -i, --import file    import bookmarks from html file; Firefox,
-                           Google Chrome and IE formats supported
-      -m, --merge file     merge bookmarks from another buku database
       --noprompt           do not show the prompt, run and exit
       -o, --open N         open bookmark at DB index N in web browser
       -z, --debug          show debug information and additional logs
