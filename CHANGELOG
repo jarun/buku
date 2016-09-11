@@ -1,3 +1,16 @@
+Buku v2.4
+2016-09-12
+
+Modifications
+- Exact word match support using regex (**default**)
+- New option --deep to scan matching substrings
+- Support DB index lists and ranges in update operation
+- Open a list or range of search results in browser
+- Open all search results in browser
+- A more concise prompt
+- PEP8 compliance (almost)
+- Tons of new test cases added (thanks @wheresmyjetpack)
+
 -------------------------------------------------------------------------------
 
 Buku v2.3
