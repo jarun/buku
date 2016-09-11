@@ -18,9 +18,12 @@
 
 `buku` has a [rofi frontend](https://github.com/carnager/buku_run) written by Rasmus Steinke.
 
-[![gitter chat](https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000)](https://gitter.im/jarun/Buku)
-
-[![Donate Button](https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q)
+<br>
+<p align="center">
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000" alt="Donate" /></a>
+&nbsp;
+<a href="https://gitter.im/jarun/Buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a>
+</p>
 
 ## Table of Contents
 
@@ -29,16 +32,16 @@
   - [Dependencies](#dependencies)
   - [Installing from this repository](#installing-from-this-repository)
   - [Running as a standalone utility](#running-as-a-standalone-utility)
-  - [Shell completion](#shell-completion)
   - [Installing with a package manager](#installing-with-a-package-manager)
   - [Debian package](#debian-package)
+- [Shell completion](#shell-completion)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
   - [Operational notes](#operational-notes)
 - [Examples](#examples)
 - [Contributions](#contributions)
 - [Mentions](#mentions)
-- [Developers](#developers)
+- [Copyright](#copyright)
 
 ## Features
 
@@ -88,10 +91,6 @@ To remove, run:
 
     $ ./buku
 
-### Shell completion
-
-Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
-
 ### Installing with a package manager
 
 `buku` is also available on
@@ -106,6 +105,10 @@ If you are on a Debian (including Ubuntu) based system visit [the latest stable 
     $ sudo dpkg -i buku-$version-all.deb
 
 Please substitute `$version` with the appropriate package version.
+
+## Shell completion
+
+Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/Buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
 
 ## Usage
 
@@ -318,14 +321,12 @@ The same number of iterations must be specified for one lock & unlock instance. 
 
 ## Contributions
 
-Pull requests are welcome. Please visit [#14](https://github.com/jarun/Buku/issues/14) for a list of TODOs.
+Pull requests are welcome. Please visit [#39](https://github.com/jarun/Buku/issues/39) for a list of TODOs.
 
 ## Mentions
 
 - [One Thing Well](http://onethingwell.org/post/144952807044/buku)
 
-## Developers
+## Copyright
 
-[Arun Prakash Jana](mailto:engineerarun@gmail.com)
-Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com).
-Special thanks to the community for valuable suggestions and ideas.
+Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
