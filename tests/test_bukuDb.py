@@ -11,14 +11,12 @@ from unittest import mock
 from os.path import join, expanduser
 import sqlite3
 
-buku = imp.load_source('buku', '../buku')
-
 TEST_TEMP_DIR_OBJ = TemporaryDirectory(prefix='bukutest_')
 TEST_TEMP_DIR_PATH = TEST_TEMP_DIR_OBJ.name
 TEST_TEMP_DBDIR_PATH = join(TEST_TEMP_DIR_PATH, 'buku')
 TEST_TEMP_DBFILE_PATH = join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
 
-from buku import BukuDb, parse_tags
+from buku.buku import BukuDb, parse_tags
 
 TEST_BOOKMARKS = [ ['http://slashdot.org',
                     'SLASHDOT',
@@ -245,7 +243,7 @@ class TestBukuDb(unittest.TestCase):
             expected = [(i + 1,) +  tuple(bookmark)]
             # search db by tag, url (domain name), and title
             for keyword in (tag_search, url_search, title_search):
-                with mock.patch('buku.prompt') as mock_prompt:
+                with mock.patch('buku.buku.prompt') as mock_prompt:
                     # search by keyword
                     self.bdb.searchdb([keyword])
                     # checking prompt called with the expected resultset from search
@@ -257,7 +255,7 @@ class TestBukuDb(unittest.TestCase):
         for bookmark in self.bookmarks:
             self.bdb.add_bookmark(*bookmark)
 
-        with mock.patch('buku.prompt') as mock_prompt:
+        with mock.patch('buku.buku.prompt') as mock_prompt:
             get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
             for i in range(len(self.bookmarks)):
                 # search for bookmark with a tag that is known to exist
@@ -277,7 +275,7 @@ class TestBukuDb(unittest.TestCase):
         # simulate user input, select range of indices 1-3
         index_range = '1-%s' % len(self.bookmarks)
         with mock.patch('builtins.input', side_effect=[index_range]):
-            with mock.patch('buku.open_in_browser') as mock_open_in_browser:
+            with mock.patch('buku.buku.open_in_browser') as mock_open_in_browser:
                 try:
                     # search the db with keywords from each bookmark
                     # searching using the first tag from bookmarks
@@ -302,7 +300,7 @@ class TestBukuDb(unittest.TestCase):
 
         # simulate user input, select 'a' to open all bookmarks in results
         with mock.patch('builtins.input', side_effect=['a']):
-            with mock.patch('buku.open_in_browser') as mock_open_in_browser:
+            with mock.patch('buku.buku.open_in_browser') as mock_open_in_browser:
                 try:
                     # search the db with keywords from each bookmark
                     # searching using the first tag from bookmarks
