@@ -1586,7 +1586,13 @@ def main(argv, pipeargs=None):
         for s in sys.stdin.readlines():
             pipeargs.extend(s.split())
 
-if __name__ == '__main__':
+
+def entry_point():
+    """
+    Console entry point for pip packaging
+    """
+    global tagManual, titleManual, description
+
     pipeargs = []
     atexit.register(logging.shutdown)
 
@@ -1611,18 +1617,18 @@ if __name__ == '__main__':
     general_grp = argparser.add_argument_group(
         title='general options',
         description='''-a, --add URL [tags ...]
-                     bookmark URL with comma-separated tags
--u, --update [...]   update fields of bookmark at DB indices
-                     refresh all titles, if no arguments
-                     refresh titles of bookmarks at indices,
-                     if no edit options are specified
-                     accepts indices and ranges
--d, --delete [...]   delete bookmarks. Valid inputs: either
-                     a hyphenated single range (100-200),
-                     OR space-separated indices (100 15 200)
-                     delete search results with search options
-                     delete all bookmarks, if no arguments
--h, --help           show this information and exit''')
+                         bookmark URL with comma-separated tags
+    -u, --update [...]   update fields of bookmark at DB indices
+                         refresh all titles, if no arguments
+                         refresh titles of bookmarks at indices,
+                         if no edit options are specified
+                         accepts indices and ranges
+    -d, --delete [...]   delete bookmarks. Valid inputs: either
+                         a hyphenated single range (100-200),
+                         OR space-separated indices (100 15 200)
+                         delete search results with search options
+                         delete all bookmarks, if no arguments
+    -h, --help           show this information and exit''')
     addarg = general_grp.add_argument
     addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
            help=argparse.SUPPRESS)
@@ -1638,15 +1644,15 @@ if __name__ == '__main__':
     edit_grp = argparser.add_argument_group(
         title='edit options',
         description='''--url keyword        specify url, works with -u only
---tag [+|-] [...]    set comma-separated tags, works with -a, -u
-                     clear tags, if no arguments
-                     append specified tags, if preceded by '+'
-                     remove specified tags, if preceded by '-'
--t, --title [...]    manually set title, works with -a, -u
-                     if no arguments:
-                     -a: do not set title, -u: clear title
--c, --comment [...]  description of the bookmark, works with
-                     -a, -u; clears comment, if no arguments''')
+    --tag [+|-] [...]    set comma-separated tags, works with -a, -u
+                         clear tags, if no arguments
+                         append specified tags, if preceded by '+'
+                         remove specified tags, if preceded by '-'
+    -t, --title [...]    manually set title, works with -a, -u
+                         if no arguments:
+                         -a: do not set title, -u: clear title
+    -c, --comment [...]  description of the bookmark, works with
+                         -a, -u; clears comment, if no arguments''')
     addarg = edit_grp.add_argument
     addarg('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
     addarg('--tag', nargs='*', dest='tag', action=CustomTagAction,
@@ -1660,14 +1666,14 @@ if __name__ == '__main__':
     search_grp = argparser.add_argument_group(
         title='search options',
         description='''-s, --sany keyword [...]
-                     search bookmarks for ANY matching keyword
--S, --sall keyword [...]
-                     search bookmarks with ALL keywords
-                     special keyword -
-                     "blank": list entries with empty title/tag
---deep               match substrings ('pen' matches 'opened')
---st, --stag [...]   search bookmarks by tag
-                     list tags alphabetically, if no arguments''')
+                         search bookmarks for ANY matching keyword
+    -S, --sall keyword [...]
+                         search bookmarks with ALL keywords
+                         special keyword -
+                         "blank": list entries with empty title/tag
+    --deep               match substrings ('pen' matches 'opened')
+    --st, --stag [...]   search bookmarks by tag
+                         list tags alphabetically, if no arguments''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', nargs='+', metavar='keyword',
            help=argparse.SUPPRESS)
@@ -1682,9 +1688,9 @@ if __name__ == '__main__':
     crypto_grp = argparser.add_argument_group(
         title='encryption options',
         description='''-l, --lock [N]       encrypt DB file with N (> 0, default 8)
-                     hash iterations to generate key
--k, --unlock [N]     decrypt DB file with N (> 0, default 8)
-                     hash iterations to generate key''')
+                         hash iterations to generate key
+    -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
+                         hash iterations to generate key''')
     addarg = crypto_grp.add_argument
     addarg('-k', '--unlock', nargs='?', dest='decrypt', type=int, const=8,
            metavar='N', help=argparse.SUPPRESS)
@@ -1695,20 +1701,20 @@ if __name__ == '__main__':
     power_grp = argparser.add_argument_group(
         title='power toys',
         description='''-e, --export file    export bookmarks to Firefox format html
--i, --import file    import bookmarks from html file; Firefox,
-                     Google Chrome and IE formats supported
--m, --merge file     merge bookmarks from another buku database
--p, --print [N]      show details of bookmark at DB index N
-                     show all bookmarks, if no arguments
--f, --format N       modify -p output
-                     N=1: show only URL, N=2: show URL and tag
--r, --replace oldtag [newtag ...]
-                     replace oldtag with newtag everywhere
-                     delete oldtag, if no newtag
--j, --json           Json formatted output for -p, -s, -S, --st
---noprompt           do not show the prompt, run and exit
--o, --open N         open bookmark at DB index N in web browser
--z, --debug          show debug information and additional logs''')
+    -i, --import file    import bookmarks from html file; Firefox,
+                         Google Chrome and IE formats supported
+    -m, --merge file     merge bookmarks from another buku database
+    -p, --print [N]      show details of bookmark at DB index N
+                         show all bookmarks, if no arguments
+    -f, --format N       modify -p output
+                         N=1: show only URL, N=2: show URL and tag
+    -r, --replace oldtag [newtag ...]
+                         replace oldtag with newtag everywhere
+                         delete oldtag, if no newtag
+    -j, --json           Json formatted output for -p, -s, -S, --st
+    --noprompt           do not show the prompt, run and exit
+    -o, --open N         open bookmark at DB index N in web browser
+    -z, --debug          show debug information and additional logs''')
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, dest='export', metavar='file',
            help=argparse.SUPPRESS)
@@ -1923,3 +1929,7 @@ if __name__ == '__main__':
 
     # Close DB connection and quit
     bdb.close_quit(0)
+
+
+if __name__ == '__main__':
+    entry_point()
