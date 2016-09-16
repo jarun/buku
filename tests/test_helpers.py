@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 import imp, unittest
 
-buku = imp.load_source('buku', '../buku')
-
-from buku import *
+from buku.buku import *
 
 
 class TestHelpers(unittest.TestCase):
