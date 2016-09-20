@@ -722,6 +722,7 @@ class BukuDb:
 
         :param tag: tag to search
         '''
+
         query = "SELECT id, url, metadata, tags, desc FROM bookmarks \
                 WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC"
         logger.debug('query: "%s", args: %s', query, tag)
@@ -956,6 +957,7 @@ class BukuDb:
         Params: file_path: Path to file to export to
         export_tags: tag to export, None for all
         '''
+
         import time
 
         if os.path.exists(file_path):
@@ -973,8 +975,9 @@ class BukuDb:
         timestamp = int(time.time())
         query = 'SELECT * FROM bookmarks'
         if export_tags:
+            export_tags = ",".join(export_tags)
             query += " WHERE tags LIKE '%' || ? || '%'"
-            self.cur.execute(query, (export_tags[0],))
+            self.cur.execute(query, (export_tags,))
         else:
             self.cur.execute(query)
         resultset = self.cur.fetchall()
