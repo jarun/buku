@@ -991,6 +991,10 @@ class BukuDb:
         self.cur.execute(query, arguments)
         resultset = self.cur.fetchall()
 
+        if len(resultset) == 0:
+            print('No bookmarks exported')
+            return
+
         if os.path.exists(fp):
             resp = input('%s exists. Overwrite? (y/n): ' % fp)
             if resp != 'y':
