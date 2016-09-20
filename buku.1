@@ -101,7 +101,7 @@ Decrypt (unlock) the DB file with
 .SH POWER OPTIONS
 .TP
 .BI \-e " " \--export " file"
-Export bookmarks to Firefox bookmarks formatted HTML.
+Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags.
 .TP
 .BI \-i " " \--import " file"
 Import bookmarks exported from Firefox, Google Chrome or IE in HTML format.
@@ -217,6 +217,17 @@ Note that URL must precede tags.
 Applies to --url, --title and --tag too.
 .PP
 .IP 7. 4
+\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2':
+.PP
+.EX
+.IP
+.B buku -e bookmarks.html --tag tag 1, tag 2
+.EE
+.PP
+.IP "" 4
+All bookmarks are exported if --tag is not specified.
+.PP
+.IP 8. 4
 \fBImport\fR bookmarks:
 .PP
 .EX
@@ -227,7 +238,7 @@ Applies to --url, --title and --tag too.
 .IP "" 4
 HTML exports from Firefox, Google Chrome and IE are supported.
 .PP
-.IP 8. 4
+.IP 9. 4
 \fBDelete only comment\fR for bookmark at 15012014:
 .PP
 .EX
@@ -238,7 +249,7 @@ HTML exports from Firefox, Google Chrome and IE are supported.
 .IP "" 4
 Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
 .PP
-.IP 9. 4
+.IP 10. 4
 \fBUpdate\fR or refresh \fBfull DB\fR with page titles from the web:
 .PP
 .EX
@@ -249,7 +260,7 @@ Applies to --title and --tag too. URL cannot be deleted without deleting the boo
 .IP "" 4
 This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
 .PP
-.IP 10. 4
+.IP 11. 4
 \fBDelete\fR bookmark at index 15012014:
 .PP
 .EX
@@ -260,14 +271,14 @@ This operation does not modify the indexes, URLs, tags or comments. Only title i
 .IP "" 4
 The last index is moved to the deleted index to keep the DB compact.
 .PP
-.IP 11. 4
+.IP 12. 4
 \fBDelete all\fR bookmarks:
 .PP
 .EX
 .IP
 .B buku -d
 .PP
-.IP 12. 4
+.IP 13. 4
 \fBDelete\fR a \fBrange or list\fR of bookmarks:
 .PP
 .EX
@@ -275,35 +286,35 @@ The last index is moved to the deleted index to keep the DB compact.
 .B $ buku -d 100-200     // delete bookmarks from index 100 to 200
 .B $ buku 100 15 200     // delete bookmarks at indices 100, 15 and 200
 .PP
-.IP 13. 4
+.IP 14. 4
 \fBSearch\fR bookmarks for \fBANY\fR of the keywords 'kernel' and 'debugging' in URL, title or tags:
 .PP
 .EX
 .IP
 .B buku -s kernel debugging
 .PP
-.IP 14. 4
+.IP 15. 4
 \fBSearch\fR bookmarks with \fBALL\fR the keywords 'kernel' and 'debugging' in URL, title or tags:
 .PP
 .EX
 .IP
 .B buku -S kernel debugging
 .PP
-.IP 15. 4
+.IP 16. 4
 \fBSearch\fR bookmarks \fBtagged\fR 'general kernel concepts':
 .PP
 .EX
 .IP
 .B buku --st general kernel concepts
 .PP
-.IP 16. 4
+.IP 17. 4
 List \fBall unique tags\fR alphabetically:
 .PP
 .EX
 .IP
 .B buku --st
 .PP
-.IP 17. 4
+.IP 18. 4
 \fBEncrypt or decrypt\fR DB with \fBcustom number of iterations\fR (15) to generate key:
 .PP
 .EX
@@ -316,14 +327,14 @@ List \fBall unique tags\fR alphabetically:
 .IP "" 4
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
 .PP
-.IP 18. 4
+.IP 19. 4
 \fBShow details\fR of bookmark at index 15012014:
 .PP
 .EX
 .IP
 .B buku -p 15012014
 .PP
-.IP 19. 4
+.IP 20. 4
 \fBShow all\fR bookmarks with real index from database:
 .PP
 .EX
@@ -331,21 +342,21 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -p
 .B buku -p | more
 .PP
-.IP 20. 4
+.IP 21. 4
 \fBReplace tag\fR 'old tag' with 'new tag':
 .PP
 .EX
 .IP
 .B buku -r 'old tag' new tag
 .PP
-.IP 21. 4
+.IP 22. 4
 \fBDelete tag\fR 'old tag' from DB:
 .PP
 .EX
 .IP
 .B buku -r 'old tag'
 .PP
-.IP 22. 4
+.IP 23. 4
 \fBAppend (or delete) tags\fR 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 .PP
 .EX
@@ -353,14 +364,14 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -u 15012014 --tag + tag 1, tag 2
 .B buku -u 15012014 --tag - tag 1, tag 2
 .PP
-.IP 23. 4
+.IP 24. 4
 \fBOpen URL\fR at index 15012014 in browser:
 .PP
 .EX
 .IP
 .B buku -o 15012014
 .PP
-.IP 24. 4
+.IP 25. 4
 To list bookmarks with no title or tags for \fBbookkeeping\fR:
 .PP
 .EX

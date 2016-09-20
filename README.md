@@ -165,6 +165,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     power toys:
       -e, --export file    export bookmarks to Firefox format html
+                           use --tag to export only specific tags
       -i, --import file    import bookmarks from html file; Firefox,
                            Google Chrome and IE formats supported
       -m, --merge file     merge bookmarks from another buku database
@@ -250,72 +251,76 @@ Note that URL must precede tags.
 
         $ buku -u 15012014 -c this is a new comment
 Applies to --url, --title and --tag too.
-7. Import bookmarks:
+7. **Export** bookmarks tagged `tag 1` or `tag 2`:
+
+        $ buku -e bookmarks.html tag 1, tag 2
+All bookmarks are exported if --tag is not specified.
+8. **Import** bookmarks:
 
         $ buku -i bookmarks.html
 HTML exports from Firefox, Google Chrome and IE are supported.
-8. **Delete only comment** for bookmark at 15012014:
+9. **Delete only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c
 Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
-9. **Update** or refresh **full DB** with page titles from the web:
+10. **Update** or refresh **full DB** with page titles from the web:
 
         $ buku -u
 This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
-10. **Delete** bookmark at index 15012014:
+11. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
         Index 15012020 moved to 15012014
 The last index is moved to the deleted index to keep the DB compact.
-11. **Delete all** bookmarks:
+12. **Delete all** bookmarks:
 
         $ buku -d
-12. **Delete** a **range or list** of bookmarks:
+13. **Delete** a **range or list** of bookmarks:
 
         $ buku -d 100-200     // delete bookmarks from index 100 to 200
         $ buku 100 15 200     // delete bookmarks at indices 100, 15 and 200
-13. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
+14. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -s kernel debugging
-14. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
+15. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -S kernel debugging
 
-15. **Search** bookmarks **tagged** `general kernel concepts`:
+16. **Search** bookmarks **tagged** `general kernel concepts`:
 
         $ buku --st general kernel concepts
-16. List **all unique tags** alphabetically:
+17. List **all unique tags** alphabetically:
 
         $ buku --st
-17. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+18. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
-18. **Show details** of bookmark at index 15012014:
+19. **Show details** of bookmark at index 15012014:
 
         $ buku -p 15012014
-19. **Show all** bookmarks with real index from database:
+20. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-20. **Replace tag** 'old tag' with 'new tag':
+21. **Replace tag** 'old tag' with 'new tag':
 
         $ buku -r 'old tag' new tag
-21. **Delete tag** 'old tag' from DB:
+22. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-22. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
+23. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
         $ buku -u 15012014 --tag - tag 1, tag 2
-23. **Open URL** at index 15012014 in browser:
+24. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-24. To list bookmarks with no title or tags for **bookkeeping**:
+25. To list bookmarks with no title or tags for **bookkeeping**:
 
         $ buku -S blank
-25. More **help**:
+26. More **help**:
 
         $ buku
         $ man buku

@@ -950,7 +950,7 @@ class BukuDb:
         except IndexError:
             logger.error('Index out of bound')
 
-    def export_bookmark(self, fp):
+    def export_bookmark(self, fp, taglist=None):
         '''Export bookmarks to a Firefox
         bookmarks formatted html file.
 
@@ -958,6 +958,38 @@ class BukuDb:
         '''
 
         import time
+
+        count = 0
+        timestamp = int(time.time())
+        arguments = []
+        query = 'SELECT * FROM bookmarks'
+        tagvalid = False
+
+        if taglist is not None:
+            tagstr = parse_tags(taglist)
+
+            if len(tagstr) == 0 or tagstr == DELIMITER:
+                logger.error('Invalid tag')
+                return
+
+            if len(tagstr) > 0:
+                tags = tagstr.split(DELIMITER)
+                query = '%s WHERE' % query
+                for tag in tags:
+                    if tag != '':
+                        tagvalid = True
+                        query += " tags LIKE '%' || ? || '%' OR"
+                        tag = '%s%s%s' % (DELIMITER, tag, DELIMITER)
+                        arguments += (tag,)
+
+                if tagvalid:
+                    query = query[:-3]
+                else:
+                    query = query[:-6]
+
+        logger.debug('(%s), %s' % (query, arguments))
+        self.cur.execute(query, arguments)
+        resultset = self.cur.fetchall()
 
         if os.path.exists(fp):
             resp = input('%s exists. Overwrite? (y/n): ' % fp)
@@ -969,11 +1001,6 @@ class BukuDb:
         except Exception as e:
             logger.error(e)
             return
-
-        count = 0
-        timestamp = int(time.time())
-        self.cur.execute('SELECT * FROM bookmarks')
-        resultset = self.cur.fetchall()
 
         f.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
 
@@ -1695,6 +1722,7 @@ if __name__ == '__main__':
     power_grp = argparser.add_argument_group(
         title='power toys',
         description='''-e, --export file    export bookmarks to Firefox format html
+                     use --tag to export only specific tags
 -i, --import file    import bookmarks from html file; Firefox,
                      Google Chrome and IE formats supported
 -m, --merge file     merge bookmarks from another buku database
@@ -1904,7 +1932,12 @@ if __name__ == '__main__':
 
     # Export bookmarks
     if args.export is not None:
-        bdb.export_bookmark(args.export[0])
+        if args.tag is None:
+            bdb.export_bookmark(args.export[0])
+        elif len(args.tag) == 0:
+            logger.error('Missing tag')
+        else:
+            bdb.export_bookmark(args.export[0], args.tag)
 
     # Import bookmarks
     if args.imports is not None:
