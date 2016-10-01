@@ -14,9 +14,7 @@
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `Buku` (after my son's nickname).
 
-`buku` can handle piped input, which lets you combine it with `xsel` (on Linux) or `pbpaste` (on Mac) and add bookmarks from anywhere without touching the terminal. Ref: [buku & xsel: add selected or copied URL as bookmark](https://tuxtricks.wordpress.com/2016/09/01/buku-xsel/)
-
-`buku` has a [rofi frontend](https://github.com/carnager/buku_run) written by Rasmus Steinke.
+Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration).
 
 <br>
 <p align="center">
@@ -38,6 +36,9 @@
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
   - [Operational notes](#operational-notes)
+- [GUI integration](#gui-integration)
+  - [Add bookmarks to buku](#add-bookmarks-to-buku)
+  - [Import bookmarks to browser](#import-bookmarks-to-browser)
 - [Examples](#examples)
 - [Contributions](#contributions)
 - [Mentions](#mentions)
@@ -110,6 +111,8 @@ Please substitute `$version` with the appropriate package version.
 ## Shell completion
 
 Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/Buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
+
+`buku` has a [rofi frontend](https://github.com/carnager/buku_run) written by Rasmus Steinke.
 
 ## Usage
 
@@ -220,6 +223,67 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - --st : search bookmarks by tag, or show all tags alphabetically.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
+
+## GUI integration
+
+![buku](http://i.imgur.com/8Y6PTPw.png)
+
+`buku` can integrate in a GUI environment with simple tweaks.
+
+### Add bookmarks to buku
+
+With support for piped input, it's possible to add bookmarks to `buku` with a keyboard shortcut. On Linux, copied text or mouse selected text can be added directly with a shortcut. The additional utility required is `xsel` (on Linux) or `pbpaste` (on OS X).
+
+We will explore the procedure on Linux with Ubuntu as the reference platform.
+
+1. To install `xsel` on Ubuntu, run:
+
+        $ sudo apt install xsel
+2. Create a new script `bukuadd` with the following content:
+
+        #!/bin/bash
+
+        xsel | buku -a
+
+  `-a` is the option to add a bookmark.
+3. Make the script executable:
+
+        $ chmod +x bukuadd
+4. Copy it somewhere in your `PATH`.
+5. Add a new keyboard shortcut to run the script. I use `<Alt-b>`.
+
+#### Test drive
+
+Select a URL anywhere or copy a link and press the keyboard shortcut to add it to the `buku` database. The addition might take a few seconds to reflect depending on your internet speed and the time `buku` needs to fetch the title from the URL. If you don’t want to fetch the title, add the `-t` option to the script.
+
+To verify that the bookmark has indeed been added, run:
+
+    $ buku -p | tail -3
+and check the entry.
+
+#### Tips
+
+- To add the last visited URL in Firefox to `buku`, use the following script:
+
+        #!/bin/bash
+
+        sqlite3 $HOME/.mozilla/firefox/*.default/places.sqlite "select url from moz_places where last_visit_date=(select max(last_visit_date) from moz_places)" | buku -a
+- If you want to tag these bookmarks, look them up later using:
+
+        $ buku -S blank
+Use option `-u` to tag these bookmarks.
+
+### Import bookmarks to browser
+
+`buku` can export (or import) bookmarks in HTML format recognized by Firefox, Google Chrome, Internet Explorer.
+
+To export all bookmarks, run:
+
+    $ buku --export path_to_bookmarks.html
+To export specific tags, run:
+
+    $ buku --export path_to_bookmarks.html --tag tag 1, tag 2
+Once exported, import the html file in your browser.
 
 ## Examples
 
