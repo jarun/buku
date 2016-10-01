@@ -746,7 +746,7 @@ class BukuDb:
 
         self.cur.execute('SELECT MAX(id) from bookmarks')
         results = self.cur.fetchall()
-        # Return if the last index was just deleted
+        # Return if the last index left in DB was just deleted
         if len(results) == 1 and results[0][0] is None:
             return
 
@@ -939,6 +939,20 @@ class BukuDb:
 
         Params: index
         '''
+
+        if index == 0:
+            self.cur.execute('SELECT MAX(id) from bookmarks')
+            results = self.cur.fetchall()
+
+            # Return if no entries in DB
+            if len(results) == 1 and results[0][0] is None:
+                print("No bookmarks added yet ...")
+                return
+
+            import random
+            index = random.randint(1, results[0][0])
+            logger.debug('Opening random index ' + str(index))
+
 
         query = 'SELECT URL FROM bookmarks WHERE id = ?'
         try:
@@ -1739,7 +1753,8 @@ if __name__ == '__main__':
                      delete oldtag, if no newtag
 -j, --json           Json formatted output for -p, -s, -S, --st
 --noprompt           do not show the prompt, run and exit
--o, --open N         open bookmark at DB index N in web browser
+-o, --open [N]       open bookmark at DB index N in web browser
+                     open a random index if N is omitted
 -z, --debug          show debug information and additional logs''')
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, dest='export', metavar='file',
@@ -1758,8 +1773,8 @@ if __name__ == '__main__':
            help=argparse.SUPPRESS)
     addarg('--noprompt', dest='noninteractive', action='store_true',
            help=argparse.SUPPRESS)
-    addarg('-o', '--open', dest='openurl', type=int, metavar='N',
-           help=argparse.SUPPRESS)
+    addarg('-o', '--open', nargs='?', dest='openurl', type=int, const=0,
+           metavar='N', help=argparse.SUPPRESS)
     addarg('-z', '--debug', dest='debug', action='store_true',
            help=argparse.SUPPRESS)
 
@@ -1953,8 +1968,8 @@ if __name__ == '__main__':
 
     # Open URL in browser
     if args.openurl is not None:
-        if args.openurl < 1:
-            logger.error('Index must be >= 1')
+        if args.openurl < 0:
+            logger.error('Index must be >= 0')
             bdb.close_quit(1)
         bdb.browse_by_index(args.openurl)
 
