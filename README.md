@@ -16,6 +16,11 @@
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration).
 
+### Upcoming
+
+- Export specific tags as HTML
+- Open a random bookmark
+
 <br>
 <p align="center">
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000" alt="Donate" /></a>
@@ -232,9 +237,9 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 ### Add bookmarks to buku
 
-With support for piped input, it's possible to add bookmarks to `buku` with a keyboard shortcut. On Linux, copied text or mouse selected text can be added directly with a shortcut. The additional utility required is `xsel` (on Linux) or `pbpaste` (on OS X).
+With support for piped input, it's possible to add bookmarks to `buku` using keyboard shortcuts on Linux and OS X. CLIPBOARD (plus PRIMARY on Linux) text selections can be added directly this way. The additional utility required is `xsel` (on Linux) or `pbpaste` (on OS X).
 
-We will explore the procedure on Linux with Ubuntu as the reference platform.
+The following steps explore the procedure on Linux with Ubuntu as the reference platform.
 
 1. To install `xsel` on Ubuntu, run:
 
@@ -254,7 +259,7 @@ We will explore the procedure on Linux with Ubuntu as the reference platform.
 
 #### Test drive
 
-Select a URL anywhere or copy a link and press the keyboard shortcut to add it to the `buku` database. The addition might take a few seconds to reflect depending on your internet speed and the time `buku` needs to fetch the title from the URL. If you don’t want to fetch the title, add the `-t` option to the script.
+Select a URL anywhere or copy a link and press the keyboard shortcut to add it to the `buku` database. The addition might take a few seconds to reflect depending on your internet speed and the time `buku` needs to fetch the title from the URL. To avoid title fetch from the web, add the `-t` option to the script.
 
 To verify that the bookmark has indeed been added, run:
 
@@ -275,7 +280,7 @@ Use option `-u` to tag these bookmarks.
 
 ### Import bookmarks to browser
 
-`buku` can export (or import) bookmarks in HTML format recognized by Firefox, Google Chrome, Internet Explorer.
+`buku` can export (or import) bookmarks in HTML format recognized by Firefox, Google Chrome and Internet Explorer.
 
 To export all bookmarks, run:
 
@@ -397,6 +402,7 @@ Pull requests are welcome. Please visit [#39](https://github.com/jarun/Buku/issu
 ## Mentions
 
 - [One Thing Well](http://onethingwell.org/post/144952807044/buku)
+- [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
 
 ## Copyright
 
