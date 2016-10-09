@@ -946,16 +946,15 @@ class BukuDb:
         '''
 
         if index == 0:
-            self.cur.execute('SELECT MAX(id) from bookmarks')
-            results = self.cur.fetchall()
+            self.cur.execute('SELECT id from bookmarks ORDER BY RANDOM() LIMIT 1')
+            result = self.cur.fetchone()
 
             # Return if no entries in DB
-            if len(results) == 1 and results[0][0] is None:
+            if result is None:
                 print("No bookmarks added yet ...")
                 return
 
-            import random
-            index = random.randint(1, results[0][0])
+            index = result[0]
             logger.debug('Opening random index ' + str(index))
 
 
