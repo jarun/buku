@@ -66,7 +66,7 @@ class TestBukuDb(unittest.TestCase):
     def test_get_dbdir_path(self):
         dbdir_expected = TEST_TEMP_DBDIR_PATH
         dbdir_local_expected = join(expanduser('~'), '.local', 'share', 'buku')
-        dbdir_relative_expected = join('.', 'buku')
+        dbdir_relative_expected = os.path.abspath('.')
 
         # desktop linux
         self.assertEqual(dbdir_expected, BukuDb.get_dbdir_path())
