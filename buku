@@ -31,7 +31,11 @@ import signal
 import logging
 import inspect
 import atexit
-import readline
+try:
+    import readline
+    readline
+except ImportError:
+    pass
 
 # Globals
 update = False          # Update a bookmark in DB
@@ -125,7 +129,7 @@ class BukuCrypt:
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import (Cipher, modes,
                                                                 algorithms)
-        except Exception:
+        except ImportError:
             logger.error('cryptography lib(s) missing')
             sys.exit(1)
 
@@ -206,7 +210,7 @@ class BukuCrypt:
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import (Cipher, modes,
                                                                 algorithms)
-        except Exception:
+        except ImportError:
             logger.error('cryptography lib(s) missing')
             sys.exit(1)
 
@@ -295,7 +299,7 @@ class BukuDb:
         data_home = os.environ.get('XDG_DATA_HOME')
         if data_home is None:
             if os.environ.get('HOME') is None:
-                data_home = '.'
+                return '.'
             else:
                 data_home = os.path.join(os.environ.get('HOME'),
                                          '.local', 'share')
@@ -354,7 +358,8 @@ class BukuDb:
 
         # Show info on first creation
         if not os.path.exists(dbfile):
-            print('DB file is being created. You should encrypt it later.')
+            print('DB file is being created at \x1B[1m%s\x1B[0m.' % dbfile)
+            print('You should \x1B[1mencrypt it\x1B[0m later.')
 
         try:
             # Create a connection
@@ -952,7 +957,6 @@ class BukuDb:
             import random
             index = random.randint(1, results[0][0])
             logger.debug('Opening random index ' + str(index))
-
 
         query = 'SELECT URL FROM bookmarks WHERE id = ?'
         try:
