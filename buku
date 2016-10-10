@@ -1036,15 +1036,15 @@ class BukuDb:
 ''' % (timestamp, timestamp))
 
         for row in resultset:
-            entry = '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' \
+            out = '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' \
                     % (row[1], timestamp, timestamp)
             if row[3] != DELIMITER:
-                entry = '%s TAGS="%s"' % (entry, row[3][1:-1])
-            entry = '%s>%s</A>\n' % (entry, row[2])
+                out = '%s TAGS="%s"' % (out, row[3][1:-1])
+            out = '%s>%s</A>\n' % (out, row[2])
             if row[4] != '':
-                entry = '%s        <DD>%s\n' % (entry, row[4])
+                out = '%s        <DD>%s\n' % (out, row[4])
 
-            f.write(entry)
+            f.write(out)
             count += 1
 
         f.write('    </DL><p>\n</DL><p>')
