@@ -181,8 +181,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -m, --merge file     merge bookmarks from another buku database
       -p, --print [N]      show details of bookmark at DB index N
                            show all bookmarks, if no arguments
-      -f, --format N       modify -p output
-                           N=1: show only URL, N=2: show URL and tag
+      -f, --format N       modify -p output. N=1: show only URL,
+                           N=2: show URL and tag, N=3: show only title
       -r, --replace oldtag [newtag ...]
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
