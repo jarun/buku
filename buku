@@ -954,7 +954,8 @@ class BukuDb:
         '''
 
         if index == 0:
-            self.cur.execute('SELECT id from bookmarks ORDER BY RANDOM() LIMIT 1')
+            query = 'SELECT id from bookmarks ORDER BY RANDOM() LIMIT 1'
+            self.cur.execute(query)
             result = self.cur.fetchone()
 
             # Return if no entries in DB
@@ -1422,32 +1423,31 @@ def prompt(results, noninteractive=False, delete=False):
                     break
 
 
-def print_record(row, count=0):
+def print_record(row, idx=0):
     '''Print a single DB record
-    Handles differently for search and print (count = 0)
+    Handles differently for search and print (idx = 0)
     '''
 
     # Print index and URL
-    if count != 0:
-        printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m  \
-                   \x1B[1m[%s]\x1B[0m\n' % (count, row[1], row[0])
+    if idx != 0:
+        pr = "\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m \
+\x1B[1m[%s]\x1B[0m\n" % (idx, row[1], row[0])
     else:
-        printstr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n' \
-                   % (row[0], row[1])
+        pr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n' % (row[0], row[1])
 
     # Print title
     if row[2] != '':
-        printstr = '%s   \x1B[91m>\x1B[0m %s\n' % (printstr, row[2])
+        pr = '%s   \x1B[91m>\x1B[0m %s\n' % (pr, row[2])
 
     # Print description
     if row[4] != '':
-        printstr = '%s   \x1B[91m+\x1B[0m %s\n' % (printstr, row[4])
+        pr = '%s   \x1B[91m+\x1B[0m %s\n' % (pr, row[4])
 
     # Print tags IF not default (DELIMITER)
     if row[3] != DELIMITER:
-        printstr = '%s   \x1B[91m#\x1B[0m %s\n' % (printstr, row[3][1:-1])
+        pr = '%s   \x1B[91m#\x1B[0m %s\n' % (pr, row[3][1:-1])
 
-    print(printstr)
+    print(pr)
 
 
 def format_json(resultset, single=False, showOpt=0):
