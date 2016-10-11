@@ -1760,7 +1760,8 @@ if __name__ == '__main__':
 -i, --import file    import bookmarks from html file; Firefox,
                      Google Chrome and IE formats supported
 -m, --merge file     merge bookmarks from another buku database
--p, --print [N]      show details of bookmark at DB index N
+-p, --print [...]    show details of bookmark by DB index
+                     accepts indices and ranges
                      show all bookmarks, if no arguments
 -f, --format N       modify -p output. N=1: show only URL,
                      N=2: show URL and tag, N=3: show only title
@@ -1779,8 +1780,8 @@ if __name__ == '__main__':
            help=argparse.SUPPRESS)
     addarg('-m', '--merge', nargs=1, dest='merge', metavar='file',
            help=argparse.SUPPRESS)
-    addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0,
-           metavar='N', help=argparse.SUPPRESS)
+    addarg('-p', '--print', nargs='*', dest='print', metavar='N',
+           help=argparse.SUPPRESS)
     addarg('-f', '--format', dest='showOpt', type=int, default=0,
            choices=[1, 2, 3], metavar='N', help=argparse.SUPPRESS)
     addarg('-r', '--replace', nargs='+', dest='replace',
@@ -1947,12 +1948,25 @@ if __name__ == '__main__':
             except ValueError as e:
                 logger.error('Incorrect index or range')
 
-    # Print all records
-    if args.printindex is not None:
-        if args.printindex < 0:
-            logger.error('Index must be >= 0')
-            bdb.close_quit(1)
-        bdb.print_bookmark(args.printindex)
+    # Print records
+    if args.print is not None:
+        if len(args.print) == 0:
+            bdb.print_bookmark(0)
+        else:
+            for idx in args.print:
+                if is_int(idx):
+                    bdb.print_bookmark(int(idx))
+                elif '-' in idx and is_int(idx.split('-')[0]) \
+                        and is_int(idx.split('-')[1]):
+                    lower = int(idx.split('-')[0])
+                    upper = int(idx.split('-')[1])
+                    if lower > upper:
+                        lower, upper = upper, lower
+                    for _id in range(lower, upper + 1):
+                        bdb.print_bookmark(_id)
+                else:
+                    logger.error('Invalid index or range')
+                    bdb.close_quit(1)
 
     # Replace a tag in DB
     if args.replace is not None:

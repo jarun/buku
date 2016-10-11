@@ -109,12 +109,8 @@ Import bookmarks exported from Firefox, Google Chrome or IE in HTML format.
 .BI \-m " " \--merge " file"
 Merge bookmarks from another Buku database file.
 .TP
-.BI \-p " " \--print " [N]"
-Show details (URL, title and tags) of bookmark record stored at index
-.I N
-in DB. If
-.I N
-is omitted, all records with actual index from DB are shown.
+.BI \-p " " \--print " [...]"
+Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices.
 .TP
 .BI \-f " " \--format " N"
 Show selective monochrome output. Works with -p. Useful for creating batch update scripts.
@@ -331,11 +327,11 @@ List \fBall unique tags\fR alphabetically:
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
 .PP
 .IP 19. 4
-\fBShow details\fR of bookmark at index 15012014:
+\fBShow details\fR of bookmarks at index 15012014 and ranges 20-30, 40-50:
 .PP
 .EX
 .IP
-.B buku -p 15012014
+.B buku -p 20-30 15012014 40-50
 .PP
 .IP 20. 4
 \fBShow all\fR bookmarks with real index from database:

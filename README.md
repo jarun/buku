@@ -14,7 +14,7 @@
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
 
-With tagging and multiple options to search through your bookmarks, including a deep scan mode (particularly for URLs), `buku` makes finding a bookmark very easy. You can open multiple bookmarks in the browser at once. It also has an Easter egg to open random bookmarks so you can revisit forgotten ones.
+With tagging and multiple options to search bookmarks, including a deep scan mode (particularly for URLs), `buku` makes finding a bookmark very easy. You can also open multiple bookmarks in the browser at once or revisit a random forgotten bookmark.
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options.
 
@@ -179,7 +179,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -i, --import file    import bookmarks from html file; Firefox,
                            Google Chrome and IE formats supported
       -m, --merge file     merge bookmarks from another buku database
-      -p, --print [N]      show details of bookmark at DB index N
+      -p, --print [...]    show details of bookmark by DB index
+                           accepts indices and ranges
                            show all bookmarks, if no arguments
       -f, --format N       modify -p output. N=1: show only URL,
                            N=2: show URL and tag, N=3: show only title
@@ -369,9 +370,9 @@ The last index is moved to the deleted index to keep the DB compact.
         $ buku -l 15
         $ buku -k 15
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
-19. **Show details** of bookmark at index 15012014:
+19. **Show details** of bookmark at index 15012014 and ranges 20-30, 40-50:
 
-        $ buku -p 15012014
+        $ buku -p 20-30 15012014 40-50
 20. **Show all** bookmarks with real index from database:
 
         $ buku -p
