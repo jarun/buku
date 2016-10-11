@@ -12,9 +12,11 @@
 <a href="https://asciinema.org/a/2bc3vq5ndxfvg0sm9jp8xlz03"><img src="https://asciinema.org/a/2bc3vq5ndxfvg0sm9jp8xlz03.png" alt="Asciicast" width="734"/></a>
 </p>
 
-`buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `Buku` (after my son's nickname).
+`buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
 
-Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration).
+With tagging and multiple options to search through your bookmarks, including a deep scan mode (particularly for URLs), `buku` makes finding a bookmark very easy. You can open multiple bookmarks in the browser at once. It also has an Easter egg to open random bookmarks so you can revisit forgotten ones.
+
+Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options.
 
 ### Upcoming
 
