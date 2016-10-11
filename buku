@@ -608,6 +608,9 @@ class BukuDb:
             to_update = True
 
         if not to_update:       # Nothing to update
+            # Show the record if any tag was appended or deleted
+            if append_tag or delete_tag:
+                self.print_bookmark(index)
             return
 
         if index == 0:  # Update all records
