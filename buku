@@ -1917,7 +1917,7 @@ if __name__ == '__main__':
         else:
             bdb.list_tags()
 
-    # Just delete record(s)
+    # Delete record(s)
     elif (args.delete is not None):
         if len(args.delete) == 0:
             bdb.delete_bookmark(0)
@@ -1946,7 +1946,7 @@ if __name__ == '__main__':
                 for idx in ids:
                     bdb.delete_bookmark(int(idx))
             except ValueError as e:
-                logger.error('Index should be numerical (>= 0)')
+                logger.error('Incorrect index or range')
 
     # Print all records
     if args.printindex is not None:
