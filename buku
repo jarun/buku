@@ -817,7 +817,7 @@ class BukuDb:
         return True
 
     def delete_all_bookmarks(self):
-        '''Should only be called inside of delete_bookmark
+        '''Should be called only inside delete_bookmark
         Drops the bookmark table if it exists
         '''
 
@@ -1856,10 +1856,6 @@ if __name__ == '__main__':
 
     # Update record
     if update:
-        index_passed = None
-        if len(args.update) == 0:
-            index_passed = 0
-
         if args.url is not None:
             new_url = args.url[0]
         else:
@@ -1882,7 +1878,10 @@ if __name__ == '__main__':
         # Parse tags into a comma-separated string
         tags = parse_tags(tagManual)
 
-        if index_passed is None:
+        if len(args.update) == 0:
+            bdb.update_bookmark(0, new_url, titleManual, tags,
+                                description, append, delete)
+        else:
             for idx in args.update:
                 if is_int(idx):
                     bdb.update_bookmark(int(idx), new_url, titleManual, tags,
@@ -1896,9 +1895,6 @@ if __name__ == '__main__':
                     for _id in range(lower, upper + 1):
                         bdb.update_bookmark(_id, new_url, titleManual, tags,
                                             description, append, delete)
-        else:
-            bdb.update_bookmark(index_passed, new_url, titleManual, tags,
-                                description, append, delete)
 
     # Search URLs, titles, tags for any keyword and delete if wanted
     if args.sany is not None:
