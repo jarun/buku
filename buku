@@ -850,6 +850,9 @@ class BukuDb:
                 elif self.showOpt == 2:
                     for row in resultset:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
+                elif self.showOpt == 3:
+                    for row in resultset:
+                        print('%s\t%s' % (row[0], row[2]))
             else:
                 print(format_json(resultset, showOpt=self.showOpt))
         else:  # Show record at index
@@ -872,6 +875,8 @@ class BukuDb:
                         print('%s\t%s' % (row[0], row[1]))
                     elif self.showOpt == 2:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
+                    elif self.showOpt == 3:
+                        print('%s\t%s' % (row[0], row[2]))
             else:
                 print(format_json(results, True, self.showOpt))
 
@@ -946,16 +951,15 @@ class BukuDb:
         '''
 
         if index == 0:
-            self.cur.execute('SELECT MAX(id) from bookmarks')
-            results = self.cur.fetchall()
+            self.cur.execute('SELECT id from bookmarks ORDER BY RANDOM() LIMIT 1')
+            result = self.cur.fetchone()
 
             # Return if no entries in DB
-            if len(results) == 1 and results[0][0] is None:
+            if result is None:
                 print("No bookmarks added yet ...")
                 return
 
-            import random
-            index = random.randint(1, results[0][0])
+            index = result[0]
             logger.debug('Opening random index ' + str(index))
 
         query = 'SELECT URL FROM bookmarks WHERE id = ?'
@@ -1453,6 +1457,8 @@ def format_json(resultset, single=False, showOpt=0):
                 record = {'uri': row[1]}
             elif showOpt == 2:
                 record = {'uri': row[1], 'tags': row[3][1:-1]}
+            if showOpt == 3:
+                record = {'uri': row[1], 'title': row[2]}
             else:
                 record = {'uri': row[1], 'title': row[2],
                           'description': row[4], 'tags': row[3][1:-1]}
@@ -1466,6 +1472,9 @@ def format_json(resultset, single=False, showOpt=0):
             elif showOpt == 2:
                 marks['uri'] = row[1]
                 marks['tags'] = row[3][1:-1]
+            elif showOpt == 2:
+                marks['uri'] = row[1]
+                marks['title'] = row[2]
             else:
                 marks['uri'] = row[1]
                 marks['title'] = row[2]
@@ -1751,7 +1760,7 @@ if __name__ == '__main__':
 -p, --print [N]      show details of bookmark at DB index N
                      show all bookmarks, if no arguments
 -f, --format N       modify -p output
-                     N=1: show only URL, N=2: show URL and tag
+                     N=1: show only URL, N=2: show URL and tag, N=3: show only title
 -r, --replace oldtag [newtag ...]
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
@@ -1770,7 +1779,7 @@ if __name__ == '__main__':
     addarg('-p', '--print', nargs='?', dest='printindex', type=int, const=0,
            metavar='N', help=argparse.SUPPRESS)
     addarg('-f', '--format', dest='showOpt', type=int, default=0,
-           choices=[1, 2], metavar='N', help=argparse.SUPPRESS)
+           choices=[1, 2, 3], metavar='N', help=argparse.SUPPRESS)
     addarg('-r', '--replace', nargs='+', dest='replace',
            metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
     addarg('-j', '--json', dest='jsonOutput', action='store_true',
