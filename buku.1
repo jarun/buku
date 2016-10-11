@@ -17,10 +17,10 @@ It's advisable to copy URLs directly from the browser address bar, i.e., along w
 .PP
 If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes ('/").
 .PP
-URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
+URLs are unique in DB. The same URL cannot be added twice.
 .PP
 \fITags\fR:
-  - Comma (',') is the tag delimiter in DB. Any tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted.
+  - Comma (',') is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags can be replaced.
 .PP
 \fIDelete\fR operation:
   - When a record is deleted, the last record is moved to the index.
@@ -41,7 +41,7 @@ URLs are unique in DB. The same URL cannot be added twice. You can update tags a
   - --st : search bookmarks by tag, or show all tags alphabetically.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within '[]' after the URL.
 .PP
-\fIEncryption\fR is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
+\fIEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
 .SH GENERAL OPTIONS
 .TP
 .BI \-a " " \--add " URL [tags ...]"
@@ -50,10 +50,10 @@ Bookmark
 along with comma-separated tags. A tag can have multiple words.
 .TP
 .BI \-u " " \--update " [...]"
-Update fields of the bookmarks at specified indices in DB. If no arguments are specified, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only indices are passed without any edit options, titles are fetched and updated (if not empty).
+Update fields of the bookmarks at specified indices in DB. If no arguments are specified, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only indices are passed without any edit options, titles are fetched and updated (if not empty). Accepts hyphenated ranges and space-separated indices.
 .TP
 .BI \-d " " \--delete " [...]"
-Delete bookmarks. You can either provide a single hyphenated range (e.g. 100-200) or a space-separated list of indices (e.g. 5 6 23 4 110 45). Note that range and list don't work together. Deletes search results when combined with search options.
+Delete bookmarks. Accepts space-separated list of indices (e.g. 5 6 23 4 110 45) or a single hyphenated range (e.g. 100-200). Note that range and list don't work together. Deletes search results when combined with search options.
 .TP
 .BI \-h " " \--help
 Show program help and exit.

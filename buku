@@ -1671,10 +1671,10 @@ if __name__ == '__main__':
         description='''-a, --add URL [tags ...]
                      bookmark URL with comma-separated tags
 -u, --update [...]   update fields of bookmark at DB indices
+                     accepts indices and ranges
                      refresh all titles, if no arguments
                      refresh titles of bookmarks at indices,
                      if no edit options are specified
-                     accepts indices and ranges
 -d, --delete [...]   delete bookmarks. Valid inputs: either
                      a hyphenated single range (100-200),
                      OR space-separated indices (100 15 200)

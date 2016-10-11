@@ -133,10 +133,10 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -a, --add URL [tags ...]
                            bookmark URL with comma-separated tags
       -u, --update [...]   update fields of bookmark at DB indices
+                           accepts indices and ranges
                            refresh all titles, if no arguments
                            refresh titles of bookmarks at indices,
                            if no edit options are specified
-                           accepts indices and ranges
       -d, --delete [...]   delete bookmarks. Valid inputs: either
                            a hyphenated single range (100-200),
                            OR space-separated indices (100 15 200)
@@ -210,9 +210,9 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - the **current directory**.
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes (`'`/`"`).
-- URLs are unique in DB. The same URL cannot be added twice. You can update tags and re-fetch title data.
+- URLs are unique in DB. The same URL cannot be added twice.
 - **Tags**:
-  - Comma (`,`) is the tag delimiter in DB. Any tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted.
+  - Comma (`,`) is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags can be replaced.
 - **Update** operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
@@ -229,7 +229,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --st : search bookmarks by tag, or show all tags alphabetically.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
-- **Encryption** is optional and manual. AES256 algorithm is used. If you choose to use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
+- **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 
 ## GUI integration
 
