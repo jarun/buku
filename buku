@@ -1460,8 +1460,8 @@ def format_json(resultset, single=False, showOpt=0):
                 record = {'uri': row[1]}
             elif showOpt == 2:
                 record = {'uri': row[1], 'tags': row[3][1:-1]}
-            if showOpt == 3:
-                record = {'uri': row[1], 'title': row[2]}
+            elif showOpt == 3:
+                record = {'title': row[2]}
             else:
                 record = {'uri': row[1], 'title': row[2],
                           'description': row[4], 'tags': row[3][1:-1]}
@@ -1475,8 +1475,7 @@ def format_json(resultset, single=False, showOpt=0):
             elif showOpt == 2:
                 marks['uri'] = row[1]
                 marks['tags'] = row[3][1:-1]
-            elif showOpt == 2:
-                marks['uri'] = row[1]
+            elif showOpt == 3:
                 marks['title'] = row[2]
             else:
                 marks['uri'] = row[1]
