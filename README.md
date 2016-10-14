@@ -105,7 +105,7 @@ To remove, run:
  - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux
  - Void Linux repos ( `$ sudo xbps-install -S buku` )
  - [Homebrew](http://braumeister.org/formula/buku) for OS X
- - [Debian Sid](https://packages.debian.org/unstable/main/buku)
+ - [Debian Sid](https://packages.debian.org/sid/buku)
 
 ### Debian package
 
