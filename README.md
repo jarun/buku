@@ -54,7 +54,7 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 ## Features
 
 - Add, open, tag, comment on, search, update, remove URLs
-- Merge-able portable database, to sync between systems
+- Portable, merge-able database, to sync between systems
 - Import/export bookmarks HTML (Firefox, Google Chrome, IE compatible)
 - Fetch page title from web, refresh all titles in a go
 - Open (multiple) search results directly in default browser
@@ -106,10 +106,11 @@ To remove, run:
  - Void Linux repos ( `$ sudo xbps-install -S buku` )
  - [Homebrew](http://braumeister.org/formula/buku) for OS X
  - [Debian Sid](https://packages.debian.org/sid/buku)
+ - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
 
 ### Debian package
 
-If you are on a Debian (including Ubuntu) based system visit [the latest stable release](https://github.com/jarun/Buku/releases/latest) and download the`.deb`package. To install, run:
+If you are on a Debian (including Ubuntu) based system visit [the latest stable release](https://github.com/jarun/Buku/releases/latest) and download the `.deb` package. To install, run:
 
     $ sudo dpkg -i buku-$version-all.deb
 
