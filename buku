@@ -45,6 +45,7 @@ description = None      # Description of the bookmark
 tagsearch = False       # Search bookmarks by tag
 titleData = None        # Title fetched from a webpage
 interrupted = False     # Received SIGINT
+markdownFormat = False  # Support import/export to markdown format
 DELIMITER = ','         # Delimiter used to store tags in DB
 _VERSION_ = '2.5'       # Program version
 
@@ -1032,7 +1033,8 @@ class BukuDb:
             logger.error(e)
             return
 
-        f.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
+        if not markdownFormat:
+            f.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
 <TITLE>Bookmarks</TITLE>
@@ -1043,19 +1045,25 @@ class BukuDb:
     <DL><p>
 ''' % (timestamp, timestamp))
 
-        for row in resultset:
-            out = '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' \
-                    % (row[1], timestamp, timestamp)
-            if row[3] != DELIMITER:
-                out = '%s TAGS="%s"' % (out, row[3][1:-1])
-            out = '%s>%s</A>\n' % (out, row[2])
-            if row[4] != '':
-                out = '%s        <DD>%s\n' % (out, row[4])
+            for row in resultset:
+                out = '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' \
+                        % (row[1], timestamp, timestamp)
+                if row[3] != DELIMITER:
+                    out = '%s TAGS="%s"' % (out, row[3][1:-1])
+                out = '%s>%s</A>\n' % (out, row[2])
+                if row[4] != '':
+                    out = '%s        <DD>%s\n' % (out, row[4])
 
-            f.write(out)
-            count += 1
+                f.write(out)
+                count += 1
 
-        f.write('    </DL><p>\n</DL><p>')
+            f.write('    </DL><p>\n</DL><p>')
+        else:
+            f.write("List of buku bookmarks:\n\n")
+            for row in resultset:
+                out = '- [%s](%s)\n' % (row[2], row[1])
+                f.write(out)
+                count += 1
         f.close()
         print('%s bookmarks exported' % count)
 
@@ -1066,32 +1074,43 @@ class BukuDb:
         Params: Path to file to import
         '''
 
-        try:
-            import bs4
+        if not markdownFormat:
+            try:
+                import bs4
+                with open(fp, mode='r', encoding='utf-8') as f:
+                    soup = bs4.BeautifulSoup(f, 'html.parser')
+            except ImportError:
+                logger.error('Beautiful Soup not found')
+                return
+            except Exception as e:
+                logger.error(e)
+                return
+
+            html_tags = soup.findAll('a')
+            for tag in html_tags:
+                # Extract comment from <dd> tag
+                desc = None
+                comment_tag = tag.findNextSibling('dd')
+                if comment_tag:
+                    desc = comment_tag.text[0:comment_tag.text.find('\n')]
+
+                self.add_bookmark(tag['href'], tag.string,
+                                  ('%s%s%s' % (DELIMITER, tag['tags'], DELIMITER))
+                                  if tag.has_attr('tags') else None, desc, True)
+
+            self.conn.commit()
+            f.close()
+        else:
             with open(fp, mode='r', encoding='utf-8') as f:
-                soup = bs4.BeautifulSoup(f, 'html.parser')
-        except ImportError:
-            logger.error('Beautiful Soup not found')
-            return
-        except Exception as e:
-            logger.error(e)
-            return
-
-        html_tags = soup.findAll('a')
-        for tag in html_tags:
-            # Extract comment from <dd> tag
-            desc = None
-            comment_tag = tag.findNextSibling('dd')
-            if comment_tag:
-                desc = comment_tag.text[0:comment_tag.text.find('\n')]
-
-            self.add_bookmark(tag['href'], tag.string,
-                              ('%s%s%s' % (DELIMITER, tag['tags'], DELIMITER))
-                              if tag.has_attr('tags') else None, desc, True)
-
-        self.conn.commit()
-        f.close()
-
+                reg = re.compile("\[([^\]]+)\]\(([^\)]+)\)")
+                for line in f:
+                    m = reg.search(line)
+                    if m:
+                        desc = m.group(1)
+                        self.add_bookmark(m.group(2), None, None, desc, True)
+            self.conn.commit()
+            f.close()
+            
     def mergedb(self, fp):
         '''Merge bookmarks from another Buku database file
 
@@ -1767,6 +1786,7 @@ if __name__ == '__main__':
 -r, --replace oldtag [newtag ...]
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
+--markdown           import/exports files from/to markdown format
 -j, --json           Json formatted output for -p, -s, -S, --st
 --noprompt           do not show the prompt, run and exit
 -o, --open [N]       open bookmark at DB index N in web browser
@@ -1785,6 +1805,8 @@ if __name__ == '__main__':
            choices=[1, 2, 3], metavar='N', help=argparse.SUPPRESS)
     addarg('-r', '--replace', nargs='+', dest='replace',
            metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
+    addarg('--markdown', dest='markdown', action='store_true',
+           help=argparse.SUPPRESS)
     addarg('-j', '--json', dest='jsonOutput', action='store_true',
            help=argparse.SUPPRESS)
     addarg('--noprompt', dest='noninteractive', action='store_true',
@@ -1816,6 +1838,8 @@ if __name__ == '__main__':
         description = ' '.join(args.desc)
     if args.jsonOutput:
         import json
+    if args.markdown:
+        markdownFormat = True
     if args.debug:
         logger.setLevel(logging.DEBUG)
         logger.debug('Version %s', _VERSION_)
