@@ -12,7 +12,7 @@ _buku () {
     local -a opts opts_with_args
     opts=(-a --add -c --comment --deep -d --delete -e --export -h --help -i --import
           -k --unlock -l --lock -m --merge --noprompt -o --open -p --print -r --replace
-          -s --sany -S --sall --st --stag --tag -t --title -u --update --url)
+          -s --sany -S --sall --st --stag --tag -t --title -u --update --url --markdown)
     opts_with_arg=(-a --add -e --export -i --import -m --merge
                    -o --open -r --replace -s --sany -S --sall --url)
 
