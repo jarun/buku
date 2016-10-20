@@ -18,11 +18,6 @@ With tagging and multiple options to search bookmarks, including a deep scan mod
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
-### Upcoming
-
-- Export specific tags as HTML
-- Open a random bookmark
-
 <br>
 <p align="center">
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000" alt="Donate" /></a>
@@ -102,11 +97,11 @@ To remove, run:
 ### Installing with a package manager
 
 `buku` is also available on
- - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux
- - Void Linux repos ( `$ sudo xbps-install -S buku` )
- - [Homebrew](http://braumeister.org/formula/buku) for OS X
- - [Debian Sid](https://packages.debian.org/sid/buku)
- - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
+- [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux
+- Void Linux repos ( `$ sudo xbps-install -S buku` )
+- [Homebrew](http://braumeister.org/formula/buku) for OS X
+- [Debian Sid](https://packages.debian.org/sid/buku)
+- [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
 
 ### Debian package
 

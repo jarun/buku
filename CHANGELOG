@@ -1,3 +1,18 @@
+Buku v2.5
+2016-10-20
+
+Modifications
+- Export specific tags to HTML
+- Fixed obvious issues on Windows
+- Open a random bookmark with option --open
+- Support lists and ranges with --print
+- Show a bookmark on tag append
+- Show only title with --format=3
+- PEP8 compliance fixes
+- Buku GUI integration documented
+
+-------------------------------------------------------------------------------
+
 Buku v2.4
 2016-09-12
 

@@ -46,7 +46,7 @@ tagsearch = False       # Search bookmarks by tag
 titleData = None        # Title fetched from a webpage
 interrupted = False     # Received SIGINT
 DELIMITER = ','         # Delimiter used to store tags in DB
-_VERSION_ = '2.4'       # Program version
+_VERSION_ = '2.5'       # Program version
 
 # Crypto globals
 BLOCKSIZE = 65536
