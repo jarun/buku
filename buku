@@ -668,7 +668,8 @@ class BukuDb:
 
         self.conn.commit()
 
-    def searchdb(self, keywords, all_keywords=False, delete=False, deep=False):
+    def searchdb(self, keywords, all_keywords=False, delete=False, deep=False,
+                 regex=False):
         '''Search the database for an entries with tags or URL
         or title info matching keywords and list those.
 
@@ -699,7 +700,8 @@ class BukuDb:
         else:  # Match any keyword in URL or Title
             for token in keywords:
                 if not deep:
-                    token = '\\b' + token + '\\b'
+                    if not regex:
+                        token = '\\b' + token + '\\b'
                     query = '%s tags REGEXP ? OR URL REGEXP ? OR metadata \
                             REGEXP ? OR desc REGEXP ? OR' % (query)
                 else:
@@ -1726,6 +1728,7 @@ if __name__ == '__main__':
                      special keyword -
                      "blank": list entries with empty title/tag
 --deep               match substrings ('pen' matches 'opened')
+--sreg expr          run a regex search
 --st, --stag [...]   search bookmarks by tag
                      list tags alphabetically, if no arguments''')
     addarg = search_grp.add_argument
@@ -1733,6 +1736,7 @@ if __name__ == '__main__':
            help=argparse.SUPPRESS)
     addarg('-S', '--sall', nargs='+', metavar='keyword',
            help=argparse.SUPPRESS)
+    addarg('--sreg', nargs=1, metavar='keyword', help=argparse.SUPPRESS)
     addarg('--deep', dest='deep', action='store_true', help=argparse.SUPPRESS)
     addarg('--st', '--stag', nargs='*', dest='stag',
            action=CustomTagSearchAction, metavar='keyword',
@@ -1906,6 +1910,10 @@ if __name__ == '__main__':
             bdb.print_bookmark(0, True)
         else:
             bdb.searchdb(args.sall, True, (args.delete is not None), args.deep)
+
+    # Run a regular expression search
+    elif args.sreg is not None:
+        bdb.searchdb(args.sreg, False, (args.delete is not None), regex=True)
 
     # Search bookmarks by tag and delete if wanted
     elif tagsearch:

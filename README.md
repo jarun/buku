@@ -14,7 +14,7 @@
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
 
-With tagging and multiple options to search bookmarks, including a deep scan mode (particularly for URLs), finding a bookmark is very easy. Multiple search results can be opened in the browser at once.
+With tagging and multiple options to search bookmarks, including regex and a deep scan mode (particularly for URLs), finding a bookmark is very easy. Multiple search results can be opened in the browser at once.
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
@@ -160,6 +160,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            special keyword -
                            "blank": list entries with empty title/tag
       --deep               match substrings ('pen' matches 'opened')
+      --sreg expr          run a regex search
       --st, --stag [...]   search bookmarks by tag
                            list tags alphabetically, if no arguments
 
@@ -224,6 +225,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - -s : match any of the keywords in URL, title or tags.
   - -S : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
+  - --sreg : match a regular expression (ignores --deep).
   - --st : search bookmarks by tag, or show all tags alphabetically.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
