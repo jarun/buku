@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with buku.  If not, see <http://www.gnu.org/licenses/>.
+# along with Buku.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import os
@@ -38,20 +38,20 @@ except ImportError:
     pass
 
 # Globals
-update = False          # Update a bookmark in DB
-tagManual = None        # Tags for update command
-titleManual = None      # Manually add a title offline
-description = None      # Description of the bookmark
-tagsearch = False       # Search bookmarks by tag
-titleData = None        # Title fetched from a webpage
-interrupted = False     # Received SIGINT
-DELIMITER = ','         # Delimiter used to store tags in DB
-_VERSION_ = '2.5'       # Program version
+update = False  # Update a bookmark in DB
+tag_manual = None  # Tags for update command
+title_manual = None  # Manually add a title offline
+description = None  # Description of the bookmark
+tagsearch = False  # Search bookmarks by tag
+title_data = None  # Title fetched from a webpage
+interrupted = False  # Received SIGINT
+DELIMITER = ','  # Delimiter used to store tags in DB
+_VERSION_ = '2.5'  # Program version
 
 # Crypto globals
 BLOCKSIZE = 65536
 SALT_SIZE = 32
-CHUNKSIZE = 0x80000     # Read/write 512 KB chunks
+CHUNKSIZE = 0x80000  # Read/write 512 KB chunks
 
 # Set up logging
 logging.basicConfig(format='[%(levelname)s] %(message)s')
@@ -74,12 +74,12 @@ class BMHTMLParser(HTMLParser.HTMLParser):
             self.lasttag = tag
 
     def handle_endtag(self, tag):
-        global titleData
+        global title_data
 
         if tag == 'title':
             self.inTitle = False
             if self.data != '':
-                titleData = self.data
+                title_data = self.data
                 self.reset()  # We have received title data, exit parsing
 
     def handle_data(self, data):
@@ -280,13 +280,13 @@ class BukuCrypt:
 
 class BukuDb:
 
-    def __init__(self, noninteractive=False, json=False, showOpt=0):
+    def __init__(self, noninteractive=False, json=False, show_opt=0):
         conn, cur = BukuDb.initdb()
         self.conn = conn
         self.cur = cur
         self.noninteractive = noninteractive
         self.json = json
-        self.showOpt = showOpt
+        self.show_opt = show_opt
 
     @staticmethod
     def get_dbdir_path():
@@ -725,7 +725,7 @@ class BukuDb:
         if not self.json:
             prompt(results, self.noninteractive, delete)
         else:
-            print(format_json(results, showOpt=self.showOpt))
+            print(format_json(results, show_opt=self.show_opt))
 
     def search_by_tag(self, tag, delete=False):
         '''Search and list bookmarks with a tag
@@ -745,7 +745,7 @@ class BukuDb:
         if not self.json:
             prompt(results, self.noninteractive, delete)
         else:
-            print(format_json(results, showOpt=self.showOpt))
+            print(format_json(results, show_opt=self.show_opt))
 
     def compactdb(self, index):
         '''When an entry at index is deleted, move the last
@@ -846,20 +846,20 @@ class BukuDb:
                 print('\x1b[1m%s records found\x1b[21m\n' % len(resultset))
 
             if not self.json:
-                if self.showOpt == 0:
+                if self.show_opt == 0:
                     for row in resultset:
                         print_record(row)
-                elif self.showOpt == 1:
+                elif self.show_opt == 1:
                     for row in resultset:
                         print('%s\t%s' % (row[0], row[1]))
-                elif self.showOpt == 2:
+                elif self.show_opt == 2:
                     for row in resultset:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-                elif self.showOpt == 3:
+                elif self.show_opt == 3:
                     for row in resultset:
                         print('%s\t%s' % (row[0], row[2]))
             else:
-                print(format_json(resultset, showOpt=self.showOpt))
+                print(format_json(resultset, show_opt=self.show_opt))
         else:  # Show record at index
             try:
                 query = 'SELECT * FROM bookmarks WHERE id = ?'
@@ -874,35 +874,35 @@ class BukuDb:
 
             if not self.json:
                 for row in results:
-                    if self.showOpt == 0:
+                    if self.show_opt == 0:
                         print_record(row)
-                    elif self.showOpt == 1:
+                    elif self.show_opt == 1:
                         print('%s\t%s' % (row[0], row[1]))
-                    elif self.showOpt == 2:
+                    elif self.show_opt == 2:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-                    elif self.showOpt == 3:
+                    elif self.show_opt == 3:
                         print('%s\t%s' % (row[0], row[2]))
             else:
-                print(format_json(results, True, self.showOpt))
+                print(format_json(results, True, self.show_opt))
 
     def list_tags(self):
         '''Print all unique tags ordered alphabetically'''
 
         count = 1
-        Tags = []
-        uniqueTags = []
+        tags = []
+        unique_tags = []
         query = 'SELECT DISTINCT tags FROM bookmarks ORDER BY tags'
         for row in self.cur.execute(query):
             tagset = row[0].strip(DELIMITER).split(DELIMITER)
             for tag in tagset:
-                if tag not in Tags:
-                    Tags += (tag,)
+                if tag not in tags:
+                    tags += (tag,)
 
-        if Tags[0] == '':
-            uniqueTags = sorted(Tags[1:], key=str.lower)
+        if tags[0] == '':
+            unique_tags = sorted(tags[1:], key=str.lower)
         else:
-            uniqueTags = sorted(Tags, key=str.lower)
-        for tag in uniqueTags:
+            unique_tags = sorted(tags, key=str.lower)
+        for tag in unique_tags:
             print('%6d. %s' % (count, tag))
             count += 1
 
@@ -1256,8 +1256,9 @@ def network_handler(url):
     Returns: page title or empty string, if not found
     '''
 
-    global titleData
-    titleData = None
+    global title_data
+
+    title_data = None
     urlconn = None
     retry = False
 
@@ -1316,9 +1317,9 @@ def network_handler(url):
     finally:
         if urlconn is not None:
             urlconn.close()
-        if titleData is None:
+        if title_data is None:
             return ''
-        return titleData.strip().replace('\n', '')
+        return title_data.strip().replace('\n', '')
 
 
 def parse_tags(keywords=None):
@@ -1328,8 +1329,8 @@ def parse_tags(keywords=None):
         return None
 
     tags = DELIMITER
-    origTags = []
-    uniqueTags = []
+    orig_tags = []
+    unique_tags = []
 
     # Cleanse and get the tags
     tagstr = ' '.join(keywords)
@@ -1355,16 +1356,16 @@ def parse_tags(keywords=None):
     if tags == DELIMITER:
         return tags
 
-    origTags += tags.strip(DELIMITER).split(DELIMITER)
-    for tag in origTags:
-        if tag not in uniqueTags:
-            uniqueTags += (tag, )  # Select unique tags
+    orig_tags += tags.strip(DELIMITER).split(DELIMITER)
+    for tag in orig_tags:
+        if tag not in unique_tags:
+            unique_tags += (tag, )  # Select unique tags
 
     # Sort the tags
-    sortedTags = sorted(uniqueTags, key=str.lower)
+    sorted_tags = sorted(unique_tags, key=str.lower)
 
     # Wrap with delimiter
-    return '%s%s%s' % (DELIMITER, DELIMITER.join(sortedTags), DELIMITER)
+    return '%s%s%s' % (DELIMITER, DELIMITER.join(sorted_tags), DELIMITER)
 
 
 def prompt(results, noninteractive=False, delete=False):
@@ -1382,7 +1383,7 @@ def prompt(results, noninteractive=False, delete=False):
 
         # delete records in reverse order
         pos = len(results) - 1
-        while(pos >= 0):
+        while pos >= 0:
             idx = results[pos][0]
             bdb.delete_bookmark(idx)
             pos = pos - 1
@@ -1470,17 +1471,17 @@ def print_record(row, idx=0):
     print(pr)
 
 
-def format_json(resultset, single=False, showOpt=0):
+def format_json(resultset, single=False, show_opt=0):
     '''Return results in Json format'''
 
     if not single:
         marks = []
         for row in resultset:
-            if showOpt == 1:
+            if show_opt == 1:
                 record = {'uri': row[1]}
-            elif showOpt == 2:
+            elif show_opt == 2:
                 record = {'uri': row[1], 'tags': row[3][1:-1]}
-            elif showOpt == 3:
+            elif show_opt == 3:
                 record = {'title': row[2]}
             else:
                 record = {'uri': row[1], 'title': row[2],
@@ -1490,12 +1491,12 @@ def format_json(resultset, single=False, showOpt=0):
     else:
         marks = {}
         for row in resultset:
-            if showOpt == 1:
+            if show_opt == 1:
                 marks['uri'] = row[1]
-            elif showOpt == 2:
+            elif show_opt == 2:
                 marks['uri'] = row[1]
                 marks['tags'] = row[3][1:-1]
-            elif showOpt == 3:
+            elif show_opt == 3:
                 marks['title'] = row[2]
             else:
                 marks['uri'] = row[1]
@@ -1585,9 +1586,9 @@ class CustomTagAction(argparse.Action):
     '''
 
     def __call__(self, parser, args, values, option_string=None):
-        global tagManual
+        global tag_manual
 
-        tagManual = [DELIMITER, ]
+        tag_manual = [DELIMITER, ]
         setattr(args, self.dest, values)
 
 
@@ -1597,9 +1598,9 @@ class CustomTitleAction(argparse.Action):
     '''
 
     def __call__(self, parser, args, values, option_string=None):
-        global titleManual
+        global title_manual
 
-        titleManual = ''
+        title_manual = ''
         setattr(args, self.dest, values)
 
 
@@ -1804,13 +1805,13 @@ if __name__ == '__main__':
            help=argparse.SUPPRESS)
     addarg('-p', '--print', nargs='*', dest='print', metavar='N',
            help=argparse.SUPPRESS)
-    addarg('-f', '--format', dest='showOpt', type=int, default=0,
+    addarg('-f', '--format', dest='show_opt', type=int, default=0,
            choices=[1, 2, 3], metavar='N', help=argparse.SUPPRESS)
     addarg('-r', '--replace', nargs='+', dest='replace',
            metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
     addarg('--markdown', dest='markdown', action='store_true',
            help=argparse.SUPPRESS)
-    addarg('-j', '--json', dest='jsonOutput', action='store_true',
+    addarg('-j', '--json', dest='json_output', action='store_true',
            help=argparse.SUPPRESS)
     addarg('--noprompt', dest='noninteractive', action='store_true',
            help=argparse.SUPPRESS)
@@ -1833,13 +1834,13 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Assign the values to globals
-    if tagManual is not None and len(args.tag) > 0:
-        tagManual = args.tag
-    if titleManual is not None and len(args.title) > 0:
-        titleManual = ' '.join(args.title)
+    if tag_manual is not None and len(args.tag) > 0:
+        tag_manual = args.tag
+    if title_manual is not None and len(args.title) > 0:
+        title_manual = ' '.join(args.title)
     if description is not None and len(args.desc) > 0:
         description = ' '.join(args.desc)
-    if args.jsonOutput:
+    if args.json_output:
         import json
     if args.debug:
         logger.setLevel(logging.DEBUG)
@@ -1856,28 +1857,28 @@ if __name__ == '__main__':
         BukuCrypt.decrypt_file(args.decrypt)
 
     # Initialize the database and get handles
-    bdb = BukuDb(args.noninteractive, args.jsonOutput, args.showOpt)
+    bdb = BukuDb(args.noninteractive, args.json_output, args.show_opt)
 
     # Add a record
     if args.addurl is not None:
         # Parse tags into a comma-separated string
         tags = DELIMITER
         keywords = args.addurl
-        if tagManual is not None:
-            if tagManual[0] == '+' and len(tagManual) == 1:
+        if tag_manual is not None:
+            if tag_manual[0] == '+' and len(tag_manual) == 1:
                 pass
-            elif tagManual[0] == '+':
-                tagManual = tagManual[1:]
+            elif tag_manual[0] == '+':
+                tag_manual = tag_manual[1:]
                 # In case of add, args.addurl may have URL followed by tags
                 # Add DELIMITER as url+tags may not end with comma
-                keywords = args.addurl + [DELIMITER] + tagManual
+                keywords = args.addurl + [DELIMITER] + tag_manual
             else:
-                keywords = args.addurl + [DELIMITER] + tagManual
+                keywords = args.addurl + [DELIMITER] + tag_manual
 
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_bookmark(args.addurl[0], titleManual, tags, description)
+        bdb.add_bookmark(args.addurl[0], title_manual, tags, description)
 
     # Update record
     if update:
@@ -1888,28 +1889,28 @@ if __name__ == '__main__':
 
         append = False
         delete = False
-        if tagManual is not None:
-            if (tagManual[0] == '+' or tagManual[0] == '-') \
-                    and len(tagManual) == 1:
+        if tag_manual is not None:
+            if (tag_manual[0] == '+' or tag_manual[0] == '-') \
+                    and len(tag_manual) == 1:
                 logger.error('Please specify a tag')
                 bdb.close_quit(1)
-            elif tagManual[0] == '+':
-                tagManual = tagManual[1:]
+            elif tag_manual[0] == '+':
+                tag_manual = tag_manual[1:]
                 append = True
-            elif tagManual[0] == '-':
-                tagManual = tagManual[1:]
+            elif tag_manual[0] == '-':
+                tag_manual = tag_manual[1:]
                 delete = True
 
         # Parse tags into a comma-separated string
-        tags = parse_tags(tagManual)
+        tags = parse_tags(tag_manual)
 
         if len(args.update) == 0:
-            bdb.update_bookmark(0, new_url, titleManual, tags,
+            bdb.update_bookmark(0, new_url, title_manual, tags,
                                 description, append, delete)
         else:
             for idx in args.update:
                 if is_int(idx):
-                    bdb.update_bookmark(int(idx), new_url, titleManual, tags,
+                    bdb.update_bookmark(int(idx), new_url, title_manual, tags,
                                         description, append, delete)
                 elif '-' in idx and is_int(idx.split('-')[0]) \
                         and is_int(idx.split('-')[1]):
@@ -1918,7 +1919,7 @@ if __name__ == '__main__':
                     if lower > upper:
                         lower, upper = upper, lower
                     for _id in range(lower, upper + 1):
-                        bdb.update_bookmark(_id, new_url, titleManual, tags,
+                        bdb.update_bookmark(_id, new_url, title_manual, tags,
                                             description, append, delete)
 
     # Search URLs, titles, tags for any keyword and delete if wanted
