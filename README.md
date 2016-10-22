@@ -184,6 +184,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -r, --replace oldtag [newtag ...]
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
+      --markdown           import/exports files from/to markdown format
       -j, --json           Json formatted output for -p, -s, -S, --st
       --noprompt           do not show the prompt, run and exit
       -o, --open [N]       open bookmark at DB index N in web browser
@@ -395,6 +396,11 @@ The same number of iterations must be specified for one lock & unlock instance. 
 
         $ buku
         $ man buku
+
+27. Export bookmarks into markdown format tagged `tag 1` or `tag 2`:
+
+        $ buku --markdown -e bookmarks.md tag 1, tag 2
+
 
 ## Contributions
 
