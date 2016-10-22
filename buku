@@ -312,28 +312,28 @@ class BukuDb:
         to new path. Errors out if both the old and new DB files exist.
         '''
 
-        olddbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
-        olddbfile = os.path.join(olddbpath, 'bookmarks.db')
+        old_db_path = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
+        old_db_file = os.path.join(old_db_path, 'bookmarks.db')
 
-        if not os.path.exists(olddbfile):
+        if not os.path.exists(old_db_file):
             return
 
-        newdbpath = BukuDb.get_dbdir_path()
-        newdbfile = os.path.join(newdbpath, 'bookmarks.db')
+        new_db_path = BukuDb.get_dbdir_path()
+        new_db_file = os.path.join(new_db_path, 'bookmarks.db')
 
-        if os.path.exists(newdbfile):
+        if os.path.exists(new_db_file):
             logger.error('Both old (%s) and new (%s) DB files exist',
-                         olddbfile, newdbfile)
+                         old_db_file, new_db_file)
             sys.exit(1)
 
-        if not os.path.exists(newdbpath):
-            os.makedirs(newdbpath)
+        if not os.path.exists(new_db_path):
+            os.makedirs(new_db_path)
 
-        os.rename(olddbfile, newdbfile)
+        os.rename(old_db_file, new_db_file)
         print('Database was moved from old (%s) to new (%s) location.\n'
-              % (olddbfile, newdbfile))
+              % (old_db_file, new_db_file))
 
-        os.rmdir(olddbpath)
+        os.rmdir(old_db_path)
 
     @staticmethod
     def initdb():
@@ -344,26 +344,26 @@ class BukuDb:
         Returns: connection, cursor
         '''
 
-        dbpath = BukuDb.get_dbdir_path()
-        if not os.path.exists(dbpath):
-            os.makedirs(dbpath)
+        db_path = BukuDb.get_dbdir_path()
+        if not os.path.exists(db_path):
+            os.makedirs(db_path)
 
-        dbfile = os.path.join(dbpath, 'bookmarks.db')
+        db_file = os.path.join(db_path, 'bookmarks.db')
 
-        encpath = os.path.join(dbpath, 'bookmarks.db.enc')
+        enc_path = os.path.join(db_path, 'bookmarks.db.enc')
         # Notify if DB file needs to be decrypted first
-        if os.path.exists(encpath) and not os.path.exists(dbfile):
+        if os.path.exists(enc_path) and not os.path.exists(db_file):
             logger.error('Unlock database first')
             sys.exit(1)
 
         # Show info on first creation
-        if not os.path.exists(dbfile):
-            print('DB file is being created at \x1B[1m%s\x1B[0m.' % dbfile)
+        if not os.path.exists(db_file):
+            print('DB file is being created at \x1B[1m%s\x1B[0m.' % db_file)
             print('You should \x1B[1mencrypt it\x1B[0m later.')
 
         try:
             # Create a connection
-            conn = sqlite3.connect(dbfile)
+            conn = sqlite3.connect(db_file)
             conn.create_function('REGEXP', 2, regexp)
             cur = conn.cursor()
 
@@ -408,11 +408,11 @@ class BukuDb:
         '''
 
         self.cur.execute('SELECT id FROM bookmarks WHERE URL = ?', (url,))
-        resultset = self.cur.fetchall()
-        if len(resultset) == 0:
+        result_set = self.cur.fetchall()
+        if len(result_set) == 0:
             return -1
 
-        return resultset[0][0]
+        return result_set[0][0]
 
     def add_bookmark(self, url, title_manual=None, tag_manual=None,
                      desc=None, delayed_commit=False):
@@ -485,9 +485,9 @@ class BukuDb:
             self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?',
                              (index,))
 
-        resultset = self.cur.fetchall()
+        result_set = self.cur.fetchall()
         query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
-        for row in resultset:
+        for row in result_set:
             tags = '%s%s' % (row[1], tag_manual[1:])
             tags = parse_tags([tags])
             self.cur.execute(query, (tags, row[0],))
@@ -513,9 +513,9 @@ class BukuDb:
             query2 = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
             for tag in tags_to_delete:
                 self.cur.execute(query1, (tag,))
-                resultset = self.cur.fetchall()
+                result_set = self.cur.fetchall()
 
-                for row in resultset:
+                for row in result_set:
                     tags = row[1]
 
                     tags = tags.replace('%s%s%s'
@@ -527,10 +527,10 @@ class BukuDb:
         else:
             query = 'SELECT id, tags FROM bookmarks WHERE id = ?'
             self.cur.execute(query, (index,))
-            resultset = self.cur.fetchall()
+            result_set = self.cur.fetchall()
 
             query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
-            for row in resultset:
+            for row in result_set:
                 tags = row[1]
 
                 for tag in tags_to_delete:
@@ -655,9 +655,9 @@ class BukuDb:
             self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ?',
                              (index,))
 
-        resultset = self.cur.fetchall()
+        result_set = self.cur.fetchall()
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
-        for row in resultset:
+        for row in result_set:
             title = network_handler(row[1])
             if title == '':
                 print('\x1b[1mIndex %d: no title\x1b[21m\x1B[0m\n' % row[0])
@@ -843,12 +843,12 @@ class BukuDb:
         if index == 0:  # Show all entries
             if not empty:
                 self.cur.execute('SELECT * FROM bookmarks')
-                resultset = self.cur.fetchall()
+                result_set = self.cur.fetchall()
             else:
                 qry = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ?"
                 self.cur.execute(qry, (DELIMITER,))
-                resultset = self.cur.fetchall()
-                print('\x1b[1m%s records found\x1b[21m\n' % len(resultset))
+                result_set = self.cur.fetchall()
+                print('\x1b[1m%s records found\x1b[21m\n' % len(result_set))
 
             if not self.json:
                 if self.show_opt == 0:
@@ -920,17 +920,17 @@ class BukuDb:
 
         update = False
         delete = False
-        newtags = DELIMITER
+        new_tags = DELIMITER
 
         orig = '%s%s%s' % (DELIMITER, orig, DELIMITER)
         if new is None:
             delete = True
         else:
-            newtags = parse_tags(new)
-            if newtags == DELIMITER:
+            new_tags = parse_tags(new)
+            if new_tags == DELIMITER:
                 delete = True
 
-        if orig == newtags:
+        if orig == new_tags:
             print('Tags are same.')
             return
 
@@ -942,10 +942,10 @@ class BukuDb:
         for row in results:
             if not delete:
                 # Check if tag newtags is already added
-                if row[1].find(newtags) >= 0:
-                    newtags = DELIMITER
+                if row[1].find(new_tags) >= 0:
+                    new_tags = DELIMITER
 
-            tags = row[1].replace(orig, newtags)
+            tags = row[1].replace(orig, new_tags)
             tags = parse_tags([tags])
             self.cur.execute(query, (tags, row[0],))
             print('Index %d updated' % row[0])
@@ -983,7 +983,7 @@ class BukuDb:
         except IndexError:
             logger.error('Index out of bound')
 
-    def export_bookmark(self, fp, markdown=False, taglist=None):
+    def export_bookmark(self, fp, markdown=False, tag_list=None):
         '''Export bookmarks to a Firefox
         bookmarks formatted html file.
 
@@ -996,35 +996,35 @@ class BukuDb:
         timestamp = int(time.time())
         arguments = []
         query = 'SELECT * FROM bookmarks'
-        tagvalid = False
+        tag_valid = False
 
-        if taglist is not None:
-            tagstr = parse_tags(taglist)
+        if tag_list is not None:
+            tag_str = parse_tags(tag_list)
 
-            if len(tagstr) == 0 or tagstr == DELIMITER:
+            if len(tag_str) == 0 or tag_str == DELIMITER:
                 logger.error('Invalid tag')
                 return
 
-            if len(tagstr) > 0:
-                tags = tagstr.split(DELIMITER)
+            if len(tag_str) > 0:
+                tags = tag_str.split(DELIMITER)
                 query = '%s WHERE' % query
                 for tag in tags:
                     if tag != '':
-                        tagvalid = True
+                        tag_valid = True
                         query += " tags LIKE '%' || ? || '%' OR"
                         tag = '%s%s%s' % (DELIMITER, tag, DELIMITER)
                         arguments += (tag,)
 
-                if tagvalid:
+                if tag_valid:
                     query = query[:-3]
                 else:
                     query = query[:-6]
 
         logger.debug('(%s), %s' % (query, arguments))
         self.cur.execute(query, arguments)
-        resultset = self.cur.fetchall()
+        result_set = self.cur.fetchall()
 
-        if len(resultset) == 0:
+        if len(result_set) == 0:
             print('No bookmarks exported')
             return
 
@@ -1051,7 +1051,7 @@ class BukuDb:
     <DL><p>
 ''' % (timestamp, timestamp))
 
-            for row in resultset:
+            for row in result_set:
                 out = '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' \
                         % (row[1], timestamp, timestamp)
                 if row[3] != DELIMITER:
@@ -1066,7 +1066,7 @@ class BukuDb:
             f.write('    </DL><p>\n</DL><p>')
         else:
             f.write("List of buku bookmarks:\n\n")
-            for row in resultset:
+            for row in result_set:
                 if row[2] == '':
                     out = '- [Untitled](%s)\n' % (row[1])
                 else:
@@ -1204,7 +1204,7 @@ def connect_server(url):
         logger.warning('Not a valid HTTP(S) url')
         if url.find(':') == -1:
             logger.warning('Not a valid uri either')
-        return (None, None)
+        return None, None
 
     logger.debug('server [%s] rel [%s]', server, url)
 
@@ -1218,7 +1218,7 @@ def connect_server(url):
         'Accept-encoding': 'gzip',
         'DNT': '1',
     })
-    return (urlconn, urlconn.getresponse())
+    return urlconn, urlconn.getresponse()
 
 
 def get_page_title(resp):
@@ -1227,7 +1227,6 @@ def get_page_title(resp):
     Params: GET response and invoke HTML parser
     '''
 
-    data = None
     charset = resp.headers.get_content_charset()
 
     if resp.headers.get('Content-Encoding') == 'gzip':
@@ -1341,22 +1340,22 @@ def parse_tags(keywords=None):
     unique_tags = []
 
     # Cleanse and get the tags
-    tagstr = ' '.join(keywords)
-    marker = tagstr.find(DELIMITER)
+    tag_str = ' '.join(keywords)
+    marker = tag_str.find(DELIMITER)
 
     while marker >= 0:
-        token = tagstr[0:marker]
-        tagstr = tagstr[marker + 1:]
-        marker = tagstr.find(DELIMITER)
+        token = tag_str[0:marker]
+        tag_str = tag_str[marker + 1:]
+        marker = tag_str.find(DELIMITER)
         token = token.strip()
         if token == '':
             continue
 
         tags = '%s%s%s' % (tags, token, DELIMITER)
 
-    tagstr = tagstr.strip()
-    if tagstr != '':
-        tags = '%s%s%s' % (tags, tagstr, DELIMITER)
+    tag_str = tag_str.strip()
+    if tag_str != '':
+        tags = '%s%s%s' % (tags, tag_str, DELIMITER)
 
     logger.debug('keywords: %s', keywords)
     logger.debug('parsed tags: [%s]', tags)
@@ -1394,7 +1393,7 @@ def prompt(results, noninteractive=False, delete=False):
         while pos >= 0:
             idx = results[pos][0]
             bdb.delete_bookmark(idx)
-            pos = pos - 1
+            pos -= 1
 
     # prompt and open
     else:
@@ -1956,7 +1955,7 @@ if __name__ == '__main__':
             bdb.list_tags()
 
     # Delete record(s)
-    elif (args.delete is not None):
+    elif args.delete is not None:
         if len(args.delete) == 0:
             bdb.delete_bookmark(0)
         elif len(args.delete) == 1 and '-' in args.delete[0]:
