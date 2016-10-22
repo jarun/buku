@@ -175,7 +175,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            use --tag to export only specific tags
       -i, --import file    import bookmarks from html file; Firefox,
                            Google Chrome and IE formats supported
-      --markdown           use markdown format, works with -e and -i
+      --markdown           use markdown with -e and -i
+                           supported format: [title](url), 1 per line
       -m, --merge file     merge bookmarks from another buku database
       -p, --print [...]    show details of bookmark by DB index
                            accepts indices and ranges
@@ -359,7 +360,6 @@ The last index is moved to the deleted index to keep the DB compact.
 15. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -S kernel debugging
-
 16. **Search** bookmarks **tagged** `general kernel concepts`:
 
         $ buku --st general kernel concepts

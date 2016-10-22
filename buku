@@ -424,6 +424,11 @@ class BukuDb:
         :param desc: string description
         '''
 
+        # Return error for empty URL
+        if not url or url == '':
+            logger.error('Invalid URL')
+            return
+
         # Ensure that the URL does not exist in DB already
         id = self.get_bookmark_index(url)
         if id != -1:
@@ -1062,11 +1067,15 @@ class BukuDb:
         else:
             f.write("List of buku bookmarks:\n\n")
             for row in resultset:
-                out = '- [%s](%s)\n' % (row[2], row[1])
+                if row[2] == '':
+                    out = '- [Untitled](%s)\n' % (row[1])
+                else:
+                    out = '- [%s](%s)\n' % (row[2], row[1])
                 f.write(out)
                 count += 1
+
         f.close()
-        print('%s bookmarks exported' % count)
+        print('%s exported' % count)
 
     def import_bookmark(self, fp, markdown=False):
         '''Import bookmarks from a html file.
@@ -1103,12 +1112,24 @@ class BukuDb:
             f.close()
         else:
             with open(fp, mode='r', encoding='utf-8') as f:
-                reg = re.compile("\[([^\]]+)\]\(([^\)]+)\)")
                 for line in f:
-                    m = reg.search(line)
-                    if m:
-                        desc = m.group(1)
-                        self.add_bookmark(m.group(2), None, None, desc, True)
+                    # Supported markdown format: [title](url)
+                    # Find position of title end, url start delimiter combo
+                    index = line.find('](')
+                    if index != -1:
+                        # Reverse find title start delimiter
+                        title_start_delim = line[:index].rfind('[')
+                        # Find the url end delimiter
+                        url_end_delim = line[index + 2:].find(')')
+
+                        if title_start_delim != -1 and url_end_delim > 0:
+                            # Parse title
+                            title = line[title_start_delim + 1:index]
+                            # Parse url
+                            url = line[index + 2:index + 2 + url_end_delim]
+
+                            self.add_bookmark(url, title, None, None, True)
+
             self.conn.commit()
             f.close()
 
@@ -1781,7 +1802,8 @@ if __name__ == '__main__':
                      use --tag to export only specific tags
 -i, --import file    import bookmarks from html file; Firefox,
                      Google Chrome and IE formats supported
---markdown           use markdown format, works with -e and -i
+--markdown           use markdown with -e and -i
+                     supported format: [title](url), 1 per line
 -m, --merge file     merge bookmarks from another buku database
 -p, --print [...]    show details of bookmark by DB index
                      accepts indices and ranges
@@ -1801,6 +1823,8 @@ if __name__ == '__main__':
            help=argparse.SUPPRESS)
     addarg('-i', '--import', nargs=1, dest='imports', metavar='file',
            help=argparse.SUPPRESS)
+    addarg('--markdown', dest='markdown', action='store_true',
+           help=argparse.SUPPRESS)
     addarg('-m', '--merge', nargs=1, dest='merge', metavar='file',
            help=argparse.SUPPRESS)
     addarg('-p', '--print', nargs='*', dest='print', metavar='N',
@@ -1809,8 +1833,6 @@ if __name__ == '__main__':
            choices=[1, 2, 3], metavar='N', help=argparse.SUPPRESS)
     addarg('-r', '--replace', nargs='+', dest='replace',
            metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
-    addarg('--markdown', dest='markdown', action='store_true',
-           help=argparse.SUPPRESS)
     addarg('-j', '--json', dest='json_output', action='store_true',
            help=argparse.SUPPRESS)
     addarg('--noprompt', dest='noninteractive', action='store_true',
