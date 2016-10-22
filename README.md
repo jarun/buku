@@ -223,11 +223,11 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 - **Search** works in mysterious ways:
   - Case-insensitive.
   - Matches exact words in URL, title and tags.
-  - -s : match any of the keywords in URL, title or tags.
-  - -S : match all the keywords in URL, title or tags.
+  - --sany : match any of the keywords in URL, title or tags.
+  - --sall : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
-  - --st : search bookmarks by tag, or show all tags alphabetically.
+  - --stag : search bookmarks by tag, or show all tags alphabetically.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 
@@ -351,8 +351,8 @@ The last index is moved to the deleted index to keep the DB compact.
         $ buku -d
 13. **Delete** a **range or list** of bookmarks:
 
-        $ buku -d 100-200     // delete bookmarks from index 100 to 200
-        $ buku 100 15 200     // delete bookmarks at indices 100, 15 and 200
+        $ buku -d 100-200
+        $ buku -d 100 15 200
 14. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -s kernel debugging

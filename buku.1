@@ -48,11 +48,11 @@ URLs are unique in DB. The same URL cannot be added twice.
 \fISearch\fR works in mysterious ways:
   - Case-insensitive.
   - Matches exact words in URL, title and tags.
-  - -s : match any of the keywords in URL, title or tags.
-  - -S : match all the keywords in URL, title or tags.
+  - --sany : match any of the keywords in URL, title or tags.
+  - --sall : match all the keywords in URL, title or tags.
   - --deep : match \fBsubstrings\fR (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
-  - --st : search bookmarks by tag, or show all tags alphabetically.
+  - --stag : search bookmarks by tag, or show all tags alphabetically.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within '[]' after the URL.
 .PP
 \fIEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
@@ -74,23 +74,23 @@ Show program help and exit.
 .SH EDIT OPTIONS
 .TP
 .BI \--url " [...]"
-Specify the URL, works with -u only. Fetches and updates title if --title is not used.
+Specify the URL, works with --update only. Fetches and updates title if --title is not used.
 .TP
 .BI \--tag " [+|-] [...]"
-Specify comma separated tags, works with -a, -u. Clears the tags, if no arguments passed. Appends or deletes tags, if list of tags is preceded by '+' or '-' respectively.
+Specify comma separated tags, works with --add, --update. Clears the tags, if no arguments passed. Appends or deletes tags, if list of tags is preceded by '+' or '-' respectively.
 .TP
 .BI \-t " " \--title " [...]"
-Manually specify the title, works with -a, -u. Omits or clears the title, if no arguments passed.
+Manually specify the title, works with --add, --update. Omits or clears the title, if no arguments passed.
 .TP
 .BI \-c " " \--comment " [...]"
-Add comment or description on the bookmark, works with -a, -u. Clears the comment, if no arguments passed.
+Add comment or description on the bookmark, works with --add, --update. Clears the comment, if no arguments passed.
 .SH SEARCH OPTIONS
 .TP
 .BI \-s " " \--sany " keyword [...]"
 Search bookmarks for ANY of the keyword(s) in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential result index is not the DB index. The DB index is shown in the end within '[]'.
 .TP
 .BI \-S " " \--sall " keyword [...]"
-Search bookmarks with ALL keywords in URL, title or tags and show the results. Behaviour same as -s.
+Search bookmarks with ALL keywords in URL, title or tags and show the results. Behaviour same as --sany.
 .br
 Special keyword:
 .br
@@ -100,7 +100,7 @@ Special keyword:
 Scan for a regular expression match.
 .TP
 .BI \--deep
-Search modifier to match substrings. Works with -s, -S.
+Search modifier to match substrings. Works with --sany, --sall.
 .TP
 .BI \--st " " \--stag " [...]"
 Search bookmarks by tag. List all tags alphabetically, if no arguments.
@@ -133,7 +133,7 @@ Merge bookmarks from another Buku database file.
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices.
 .TP
 .BI \-f " " \--format " N"
-Show selective monochrome output. Works with -p. Useful for creating batch update scripts.
+Show selective monochrome output. Works with --print. Useful for creating batch update scripts.
 .br
 .I N
 = 1, show only URL.
@@ -156,7 +156,7 @@ if
 is omitted.
 .TP
 .BI \-j " " \--json
-Output data formatted as json, works with -p, -s, -S, --st.
+Output data formatted as json, works with --print, --sany, --sall, --stag.
 .TP
 .BI \--noprompt
 Do not show the prompt, run and exit.
@@ -304,8 +304,8 @@ The last index is moved to the deleted index to keep the DB compact.
 .PP
 .EX
 .IP
-.B $ buku -d 100-200     // delete bookmarks from index 100 to 200
-.B $ buku 100 15 200     // delete bookmarks at indices 100, 15 and 200
+.B $ buku -d 100-200
+.B $ buku -d 100 15 200
 .PP
 .IP 14. 4
 \fBSearch\fR bookmarks for \fBANY\fR of the keywords 'kernel' and 'debugging' in URL, title or tags:
