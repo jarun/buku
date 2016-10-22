@@ -11,7 +11,7 @@ is a command-line tool to save, tag and search bookmarks.
 .PP
   * Add, open, tag, comment on, search, update, remove URLs
   * Portable merge-able database, to sync between systems
-  * Import/export bookmarks HTML (Firefox, Google Chrome, IE compatible)
+  * Import/export bookmarks in markdown or HTML (FF, Chrome, IE compatible)
   * Fetch page title from web, refresh all titles in a go
   * Open (multiple) search results directly in default browser
   * Manual password protection using AES256 encryption
@@ -123,6 +123,9 @@ Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export
 .BI \-i " " \--import " file"
 Import bookmarks exported from Firefox, Google Chrome or IE in HTML format.
 .TP
+.BI \--markdown
+Use markdown format for --export and --import.
+.TP
 .BI \-m " " \--merge " file"
 Merge bookmarks from another Buku database file.
 .TP
@@ -233,22 +236,24 @@ Note that URL must precede tags.
 Applies to --url, --title and --tag too.
 .PP
 .IP 7. 4
-\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2':
+\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML and markdown:
 .PP
 .EX
 .IP
 .B buku -e bookmarks.html --tag tag 1, tag 2
+.B buku -e bookmarks.md --markdown --tag tag 1, tag 2
 .EE
 .PP
 .IP "" 4
 All bookmarks are exported if --tag is not specified.
 .PP
 .IP 8. 4
-\fBImport\fR bookmarks:
+\fBImport\fR bookmarks from HTML and markdown:
 .PP
 .EX
 .IP
 .B buku -i bookmarks.html
+.B buku -i bookmarks.md --markdown
 .EE
 .PP
 .IP "" 4

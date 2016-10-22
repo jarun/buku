@@ -50,7 +50,7 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 
 - Add, open, tag, comment on, search, update, remove URLs
 - Portable, merge-able database, to sync between systems
-- Import/export bookmarks HTML (Firefox, Google Chrome, IE compatible)
+- Import/export bookmarks in markdown or HTML (FF, Chrome, IE compatible)
 - Fetch page title from web, refresh all titles in a go
 - Open (multiple) search results directly in default browser
 - Manual password protection using AES256 encryption
@@ -175,6 +175,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            use --tag to export only specific tags
       -i, --import file    import bookmarks from html file; Firefox,
                            Google Chrome and IE formats supported
+      --markdown           use markdown format, works with -e and -i
       -m, --merge file     merge bookmarks from another buku database
       -p, --print [...]    show details of bookmark by DB index
                            accepts indices and ranges
@@ -184,7 +185,6 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -r, --replace oldtag [newtag ...]
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
-      --markdown           import/exports files from/to markdown format
       -j, --json           Json formatted output for -p, -s, -S, --st
       --noprompt           do not show the prompt, run and exit
       -o, --open [N]       open bookmark at DB index N in web browser
@@ -323,13 +323,15 @@ Note that URL must precede tags.
 
         $ buku -u 15012014 -c this is a new comment
 Applies to --url, --title and --tag too.
-7. **Export** bookmarks tagged `tag 1` or `tag 2`:
+7. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML and markdown:
 
-        $ buku -e bookmarks.html tag 1, tag 2
+        $ buku -e bookmarks.html --tag tag 1, tag 2
+        $ buku -e bookmarks.md --markdown --tag tag 1, tag 2
 All bookmarks are exported if --tag is not specified.
-8. **Import** bookmarks:
+8. **Import** bookmarks from HTML and markdown:
 
         $ buku -i bookmarks.html
+        $ buku -i bookmarks.md --markdown
 HTML exports from Firefox, Google Chrome and IE are supported.
 9. **Delete only comment** for bookmark at 15012014:
 
@@ -396,11 +398,6 @@ The same number of iterations must be specified for one lock & unlock instance. 
 
         $ buku
         $ man buku
-
-27. Export bookmarks into markdown format tagged `tag 1` or `tag 2`:
-
-        $ buku --markdown -e bookmarks.md tag 1, tag 2
-
 
 ## Contributions
 

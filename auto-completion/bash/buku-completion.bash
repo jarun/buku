@@ -11,8 +11,8 @@ _buku () {
     local cur=$2 prev=$3
     local -a opts opts_with_args
     opts=(-a --add -c --comment --deep -d --delete -e --export -h --help -i --import
-          -k --unlock -l --lock -m --merge --noprompt -o --open -p --print -r --replace
-          -s --sany -S --sall --st --stag --tag -t --title -u --update --url --markdown)
+          -k --unlock -l --lock --markdown -m --merge --noprompt -o --open -p --print
+          -r --replace -s --sany -S --sall --st --stag --tag -t --title -u --update --url)
     opts_with_arg=(-a --add -e --export -i --import -m --merge
                    -o --open -r --replace -s --sany -S --sall --url)
 
