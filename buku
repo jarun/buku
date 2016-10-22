@@ -852,19 +852,19 @@ class BukuDb:
 
             if not self.json:
                 if self.show_opt == 0:
-                    for row in resultset:
+                    for row in result_set:
                         print_record(row)
                 elif self.show_opt == 1:
-                    for row in resultset:
+                    for row in result_set:
                         print('%s\t%s' % (row[0], row[1]))
                 elif self.show_opt == 2:
-                    for row in resultset:
+                    for row in result_set:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
                 elif self.show_opt == 3:
-                    for row in resultset:
+                    for row in result_set:
                         print('%s\t%s' % (row[0], row[2]))
             else:
-                print(format_json(resultset, show_opt=self.show_opt))
+                print(format_json(result_set, show_opt=self.show_opt))
         else:  # Show record at index
             try:
                 query = 'SELECT * FROM bookmarks WHERE id = ?'
