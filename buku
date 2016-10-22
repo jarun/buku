@@ -1078,6 +1078,21 @@ class BukuDb:
             return
 
         html_tags = soup.findAll('a')
+        
+        resp = input('Add folder names as tags? (y/n): ')
+        if resp == 'y' or resp == 'Y':
+        
+            for tag in html_tags :     
+                possible_folder = tag.find_previous('h3') # could be its folder or not    
+                tag_list = tag.parent.parent.find_parent('dl') # get list of tags within that folder        
+                
+                if (possible_folder) and possible_folder.parent in list(tag_list.parents):
+                    # then it's the folder of this bookmark
+                    if tag.has_attr('tags') : 
+                        tag['tags'] += (DELIMITER + possible_folder.text)
+                    else : 
+                        tag['tags'] = possible_folder.text
+            
         for tag in html_tags:
             # Extract comment from <dd> tag
             desc = None
