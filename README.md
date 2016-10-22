@@ -209,6 +209,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - the **current directory**.
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes (`'`/`"`).
+- Markdown format is **[title](url)** in export/import operations.
 - URLs are unique in DB. The same URL cannot be added twice.
 - **Tags**:
   - Comma (`,`) is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags can be replaced.
@@ -359,7 +360,6 @@ The last index is moved to the deleted index to keep the DB compact.
 15. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -S kernel debugging
-
 16. **Search** bookmarks **tagged** `general kernel concepts`:
 
         $ buku --st general kernel concepts

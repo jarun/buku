@@ -424,6 +424,11 @@ class BukuDb:
         :param desc: string description
         '''
 
+        # Return error for empty URL
+        if not url or url == '':
+            logger.error('Invalid URL')
+            return
+
         # Ensure that the URL does not exist in DB already
         id = self.get_bookmark_index(url)
         if id != -1:
@@ -1062,11 +1067,14 @@ class BukuDb:
         else:
             f.write("List of buku bookmarks:\n\n")
             for row in resultset:
-                out = '- [%s](%s)\n' % (row[2], row[1])
+                if row[2] == '':
+                    out = '- [Untitled](%s)\n' % (row[1])
+                else:
+                    out = '- [%s](%s)\n' % (row[2], row[1])
                 f.write(out)
                 count += 1
         f.close()
-        print('%s bookmarks exported' % count)
+        print('%s exported' % count)
 
     def import_bookmark(self, fp, markdown=False):
         '''Import bookmarks from a html file.
@@ -1103,12 +1111,22 @@ class BukuDb:
             f.close()
         else:
             with open(fp, mode='r', encoding='utf-8') as f:
-                reg = re.compile("\[([^\]]+)\]\(([^\)]+)\)")
                 for line in f:
-                    m = reg.search(line)
-                    if m:
-                        desc = m.group(1)
-                        self.add_bookmark(m.group(2), None, None, desc, True)
+                    # Find the position of title end, url start delimiters
+                    index = line.find('](')
+                    if index != -1:
+                        # Reverse find title start delimiter
+                        index_title_start = line[:index].rfind('[')
+                        # Find the url end delimiter
+                        index_url_end = line[index + 2:].find(')')
+
+                        if index_title_start != -1 and index_url_end > 0:
+                            # Parse title
+                            title = line[index_title_start + 1:index]
+                            # Parse url
+                            url = line[index + 2:index + 2 + index_url_end]
+
+                            self.add_bookmark(url, title, None, None, True)
             self.conn.commit()
             f.close()
 
