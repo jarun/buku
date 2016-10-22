@@ -401,7 +401,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 
 ## Contributions
 
-Pull requests are welcome. Please visit [#39](https://github.com/jarun/Buku/issues/39) for a list of TODOs.
+Pull requests are welcome. Please visit [#78](https://github.com/jarun/Buku/issues/78) for a list of TODOs.
 
 ## Mentions
 
