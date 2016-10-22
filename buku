@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Buku.  If not, see <http://www.gnu.org/licenses/>.
+# along with Buku. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import os
@@ -39,8 +39,8 @@ except ImportError:
 
 # Globals
 update = False          # Update a bookmark in DB
-tagManual = None        # Tags for update command
-titleManual = None      # Manually add a title offline
+tag_manual = None        # Tags for update command
+title_manual = None      # Manually add a title offline
 description = None      # Description of the bookmark
 tagsearch = False       # Search bookmarks by tag
 titleData = None        # Title fetched from a webpage
@@ -1143,9 +1143,12 @@ class BukuDb:
                 if comment_tag:
                     desc = comment_tag.text[0:comment_tag.text.find('\n')]
 
-                self.add_bookmark(tag['href'], tag.string,
-                                  ('%s%s%s' % (DELIMITER, tag['tags'], DELIMITER))
-                                  if tag.has_attr('tags') else None, desc, True)
+                self.add_bookmark(
+                    tag['href'],
+                    tag.string,
+                    ('%s%s%s' % (DELIMITER, tag['tags'], DELIMITER))
+                    if tag.has_attr('tags') else None, desc, True
+                )
 
             self.conn.commit()
             f.close()
@@ -1381,22 +1384,22 @@ def parse_tags(keywords=None):
     unique_tags = []
 
     # Cleanse and get the tags
-    tagstr = ' '.join(keywords)
-    marker = tagstr.find(DELIMITER)
+    tag_str = ' '.join(keywords)
+    marker = tag_str.find(DELIMITER)
 
     while marker >= 0:
-        token = tagstr[0:marker]
-        tagstr = tagstr[marker + 1:]
-        marker = tagstr.find(DELIMITER)
+        token = tag_str[0:marker]
+        tag_str = tag_str[marker + 1:]
+        marker = tag_str.find(DELIMITER)
         token = token.strip()
         if token == '':
             continue
 
         tags = '%s%s%s' % (tags, token, DELIMITER)
 
-    tagstr = tagstr.strip()
-    if tagstr != '':
-        tags = '%s%s%s' % (tags, tagstr, DELIMITER)
+    tag_str = tag_str.strip()
+    if tag_str != '':
+        tags = '%s%s%s' % (tags, tag_str, DELIMITER)
 
     logger.debug('keywords: %s', keywords)
     logger.debug('parsed tags: [%s]', tags)
@@ -1475,8 +1478,10 @@ def prompt(results, noninteractive=False, delete=False):
                     except Exception as e:
                         _, _, linenumber, func, _, _ = inspect.stack()[0]
                         logger.error('%s(), ln %d: %s', func, linenumber, e)
-                elif '-' in nav and is_int(nav.split('-')[0]) \
-                        and is_int(nav.split('-')[1]):
+                elif (
+                    '-' in nav and is_int(nav.split('-')[0]) and
+                    is_int(nav.split('-')[1])
+                ):
                     lower = int(nav.split('-')[0])
                     upper = int(nav.split('-')[1])
                     if lower > upper:
@@ -1486,8 +1491,9 @@ def prompt(results, noninteractive=False, delete=False):
                             open_in_browser(unquote(results[index][1]))
                         except Exception as e:
                             _, _, linenumber, func, _, _ = inspect.stack()[0]
-                            logger.error('%s(), ln %d: %s',
-                                         func, linenumber, e)
+                            logger.error(
+                                '%s(), ln %d: %s', func, linenumber, e
+                            )
                 else:
                     break
 
@@ -1532,8 +1538,12 @@ def format_json(resultset, single=False, show_opt=0):
             elif show_opt == 3:
                 record = {'title': row[2]}
             else:
-                record = {'uri': row[1], 'title': row[2],
-                          'description': row[4], 'tags': row[3][1:-1]}
+                record = {
+                    'uri': row[1],
+                    'title': row[2],
+                    'description': row[4],
+                    'tags': row[3][1:-1]
+                }
 
             marks.append(record)
     else:
@@ -1634,9 +1644,9 @@ class CustomTagAction(argparse.Action):
     """
 
     def __call__(self, parser, args, values, option_string=None):
-        global tagManual
+        global tag_manual
 
-        tagManual = [DELIMITER, ]
+        tag_manual = [DELIMITER, ]
         setattr(args, self.dest, values)
 
 
@@ -1646,9 +1656,9 @@ class CustomTitleAction(argparse.Action):
     """
 
     def __call__(self, parser, args, values, option_string=None):
-        global titleManual
+        global title_manual
 
-        titleManual = ''
+        title_manual = ''
         setattr(args, self.dest, values)
 
 
@@ -1883,10 +1893,10 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Assign the values to globals
-    if tagManual is not None and len(args.tag) > 0:
-        tagManual = args.tag
-    if titleManual is not None and len(args.title) > 0:
-        titleManual = ' '.join(args.title)
+    if tag_manual is not None and len(args.tag) > 0:
+        tag_manual = args.tag
+    if title_manual is not None and len(args.title) > 0:
+        title_manual = ' '.join(args.title)
     if description is not None and len(args.desc) > 0:
         description = ' '.join(args.desc)
     if args.jsonOutput:
@@ -1913,21 +1923,21 @@ if __name__ == '__main__':
         # Parse tags into a comma-separated string
         tags = DELIMITER
         keywords = args.addurl
-        if tagManual is not None:
-            if tagManual[0] == '+' and len(tagManual) == 1:
+        if tag_manual is not None:
+            if tag_manual[0] == '+' and len(tag_manual) == 1:
                 pass
-            elif tagManual[0] == '+':
-                tagManual = tagManual[1:]
+            elif tag_manual[0] == '+':
+                tag_manual = tag_manual[1:]
                 # In case of add, args.addurl may have URL followed by tags
                 # Add DELIMITER as url+tags may not end with comma
-                keywords = args.addurl + [DELIMITER] + tagManual
+                keywords = args.addurl + [DELIMITER] + tag_manual
             else:
-                keywords = args.addurl + [DELIMITER] + tagManual
+                keywords = args.addurl + [DELIMITER] + tag_manual
 
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_bookmark(args.addurl[0], titleManual, tags, description)
+        bdb.add_bookmark(args.addurl[0], title_manual, tags, description)
 
     # Update record
     if update:
@@ -1938,38 +1948,47 @@ if __name__ == '__main__':
 
         append = False
         delete = False
-        if tagManual is not None:
-            if (tagManual[0] == '+' or tagManual[0] == '-') \
-                    and len(tagManual) == 1:
+        if tag_manual is not None:
+            if (
+                (tag_manual[0] == '+' or tag_manual[0] == '-') and
+                len(tag_manual) == 1
+            ):
                 logger.error('Please specify a tag')
                 bdb.close_quit(1)
-            elif tagManual[0] == '+':
-                tagManual = tagManual[1:]
+            elif tag_manual[0] == '+':
+                tag_manual = tag_manual[1:]
                 append = True
-            elif tagManual[0] == '-':
-                tagManual = tagManual[1:]
+            elif tag_manual[0] == '-':
+                tag_manual = tag_manual[1:]
                 delete = True
 
         # Parse tags into a comma-separated string
-        tags = parse_tags(tagManual)
+        tags = parse_tags(tag_manual)
 
         if len(args.update) == 0:
-            bdb.update_bookmark(0, new_url, titleManual, tags,
-                                description, append, delete)
+            bdb.update_bookmark(
+                0, new_url, title_manual, tags, description, append, delete
+            )
         else:
             for idx in args.update:
                 if is_int(idx):
-                    bdb.update_bookmark(int(idx), new_url, titleManual, tags,
-                                        description, append, delete)
-                elif '-' in idx and is_int(idx.split('-')[0]) \
-                        and is_int(idx.split('-')[1]):
+                    bdb.update_bookmark(
+                        int(idx), new_url, title_manual, tags, description,
+                        append, delete
+                    )
+                elif (
+                    '-' in idx and is_int(idx.split('-')[0]) and
+                    is_int(idx.split('-')[1])
+                ):
                     lower = int(idx.split('-')[0])
                     upper = int(idx.split('-')[1])
                     if lower > upper:
                         lower, upper = upper, lower
                     for _id in range(lower, upper + 1):
-                        bdb.update_bookmark(_id, new_url, titleManual, tags,
-                                            description, append, delete)
+                        bdb.update_bookmark(
+                            _id, new_url, title_manual, tags, description,
+                            append, delete
+                        )
 
     # Search URLs, titles, tags for any keyword and delete if wanted
     if args.sany is not None:
@@ -1989,8 +2008,9 @@ if __name__ == '__main__':
     # Search bookmarks by tag and delete if wanted
     elif tagsearch:
         if len(args.stag) > 0:
-            tag = '%s%s%s' % (DELIMITER, ' '.join(args.stag).strip(DELIMITER),
-                              DELIMITER)
+            tag = '%s%s%s' % (
+                DELIMITER, ' '.join(args.stag).strip(DELIMITER), DELIMITER
+            )
             bdb.search_by_tag(tag, (args.delete is not None))
         else:
             bdb.list_tags()
@@ -2034,8 +2054,10 @@ if __name__ == '__main__':
             for idx in args.print:
                 if is_int(idx):
                     bdb.print_bookmark(int(idx))
-                elif '-' in idx and is_int(idx.split('-')[0]) \
-                        and is_int(idx.split('-')[1]):
+                elif (
+                    '-' in idx and is_int(idx.split('-')[0])
+                    and is_int(idx.split('-')[1])
+                ):
                     lower = int(idx.split('-')[0])
                     upper = int(idx.split('-')[1])
                     if lower > upper:
