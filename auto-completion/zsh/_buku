@@ -30,6 +30,7 @@ args=(
     '(--tag)--tag[set tags, use + to append]'
     '(-t --title)'{-t,--title}'[set custom title]'
     '(-u --update)'{-u,--update}'[update bookmark]'
+    '(--upstream)--upstream[check latest upstream release]'
     '(--url)--url[set url]'
 )
 _arguments -S -s $args

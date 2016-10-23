@@ -28,6 +28,7 @@ from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import urljoin, quote, unquote
 import gzip
 import signal
+import json
 import logging
 import inspect
 import atexit
@@ -1104,9 +1105,10 @@ class BukuDb:
                 if comment_tag:
                     desc = comment_tag.text[0:comment_tag.text.find('\n')]
 
-                self.add_bookmark(tag['href'], tag.string,
-                                  ('%s%s%s' % (DELIMITER, tag['tags'], DELIMITER))
-                                  if tag.has_attr('tags') else None, desc, True)
+                self.add_bookmark(tag['href'], tag.string, ('%s%s%s' %
+                                  (DELIMITER, tag['tags'], DELIMITER))
+                                  if tag.has_attr('tags') else None,
+                                  desc, True)
 
             self.conn.commit()
             f.close()
@@ -1568,6 +1570,27 @@ def open_in_browser(url):
         os.dup2(_stdout, 1)
 
 
+def check_upstream_release():
+    '''Check and report the latest upstream release version'''
+
+    import urllib.request
+
+    request = urllib.request.Request(
+                'https://api.github.com/repos/jarun/buku/tags?per_page=1',
+                headers={'Accept': 'application/vnd.github.v3+json'})
+
+    response = urllib.request.urlopen(request)
+    if response.status != 200:
+        logger.error('Failed to fetch release information. Received %s'
+                     % response.status)
+    else:
+        latest = json.loads(response.read().decode('utf-8'))[0]['name']
+        if latest == 'v' + _VERSION_:
+            print('This is the latest release')
+        else:
+            print('Latest upstream release is %s' % latest)
+
+
 def sigint_handler(signum, frame):
     '''Custom SIGINT handler'''
 
@@ -1817,6 +1840,7 @@ if __name__ == '__main__':
 --noprompt           do not show the prompt, run and exit
 -o, --open [N]       open bookmark at DB index N in web browser
                      open a random index if N is omitted
+--upstream           check latest upstream version available
 -z, --debug          show debug information and additional logs''')
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, dest='export', metavar='file',
@@ -1839,6 +1863,7 @@ if __name__ == '__main__':
            help=argparse.SUPPRESS)
     addarg('-o', '--open', nargs='?', dest='openurl', type=int, const=0,
            metavar='N', help=argparse.SUPPRESS)
+    addarg('--upstream', action='store_true', help=argparse.SUPPRESS)
     addarg('-z', '--debug', dest='debug', action='store_true',
            help=argparse.SUPPRESS)
 
@@ -1862,8 +1887,6 @@ if __name__ == '__main__':
         title_manual = ' '.join(args.title)
     if description is not None and len(args.desc) > 0:
         description = ' '.join(args.desc)
-    if args.json_output:
-        import json
     if args.debug:
         logger.setLevel(logging.DEBUG)
         logger.debug('Version %s', _VERSION_)
@@ -2049,6 +2072,10 @@ if __name__ == '__main__':
             logger.error('Index must be >= 0')
             bdb.close_quit(1)
         bdb.browse_by_index(args.openurl)
+
+    # Report upstream version
+    if args.upstream:
+        check_upstream_release()
 
     # Close DB connection and quit
     bdb.close_quit(0)
