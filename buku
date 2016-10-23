@@ -1112,12 +1112,24 @@ class BukuDb:
             f.close()
         else:
             with open(fp, mode='r', encoding='utf-8') as f:
-                reg = re.compile("\[([^\]]+)\]\(([^\)]+)\)")
                 for line in f:
-                    m = reg.search(line)
-                    if m:
-                        desc = m.group(1)
-                        self.add_bookmark(m.group(2), None, None, desc, True)
+                    # Supported markdown format: [title](url)
+                    # Find position of title end, url start delimiter combo
+                    index = line.find('](')
+                    if index != -1:
+                        # Reverse find title start delimiter
+                        title_start_delim = line[:index].rfind('[')
+                        # Find the url end delimiter
+                        url_end_delim = line[index + 2:].find(')')
+
+                        if title_start_delim != -1 and url_end_delim > 0:
+                            # Parse title
+                            title = line[title_start_delim + 1:index]
+                            # Parse url
+                            url = line[index + 2:index + 2 + url_end_delim]
+
+                            self.add_bookmark(url, title, None, None, True)
+
             self.conn.commit()
             f.close()
 
