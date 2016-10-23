@@ -1073,6 +1073,7 @@ class BukuDb:
                     out = '- [%s](%s)\n' % (row[2], row[1])
                 f.write(out)
                 count += 1
+
         f.close()
         print('%s exported' % count)
 
@@ -1112,21 +1113,10 @@ class BukuDb:
         else:
             with open(fp, mode='r', encoding='utf-8') as f:
                 for line in f:
-                    # Find the position of title end, url start delimiters
-                    index = line.find('](')
-                    if index != -1:
-                        # Reverse find title start delimiter
-                        index_title_start = line[:index].rfind('[')
-                        # Find the url end delimiter
-                        index_url_end = line[index + 2:].find(')')
-
-                        if index_title_start != -1 and index_url_end > 0:
-                            # Parse title
-                            title = line[index_title_start + 1:index]
-                            # Parse url
-                            url = line[index + 2:index + 2 + index_url_end]
-
-                            self.add_bookmark(url, title, None, None, True)
+                    m = reg.search(line)
+                    if m:
+                        desc = m.group(1)
+                        self.add_bookmark(m.group(2), None, None, desc, True)
             self.conn.commit()
             f.close()
 
@@ -1799,7 +1789,8 @@ if __name__ == '__main__':
                      use --tag to export only specific tags
 -i, --import file    import bookmarks from html file; Firefox,
                      Google Chrome and IE formats supported
---markdown           use markdown format, works with -e and -i
+--markdown           use markdown with -e and -i
+                     supported format: [title](url), 1 per line
 -m, --merge file     merge bookmarks from another buku database
 -p, --print [...]    show details of bookmark by DB index
                      accepts indices and ranges
@@ -1819,6 +1810,8 @@ if __name__ == '__main__':
            help=argparse.SUPPRESS)
     addarg('-i', '--import', nargs=1, dest='imports', metavar='file',
            help=argparse.SUPPRESS)
+    addarg('--markdown', dest='markdown', action='store_true',
+           help=argparse.SUPPRESS)
     addarg('-m', '--merge', nargs=1, dest='merge', metavar='file',
            help=argparse.SUPPRESS)
     addarg('-p', '--print', nargs='*', dest='print', metavar='N',
@@ -1827,8 +1820,6 @@ if __name__ == '__main__':
            choices=[1, 2, 3], metavar='N', help=argparse.SUPPRESS)
     addarg('-r', '--replace', nargs='+', dest='replace',
            metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
-    addarg('--markdown', dest='markdown', action='store_true',
-           help=argparse.SUPPRESS)
     addarg('-j', '--json', dest='json_output', action='store_true',
            help=argparse.SUPPRESS)
     addarg('--noprompt', dest='noninteractive', action='store_true',
