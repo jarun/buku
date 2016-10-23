@@ -1112,6 +1112,7 @@ class BukuDb:
             f.close()
         else:
             with open(fp, mode='r', encoding='utf-8') as f:
+                reg = re.compile("\[([^\]]+)\]\(([^\)]+)\)")
                 for line in f:
                     m = reg.search(line)
                     if m:
