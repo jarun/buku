@@ -31,9 +31,9 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 - [Installation](#installation)
   - [Dependencies](#dependencies)
   - [Installing from this repository](#installing-from-this-repository)
-  - [Running as a standalone utility](#running-as-a-standalone-utility)
+    - [Running as a standalone utility](#running-as-a-standalone-utility)
+    - [Debian package](#debian-package)
   - [Installing with a package manager](#installing-with-a-package-manager)
-  - [Debian package](#debian-package)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
@@ -88,11 +88,19 @@ To remove, run:
     $ sudo make uninstall
 `PREFIX` is supported. You may need to use `sudo` with `PREFIX` depending on your permissions on destination directory.
 
-### Running as a standalone utility
+#### Running as a standalone utility
 
 `buku` is a standalone utility. From the containing directory, run:
 
     $ ./buku
+
+#### Debian package
+
+If you are on a Debian (including Ubuntu) based system visit [the latest stable release](https://github.com/jarun/Buku/releases/latest) and download the `.deb` package. To install, run:
+
+    $ sudo dpkg -i buku-$version-all.deb
+
+Please substitute `$version` with the appropriate package version.
 
 ### Installing with a package manager
 
@@ -102,14 +110,6 @@ To remove, run:
 - [Homebrew](http://braumeister.org/formula/buku) for OS X
 - [Debian Sid](https://packages.debian.org/sid/buku)
 - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
-
-### Debian package
-
-If you are on a Debian (including Ubuntu) based system visit [the latest stable release](https://github.com/jarun/Buku/releases/latest) and download the `.deb` package. To install, run:
-
-    $ sudo dpkg -i buku-$version-all.deb
-
-Please substitute `$version` with the appropriate package version.
 
 ## Shell completion
 
