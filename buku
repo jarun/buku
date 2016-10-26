@@ -313,28 +313,28 @@ class BukuDb:
         to new path. Errors out if both the old and new DB files exist.
         '''
 
-        olddbpath = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
-        olddbfile = os.path.join(olddbpath, 'bookmarks.db')
+        old_db_path = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
+        old_db_file = os.path.join(old_db_path, 'bookmarks.db')
 
-        if not os.path.exists(olddbfile):
+        if not os.path.exists(old_db_file):
             return
 
-        newdbpath = BukuDb.get_dbdir_path()
-        newdbfile = os.path.join(newdbpath, 'bookmarks.db')
+        new_db_path = BukuDb.get_dbdir_path()
+        new_db_file = os.path.join(new_db_path, 'bookmarks.db')
 
-        if os.path.exists(newdbfile):
+        if os.path.exists(new_db_file):
             logger.error('Both old (%s) and new (%s) DB files exist',
-                         olddbfile, newdbfile)
+                         old_db_file, new_db_file)
             sys.exit(1)
 
-        if not os.path.exists(newdbpath):
-            os.makedirs(newdbpath)
+        if not os.path.exists(new_db_path):
+            os.makedirs(new_db_path)
 
-        os.rename(olddbfile, newdbfile)
+        os.rename(old_db_file, new_db_file)
         print('Database was moved from old (%s) to new (%s) location.\n'
-              % (olddbfile, newdbfile))
+              % (old_db_file, new_db_file))
 
-        os.rmdir(olddbpath)
+        os.rmdir(old_db_path)
 
     @staticmethod
     def initdb():
@@ -997,7 +997,7 @@ class BukuDb:
         timestamp = int(time.time())
         arguments = []
         query = 'SELECT * FROM bookmarks'
-        tagvalid = False
+        is_tag_valid = False
 
         if taglist is not None:
             tagstr = parse_tags(taglist)
@@ -1011,12 +1011,12 @@ class BukuDb:
                 query = '%s WHERE' % query
                 for tag in tags:
                     if tag != '':
-                        tagvalid = True
+                        is_tag_valid = True
                         query += " tags LIKE '%' || ? || '%' OR"
                         tag = '%s%s%s' % (DELIMITER, tag, DELIMITER)
                         arguments += (tag,)
 
-                if tagvalid:
+                if is_tag_valid:
                     query = query[:-3]
                 else:
                     query = query[:-6]
@@ -1409,7 +1409,7 @@ def prompt(results, noninteractive=False, delete=False):
         while pos >= 0:
             idx = results[pos][0]
             bdb.delete_bookmark(idx)
-            pos = pos - 1
+            pos -= 1
 
     # prompt and open
     else:
@@ -1992,7 +1992,7 @@ if __name__ == '__main__':
             bdb.list_tags()
 
     # Delete record(s)
-    elif (args.delete is not None):
+    elif args.delete is not None:
         if len(args.delete) == 0:
             bdb.delete_bookmark(0)
         elif len(args.delete) == 1 and '-' in args.delete[0]:
