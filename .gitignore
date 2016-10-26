@@ -3,3 +3,4 @@
 .cache/
 .coverage
 .idea
+*.yaml
