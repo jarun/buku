@@ -281,11 +281,10 @@ class BukuCrypt:
 
 class BukuDb:
 
-    def __init__(self, noninteractive=False, json=False, show_opt=0):
+    def __init__(self, json=False, show_opt=0):
         conn, cur = BukuDb.initdb()
         self.conn = conn
         self.cur = cur
-        self.noninteractive = noninteractive
         self.json = json
         self.show_opt = show_opt
 
@@ -674,14 +673,12 @@ class BukuDb:
 
         self.conn.commit()
 
-    def searchdb(self, keywords, all_keywords=False, delete=False, deep=False,
-                 regex=False):
+    def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
         '''Search the database for an entries with tags or URL
         or title info matching keywords and list those.
 
         :param keywords: keywords to search
         :param all_keywords: search any or all keywords
-        :param delete: delete search results
         :param deep: search for matching substrings
         '''
 
@@ -729,11 +726,11 @@ class BukuDb:
             return
 
         if not self.json:
-            prompt(results, self.noninteractive, delete)
+            return results
         else:
             print(format_json(results, show_opt=self.show_opt))
 
-    def search_by_tag(self, tag, delete=False):
+    def search_by_tag(self, tag):
         '''Search and list bookmarks with a tag
 
         :param tag: tag to search
@@ -749,7 +746,7 @@ class BukuDb:
             return
 
         if not self.json:
-            prompt(results, self.noninteractive, delete)
+            return results
         else:
             print(format_json(results, show_opt=self.show_opt))
 
@@ -1902,7 +1899,7 @@ if __name__ == '__main__':
         BukuCrypt.decrypt_file(args.decrypt)
 
     # Initialize the database and get handles
-    bdb = BukuDb(args.noninteractive, args.json_output, args.show_opt)
+    bdb = BukuDb(args.json_output, args.show_opt)
 
     # Add a record
     if args.addurl is not None:
@@ -1967,29 +1964,34 @@ if __name__ == '__main__':
                         bdb.update_bookmark(_id, new_url, title_manual, tags,
                                             description, append, delete)
 
+    search_results = None
+
     # Search URLs, titles, tags for any keyword and delete if wanted
     if args.sany is not None:
-        bdb.searchdb(args.sany, False, (args.delete is not None), args.deep)
+        search_results = bdb.searchdb(args.sany, False, args.deep)
 
     # Search URLs, titles, tags with all keywords and delete if wanted
     elif args.sall is not None:
         if args.sall[0] == 'blank' and len(args.sall) == 1:
             bdb.print_bookmark(0, True)
         else:
-            bdb.searchdb(args.sall, True, (args.delete is not None), args.deep)
+            search_results = bdb.searchdb(args.sall, True, args.deep)
 
     # Run a regular expression search
     elif args.sreg is not None:
-        bdb.searchdb(args.sreg, False, (args.delete is not None), regex=True)
+        search_results = bdb.searchdb(args.sreg, False, regex=True)
 
     # Search bookmarks by tag and delete if wanted
     elif tagsearch:
         if len(args.stag) > 0:
             tag = '%s%s%s' % (DELIMITER, ' '.join(args.stag).strip(DELIMITER),
                               DELIMITER)
-            bdb.search_by_tag(tag, (args.delete is not None))
+            search_results = bdb.search_by_tag(tag)
         else:
             bdb.list_tags()
+
+    if search_results:
+        prompt(search_results, args.noninteractive, (args.delete is not None))
 
     # Delete record(s)
     elif args.delete is not None:
