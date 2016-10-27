@@ -1965,13 +1965,16 @@ if __name__ == '__main__':
                                             description, append, delete)
 
     search_results = None
+    search_opted = False
 
     # Search URLs, titles, tags for any keyword and delete if wanted
     if args.sany is not None:
+        search_opted = True
         search_results = bdb.searchdb(args.sany, False, args.deep)
 
     # Search URLs, titles, tags with all keywords and delete if wanted
     elif args.sall is not None:
+        search_opted = True
         if args.sall[0] == 'blank' and len(args.sall) == 1:
             bdb.print_bookmark(0, True)
         else:
@@ -1979,10 +1982,12 @@ if __name__ == '__main__':
 
     # Run a regular expression search
     elif args.sreg is not None:
+        search_opted = True
         search_results = bdb.searchdb(args.sreg, False, regex=True)
 
     # Search bookmarks by tag and delete if wanted
     elif tagsearch:
+        search_opted = True
         if len(args.stag) > 0:
             tag = '%s%s%s' % (DELIMITER, ' '.join(args.stag).strip(DELIMITER),
                               DELIMITER)
@@ -1991,12 +1996,15 @@ if __name__ == '__main__':
             bdb.list_tags()
 
     if search_results:
-        prompt(search_results, args.noninteractive, (args.delete is not None))
+        prompt(search_results, args.noninteractive,
+               (args.delete is not None) and len(args.delete) == 0)
 
     # Delete record(s)
-    elif args.delete is not None:
+    if args.delete is not None:
         if len(args.delete) == 0:
-            bdb.delete_bookmark(0)
+            # Attempt delete-all only if search was not opted
+            if not search_opted:
+                bdb.delete_bookmark(0)
         elif len(args.delete) == 1 and '-' in args.delete[0]:
             vals = str(args.delete[0]).split('-')
             if len(vals) == 2 and is_int(vals[0]) and is_int(vals[1]):
