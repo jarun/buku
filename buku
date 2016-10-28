@@ -680,6 +680,7 @@ class BukuDb:
         :param keywords: keywords to search
         :param all_keywords: search any or all keywords
         :param deep: search for matching substrings
+        :param regex: match a regular expression
         '''
 
         arguments = []
@@ -814,6 +815,22 @@ class BukuDb:
                 logger.error('Index out of bound')
 
         return True
+
+    def delete_resultset(self, results):
+        '''Delete search results in descending order of DB index.
+        Indices are expected to be unique and in ascending order.
+        '''
+
+        resp = input('Delete the search results? (y/n): ')
+        if resp != 'y'and resp != 'Y':
+            return
+
+        # delete records in reverse order
+        pos = len(results) - 1
+        while pos >= 0:
+            idx = results[pos][0]
+            self.delete_bookmark(idx)
+            pos -= 1
 
     def delete_all_bookmarks(self):
         '''Should be called only inside delete_bookmark
@@ -1382,7 +1399,7 @@ def parse_tags(keywords=None):
     return '%s%s%s' % (DELIMITER, DELIMITER.join(sorted_tags), DELIMITER)
 
 
-def prompt(results, noninteractive=False, delete=False):
+def prompt(results, noninteractive=False):
     '''Show each matching result from a search and prompt'''
 
     count = 0
@@ -1390,72 +1407,58 @@ def prompt(results, noninteractive=False, delete=False):
         count += 1
         print_record(row, count)
 
-    if delete:
-        resp = input('Delete the search results? (y/n): ')
-        if resp != 'y'and resp != 'Y':
-            return
+    if noninteractive:
+        return
 
-        # delete records in reverse order
-        pos = len(results) - 1
-        while pos >= 0:
-            idx = results[pos][0]
-            bdb.delete_bookmark(idx)
-            pos -= 1
-
-    # prompt and open
-    else:
-        if noninteractive:
-            return
-
-        while True:
-            try:
+    while True:
+        try:
+            nav = input('Results, ranges (x-y,(a)ll) to open: ')
+            if not nav:
                 nav = input('Results, ranges (x-y,(a)ll) to open: ')
                 if not nav:
-                    nav = input('Results, ranges (x-y,(a)ll) to open: ')
-                    if not nav:
-                        # Quit on double enter
-                        break
-            except EOFError:
-                return
-
-            # open all results and re-prompt if 'a' is pressed
-            if nav == 'a':
-                for index in range(0, count):
-                    try:
-                        open_in_browser(unquote(results[index][1]))
-                    except Exception as e:
-                        _, _, linenumber, func, _, _ = inspect.stack()[0]
-                        logger.error('%s(), ln %d: %s', func, linenumber, e)
-
-                continue
-
-            # iterate over whitespace separated indices
-            for nav in (' '.join(nav.split())).split():
-                if is_int(nav):
-                    index = int(nav) - 1
-                    if index < 0 or index >= count:
-                        logger.error('Index out of bound')
-                        continue
-                    try:
-                        open_in_browser(unquote(results[index][1]))
-                    except Exception as e:
-                        _, _, linenumber, func, _, _ = inspect.stack()[0]
-                        logger.error('%s(), ln %d: %s', func, linenumber, e)
-                elif '-' in nav and is_int(nav.split('-')[0]) \
-                        and is_int(nav.split('-')[1]):
-                    lower = int(nav.split('-')[0])
-                    upper = int(nav.split('-')[1])
-                    if lower > upper:
-                        lower, upper = upper, lower
-                    for index in range(lower-1, upper):
-                        try:
-                            open_in_browser(unquote(results[index][1]))
-                        except Exception as e:
-                            _, _, linenumber, func, _, _ = inspect.stack()[0]
-                            logger.error('%s(), ln %d: %s',
-                                         func, linenumber, e)
-                else:
+                    # Quit on double enter
                     break
+        except EOFError:
+            return
+
+        # open all results and re-prompt if 'a' is pressed
+        if nav == 'a':
+            for index in range(0, count):
+                try:
+                    open_in_browser(unquote(results[index][1]))
+                except Exception as e:
+                    _, _, linenumber, func, _, _ = inspect.stack()[0]
+                    logger.error('%s(), ln %d: %s', func, linenumber, e)
+
+            continue
+
+        # iterate over white-space separated indices
+        for nav in (' '.join(nav.split())).split():
+            if is_int(nav):
+                index = int(nav) - 1
+                if index < 0 or index >= count:
+                    logger.error('Index out of bound')
+                    continue
+                try:
+                    open_in_browser(unquote(results[index][1]))
+                except Exception as e:
+                    _, _, linenumber, func, _, _ = inspect.stack()[0]
+                    logger.error('%s(), ln %d: %s', func, linenumber, e)
+            elif '-' in nav and is_int(nav.split('-')[0]) \
+                    and is_int(nav.split('-')[1]):
+                lower = int(nav.split('-')[0])
+                upper = int(nav.split('-')[1])
+                if lower > upper:
+                    lower, upper = upper, lower
+                for index in range(lower-1, upper):
+                    try:
+                        open_in_browser(unquote(results[index][1]))
+                    except Exception as e:
+                        _, _, linenumber, func, _, _ = inspect.stack()[0]
+                        logger.error('%s(), ln %d: %s',
+                                     func, linenumber, e)
+            else:
+                break
 
 
 def print_record(row, idx=0):
@@ -1958,6 +1961,7 @@ if __name__ == '__main__':
                         bdb.update_bookmark(_id, new_url, title_manual, tags,
                                             description, append, delete)
 
+    # Search operations
     search_results = None
     search_opted = False
 
@@ -1990,11 +1994,19 @@ if __name__ == '__main__':
             bdb.list_tags()
 
     if search_results:
+        oneshot = args.noninteractive
+        # In case of search and delete, prompt should be non-interactive
+        if args.delete is not None and len(args.delete) == 0:
+            oneshot = True
+
         if not args.json_output:
-            prompt(search_results, args.noninteractive,
-                   (args.delete is not None) and len(args.delete) == 0)
+            prompt(search_results, oneshot)
         else:
             print(format_json(search_results, show_opt=args.show_opt))
+
+        # Delete search results if opted
+        if args.delete is not None and len(args.delete) == 0:
+            bdb.delete_resultset(search_results)
 
     # Delete record(s)
     if args.delete is not None:
