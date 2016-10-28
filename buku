@@ -807,13 +807,7 @@ class BukuDb:
             except IndexError:
                 logger.error('Index out of bound')
         elif index == 0:  # Remove the table
-            resp = input('Remove ALL bookmarks? (y/n): ')
-            if resp != 'y':
-                print('No bookmarks deleted')
-                return False
-
-            self.delete_all_bookmarks()
-            print('All bookmarks deleted')
+            return self.delete_all_bookmarks()
         else:  # Remove a single entry
             try:
                 query = 'DELETE FROM bookmarks WHERE id = ?'
@@ -854,12 +848,17 @@ class BukuDb:
             pos -= 1
 
     def delete_all_bookmarks(self):
-        '''Should be called only inside delete_bookmark
-        Drops the bookmark table if it exists
-        '''
+        '''Drops the bookmark table if it exists'''
+
+        resp = input('Remove ALL bookmarks? (y/n): ')
+        if resp != 'y':
+            print('No bookmarks deleted')
+            return False
 
         self.cur.execute('DROP TABLE if exists bookmarks')
         self.conn.commit()
+        print('All bookmarks deleted')
+        return True
 
     def print_bookmark(self, index, empty=False):
         '''Print bookmark details at index or all bookmarks if index is 0
@@ -945,7 +944,7 @@ class BukuDb:
         '''Replace orig tags with new tags in DB for all records.
         Remove orig tag if new tag is empty.
 
-        Params: original and new tags
+        Params: original and replacement tags
         '''
 
         update = False
@@ -2034,7 +2033,7 @@ if __name__ == '__main__':
         if len(args.delete) == 0:
             # Attempt delete-all only if search was not opted
             if not search_opted:
-                bdb.delete_bookmark(0)
+                bdb.delete_all_bookmarks()
         elif len(args.delete) == 1 and '-' in args.delete[0]:
             vals = str(args.delete[0]).split('-')
             if len(vals) == 2 and is_int(vals[0]) and is_int(vals[1]):
