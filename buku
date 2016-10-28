@@ -789,6 +789,10 @@ class BukuDb:
         '''
 
         if is_range:  # Delete a range of indices
+            # If range starts from 0, delete all records
+            if low == 0:
+                return self.delete_all_bookmarks()
+
             try:
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
