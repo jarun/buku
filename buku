@@ -770,7 +770,6 @@ class BukuDb:
                 results = self.cur.fetchall()
                 for row in results:
                     self.cur.execute(query2, (row[0],))
-                    self.conn.commit()
                     self.cur.execute(query3,
                                      (index, row[1], row[2], row[3], row[4],))
                     self.conn.commit()
