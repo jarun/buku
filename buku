@@ -1981,9 +1981,16 @@ if __name__ == '__main__':
                     upper = int(idx.split('-')[1])
                     if lower > upper:
                         lower, upper = upper, lower
-                    for _id in range(lower, upper + 1):
-                        bdb.update_bookmark(_id, new_url, title_manual, tags,
+
+                    # Update only once if range starts from 0 (all)
+                    if lower == 0:
+                        bdb.update_bookmark(0, new_url, title_manual, tags,
                                             description, append, delete)
+                    else:
+                        for _id in range(lower, upper + 1):
+                            bdb.update_bookmark(_id, new_url, title_manual,
+                                                tags, description, append,
+                                                delete)
 
     # Search operations
     search_results = None
