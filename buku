@@ -788,7 +788,7 @@ class BukuDb:
         :param delay_commit: do not commit to DB, caller's responsibility
         '''
 
-        if is_range:
+        if is_range:  # Delete a range of indices
             try:
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
@@ -810,7 +810,7 @@ class BukuDb:
             resp = input('Remove ALL bookmarks? (y/n): ')
             if resp != 'y':
                 print('No bookmarks deleted')
-                return
+                return False
 
             self.delete_all_bookmarks()
             print('All bookmarks deleted')
@@ -846,10 +846,12 @@ class BukuDb:
         while pos >= 0:
             idx = results[pos][0]
             self.delete_bookmark(idx, delay_commit=True)
-            pos -= 1
 
-        if len(results) > 0:
-            self.conn.commit()
+            # Commit at every 200th removal
+            if pos % 200 == 0:
+                self.conn.commit()
+
+            pos -= 1
 
     def delete_all_bookmarks(self):
         '''Should be called only inside delete_bookmark
