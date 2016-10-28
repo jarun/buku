@@ -745,11 +745,12 @@ class BukuDb:
 
         return results
 
-    def compactdb(self, index):
+    def compactdb(self, index, delay_commit=False):
         '''When an entry at index is deleted, move the last
         entry in DB to index, if index is lesser.
 
-        Params: index of deleted entry
+        :param index: DB index of deleted entry
+        :param delay_commit: do not commit to DB, caller's responsibility
         '''
 
         self.cur.execute('SELECT MAX(id) from bookmarks')
@@ -772,26 +773,39 @@ class BukuDb:
                     self.cur.execute(query2, (row[0],))
                     self.cur.execute(query3,
                                      (index, row[1], row[2], row[3], row[4],))
-                    self.conn.commit()
+                    if not delay_commit:
+                        self.conn.commit()
                     print('Index %d moved to %d' % (row[0], index))
 
-    def delete_bookmark(self, index, low=0, high=0, is_range=False):
+    def delete_bookmark(self, index, low=0, high=0, is_range=False,
+                        delay_commit=False):
         '''Delete a single record or remove the table if index is None
 
-        Params: index to delete
+        :param index: DB index of deleted entry
+        :param low: lower index of range
+        :param low: higher index of range
+        :param is_range: a range is passed using low and high arguments
+        :param delay_commit: do not commit to DB, caller's responsibility
         '''
 
         if is_range:
             try:
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
-                self.conn.commit()
+                if not delay_commit:
+                    self.conn.commit()
                 print('Bookmarks from index %s to %s deleted' % (low, high))
+
+                # Compact DB by ascending order of index to ensure
+                # the existing higher indices move only once
+                # Delayed commit is forced
+                for index in range(low, high + 1):
+                    self.compactdb(index, delay_commit=True)
+
+                if not delay_commit:
+                    self.conn.commit()
             except IndexError:
                 logger.error('Index out of bound')
-
-            for index in range(low, high + 1):
-                self.compactdb(index)
         elif index == 0:  # Remove the table
             resp = input('Remove ALL bookmarks? (y/n): ')
             if resp != 'y':
@@ -804,10 +818,11 @@ class BukuDb:
             try:
                 query = 'DELETE FROM bookmarks WHERE id = ?'
                 self.cur.execute(query, (index,))
-                self.conn.commit()
+                if not delay_commit:
+                    self.conn.commit()
                 if self.cur.rowcount == 1:
                     print('Removed index %d' % index)
-                    self.compactdb(index)
+                    self.compactdb(index, delay_commit)
                 else:
                     logger.error('No matching index')
             except IndexError:
@@ -818,6 +833,8 @@ class BukuDb:
     def delete_resultset(self, results):
         '''Delete search results in descending order of DB index.
         Indices are expected to be unique and in ascending order.
+
+        This API forces a delayed commit.
         '''
 
         resp = input('Delete the search results? (y/n): ')
@@ -828,8 +845,11 @@ class BukuDb:
         pos = len(results) - 1
         while pos >= 0:
             idx = results[pos][0]
-            self.delete_bookmark(idx)
+            self.delete_bookmark(idx, delay_commit=True)
             pos -= 1
+
+        if len(results) > 0:
+            self.conn.commit()
 
     def delete_all_bookmarks(self):
         '''Should be called only inside delete_bookmark
