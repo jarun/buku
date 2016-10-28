@@ -340,14 +340,15 @@ class TestBukuDb(unittest.TestCase):
     def test_delete_bookmark_no(self):
         # checking that non-"y" response causes delete_bookmark to return None
         with mock.patch('builtins.input', return_value='n'):
-            self.assertIsNone(self.bdb.delete_bookmark(0))
+            self.assertFalse(self.bdb.delete_bookmark(0))
 
     # @unittest.skip('skipping')
     def test_delete_all_bookmarks(self):
         # adding bookmarks
         self.bdb.add_bookmark(*self.bookmarks[0])
         # deleting all bookmarks
-        self.bdb.delete_all_bookmarks()
+        with mock.patch('builtins.input', return_value='y'):
+            self.bdb.delete_all_bookmarks()
         # assert table has been dropped
         with self.assertRaises(sqlite3.OperationalError) as ctx_man:
             self.bdb.get_bookmark_by_index(0)
