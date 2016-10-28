@@ -725,10 +725,7 @@ class BukuDb:
         if len(results) == 0:
             return
 
-        if not self.json:
-            return results
-        else:
-            print(format_json(results, show_opt=self.show_opt))
+        return results
 
     def search_by_tag(self, tag):
         '''Search and list bookmarks with a tag
@@ -745,10 +742,7 @@ class BukuDb:
         if len(results) == 0:
             return
 
-        if not self.json:
-            return results
-        else:
-            print(format_json(results, show_opt=self.show_opt))
+        return results
 
     def compactdb(self, index):
         '''When an entry at index is deleted, move the last
@@ -1996,8 +1990,11 @@ if __name__ == '__main__':
             bdb.list_tags()
 
     if search_results:
-        prompt(search_results, args.noninteractive,
-               (args.delete is not None) and len(args.delete) == 0)
+        if not args.json_output:
+            prompt(search_results, args.noninteractive,
+                   (args.delete is not None) and len(args.delete) == 0)
+        else:
+            print(format_json(search_results, show_opt=args.show_opt))
 
     # Delete record(s)
     if args.delete is not None:
