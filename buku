@@ -836,7 +836,7 @@ class BukuDb:
         '''
 
         resp = input('Delete the search results? (y/n): ')
-        if resp != 'y'and resp != 'Y':
+        if resp != 'y':
             return
 
         # delete records in reverse order
