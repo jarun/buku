@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Buku.  If not, see <http://www.gnu.org/licenses/>.
+# along with Buku. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import os
@@ -32,6 +32,7 @@ import json
 import logging
 import inspect
 import atexit
+import ruamel.yaml
 try:
     import readline
     readline
@@ -642,7 +643,7 @@ class BukuDb:
 
     def refreshdb(self, index):
         '''Refresh ALL records in the database. Fetch title for each
-        bookmark from the web and update the records. Doesn't udpate
+        bookmark from the web and update the records. Doesn't update
         the record if title is empty.
         This API doesn't change DB index, URL or tags of a bookmark.
 
@@ -887,7 +888,6 @@ class BukuDb:
 
         count = 1
         tags = []
-        unique_tags = []
         query = 'SELECT DISTINCT tags FROM bookmarks ORDER BY tags'
         for row in self.cur.execute(query):
             tagset = row[0].strip(DELIMITER).split(DELIMITER)
@@ -975,7 +975,7 @@ class BukuDb:
         except IndexError:
             logger.error('Index out of bound')
 
-    def export_bookmark(self, fp, markdown=False, taglist=None):
+    def export_bookmark(self, fp, markdown=False, yaml=False, taglist=None):
         '''Export bookmarks to a Firefox
         bookmarks formatted html file.
 
@@ -1031,7 +1031,7 @@ class BukuDb:
             logger.error(e)
             return
 
-        if not markdown:
+        if not markdown and not yaml:
             f.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
@@ -1056,7 +1056,7 @@ class BukuDb:
                 count += 1
 
             f.write('    </DL><p>\n</DL><p>')
-        else:
+        elif markdown:
             f.write("List of buku bookmarks:\n\n")
             for row in resultset:
                 if row[2] == '':
@@ -1065,18 +1065,29 @@ class BukuDb:
                     out = '- [%s](%s)\n' % (row[2], row[1])
                 f.write(out)
                 count += 1
+        elif yaml:
+            for row in resultset:
+                index, url, title, tags, _ = row
+                formatted_row = {
+                    url: {'index': index, 'url': url, 'title': title,
+                          'tags': tags[1:-1].split(',')}
+                }
+                out = ruamel.yaml.dump(formatted_row,
+                                       Dumper=ruamel.yaml.RoundTripDumper)
+                f.write(out)
+                count += 1
 
         f.close()
         print('%s exported' % count)
 
-    def import_bookmark(self, fp, markdown=False):
-        '''Import bookmarks from a html file.
+    def import_bookmark(self, fp, markdown=False, yaml=False):
+        ''' Import bookmarks from a html file.
         Supports Firefox, Google Chrome and IE imports
 
         Params: Path to file to import
         '''
 
-        if not markdown:
+        if not markdown and not yaml:
             try:
                 import bs4
                 with open(fp, mode='r', encoding='utf-8') as f:
@@ -1103,7 +1114,7 @@ class BukuDb:
 
             self.conn.commit()
             f.close()
-        else:
+        elif markdown:
             with open(fp, mode='r', encoding='utf-8') as f:
                 for line in f:
                     # Supported markdown format: [title](url)
@@ -1125,6 +1136,21 @@ class BukuDb:
 
             self.conn.commit()
             f.close()
+        elif yaml:
+            with open(fp, mode='r', encoding='utf-8') as f:
+                yaml_content = ruamel.yaml.load(
+                    f, Loader=ruamel.yaml.RoundTripLoader)
+                for url, data in yaml_content.items():
+                    new_data = dict(data)
+                    title = new_data.get('title', None)
+                    tags = str.join(',', new_data.get('tags', []))
+                    desc = (
+                        new_data.get('note', None) or
+                        new_data.get('description', None)
+                    )
+                    self.add_bookmark(url, title, tags, desc, True)
+
+            self.conn.commit()
 
     def mergedb(self, fp):
         '''Merge bookmarks from another Buku database file
@@ -1818,6 +1844,7 @@ if __name__ == '__main__':
                      Google Chrome and IE formats supported
 --markdown           use markdown with -e and -i
                      supported format: [title](url), 1 per line
+--yaml               use YAML with -e and -i
 -m, --merge file     merge bookmarks from another buku database
 -p, --print [...]    show details of bookmark by DB index
                      accepts indices and ranges
@@ -1839,6 +1866,8 @@ if __name__ == '__main__':
     addarg('-i', '--import', nargs=1, dest='imports', metavar='file',
            help=argparse.SUPPRESS)
     addarg('--markdown', dest='markdown', action='store_true',
+           help=argparse.SUPPRESS)
+    addarg('--yaml', dest='yaml', action='store_true',
            help=argparse.SUPPRESS)
     addarg('-m', '--merge', nargs=1, dest='merge', metavar='file',
            help=argparse.SUPPRESS)
@@ -2059,7 +2088,8 @@ if __name__ == '__main__':
     # Export bookmarks
     if args.export is not None:
         if args.tag is None:
-            bdb.export_bookmark(args.export[0], args.markdown)
+            bdb.export_bookmark(args.export[0], args.markdown,
+                                args.yaml)
         elif len(args.tag) == 0:
             logger.error('Missing tag')
         else:
@@ -2067,7 +2097,7 @@ if __name__ == '__main__':
 
     # Import bookmarks
     if args.imports is not None:
-        bdb.import_bookmark(args.imports[0], args.markdown)
+        bdb.import_bookmark(args.imports[0], args.markdown, args.yaml)
 
     # Merge a database file and exit
     if args.merge is not None:

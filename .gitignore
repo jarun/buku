@@ -2,3 +2,5 @@
 *.sw[po]
 .cache/
 .coverage
+.idea
+*.yaml
