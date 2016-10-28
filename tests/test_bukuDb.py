@@ -247,9 +247,8 @@ class TestBukuDb(unittest.TestCase):
             for keyword in (tag_search, url_search, title_search):
                 with mock.patch('buku.prompt') as mock_prompt:
                     # search by keyword
-                    self.bdb.searchdb([keyword])
-                    # checking prompt called with the expected resultset from search
-                    mock_prompt.assert_called_with(expected, False, False)
+                    results = self.bdb.searchdb([keyword])
+                    self.assertEqual(results, expected)
 
     # @unittest.skip('skipping')
     def test_search_by_tag(self):
@@ -261,12 +260,11 @@ class TestBukuDb(unittest.TestCase):
             get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
             for i in range(len(self.bookmarks)):
                 # search for bookmark with a tag that is known to exist
-                self.bdb.search_by_tag(get_first_tag(self.bookmarks[i]))
+                results = self.bdb.search_by_tag(get_first_tag(self.bookmarks[i]))
                 # Expect a five-tuple containing all bookmark data
                 # db index, URL, title, tags, description
                 expected = [(i + 1,) + tuple(self.bookmarks[i])]
-                # Checking prompt called with the expected resultset from search
-                mock_prompt.assert_called_with(expected, False, False)
+                self.assertEqual(results, expected)
 
     # @unittest.skip('skipping')
     def test_search_and_open_in_broswer_by_range(self):
@@ -282,7 +280,8 @@ class TestBukuDb(unittest.TestCase):
                     # search the db with keywords from each bookmark
                     # searching using the first tag from bookmarks
                     get_first_tag = lambda x: x[2].split(',')[1]
-                    self.bdb.searchdb([ get_first_tag(bm) for bm in self.bookmarks ])
+                    results = self.bdb.searchdb([ get_first_tag(bm) for bm in self.bookmarks ])
+                    buku.prompt(results)
                 except StopIteration:
                     # catch exception thrown by reaching the end of the side effect iterable
                     pass
@@ -307,7 +306,8 @@ class TestBukuDb(unittest.TestCase):
                     # search the db with keywords from each bookmark
                     # searching using the first tag from bookmarks
                     get_first_tag = lambda x: x[2].split(',')[1]
-                    self.bdb.searchdb([ get_first_tag(bm) for bm in self.bookmarks[:2] ])
+                    results = self.bdb.searchdb([ get_first_tag(bm) for bm in self.bookmarks[:2] ])
+                    buku.prompt(results)
                 except StopIteration:
                     # catch exception thrown by reaching the end of the side effect iterable
                     pass
