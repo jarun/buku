@@ -290,18 +290,18 @@ class BukuCrypt:
 
 class BukuDb:
 
-    def __init__(self, json=False, show_opt=0):
+    def __init__(self, json=False, field_filter=0):
         '''Database initialization API
 
         :param json: print results in json format
-        :param show_opt: bookmark print format specifier
+        :param field_filter: bookmark print format specifier
         '''
 
         conn, cur = BukuDb.initdb()
         self.conn = conn
         self.cur = cur
         self.json = json
-        self.show_opt = show_opt
+        self.field_filter = field_filter
 
     @staticmethod
     def get_dbdir_path():
@@ -941,20 +941,20 @@ class BukuDb:
                 print('\x1b[1m%s records found\x1b[21m\n' % len(resultset))
 
             if not self.json:
-                if self.show_opt == 0:
+                if self.field_filter == 0:
                     for row in resultset:
                         print_record(row)
-                elif self.show_opt == 1:
+                elif self.field_filter == 1:
                     for row in resultset:
                         print('%s\t%s' % (row[0], row[1]))
-                elif self.show_opt == 2:
+                elif self.field_filter == 2:
                     for row in resultset:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-                elif self.show_opt == 3:
+                elif self.field_filter == 3:
                     for row in resultset:
                         print('%s\t%s' % (row[0], row[2]))
             else:
-                print(format_json(resultset, show_opt=self.show_opt))
+                print(format_json(resultset, field_filter=self.field_filter))
         else:  # Show record at index
             try:
                 query = 'SELECT * FROM bookmarks WHERE id = ?'
@@ -969,16 +969,16 @@ class BukuDb:
 
             if not self.json:
                 for row in results:
-                    if self.show_opt == 0:
+                    if self.field_filter == 0:
                         print_record(row)
-                    elif self.show_opt == 1:
+                    elif self.field_filter == 1:
                         print('%s\t%s' % (row[0], row[1]))
-                    elif self.show_opt == 2:
+                    elif self.field_filter == 2:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-                    elif self.show_opt == 3:
+                    elif self.field_filter == 3:
                         print('%s\t%s' % (row[0], row[2]))
             else:
-                print(format_json(results, True, self.show_opt))
+                print(format_json(results, True, self.field_filter))
 
     def list_tags(self):
         '''Print all unique tags ordered alphabetically'''
@@ -1601,23 +1601,23 @@ def print_record(row, idx=0):
     print(pr)
 
 
-def format_json(resultset, single_record=False, show_opt=0):
+def format_json(resultset, single_record=False, field_filter=0):
     '''Return results in Json format
 
     :param single_record: indicates only one record
-    :param show_opt: determines fields to show
+    :param field_filter: determines fields to show
     :return: record(s) in Json format
     '''
 
     if single_record:
         marks = {}
         for row in resultset:
-            if show_opt == 1:
+            if field_filter == 1:
                 marks['uri'] = row[1]
-            elif show_opt == 2:
+            elif field_filter == 2:
                 marks['uri'] = row[1]
                 marks['tags'] = row[3][1:-1]
-            elif show_opt == 3:
+            elif field_filter == 3:
                 marks['title'] = row[2]
             else:
                 marks['uri'] = row[1]
@@ -1627,11 +1627,11 @@ def format_json(resultset, single_record=False, show_opt=0):
     else:
         marks = []
         for row in resultset:
-            if show_opt == 1:
+            if field_filter == 1:
                 record = {'uri': row[1]}
-            elif show_opt == 2:
+            elif field_filter == 2:
                 record = {'uri': row[1], 'tags': row[3][1:-1]}
-            elif show_opt == 3:
+            elif field_filter == 3:
                 record = {'title': row[2]}
             else:
                 record = {'uri': row[1], 'title': row[2],
@@ -1966,7 +1966,7 @@ if __name__ == '__main__':
            help=argparse.SUPPRESS)
     addarg('-p', '--print', nargs='*', dest='print', metavar='N',
            help=argparse.SUPPRESS)
-    addarg('-f', '--format', dest='show_opt', type=int, default=0,
+    addarg('-f', '--format', dest='field_filter', type=int, default=0,
            choices=[1, 2, 3], metavar='N', help=argparse.SUPPRESS)
     addarg('-r', '--replace', nargs='+', dest='replace',
            metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
@@ -2015,7 +2015,7 @@ if __name__ == '__main__':
         BukuCrypt.decrypt_file(args.decrypt)
 
     # Initialize the database and get handles
-    bdb = BukuDb(args.json_output, args.show_opt)
+    bdb = BukuDb(args.json_output, args.field_filter)
 
     # Add a record
     if args.addurl is not None:
@@ -2128,7 +2128,7 @@ if __name__ == '__main__':
         if not args.json_output:
             prompt(search_results, oneshot)
         else:
-            print(format_json(search_results, show_opt=args.show_opt))
+            print(format_json(search_results, field_filter=args.field_filter))
 
         # Delete search results if opted
         if args.delete is not None and len(args.delete) == 0:
