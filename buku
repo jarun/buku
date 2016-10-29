@@ -1255,16 +1255,17 @@ class BukuDb:
                 indb_conn = sqlite3.connect(filepath)
 
             indb_cur = indb_conn.cursor()
+            indb_cur.execute('SELECT * FROM bookmarks')
         except Exception as e:
             logger.error(e)
             return False
 
-        indb_cur.execute('SELECT * FROM bookmarks')
         resultset = indb_cur.fetchall()
         for row in resultset:
             self.add_bookmark(row[1], row[2], row[3], row[4], True)
 
-        self.conn.commit()
+        if len(resultset):
+            self.conn.commit()
 
         try:
             indb_cur.close()
