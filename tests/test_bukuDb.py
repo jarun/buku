@@ -106,41 +106,41 @@ class TestBukuDb(unittest.TestCase):
         conn.close()
 
     # @unittest.skip('skipping')
-    def test_get_bookmark_by_index(self):
+    def test_get_bm_by_id(self):
         for bookmark in self.bookmarks:
             # adding bookmark from self.bookmarks
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
 
         # the expected bookmark
         expected = (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,',
                 "News for old nerds, stuff that doesn't matter")
-        bookmark_from_db = self.bdb.get_bookmark_by_index(1)
+        bookmark_from_db = self.bdb.get_bm_by_id(1)
         # asserting bookmark matches expected
         self.assertEqual(expected, bookmark_from_db)
         # asserting None returned if index out of range
-        self.assertIsNone(self.bdb.get_bookmark_by_index( len(self.bookmarks[0]) + 1 ))
+        self.assertIsNone(self.bdb.get_bm_by_id( len(self.bookmarks[0]) + 1 ))
 
     # @unittest.skip('skipping')
-    def test_get_bookmark_index(self):
+    def test_get_bm_id(self):
         for idx, bookmark in enumerate(self.bookmarks):
             # adding bookmark from self.bookmarks to database
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
             # asserting index is in order
-            idx_from_db = self.bdb.get_bookmark_index(bookmark[0])
+            idx_from_db = self.bdb.get_bm_id(bookmark[0])
             self.assertEqual(idx + 1, idx_from_db)
 
         # asserting -1 is returned for nonexistent url
-        idx_from_db = self.bdb.get_bookmark_index("http://nonexistent.url")
+        idx_from_db = self.bdb.get_bm_id("http://nonexistent.url")
         self.assertEqual(-1, idx_from_db)
 
     # @unittest.skip('skipping')
-    def test_add_bookmark(self):
+    def test_add_bm(self):
         for bookmark in self.bookmarks:
             # adding bookmark from self.bookmarks to database
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
             # retrieving bookmark from database
-            index = self.bdb.get_bookmark_index(bookmark[0])
-            from_db = self.bdb.get_bookmark_by_index(index)
+            index = self.bdb.get_bm_id(bookmark[0])
+            from_db = self.bdb.get_bm_by_id(index)
             self.assertIsNotNone(from_db)
             # comparing data
             for pair in zip(from_db[1:], bookmark):
@@ -149,17 +149,17 @@ class TestBukuDb(unittest.TestCase):
         # TODO: tags should be passed to the api as a sequence...
 
     # @unittest.skip('skipping')
-    def test_update_bookmark(self):
+    def test_update_bm(self):
         old_values = self.bookmarks[0]
         new_values = self.bookmarks[1]
 
         # adding bookmark and getting index
-        self.bdb.add_bookmark(*old_values)
-        index = self.bdb.get_bookmark_index(old_values[0])
+        self.bdb.add_bm(*old_values)
+        index = self.bdb.get_bm_id(old_values[0])
         # updating with new values
-        self.bdb.update_bookmark(index, *new_values)
+        self.bdb.update_bm(index, *new_values)
         # retrieving bookmark from database
-        from_db = self.bdb.get_bookmark_by_index(index)
+        from_db = self.bdb.get_bm_by_id(index)
         self.assertIsNotNone(from_db)
         # checking if values are updated
         for pair in zip(from_db[1:], new_values):
@@ -168,14 +168,14 @@ class TestBukuDb(unittest.TestCase):
     # @unittest.skip('skipping')
     def test_append_tag_at_index(self):
         for bookmark in self.bookmarks:
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
 
         # tags to add
-        old_tags = self.bdb.get_bookmark_by_index(1)[3]
+        old_tags = self.bdb.get_bm_by_id(1)[3]
         new_tags = ",foo,bar,baz"
         self.bdb.append_tag_at_index(1, new_tags)
         # updated list of tags
-        from_db = self.bdb.get_bookmark_by_index(1)[3]
+        from_db = self.bdb.get_bm_by_id(1)[3]
 
         # checking if new tags were added to the bookmark
         self.assertTrue(split_and_test_membership(new_tags, from_db))
@@ -185,17 +185,17 @@ class TestBukuDb(unittest.TestCase):
     # @unittest.skip('skipping')
     def test_append_tag_at_all_indices(self):
         for bookmark in self.bookmarks:
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
 
         # tags to add
         new_tags = ",foo,bar,baz"
         # record of original tags for each bookmark
-        old_tagsets = { i: self.bdb.get_bookmark_by_index(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
+        old_tagsets = { i: self.bdb.get_bm_by_id(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
 
         with mock.patch('builtins.input', return_value='y'):
             self.bdb.append_tag_at_index(0, new_tags)
             # updated tags for each bookmark
-            from_db = [ (i, self.bdb.get_bookmark_by_index(i)[3]) for i in inclusive_range(1, len(self.bookmarks)) ]
+            from_db = [ (i, self.bdb.get_bm_by_id(i)[3]) for i in inclusive_range(1, len(self.bookmarks)) ]
             for index, tagset in from_db:
                 # checking if new tags added to bookmark
                 self.assertTrue(split_and_test_membership(new_tags, tagset))
@@ -207,9 +207,9 @@ class TestBukuDb(unittest.TestCase):
     def test_delete_tag_at_index(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
 
-        get_tags_at_idx = lambda i: self.bdb.get_bookmark_by_index(i)[3]
+        get_tags_at_idx = lambda i: self.bdb.get_bm_by_id(i)[3]
         # list of two-tuples, each containg bookmark index and corresponding tags
         tags_by_index = [ (i, get_tags_at_idx(i)) for i in inclusive_range(1, len(self.bookmarks)) ]
 
@@ -223,16 +223,16 @@ class TestBukuDb(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_refreshdb(self):
-        self.bdb.add_bookmark("https://www.google.com/ncr", "?")
+        self.bdb.add_bm("https://www.google.com/ncr", "?")
         self.bdb.refreshdb(1)
-        from_db = self.bdb.get_bookmark_by_index(1)
+        from_db = self.bdb.get_bm_by_id(1)
         self.assertEqual(from_db[2], "Google")
 
     # @unittest.skip('skipping')
     def test_searchdb(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
 
         get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
         for i, bookmark in enumerate(self.bookmarks):
@@ -254,7 +254,7 @@ class TestBukuDb(unittest.TestCase):
     def test_search_by_tag(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
 
         with mock.patch('buku.prompt') as mock_prompt:
             get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
@@ -270,7 +270,7 @@ class TestBukuDb(unittest.TestCase):
     def test_search_and_open_in_broswer_by_range(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
 
         # simulate user input, select range of indices 1-3
         index_range = '1-%s' % len(self.bookmarks)
@@ -297,7 +297,7 @@ class TestBukuDb(unittest.TestCase):
     def test_search_and_open_all_in_browser(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_bookmark(*bookmark)
+            self.bdb.add_bm(*bookmark)
 
         # simulate user input, select 'a' to open all bookmarks in results
         with mock.patch('builtins.input', side_effect=['a']):
@@ -320,38 +320,38 @@ class TestBukuDb(unittest.TestCase):
                 self.assertEqual(arg_list, expected)
 
     # @unittest.skip('skipping')
-    def test_delete_bookmark(self):
+    def test_delete_bm(self):
         # adding bookmark and getting index
-        self.bdb.add_bookmark(*self.bookmarks[0])
-        index = self.bdb.get_bookmark_index(self.bookmarks[0][0])
+        self.bdb.add_bm(*self.bookmarks[0])
+        index = self.bdb.get_bm_id(self.bookmarks[0][0])
         # deleting bookmark
-        self.bdb.delete_bookmark(index)
+        self.bdb.delete_bm(index)
         # asserting it doesn't exist
-        from_db = self.bdb.get_bookmark_by_index(index)
+        from_db = self.bdb.get_bm_by_id(index)
         self.assertIsNone(from_db)
 
     # @unittest.skip('skipping')
-    def test_delete_bookmark_yes(self):
-        # checking that "y" response causes delete_bookmark to return True
+    def test_delete_bm_yes(self):
+        # checking that "y" response causes delete_bm to return True
         with mock.patch('builtins.input', return_value='y'):
-            self.assertTrue(self.bdb.delete_bookmark(0))
+            self.assertTrue(self.bdb.delete_bm(0))
 
     # @unittest.skip('skipping')
-    def test_delete_bookmark_no(self):
-        # checking that non-"y" response causes delete_bookmark to return None
+    def test_delete_bm_no(self):
+        # checking that non-"y" response causes delete_bm to return None
         with mock.patch('builtins.input', return_value='n'):
-            self.assertFalse(self.bdb.delete_bookmark(0))
+            self.assertFalse(self.bdb.delete_bm(0))
 
     # @unittest.skip('skipping')
-    def test_delete_all_bookmarks(self):
+    def test_cleardb(self):
         # adding bookmarks
-        self.bdb.add_bookmark(*self.bookmarks[0])
+        self.bdb.add_bm(*self.bookmarks[0])
         # deleting all bookmarks
         with mock.patch('builtins.input', return_value='y'):
-            self.bdb.delete_all_bookmarks()
+            self.bdb.cleardb()
         # assert table has been dropped
         with self.assertRaises(sqlite3.OperationalError) as ctx_man:
-            self.bdb.get_bookmark_by_index(0)
+            self.bdb.get_bm_by_id(0)
 
         err_msg = str(ctx_man.exception)
         self.assertEqual(err_msg, 'no such table: bookmarks')
@@ -361,8 +361,8 @@ class TestBukuDb(unittest.TestCase):
         indices = []
         for bookmark in self.bookmarks:
             # adding bookmark, getting index
-            self.bdb.add_bookmark(*bookmark)
-            index = self.bdb.get_bookmark_index(bookmark[0])
+            self.bdb.add_bm(*bookmark)
+            index = self.bdb.get_bm_id(bookmark[0])
             indices += [index]
         # replacing tags
         self.bdb.replace_tag("news", ["__01"])
@@ -379,8 +379,8 @@ class TestBukuDb(unittest.TestCase):
 
         for url, title, _, _  in self.bookmarks:
             # retrieving from db
-            index = self.bdb.get_bookmark_index(url)
-            from_db = self.bdb.get_bookmark_by_index(index)
+            index = self.bdb.get_bm_id(url)
+            from_db = self.bdb.get_bm_by_id(index)
             # asserting tags were replaced
             if title == "SLASHDOT":
                 self.assertEqual(from_db[3], parse_tags(["__01"]))
@@ -408,11 +408,11 @@ class TestBukuDb(unittest.TestCase):
     # def test_import_bookmark(self):
         # self.fail()
 
-def test_print_bookmark(capsys, caplog, setup):
+def test_print_bm(capsys, caplog, setup):
     bdb = BukuDb()
     out, err = capsys.readouterr()
     # calling with nonexistent index
-    bdb.print_bookmark(1)
+    bdb.print_bm(1)
     out, err = capsys.readouterr()
 
     for record in caplog.records():
@@ -421,26 +421,26 @@ def test_print_bookmark(capsys, caplog, setup):
     assert (out, err) == ('', '')
 
     # adding bookmarks
-    bdb.add_bookmark("http://full-bookmark.com", "full", parse_tags(['full,bookmark']), "full bookmark")
-    bdb.add_bookmark("http://blank-title.com", "", parse_tags(['blank,title']), "blank title")
-    bdb.add_bookmark("http://empty-tags.com", "empty tags", parse_tags(['']), "empty tags")
-    bdb.add_bookmark("http://all-empty.com", "", parse_tags(['']), "all empty")
+    bdb.add_bm("http://full-bookmark.com", "full", parse_tags(['full,bookmark']), "full bookmark")
+    bdb.add_bm("http://blank-title.com", "", parse_tags(['blank,title']), "blank title")
+    bdb.add_bm("http://empty-tags.com", "empty tags", parse_tags(['']), "empty tags")
+    bdb.add_bm("http://all-empty.com", "", parse_tags(['']), "all empty")
     out, err = capsys.readouterr()
 
     # printing first bookmark
-    bdb.print_bookmark(1)
+    bdb.print_bm(1)
     out, err = capsys.readouterr()
     assert out == "\x1b[1m\x1b[93m1. \x1b[0m\x1b[92mhttp://full-bookmark.com\x1b[0m\n   \x1b[91m>\x1b[0m full\n   \x1b[91m+\x1b[0m full bookmark\n   \x1b[91m#\x1b[0m bookmark,full\n\n"
     assert err == ''
 
     # printing all bookmarks
-    bdb.print_bookmark(0)
+    bdb.print_bm(0)
     out, err = capsys.readouterr()
     assert out == "\x1b[1m\x1b[93m1. \x1b[0m\x1b[92mhttp://full-bookmark.com\x1b[0m\n   \x1b[91m>\x1b[0m full\n   \x1b[91m+\x1b[0m full bookmark\n   \x1b[91m#\x1b[0m bookmark,full\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m4. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
     assert err == ''
 
     # printing all bookmarks with empty fields
-    bdb.print_bookmark(0, empty=True)
+    bdb.print_bm(0, empty=True)
     out, err = capsys.readouterr()
     assert out == "\x1b[1m3 records found\x1b[21m\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m4. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
     assert err == ''
@@ -449,9 +449,9 @@ def test_list_tags(capsys, setup):
     bdb = BukuDb()
 
     # adding bookmarks
-    bdb.add_bookmark("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
-    bdb.add_bookmark("http://two.com", "", parse_tags(['Cat,Ant,bee,1']), "")
-    bdb.add_bookmark("http://three.com", "", parse_tags(['Cat,Ant,3,Bee,2']), "")
+    bdb.add_bm("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
+    bdb.add_bm("http://two.com", "", parse_tags(['Cat,Ant,bee,1']), "")
+    bdb.add_bm("http://three.com", "", parse_tags(['Cat,Ant,3,Bee,2']), "")
 
     # listing tags, asserting output
     out, err = capsys.readouterr()
@@ -465,16 +465,16 @@ def test_compactdb(setup):
 
     # adding bookmarks
     for bookmark in TEST_BOOKMARKS:
-        bdb.add_bookmark(*bookmark)
+        bdb.add_bm(*bookmark)
 
     # manually deleting 2nd index from db, calling compactdb
     bdb.cur.execute('DELETE FROM bookmarks WHERE id = ?', (2,))
     bdb.compactdb(2)
 
     # asserting bookmarks have correct indices
-    assert bdb.get_bookmark_by_index(1) == (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter")
-    assert bdb.get_bookmark_by_index(2) == (2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test')
-    assert bdb.get_bookmark_by_index(3) is None
+    assert bdb.get_bm_by_id(1) == (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter")
+    assert bdb.get_bm_by_id(2) == (2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test')
+    assert bdb.get_bm_by_id(3) is None
 
 # Helper functions for testcases
 
