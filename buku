@@ -512,7 +512,7 @@ class BukuDb:
                      LIKE '%' || ? || '%' ORDER BY id ASC"
             query2 = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
             for tag in tags_to_delete:
-                self.cur.execute(query1, (tag,))
+                self.cur.execute(query1, (DELIMITER + tag + DELIMITER,))
                 resultset = self.cur.fetchall()
 
                 for row in resultset:
@@ -522,8 +522,10 @@ class BukuDb:
                                         % (DELIMITER, tag, DELIMITER,),
                                         DELIMITER)
                     self.cur.execute(query2, (parse_tags([tags]), row[0],))
+                    self.print_bookmark(row[0])
 
-                self.conn.commit()
+                if len(resultset) > 0:
+                    self.conn.commit()
         else:
             query = 'SELECT id, tags FROM bookmarks WHERE id = ?'
             self.cur.execute(query, (index,))
