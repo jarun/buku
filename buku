@@ -613,7 +613,7 @@ class BukuDb:
             logger.debug('Title: [%s]', meta)
         elif not to_update and not (append_tag or delete_tag):
             self.refreshdb(index)
-            if index > 0:
+            if index and verbose:
                 self.print_bookmark(index)
             return
 
@@ -640,7 +640,7 @@ class BukuDb:
         try:
             self.cur.execute(query, arguments)
             self.conn.commit()
-            if self.cur.rowcount == 1:
+            if self.cur.rowcount == 1 and verbose:
                 self.print_bookmark(index)
             elif self.cur.rowcount == 0:
                 logger.error('No matching index %s', index)
@@ -652,6 +652,7 @@ class BukuDb:
         bookmark from the web and update the records. Doesn't udpate
         the record if title is empty.
         This API doesn't change DB index, URL or tags of a bookmark.
+        This API is verbose.
 
         :param index: index of record to update, or 0 for all records
         '''
