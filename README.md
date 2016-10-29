@@ -181,7 +181,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -p, --print [...]    show details of bookmark by DB index
                            accepts indices and ranges
                            show all bookmarks, if no arguments
-      -f, --format N       modify -p output. N=1: show only URL,
+      -f, --format N       modify -p, search output. N=1: show only URL,
                            N=2: show URL and tag, N=3: show only title
       -r, --replace oldtag [newtag ...]
                            replace oldtag with newtag everywhere

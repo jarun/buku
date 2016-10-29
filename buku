@@ -60,7 +60,9 @@ logger = logging.getLogger()
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
-    '''Class to parse and fetch the title from a HTML page, if available'''
+    '''Class to parse and fetch the title
+    from a HTML page, if available
+    '''
 
     def __init__(self):
         HTMLParser.HTMLParser.__init__(self)
@@ -92,8 +94,8 @@ class BMHTMLParser(HTMLParser.HTMLParser):
 
 
 class BukuCrypt:
-    ''' Class to handle encryption and decryption
-    of the database file. Functionally a separate entity.
+    '''Class to handle encryption and decryption of
+    the database file. Functionally a separate entity.
 
     Involves late imports in the static functions but it
     saves ~100ms each time. Given that encrypt/decrypt are
@@ -105,7 +107,8 @@ class BukuCrypt:
     def get_filehash(filepath):
         '''Get the SHA256 hash of a file
 
-        Params: path to the file
+        :param filepath: path to the file
+        :return: hash digest of the file
         '''
 
         from hashlib import sha256
@@ -121,7 +124,10 @@ class BukuCrypt:
 
     @staticmethod
     def encrypt_file(iterations):
-        '''Encrypt the bookmarks database file'''
+        '''Encrypt the bookmarks database file
+
+        :param iterations: number of iterations for key generation
+        '''
 
         try:
             from getpass import getpass
@@ -202,7 +208,10 @@ class BukuCrypt:
 
     @staticmethod
     def decrypt_file(iterations):
-        '''Decrypt the bookmarks database file'''
+        '''Decrypt the bookmarks database file
+
+        :param iterations: number of iterations for key generation
+        '''
 
         try:
             from getpass import getpass
@@ -282,6 +291,12 @@ class BukuCrypt:
 class BukuDb:
 
     def __init__(self, json=False, show_opt=0):
+        '''Database initialization API
+
+        :param json: print results in json format
+        :param show_opt: bookmark print format specifier
+        '''
+
         conn, cur = BukuDb.initdb()
         self.conn = conn
         self.cur = cur
@@ -294,6 +309,8 @@ class BukuDb:
         if $XDG_DATA_HOME is defined, use it
         else if $HOME exists, use it
         else use the current directory
+
+        :return: path to database file
         '''
 
         data_home = os.environ.get('XDG_DATA_HOME')
@@ -341,7 +358,7 @@ class BukuDb:
         file and/or bookmarks table if they don't exist.
         Alert on encryption options on first execution.
 
-        Returns: connection, cursor
+        :return: (connection, cursor) tuple
         '''
 
         dbpath = BukuDb.get_dbdir_path()
@@ -390,7 +407,8 @@ class BukuDb:
 
     def get_bookmark_by_index(self, index):
         '''Get a bookmark from database by its ID.
-        Return data as a tuple. Return None if index not found.
+
+        :return: bookmark data as a tuple, or None, if index is not found
         '''
 
         self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
@@ -403,8 +421,8 @@ class BukuDb:
     def get_bookmark_index(self, url):
         '''Check if URL already exists in DB
 
-        Params: URL to search
-        Returns: DB index if URL found, else -1
+        :param url: URL to search
+        :return: DB index if URL found, else -1
         '''
 
         self.cur.execute('SELECT id FROM bookmarks WHERE URL = ?', (url,))
@@ -414,26 +432,29 @@ class BukuDb:
 
         return resultset[0][0]
 
-    def add_bookmark(self, url, title_manual=None, tag_manual=None,
-                     desc=None, delayed_commit=False):
+    def add_bookmark(self, url, title_manual=None, tag_manual=None, desc=None,
+                     delay_commit=False, verbose=True):
         '''Add a new bookmark
 
-        :param url: url to bookmark
-        :param tag_manual: string of comma-separated tags to add manually
+        :param url: URL to bookmark
         :param title_manual: string title to add manually
+        :param tag_manual: string of comma-separated tags to add manually
         :param desc: string description
+        :param delay_commit: do not commit to DB, caller responsibility
+        :param verbose: print details of added bookmark
+        :return: True on success, False on failure
         '''
 
         # Return error for empty URL
         if not url or url == '':
             logger.error('Invalid URL')
-            return
+            return False
 
         # Ensure that the URL does not exist in DB already
         id = self.get_bookmark_index(url)
         if id != -1:
             logger.error('URL [%s] already exists at index %d', url, id)
-            return
+            return False
 
         # Process title
         if title_manual is not None:
@@ -461,25 +482,29 @@ class BukuDb:
             query = 'INSERT INTO bookmarks(URL, metadata, tags, desc) \
                     VALUES (?, ?, ?, ?)'
             self.cur.execute(query, (url, meta, tag_manual, desc))
-            if not delayed_commit:
+            if not delay_commit:
                 self.conn.commit()
-            self.print_bookmark(self.cur.lastrowid)
+            if verbose:
+                self.print_bookmark(self.cur.lastrowid)
+            return True
         except Exception as e:
             _, _, linenumber, func, _, _ = inspect.stack()[0]
             logger.error('%s(), ln %d: %s', func, linenumber, e)
+            return False
 
     def append_tag_at_index(self, index, tag_manual, verbose=False):
-        ''' Append tags for bookmark at index
+        '''Append tags for bookmark at index
 
         :param index: int position of record, 0 for all
         :param tag_manual: string of comma-separated tags to add manually
         :param verbose: show updated bookmark details
+        :return: True on success, False on failure
         '''
 
         if index == 0:
             resp = input('Append specified tags to ALL bookmarks? (y/n): ')
             if resp != 'y':
-                return
+                return False
 
             self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
         else:
@@ -496,13 +521,15 @@ class BukuDb:
                 self.print_bookmark(row[0])
 
         self.conn.commit()
+        return True
 
     def delete_tag_at_index(self, index, tag_manual, verbose=False):
-        ''' Delete tags for bookmark at index
+        '''Delete tags for bookmark at index
 
         :param index: int position of record, 0 for all
         :param tag_manual: string of comma-separated tags to delete manually
         :param verbose: show updated bookmark details
+        :return: True on success, False on failure
         '''
 
         tags_to_delete = tag_manual.strip(DELIMITER).split(DELIMITER)
@@ -510,7 +537,7 @@ class BukuDb:
         if index == 0:
             resp = input('Delete specified tags from ALL bookmarks? (y/n): ')
             if resp != 'y':
-                return
+                return False
 
             query1 = "SELECT id, tags FROM bookmarks WHERE tags \
                      LIKE '%' || ? || '%' ORDER BY id ASC"
@@ -547,10 +574,12 @@ class BukuDb:
                 self.cur.execute(query, (parse_tags([tags]), row[0],))
                 self.conn.commit()
 
+        return True
+
     def update_bookmark(self, index, url='', title_manual=None,
                         tag_manual=None, desc=None, append_tag=False,
                         delete_tag=False, verbose=True):
-        ''' Update an existing record at index
+        '''Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
 
@@ -562,18 +591,19 @@ class BukuDb:
         :param append_tag: add tag(s) to existing tag(s)
         :param delete_tag: delete tag(s) from existing tag(s)
         :param verbose: show updated bookmark details
-        :return:
+        :return: True on success, False on failure
         '''
 
         arguments = []
         query = 'UPDATE bookmarks SET'
         to_update = False
+        ret = False
 
         # Update URL if passed as argument
         if url != '':
             if index == 0:
                 logger.error('All URLs cannot be same')
-                return
+                return False
             query = '%s URL = ?,' % query
             arguments += (url,)
             to_update = True
@@ -581,9 +611,9 @@ class BukuDb:
         # Update tags if passed as argument
         if tag_manual is not None:
             if append_tag:
-                self.append_tag_at_index(index, tag_manual, verbose)
+                ret = self.append_tag_at_index(index, tag_manual, verbose)
             elif delete_tag:
-                self.delete_tag_at_index(index, tag_manual, verbose)
+                ret = self.delete_tag_at_index(index, tag_manual, verbose)
             else:
                 query = '%s tags = ?,' % query
                 arguments += (tag_manual,)
@@ -615,7 +645,7 @@ class BukuDb:
             self.refreshdb(index)
             if index and verbose:
                 self.print_bookmark(index)
-            return
+            return True
 
         if meta is not None:
             query = '%s metadata = ?,' % query
@@ -623,12 +653,12 @@ class BukuDb:
             to_update = True
 
         if not to_update:       # Nothing to update
-            return
+            return ret
 
         if index == 0:  # Update all records
             resp = input('Update ALL bookmarks? (y/n): ')
             if resp != 'y':
-                return
+                return False
 
             query = query[:-1]
         else:
@@ -640,16 +670,21 @@ class BukuDb:
         try:
             self.cur.execute(query, arguments)
             self.conn.commit()
-            if self.cur.rowcount == 1 and verbose:
+            if self.cur.rowcount and verbose:
                 self.print_bookmark(index)
-            elif self.cur.rowcount == 0:
+
+            if self.cur.rowcount == 0:
                 logger.error('No matching index %s', index)
+                return False
         except sqlite3.IntegrityError:
             logger.error('URL already exists')
+            return False
+
+        return True
 
     def refreshdb(self, index):
         '''Refresh ALL records in the database. Fetch title for each
-        bookmark from the web and update the records. Doesn't udpate
+        bookmark from the web and update the records. Doesn't update
         the record if title is empty.
         This API doesn't change DB index, URL or tags of a bookmark.
         This API is verbose.
@@ -690,6 +725,7 @@ class BukuDb:
         :param all_keywords: search any or all keywords
         :param deep: search for matching substrings
         :param regex: match a regular expression
+        :return: search results, or None, if no matches
         '''
 
         arguments = []
@@ -733,7 +769,7 @@ class BukuDb:
         self.cur.execute(query, arguments)
         results = self.cur.fetchall()
         if len(results) == 0:
-            return
+            return None
 
         return results
 
@@ -741,6 +777,7 @@ class BukuDb:
         '''Search and list bookmarks with a tag
 
         :param tag: tag to search
+        :return: search results, or None, if no matches
         '''
 
         query = "SELECT id, url, metadata, tags, desc FROM bookmarks \
@@ -750,13 +787,13 @@ class BukuDb:
         self.cur.execute(query, (tag,))
         results = self.cur.fetchall()
         if len(results) == 0:
-            return
+            return None
 
         return results
 
     def compactdb(self, index, delay_commit=False):
-        '''When an entry at index is deleted, move the last
-        entry in DB to index, if index is lesser.
+        '''When an entry at index is deleted, move the
+        last entry in DB to index, if index is lesser.
 
         :param index: DB index of deleted entry
         :param delay_commit: do not commit to DB, caller's responsibility
@@ -795,6 +832,7 @@ class BukuDb:
         :param low: higher index of range
         :param is_range: a range is passed using low and high arguments
         :param delay_commit: do not commit to DB, caller's responsibility
+        :return: True on success, False on failure
         '''
 
         if is_range:  # Delete a range of indices
@@ -819,6 +857,7 @@ class BukuDb:
                     self.conn.commit()
             except IndexError:
                 logger.error('Index out of bound')
+                return False
         elif index == 0:  # Remove the table
             return self.delete_all_bookmarks()
         else:  # Remove a single entry
@@ -832,21 +871,25 @@ class BukuDb:
                     self.compactdb(index, delay_commit)
                 else:
                     logger.error('No matching index')
+                    return False
             except IndexError:
                 logger.error('Index out of bound')
+                return False
 
         return True
 
     def delete_resultset(self, results):
         '''Delete search results in descending order of DB index.
         Indices are expected to be unique and in ascending order.
-
         This API forces a delayed commit.
+
+        :param results: set of results to delete
+        :return: True on success, False on failure
         '''
 
         resp = input('Delete the search results? (y/n): ')
         if resp != 'y':
-            return
+            return False
 
         # delete records in reverse order
         pos = len(results) - 1
@@ -860,8 +903,13 @@ class BukuDb:
 
             pos -= 1
 
+        return True
+
     def delete_all_bookmarks(self):
-        '''Drops the bookmark table if it exists'''
+        '''Drops the bookmark table if it exists
+
+        :return: True on success, False on failure
+        '''
 
         resp = input('Remove ALL bookmarks? (y/n): ')
         if resp != 'y':
@@ -878,8 +926,8 @@ class BukuDb:
         Print only bookmarks with blank title or tag if empty is True
         Note: URL is printed on top because title may be blank
 
-        Params: index to print (0 for all)
-        empty flag to show only bookmarks with no title or tags
+        :param index: index to print (0 for all)
+        :param empty: flag to show only bookmarks with no title or tags
         '''
 
         if index == 0:  # Show all entries
@@ -957,7 +1005,9 @@ class BukuDb:
         '''Replace orig tags with new tags in DB for all records.
         Remove orig tag if new tag is empty.
 
-        Params: original and replacement tags
+        :param orig: original tags
+        :param new: replacement tags
+        :return: True on success, False on failure
         '''
 
         update = False
@@ -974,7 +1024,7 @@ class BukuDb:
 
         if orig == newtags:
             print('Tags are same.')
-            return
+            return False
 
         query = 'SELECT id, tags FROM bookmarks WHERE tags LIKE ?'
         self.cur.execute(query, ('%' + orig + '%',))
@@ -996,10 +1046,13 @@ class BukuDb:
         if update:
             self.conn.commit()
 
+        return update
+
     def browse_by_index(self, index):
         '''Open URL at index in browser
 
-        Params: index
+        :param index: DB index
+        :return: True on success, False on failure
         '''
 
         if index == 0:
@@ -1010,7 +1063,7 @@ class BukuDb:
             # Return if no entries in DB
             if result is None:
                 print("No bookmarks added yet ...")
-                return
+                return False
 
             index = result[0]
             logger.debug('Opening random index ' + str(index))
@@ -1020,16 +1073,21 @@ class BukuDb:
             for row in self.cur.execute(query, (index,)):
                 url = unquote(row[0])
                 open_in_browser(url)
-                return
+                return True
             logger.error('No matching index')
         except IndexError:
             logger.error('Index out of bound')
 
-    def export_bookmark(self, fp, markdown=False, taglist=None):
+        return False
+
+    def export_bookmark(self, outfile, markdown=False, taglist=None):
         '''Export bookmarks to a Firefox
         bookmarks formatted html file.
 
-        Params: Path to file to export to
+        :param outfile: path to file to export to
+        :param markdown: use markdown syntax
+        :param taglist: list of specific tags to export
+        :return: True on success, False on failure
         '''
 
         import time
@@ -1045,7 +1103,7 @@ class BukuDb:
 
             if len(tagstr) == 0 or tagstr == DELIMITER:
                 logger.error('Invalid tag')
-                return
+                return False
 
             if len(tagstr) > 0:
                 tags = tagstr.split(DELIMITER)
@@ -1068,21 +1126,21 @@ class BukuDb:
 
         if len(resultset) == 0:
             print('No bookmarks exported')
-            return
+            return False
 
-        if os.path.exists(fp):
-            resp = input('%s exists. Overwrite? (y/n): ' % fp)
+        if os.path.exists(outfile):
+            resp = input('%s exists. Overwrite? (y/n): ' % outfile)
             if resp != 'y':
-                return
+                return False
 
         try:
-            f = open(fp, mode='w', encoding='utf-8')
+            fp = open(outfile, mode='w', encoding='utf-8')
         except Exception as e:
             logger.error(e)
-            return
+            return False
 
         if not markdown:
-            f.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
+            fp.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
 <TITLE>Bookmarks</TITLE>
@@ -1102,41 +1160,44 @@ class BukuDb:
                 if row[4] != '':
                     out = '%s        <DD>%s\n' % (out, row[4])
 
-                f.write(out)
+                fp.write(out)
                 count += 1
 
-            f.write('    </DL><p>\n</DL><p>')
+            fp.write('    </DL><p>\n</DL><p>')
         else:
-            f.write("List of buku bookmarks:\n\n")
+            fp.write("List of buku bookmarks:\n\n")
             for row in resultset:
                 if row[2] == '':
                     out = '- [Untitled](%s)\n' % (row[1])
                 else:
                     out = '- [%s](%s)\n' % (row[2], row[1])
-                f.write(out)
+                fp.write(out)
                 count += 1
 
-        f.close()
+        fp.close()
         print('%s exported' % count)
+        return True
 
-    def import_bookmark(self, fp, markdown=False):
+    def import_bookmark(self, infile, markdown=False):
         '''Import bookmarks from a html file.
         Supports Firefox, Google Chrome and IE imports
 
-        Params: Path to file to import
+        :param infile: path to file to import
+        :param markdown: use markdown syntax
+        :return: True on success, False on failure
         '''
 
         if not markdown:
             try:
                 import bs4
-                with open(fp, mode='r', encoding='utf-8') as f:
+                with open(infile, mode='r', encoding='utf-8') as f:
                     soup = bs4.BeautifulSoup(f, 'html.parser')
             except ImportError:
                 logger.error('Beautiful Soup not found')
-                return
+                return False
             except Exception as e:
                 logger.error(e)
-                return
+                return False
 
             html_tags = soup.findAll('a')
             for tag in html_tags:
@@ -1154,7 +1215,7 @@ class BukuDb:
             self.conn.commit()
             f.close()
         else:
-            with open(fp, mode='r', encoding='utf-8') as f:
+            with open(infile, mode='r', encoding='utf-8') as f:
                 for line in f:
                     # Supported markdown format: [title](url)
                     # Find position of title end, url start delimiter combo
@@ -1176,40 +1237,48 @@ class BukuDb:
             self.conn.commit()
             f.close()
 
-    def mergedb(self, fp):
+        return True
+
+    def mergedb(self, infile):
         '''Merge bookmarks from another Buku database file
 
-        Params: Path to file to merge
+        :param infile: path to file to merge
+        :return: True on success, False on failure
         '''
 
         try:
             # Connect to input DB
             if sys.version_info >= (3, 4, 4):
                 # Python 3.4.4 and above
-                connfp = sqlite3.connect('file:%s?mode=ro' % fp, uri=True)
+                fconn = sqlite3.connect('file:%s?mode=ro' % infile, uri=True)
             else:
-                connfp = sqlite3.connect(fp)
+                fconn = sqlite3.connect(infile)
 
-            curfp = connfp.cursor()
+            fcur = fconn.cursor()
         except Exception as e:
             logger.error(e)
-            return
+            return False
 
-        curfp.execute('SELECT * FROM bookmarks')
-        resultset = curfp.fetchall()
+        fcur.execute('SELECT * FROM bookmarks')
+        resultset = fcur.fetchall()
         for row in resultset:
             self.add_bookmark(row[1], row[2], row[3], row[4], True)
 
         self.conn.commit()
 
         try:
-            curfp.close()
-            connfp.close()
+            fcur.close()
+            fconn.close()
         except Exception:
             pass
 
+        return True
+
     def close_quit(self, exitval=0):
-        '''Close a DB connection and exit'''
+        '''Close a DB connection and exit
+
+        :param exitval: program exit value
+        '''
 
         if self.conn is not None:
             try:
@@ -1227,8 +1296,8 @@ def connect_server(url):
     '''Connect to a server and fetch the requested page data.
     Supports gzip compression.
 
-    Params: URL to fetch
-    Returns: connection, HTTP(S) GET response
+    :param url: URL to fetch
+    :return: (connection, HTTP(S) GET response) tuple
     '''
 
     if url.find('%20') != -1:
@@ -1280,7 +1349,7 @@ def connect_server(url):
 def get_page_title(resp):
     '''Invoke HTML parser and extract title from HTTP response
 
-    Params: GET response and invoke HTML parser
+    :param resp: HTTP(S) GET response
     '''
 
     data = None
@@ -1316,8 +1385,8 @@ def get_page_title(resp):
 def network_handler(url):
     '''Handle server connection and redirections
 
-    Params: URL to fetch
-    Returns: page title or empty string, if not found
+    :param url: URL to fetch
+    :return: page title, or empty string, if not found
     '''
 
     global title_data
@@ -1387,7 +1456,13 @@ def network_handler(url):
 
 
 def parse_tags(keywords=None):
-    '''Format and get tag string from tokens'''
+    '''Format and get tag string from tokens
+
+    :param keywords: list of tags
+    :return: comma-delimited string of tags
+    :return: just delimiter, if no keywords
+    :return: None, if keyword is None
+    '''
 
     if keywords is None:
         return None
@@ -1433,7 +1508,10 @@ def parse_tags(keywords=None):
 
 
 def prompt(results, noninteractive=False):
-    '''Show each matching result from a search and prompt'''
+    '''Show each matching result from a search and prompt
+
+    :param noninteractive: do not seek user input
+    '''
 
     count = 0
     for row in results:
@@ -1496,49 +1574,42 @@ def prompt(results, noninteractive=False):
 
 def print_record(row, idx=0):
     '''Print a single DB record
-    Handles differently for search and print (idx = 0)
+    Handles both search result and individual record
+
+    :param idx: search result index. If 0, print with DB index
     '''
 
-    # Print index and URL
+    # Start with index and URL
     if idx != 0:
         pr = "\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m \
 \x1B[1m[%s]\x1B[0m\n" % (idx, row[1], row[0])
     else:
         pr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n' % (row[0], row[1])
 
-    # Print title
+    # Append title
     if row[2] != '':
         pr = '%s   \x1B[91m>\x1B[0m %s\n' % (pr, row[2])
 
-    # Print description
+    # Append description
     if row[4] != '':
         pr = '%s   \x1B[91m+\x1B[0m %s\n' % (pr, row[4])
 
-    # Print tags IF not default (DELIMITER)
+    # Append tags IF not default (DELIMITER)
     if row[3] != DELIMITER:
         pr = '%s   \x1B[91m#\x1B[0m %s\n' % (pr, row[3][1:-1])
 
     print(pr)
 
 
-def format_json(resultset, single=False, show_opt=0):
-    '''Return results in Json format'''
+def format_json(resultset, single_record=False, show_opt=0):
+    '''Return results in Json format
 
-    if not single:
-        marks = []
-        for row in resultset:
-            if show_opt == 1:
-                record = {'uri': row[1]}
-            elif show_opt == 2:
-                record = {'uri': row[1], 'tags': row[3][1:-1]}
-            elif show_opt == 3:
-                record = {'title': row[2]}
-            else:
-                record = {'uri': row[1], 'title': row[2],
-                          'description': row[4], 'tags': row[3][1:-1]}
+    :param single_record: indicates only one record
+    :param show_opt: determines fields to show
+    :return: record(s) in Json format
+    '''
 
-            marks.append(record)
-    else:
+    if single_record:
         marks = {}
         for row in resultset:
             if show_opt == 1:
@@ -1553,6 +1624,20 @@ def format_json(resultset, single=False, show_opt=0):
                 marks['title'] = row[2]
                 marks['description'] = row[4]
                 marks['tags'] = row[3][1:-1]
+    else:
+        marks = []
+        for row in resultset:
+            if show_opt == 1:
+                record = {'uri': row[1]}
+            elif show_opt == 2:
+                record = {'uri': row[1], 'tags': row[3][1:-1]}
+            elif show_opt == 3:
+                record = {'title': row[2]}
+            else:
+                record = {'uri': row[1], 'title': row[2],
+                          'description': row[4], 'tags': row[3][1:-1]}
+
+            marks.append(record)
 
     return json.dumps(marks, sort_keys=True, indent=4)
 
@@ -1560,7 +1645,8 @@ def format_json(resultset, single=False, show_opt=0):
 def is_int(string):
     '''Check if a string is a digit
 
-    Params: string
+    :param string: input string
+    :return: True on success, False on exception
     '''
 
     try:
@@ -1574,7 +1660,7 @@ def open_in_browser(url):
     '''Duplicate stdin, stdout (to suppress showing errors
     on the terminal) and open URL in default browser
 
-    Params: url to open
+    :param url: URL to open
     '''
 
     url = url.replace('%22', '\"')
@@ -1858,7 +1944,7 @@ if __name__ == '__main__':
 -p, --print [...]    show details of bookmark by DB index
                      accepts indices and ranges
                      show all bookmarks, if no arguments
--f, --format N       modify -p output. N=1: show only URL,
+-f, --format N       modify -p, search output. N=1: show only URL,
                      N=2: show URL and tag, N=3: show only title
 -r, --replace oldtag [newtag ...]
                      replace oldtag with newtag everywhere
