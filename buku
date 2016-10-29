@@ -40,8 +40,8 @@ except ImportError:
 
 # Globals
 update = False  # Update a bookmark in DB
-tag_manual = None  # Tags for update command
-title_manual = None  # Manually add a title offline
+tags_in = None  # Input tags specified at cmdline
+title_in = None  # Input title specified at cmdline
 description = None  # Description of the bookmark
 tagsearch = False  # Search bookmarks by tag
 title_data = None  # Title fetched from a webpage
@@ -113,12 +113,12 @@ class BukuCrypt:
 
         from hashlib import sha256
 
-        with open(filepath, 'rb') as f:
+        with open(filepath, 'rb') as fp:
             hasher = sha256()
-            buf = f.read(BLOCKSIZE)
+            buf = fp.read(BLOCKSIZE)
             while len(buf) > 0:
                 hasher.update(buf)
-                buf = f.read(BLOCKSIZE)
+                buf = fp.read(BLOCKSIZE)
 
             return hasher.digest()
 
@@ -183,23 +183,23 @@ class BukuCrypt:
         ).encryptor()
         filesize = os.path.getsize(dbpath)
 
-        with open(dbpath, 'rb') as infile:
-            with open(encpath, 'wb') as outfile:
-                outfile.write(struct.pack('<Q', filesize))
-                outfile.write(salt)
-                outfile.write(iv)
+        with open(dbpath, 'rb') as infp:
+            with open(encpath, 'wb') as outfp:
+                outfp.write(struct.pack('<Q', filesize))
+                outfp.write(salt)
+                outfp.write(iv)
 
                 # Embed DB file hash in encrypted file
-                outfile.write(dbhash)
+                outfp.write(dbhash)
 
                 while True:
-                    chunk = infile.read(CHUNKSIZE)
+                    chunk = infp.read(CHUNKSIZE)
                     if len(chunk) == 0:
                         break
                     elif len(chunk) % 16 != 0:
                         chunk = '%s%s' % (chunk, ' ' * (16 - len(chunk) % 16))
 
-                    outfile.write(encryptor.update(chunk) +
+                    outfp.write(encryptor.update(chunk) +
                                   encryptor.finalize())
 
         os.remove(dbpath)
@@ -245,18 +245,18 @@ class BukuCrypt:
             logger.error('Decryption failed')
             sys.exit(1)
 
-        with open(encpath, 'rb') as infile:
+        with open(encpath, 'rb') as infp:
             origsize = struct.unpack('<Q',
-                                     infile.read(struct.calcsize('Q')))[0]
+                                     infp.read(struct.calcsize('Q')))[0]
 
             # Read 256-bit salt and generate key
-            salt = infile.read(32)
+            salt = infp.read(32)
             key = ('%s%s' % (password,
                    salt.decode('utf-8', 'replace'))).encode('utf-8')
             for _ in range(iterations):
                 key = sha256(key).digest()
 
-            iv = infile.read(16)
+            iv = infp.read(16)
             decryptor = Cipher(
                 algorithms.AES(key),
                 modes.CBC(iv),
@@ -264,18 +264,18 @@ class BukuCrypt:
             ).decryptor()
 
             # Get original DB file's SHA256 hash from encrypted file
-            enchash = infile.read(32)
+            enchash = infp.read(32)
 
-            with open(dbpath, 'wb') as outfile:
+            with open(dbpath, 'wb') as outfp:
                 while True:
-                    chunk = infile.read(CHUNKSIZE)
+                    chunk = infp.read(CHUNKSIZE)
                     if len(chunk) == 0:
                         break
 
-                    outfile.write(decryptor.update(chunk) +
+                    outfp.write(decryptor.update(chunk) +
                                   decryptor.finalize())
 
-                outfile.truncate(origsize)
+                outfp.truncate(origsize)
 
         # Match hash of generated file with that of original DB file
         dbhash = BukuCrypt.get_filehash(dbpath)
@@ -432,13 +432,13 @@ class BukuDb:
 
         return resultset[0][0]
 
-    def add_bookmark(self, url, title_manual=None, tag_manual=None, desc=None,
+    def add_bookmark(self, url, title_in=None, tags_in=None, desc=None,
                      delay_commit=False, verbose=True):
         '''Add a new bookmark
 
         :param url: URL to bookmark
-        :param title_manual: string title to add manually
-        :param tag_manual: string of comma-separated tags to add manually
+        :param title_in: string title to add manually
+        :param tags_in: string of comma-separated tags to add manually
         :param desc: string description
         :param delay_commit: do not commit to DB, caller responsibility
         :param verbose: print details of added bookmark
@@ -457,8 +457,8 @@ class BukuDb:
             return False
 
         # Process title
-        if title_manual is not None:
-            meta = title_manual
+        if title_in is not None:
+            meta = title_in
         else:
             meta = network_handler(url)
             if meta == '':
@@ -466,13 +466,13 @@ class BukuDb:
             logger.debug('Title: [%s]', meta)
 
         # Process tags
-        if tag_manual is None:
-            tag_manual = DELIMITER
+        if tags_in is None:
+            tags_in = DELIMITER
         else:
-            if tag_manual[0] != DELIMITER:
-                tag_manual = '%s%s' % (DELIMITER, tag_manual)
-            if tag_manual[-1] != DELIMITER:
-                tag_manual = '%s%s' % (tag_manual, DELIMITER)
+            if tags_in[0] != DELIMITER:
+                tags_in = '%s%s' % (DELIMITER, tags_in)
+            if tags_in[-1] != DELIMITER:
+                tags_in = '%s%s' % (tags_in, DELIMITER)
 
         # Process description
         if desc is None:
@@ -481,7 +481,7 @@ class BukuDb:
         try:
             query = 'INSERT INTO bookmarks(URL, metadata, tags, desc) \
                     VALUES (?, ?, ?, ?)'
-            self.cur.execute(query, (url, meta, tag_manual, desc))
+            self.cur.execute(query, (url, meta, tags_in, desc))
             if not delay_commit:
                 self.conn.commit()
             if verbose:
@@ -492,11 +492,11 @@ class BukuDb:
             logger.error('%s(), ln %d: %s', func, linenumber, e)
             return False
 
-    def append_tag_at_index(self, index, tag_manual, verbose=False):
+    def append_tag_at_index(self, index, tags_in, verbose=False):
         '''Append tags for bookmark at index
 
         :param index: int position of record, 0 for all
-        :param tag_manual: string of comma-separated tags to add manually
+        :param tags_in: string of comma-separated tags to add manually
         :param verbose: show updated bookmark details
         :return: True on success, False on failure
         '''
@@ -514,7 +514,7 @@ class BukuDb:
         resultset = self.cur.fetchall()
         query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
         for row in resultset:
-            tags = '%s%s' % (row[1], tag_manual[1:])
+            tags = '%s%s' % (row[1], tags_in[1:])
             tags = parse_tags([tags])
             self.cur.execute(query, (tags, row[0],))
             if verbose:
@@ -523,16 +523,16 @@ class BukuDb:
         self.conn.commit()
         return True
 
-    def delete_tag_at_index(self, index, tag_manual, verbose=False):
+    def delete_tag_at_index(self, index, tags_in, verbose=False):
         '''Delete tags for bookmark at index
 
         :param index: int position of record, 0 for all
-        :param tag_manual: string of comma-separated tags to delete manually
+        :param tags_in: string of comma-separated tags to delete manually
         :param verbose: show updated bookmark details
         :return: True on success, False on failure
         '''
 
-        tags_to_delete = tag_manual.strip(DELIMITER).split(DELIMITER)
+        tags_to_delete = tags_in.strip(DELIMITER).split(DELIMITER)
 
         if index == 0:
             resp = input('Delete specified tags from ALL bookmarks? (y/n): ')
@@ -576,8 +576,8 @@ class BukuDb:
 
         return True
 
-    def update_bookmark(self, index, url='', title_manual=None,
-                        tag_manual=None, desc=None, append_tag=False,
+    def update_bookmark(self, index, url='', title_in=None,
+                        tags_in=None, desc=None, append_tag=False,
                         delete_tag=False, verbose=True):
         '''Update an existing record at index
         Update all records if index is 0 and url is not specified.
@@ -585,8 +585,8 @@ class BukuDb:
 
         :param index: int position to update, 0 for all
         :param url: bookmark address
-        :param title_manual: string title to add manually
-        :param tag_manual: string of comma-separated tags to add manually
+        :param title_in: string title to add manually
+        :param tags_in: string of comma-separated tags to add manually
         :param desc: string description
         :param append_tag: add tag(s) to existing tag(s)
         :param delete_tag: delete tag(s) from existing tag(s)
@@ -609,14 +609,14 @@ class BukuDb:
             to_update = True
 
         # Update tags if passed as argument
-        if tag_manual is not None:
+        if tags_in is not None:
             if append_tag:
-                ret = self.append_tag_at_index(index, tag_manual, verbose)
+                ret = self.append_tag_at_index(index, tags_in, verbose)
             elif delete_tag:
-                ret = self.delete_tag_at_index(index, tag_manual, verbose)
+                ret = self.delete_tag_at_index(index, tags_in, verbose)
             else:
                 query = '%s tags = ?,' % query
-                arguments += (tag_manual,)
+                arguments += (tags_in,)
                 to_update = True
 
         # Update description if passed as an argument
@@ -634,8 +634,8 @@ class BukuDb:
         # 4. if no other argument (url, tag, comment) passed,
         #    update title from web using DB URL
         meta = None
-        if title_manual is not None:
-            meta = title_manual
+        if title_in is not None:
+            meta = title_in
         elif url != '':
             meta = network_handler(url)
             if meta == '':
@@ -1080,11 +1080,11 @@ class BukuDb:
 
         return False
 
-    def export_bookmark(self, outfile, markdown=False, taglist=None):
+    def export_bookmark(self, filepath, markdown=False, taglist=None):
         '''Export bookmarks to a Firefox
         bookmarks formatted html file.
 
-        :param outfile: path to file to export to
+        :param filepath: path to file to export to
         :param markdown: use markdown syntax
         :param taglist: list of specific tags to export
         :return: True on success, False on failure
@@ -1128,19 +1128,19 @@ class BukuDb:
             print('No bookmarks exported')
             return False
 
-        if os.path.exists(outfile):
-            resp = input('%s exists. Overwrite? (y/n): ' % outfile)
+        if os.path.exists(filepath):
+            resp = input('%s exists. Overwrite? (y/n): ' % filepath)
             if resp != 'y':
                 return False
 
         try:
-            fp = open(outfile, mode='w', encoding='utf-8')
+            outfp = open(filepath, mode='w', encoding='utf-8')
         except Exception as e:
             logger.error(e)
             return False
 
         if not markdown:
-            fp.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
+            outfp.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
 <TITLE>Bookmarks</TITLE>
@@ -1160,29 +1160,29 @@ class BukuDb:
                 if row[4] != '':
                     out = '%s        <DD>%s\n' % (out, row[4])
 
-                fp.write(out)
+                outfp.write(out)
                 count += 1
 
-            fp.write('    </DL><p>\n</DL><p>')
+            outfp.write('    </DL><p>\n</DL><p>')
         else:
-            fp.write("List of buku bookmarks:\n\n")
+            outfp.write("List of buku bookmarks:\n\n")
             for row in resultset:
                 if row[2] == '':
                     out = '- [Untitled](%s)\n' % (row[1])
                 else:
                     out = '- [%s](%s)\n' % (row[2], row[1])
-                fp.write(out)
+                outfp.write(out)
                 count += 1
 
-        fp.close()
+        outfp.close()
         print('%s exported' % count)
         return True
 
-    def import_bookmark(self, infile, markdown=False):
+    def import_bookmark(self, filepath, markdown=False):
         '''Import bookmarks from a html file.
         Supports Firefox, Google Chrome and IE imports
 
-        :param infile: path to file to import
+        :param filepath: path to file to import
         :param markdown: use markdown syntax
         :return: True on success, False on failure
         '''
@@ -1190,8 +1190,8 @@ class BukuDb:
         if not markdown:
             try:
                 import bs4
-                with open(infile, mode='r', encoding='utf-8') as f:
-                    soup = bs4.BeautifulSoup(f, 'html.parser')
+                with open(filepath, mode='r', encoding='utf-8') as infp:
+                    soup = bs4.BeautifulSoup(infp, 'html.parser')
             except ImportError:
                 logger.error('Beautiful Soup not found')
                 return False
@@ -1213,10 +1213,10 @@ class BukuDb:
                                   desc, True)
 
             self.conn.commit()
-            f.close()
+            infp.close()
         else:
-            with open(infile, mode='r', encoding='utf-8') as f:
-                for line in f:
+            with open(filepath, mode='r', encoding='utf-8') as infp:
+                for line in infp:
                     # Supported markdown format: [title](url)
                     # Find position of title end, url start delimiter combo
                     index = line.find('](')
@@ -1235,14 +1235,14 @@ class BukuDb:
                             self.add_bookmark(url, title, None, None, True)
 
             self.conn.commit()
-            f.close()
+            infp.close()
 
         return True
 
-    def mergedb(self, infile):
+    def mergedb(self, filepath):
         '''Merge bookmarks from another Buku database file
 
-        :param infile: path to file to merge
+        :param filepath: path to file to merge
         :return: True on success, False on failure
         '''
 
@@ -1250,25 +1250,25 @@ class BukuDb:
             # Connect to input DB
             if sys.version_info >= (3, 4, 4):
                 # Python 3.4.4 and above
-                fconn = sqlite3.connect('file:%s?mode=ro' % infile, uri=True)
+                indb_conn = sqlite3.connect('file:%s?mode=ro' % filepath, uri=True)
             else:
-                fconn = sqlite3.connect(infile)
+                indb_conn = sqlite3.connect(filepath)
 
-            fcur = fconn.cursor()
+            indb_cur = indb_conn.cursor()
         except Exception as e:
             logger.error(e)
             return False
 
-        fcur.execute('SELECT * FROM bookmarks')
-        resultset = fcur.fetchall()
+        indb_cur.execute('SELECT * FROM bookmarks')
+        resultset = indb_cur.fetchall()
         for row in resultset:
             self.add_bookmark(row[1], row[2], row[3], row[4], True)
 
         self.conn.commit()
 
         try:
-            fcur.close()
-            fconn.close()
+            indb_cur.close()
+            indb_conn.close()
         except Exception:
             pass
 
@@ -1743,9 +1743,9 @@ class CustomTagAction(argparse.Action):
     '''
 
     def __call__(self, parser, args, values, option_string=None):
-        global tag_manual
+        global tags_in
 
-        tag_manual = [DELIMITER, ]
+        tags_in = [DELIMITER, ]
         setattr(args, self.dest, values)
 
 
@@ -1755,9 +1755,9 @@ class CustomTitleAction(argparse.Action):
     '''
 
     def __call__(self, parser, args, values, option_string=None):
-        global title_manual
+        global title_in
 
-        title_manual = ''
+        title_in = ''
         setattr(args, self.dest, values)
 
 
@@ -1994,10 +1994,10 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Assign the values to globals
-    if tag_manual is not None and len(args.tag) > 0:
-        tag_manual = args.tag
-    if title_manual is not None and len(args.title) > 0:
-        title_manual = ' '.join(args.title)
+    if tags_in is not None and len(args.tag) > 0:
+        tags_in = args.tag
+    if title_in is not None and len(args.title) > 0:
+        title_in = ' '.join(args.title)
     if description is not None and len(args.desc) > 0:
         description = ' '.join(args.desc)
     if args.debug:
@@ -2022,53 +2022,53 @@ if __name__ == '__main__':
         # Parse tags into a comma-separated string
         tags = DELIMITER
         keywords = args.addurl
-        if tag_manual is not None:
-            if tag_manual[0] == '+' and len(tag_manual) == 1:
+        if tags_in is not None:
+            if tags_in[0] == '+' and len(tags_in) == 1:
                 pass
-            elif tag_manual[0] == '+':
-                tag_manual = tag_manual[1:]
+            elif tags_in[0] == '+':
+                tags_in = tags_in[1:]
                 # In case of add, args.addurl may have URL followed by tags
                 # Add DELIMITER as url+tags may not end with comma
-                keywords = args.addurl + [DELIMITER] + tag_manual
+                keywords = args.addurl + [DELIMITER] + tags_in
             else:
-                keywords = args.addurl + [DELIMITER] + tag_manual
+                keywords = args.addurl + [DELIMITER] + tags_in
 
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_bookmark(args.addurl[0], title_manual, tags, description)
+        bdb.add_bookmark(args.addurl[0], title_in, tags, description)
 
     # Update record
     if update:
         if args.url is not None:
-            new_url = args.url[0]
+            url_in = args.url[0]
         else:
-            new_url = ''
+            url_in = ''
 
         append = False
         delete = False
-        if tag_manual is not None:
-            if (tag_manual[0] == '+' or tag_manual[0] == '-') \
-                    and len(tag_manual) == 1:
+        if tags_in is not None:
+            if (tags_in[0] == '+' or tags_in[0] == '-') \
+                    and len(tags_in) == 1:
                 logger.error('Please specify a tag')
                 bdb.close_quit(1)
-            elif tag_manual[0] == '+':
-                tag_manual = tag_manual[1:]
+            elif tags_in[0] == '+':
+                tags_in = tags_in[1:]
                 append = True
-            elif tag_manual[0] == '-':
-                tag_manual = tag_manual[1:]
+            elif tags_in[0] == '-':
+                tags_in = tags_in[1:]
                 delete = True
 
         # Parse tags into a comma-separated string
-        tags = parse_tags(tag_manual)
+        tags = parse_tags(tags_in)
 
         if len(args.update) == 0:
-            bdb.update_bookmark(0, new_url, title_manual, tags,
+            bdb.update_bookmark(0, url_in, title_in, tags,
                                 description, append, delete)
         else:
             for idx in args.update:
                 if is_int(idx):
-                    bdb.update_bookmark(int(idx), new_url, title_manual, tags,
+                    bdb.update_bookmark(int(idx), url_in, title_in, tags,
                                         description, append, delete)
                 elif '-' in idx and is_int(idx.split('-')[0]) \
                         and is_int(idx.split('-')[1]):
@@ -2079,11 +2079,11 @@ if __name__ == '__main__':
 
                     # Update only once if range starts from 0 (all)
                     if lower == 0:
-                        bdb.update_bookmark(0, new_url, title_manual, tags,
+                        bdb.update_bookmark(0, url_in, title_in, tags,
                                             description, append, delete)
                     else:
                         for _id in range(lower, upper + 1):
-                            bdb.update_bookmark(_id, new_url, title_manual,
+                            bdb.update_bookmark(_id, url_in, title_in,
                                                 tags, description, append,
                                                 delete)
 
