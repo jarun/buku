@@ -468,11 +468,12 @@ class BukuDb:
             _, _, linenumber, func, _, _ = inspect.stack()[0]
             logger.error('%s(), ln %d: %s', func, linenumber, e)
 
-    def append_tag_at_index(self, index, tag_manual):
+    def append_tag_at_index(self, index, tag_manual, verbose=False):
         ''' Append tags for bookmark at index
 
         :param index: int position of record, 0 for all
-        :tag_manual: string of comma-separated tags to add manually
+        :param tag_manual: string of comma-separated tags to add manually
+        :param verbose: show updated bookmark details
         '''
 
         if index == 0:
@@ -491,14 +492,17 @@ class BukuDb:
             tags = '%s%s' % (row[1], tag_manual[1:])
             tags = parse_tags([tags])
             self.cur.execute(query, (tags, row[0],))
+            if verbose:
+                self.print_bookmark(row[0])
 
         self.conn.commit()
 
-    def delete_tag_at_index(self, index, tag_manual):
+    def delete_tag_at_index(self, index, tag_manual, verbose=False):
         ''' Delete tags for bookmark at index
 
         :param index: int position of record, 0 for all
-        :tag_manual: string of comma-separated tags to delete manually
+        :param tag_manual: string of comma-separated tags to delete manually
+        :param verbose: show updated bookmark details
         '''
 
         tags_to_delete = tag_manual.strip(DELIMITER).split(DELIMITER)
@@ -522,7 +526,8 @@ class BukuDb:
                                         % (DELIMITER, tag, DELIMITER,),
                                         DELIMITER)
                     self.cur.execute(query2, (parse_tags([tags]), row[0],))
-                    self.print_bookmark(row[0])
+                    if verbose:
+                        self.print_bookmark(row[0])
 
                 if len(resultset):
                     self.conn.commit()
@@ -543,17 +548,20 @@ class BukuDb:
                 self.conn.commit()
 
     def update_bookmark(self, index, url='', title_manual=None,
-                        tag_manual=None, desc=None,
-                        append_tag=False, delete_tag=False):
+                        tag_manual=None, desc=None, append_tag=False,
+                        delete_tag=False, verbose=True):
         ''' Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
 
         :param index: int position to update, 0 for all
-        :param url: address
-        :param tag_manual: string of comma-separated tags to add manually
+        :param url: bookmark address
         :param title_manual: string title to add manually
+        :param tag_manual: string of comma-separated tags to add manually
         :param desc: string description
+        :param append_tag: add tag(s) to existing tag(s)
+        :param delete_tag: delete tag(s) from existing tag(s)
+        :param verbose: show updated bookmark details
         :return:
         '''
 
@@ -573,9 +581,9 @@ class BukuDb:
         # Update tags if passed as argument
         if tag_manual is not None:
             if append_tag:
-                self.append_tag_at_index(index, tag_manual)
+                self.append_tag_at_index(index, tag_manual, verbose)
             elif delete_tag:
-                self.delete_tag_at_index(index, tag_manual)
+                self.delete_tag_at_index(index, tag_manual, verbose)
             else:
                 query = '%s tags = ?,' % query
                 arguments += (tag_manual,)
@@ -615,9 +623,6 @@ class BukuDb:
             to_update = True
 
         if not to_update:       # Nothing to update
-            # Show the record if any tag was appended or deleted
-            if append_tag or delete_tag:
-                self.print_bookmark(index)
             return
 
         if index == 0:  # Update all records
