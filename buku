@@ -524,7 +524,7 @@ class BukuDb:
                     self.cur.execute(query2, (parse_tags([tags]), row[0],))
                     self.print_bookmark(row[0])
 
-                if len(resultset) > 0:
+                if len(resultset):
                     self.conn.commit()
         else:
             query = 'SELECT id, tags FROM bookmarks WHERE id = ?'
@@ -673,7 +673,8 @@ class BukuDb:
                 logger.warning('^C pressed. Aborting DB refresh...')
                 break
 
-        self.conn.commit()
+        if len(resultset):
+            self.conn.commit()
 
     def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
         '''Search the database for an entries with tags or URL
