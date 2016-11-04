@@ -1,3 +1,19 @@
+Buku v2.6
+2016-11-04
+
+Modifications
+- Support Markdown import/export
+- Support regex search
+- New option `--upstream` to check latest upstream version
+- Fix search and delete behaviour
+- Lot of code reformatting, performance improvements
+- Use delayed commit wherever possible (e.g. bulk deletion cases)
+- When a range is specified, consider 0 as ALL
+- Added option to control verbosity in some APIs
+- In-source documentation update
+
+-------------------------------------------------------------------------------
+
 Buku v2.5
 2016-10-20
 
