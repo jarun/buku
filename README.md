@@ -106,10 +106,11 @@ Please substitute `$version` with the appropriate package version.
 
 `buku` is also available on
 - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux
-- Void Linux repos ( `$ sudo xbps-install -S buku` )
+- [Ubuntu](https://launchpad.net/ubuntu/+source/buku)
 - [Homebrew](http://braumeister.org/formula/buku) for OS X
 - [Debian Sid](https://packages.debian.org/sid/buku)
 - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
+- Void Linux repos ( `$ sudo xbps-install -S buku` )
 
 ## Shell completion
 
