@@ -1976,7 +1976,7 @@ if __name__ == '__main__':
 
     # Show help and exit if no arguments
     if len(sys.argv) < 2:
-        argparser.print_help(sys.stderr)
+        argparser.print_help(sys.stdout)
         sys.exit(1)
 
     # Parse the arguments
@@ -1984,7 +1984,7 @@ if __name__ == '__main__':
 
     # Show help and exit if help requested
     if args.help:
-        argparser.print_help(sys.stderr)
+        argparser.print_help(sys.stdout)
         sys.exit(0)
 
     # Assign the values to globals
