@@ -113,7 +113,7 @@ class TestBukuDb(unittest.TestCase):
 
         # the expected bookmark
         expected = (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,',
-                "News for old nerds, stuff that doesn't matter")
+                "News for old nerds, stuff that doesn't matter", 0)
         bookmark_from_db = self.bdb.get_bm_by_id(1)
         # asserting bookmark matches expected
         self.assertEqual(expected, bookmark_from_db)
@@ -472,8 +472,8 @@ def test_compactdb(setup):
     bdb.compactdb(2)
 
     # asserting bookmarks have correct indices
-    assert bdb.get_bm_by_id(1) == (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter")
-    assert bdb.get_bm_by_id(2) == (2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test')
+    assert bdb.get_bm_by_id(1) == (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter", 0)
+    assert bdb.get_bm_by_id(2) == (2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
     assert bdb.get_bm_by_id(3) is None
 
 # Helper functions for testcases
