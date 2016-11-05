@@ -287,18 +287,17 @@ class BukuCrypt:
 
 class BukuDb:
 
-    def __init__(self, json=False, field_filter=0):
+    def __init__(self, json=False, field_filter=0, immutable=-1):
         '''Database initialization API
 
         :param json: print results in json format
         :param field_filter: bookmark print format specifier
         '''
 
-        conn, cur = BukuDb.initdb()
-        self.conn = conn
-        self.cur = cur
+        self.conn, self.cur = BukuDb.initdb()
         self.json = json
         self.field_filter = field_filter
+        self.immutable = immutable
 
     @staticmethod
     def get_dbdir_path():
@@ -400,6 +399,18 @@ class BukuDb:
         except Exception:
             pass
 
+        '''Add flags column in existing DB
+        Introduced in v2.7 to handle immutable title
+        Designed to be extended in future using bitwise masks
+        Masks:
+        0b00000001: set title immutable'''
+        try:
+            query = 'ALTER TABLE bookmarks ADD COLUMN flags integer default 0'
+            cur.execute(query)
+            conn.commit()
+        except Exception:
+            pass
+
         return (conn, cur)
 
     def get_bm_by_id(self, index):
@@ -476,9 +487,13 @@ class BukuDb:
             desc = ''
 
         try:
-            query = 'INSERT INTO bookmarks(URL, metadata, tags, desc) \
-                    VALUES (?, ?, ?, ?)'
-            self.cur.execute(query, (url, meta, tags_in, desc))
+            flagset = 0
+            if self.immutable == 1:
+                flagset |= self.immutable
+
+            query = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) \
+                    VALUES (?, ?, ?, ?, ?)'
+            self.cur.execute(query, (url, meta, tags_in, desc, flagset))
             if not delay_commit:
                 self.conn.commit()
             if verbose:
@@ -618,14 +633,26 @@ class BukuDb:
             arguments += (desc,)
             to_update = True
 
+        # Update immutable flag if passed as argument
+        if self.immutable != -1:
+            flagset = 1
+            if self.immutable:
+                query = '%s flags = flags | ?,' % query
+            else:
+                query = '%s flags = flags & ?,' % query
+                flagset = ~flagset
+
+            arguments += (flagset,)
+            to_update = True
+
         # Update title
         #
         # 1. if -t has no arguments, delete existing title
         # 2. if -t has arguments, update existing title
         # 3. if -t option is omitted at cmdline:
         #    if URL is passed, update the title from web using the URL
-        # 4. if no other argument (url, tag, comment) passed,
-        #    update title from web using DB URL
+        # 4. if no other argument (url, tag, comment, immutable) passed,
+        #    update title from web using DB URL (if title is mutable)
         meta = None
         if title_in is not None:
             meta = title_in
@@ -686,10 +713,11 @@ class BukuDb:
         '''
 
         if index == 0:
-            self.cur.execute('SELECT id, url FROM bookmarks ORDER BY id ASC')
+            self.cur.execute('SELECT id, url FROM bookmarks WHERE \
+                             flags & 1 != 1 ORDER BY id ASC')
         else:
-            self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ?',
-                             (index,))
+            self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ? AND \
+                             flags & 1 != 1', (index,))
 
         resultset = self.cur.fetchall()
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
@@ -1878,7 +1906,10 @@ if __name__ == '__main__':
                      if no arguments:
                      -a: do not set title, -u: clear title
 -c, --comment [...]  description of the bookmark, works with
-                     -a, -u; clears comment, if no arguments''')
+                     -a, -u; clears comment, if no arguments
+--immutable N        disable title fetch from web during update
+                     works with -a, -u
+                     N=0: mutable (default), N=1: immutable''')
     addarg = edit_grp.add_argument
     addarg('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
     addarg('--tag', nargs='*', dest='tag', action=CustomTagAction,
@@ -1887,6 +1918,8 @@ if __name__ == '__main__':
            metavar='title', help=argparse.SUPPRESS)
     addarg('-c', '--comment', nargs='*', dest='desc', type=str,
            action=CustomDescAction, metavar='desc', help=argparse.SUPPRESS)
+    addarg('--immutable', type=int, default=-1,
+           choices=[0, 1], metavar='N', help=argparse.SUPPRESS)
 
     # Search options group
     search_grp = argparser.add_argument_group(
@@ -2009,7 +2042,7 @@ if __name__ == '__main__':
         BukuCrypt.decrypt_file(args.decrypt)
 
     # Initialize the database and get handles
-    bdb = BukuDb(args.json_output, args.field_filter)
+    bdb = BukuDb(args.json_output, args.field_filter, args.immutable)
 
     # Add a record
     if args.addurl is not None:

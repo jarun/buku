@@ -35,15 +35,15 @@ URLs are unique in DB. The same URL cannot be added twice.
 \fITags\fR:
   - Comma (',') is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags can be replaced.
 .PP
+\fIUpdate\fR operation:
+  - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
+  - If --url is passed (and --title is omitted), update the title from web using the URL.
+  - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles from web. Bookmarks marked immutable are skipped.
+.PP
 \fIDelete\fR operation:
   - When a record is deleted, the last record is moved to the index.
   - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
   - Can delete bookmarks matching a search, when combined with any of the search options.
-.PP
-\fIUpdate\fR operation:
-  - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
-  - If --url is passed (and --title is omitted), update the title from web using the URL.
-  - If indices are passed without any other options (--url, --title, --tag and --comment), read the URLs from DB and update titles from web.
 .PP
 \fISearch\fR works in mysterious ways:
   - Case-insensitive.
@@ -84,6 +84,9 @@ Manually specify the title, works with --add, --update. Omits or clears the titl
 .TP
 .BI \-c " " \--comment " [...]"
 Add comment or description on the bookmark, works with --add, --update. Clears the comment, if no arguments passed.
+.TP
+.BI \--immutable " N"
+Set the title of a bookmark immutable during updates. Works with --add, --update. N=1 sets the immutable flag, N=0 removes it. If omitted, bookmarks are added with N=0.
 .SH SEARCH OPTIONS
 .TP
 .BI \-s " " \--sany " keyword [...]"
@@ -149,7 +152,7 @@ Replace
 .I oldtag
 with
 .I newtag
-if both are passed, delete
+if both are passed; delete
 .I oldtag
 if
 .I newtag
@@ -196,11 +199,11 @@ Overrides the default browser. Ref:
 In the output, >: title, +: comment, #: tags.
 .PP
 .IP 2. 4
-\fBAdd\fR a bookmark with tags 'linux news' and 'open source' & \fBcustom title\fR 'Linux magazine':
+\fBAdd\fR a bookmark with tags 'linux news' and 'open source' & \fBimmutable custom title\fR 'Linux magazine':
 .PP
 .EX
 .IP
-.B buku -a http://tuxdiary.com linux news, open source -t 'Linux magazine'
+.B buku -a http://tuxdiary.com linux news, open source -t 'Linux magazine' --immutable 1
 .EE
 .PP
 .IP "" 4

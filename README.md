@@ -152,6 +152,9 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            -a: do not set title, -u: clear title
       -c, --comment [...]  description of the bookmark, works with
                            -a, -u; clears comment, if no arguments
+      --immutable N        disable title fetch from web during update
+                           works with -a, -u
+                           N=0: mutable (default), N=1: immutable
 
     search options:
       -s, --sany keyword [...]
@@ -218,7 +221,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 - **Update** operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
-  - If indices are passed without any other options (--url, --title, --tag and --comment), read the URLs from DB and update titles from web.
+  - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles from web. Bookmarks marked immutable are skipped.
 - **Delete** operation:
   - When a record is deleted, the last record is moved to the index.
   - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
@@ -308,9 +311,9 @@ Once exported, import the html file in your browser.
         + Informative website on Linux and open source
         # linux news,open source
 where, >: title, +: comment, #: tags
-2. **Add** a bookmark with tags `linux news` and `open source` & **custom title** `Linux magazine`:
+2. **Add** a bookmark with tags `linux news` and `open source` & **immutable custom title** `Linux magazine`:
 
-        $ buku -a http://tuxdiary.com linux news, open source -t 'Linux magazine'
+        $ buku -a http://tuxdiary.com linux news, open source -t 'Linux magazine' --immutable 1
         Added at index 15012014
 Note that URL must precede tags.
 3. **Add** a bookmark **without a title** (works for update too):
