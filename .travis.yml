@@ -13,7 +13,7 @@ addons:
       - devscripts
       - zsh
 script:
-  - ./tests/ci-test-wrapper --watch .travis.yml
+  - ./ci-test-wrapper --watch .travis.yml
   - git fetch --unshallow --tags origin
   - ./tools/makedeb
 deploy:

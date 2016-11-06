@@ -4,8 +4,8 @@ set -e
 
 declare here repo_root
 here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-repo_root="$here/.."
-export GIT_DIR="$here/../.git"
+repo_root="$here"
+export GIT_DIR="$here/.git"
 
 declare -a watchlist
 watchlist=(buku tests)
@@ -89,5 +89,5 @@ fi
 
 # Test buku(1) with $repo_root at the beginning of $PATH (so that buku
 # from this repo is picked up).
-cd $here
+cd "$here/tests"
 PATH="$repo_root:$PATH" python -m pytest test_*.py --cov buku
