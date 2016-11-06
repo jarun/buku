@@ -1357,9 +1357,9 @@ def connect_server(url):
             url = '/'
         urlconn = HTTPConnection(server, timeout=30)
     else:
-        logger.warning('Not a valid HTTP(S) url')
+        logger.debug('Not a valid HTTP(S) URL')
         if url.find(':') == -1:
-            logger.warning('Not a valid uri either')
+            logger.debug('Not a valid URI either')
         return (None, None)
 
     logger.debug('server [%s] rel [%s]', server, url)
@@ -1394,7 +1394,7 @@ def get_page_title(resp):
         data = resp.read()
 
     if charset is None:
-        logger.warning('Charset missing in response')
+        logger.debug('Charset missing in response')
         charset = 'utf-8'
 
     logger.debug('charset: %s', charset)
