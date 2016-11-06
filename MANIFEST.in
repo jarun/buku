@@ -1,0 +1,3 @@
+include CHANGELOG LICENSE README.md buku.1 requirements.txt
+recursive-include tests *.py
+recursive-include auto-completion *

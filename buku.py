@@ -38,6 +38,10 @@ try:
 except ImportError:
     pass
 
+__version__ = '2.6'
+__author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
+__license__ = 'GPLv3'
+
 # Globals
 update = False  # Update a bookmark in DB
 tags_in = None  # Input tags specified at cmdline
@@ -47,7 +51,6 @@ tagsearch = False  # Search bookmarks by tag
 title_data = None  # Title fetched from a webpage
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
-_VERSION_ = '2.6'  # Program version
 
 # Crypto globals
 BLOCKSIZE = 65536
@@ -1734,7 +1737,7 @@ def check_upstream_release():
                      % response.status)
     else:
         latest = json.loads(response.read().decode('utf-8'))[0]['name']
-        if latest == 'v' + _VERSION_:
+        if latest == 'v' + __version__:
             print('This is the latest release')
         else:
             print('Latest upstream release is %s' % latest)
@@ -1842,7 +1845,7 @@ Version %s
 Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
 License: GPLv3
 Webpage: https://github.com/jarun/Buku
-''' % _VERSION_)
+''' % __version__)
 
     # Help
     def print_help(self, file=None):
@@ -1854,18 +1857,21 @@ Webpage: https://github.com/jarun/Buku
 
 
 # Handle piped input
-def main(argv, pipeargs=None):
+def piped_input(argv, pipeargs=None):
     if not sys.stdin.isatty():
         pipeargs.extend(argv)
         for s in sys.stdin.readlines():
             pipeargs.extend(s.split())
 
-if __name__ == '__main__':
+
+def main():
+    global tags_in, title_in, description
+
     pipeargs = []
     atexit.register(logging.shutdown)
 
     try:
-        main(sys.argv, pipeargs)
+        piped_input(sys.argv, pipeargs)
     except KeyboardInterrupt:
         pass
 
@@ -2046,7 +2052,7 @@ if __name__ == '__main__':
         description = ' '.join(args.desc)
     if args.debug:
         logger.setLevel(logging.DEBUG)
-        logger.debug('Version %s', _VERSION_)
+        logger.debug('Version %s', __version__)
 
     # Move pre-1.9 database to new location
     # BukuDb.move_legacy_dbfile()
@@ -2269,3 +2275,6 @@ if __name__ == '__main__':
 
     # Close DB connection and quit
     bdb.close_quit(0)
+
+if __name__ == '__main__':
+    main()

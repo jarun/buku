@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import imp, unittest
 
-buku = imp.load_source('buku', '../buku')
+import os
+import signal
+import unittest
 
-from buku import *
+from buku import is_int, parse_tags
 
 
 class TestHelpers(unittest.TestCase):

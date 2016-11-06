@@ -92,7 +92,8 @@ To remove, run:
 
 `buku` is a standalone utility. From the containing directory, run:
 
-    $ ./buku
+    $ chmod +x buku.py
+    $ ./buku.py
 
 #### Debian package
 

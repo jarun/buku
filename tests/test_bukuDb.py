@@ -1,43 +1,39 @@
 #!/usr/bin/env python3
+#
 # Unit test cases for buku
-# -*- coding: utf-8 -*-
-from genericpath import exists
-import imp
+#
 import os
 import re
-from tempfile import TemporaryDirectory
-import unittest, pytest
-from unittest import mock
-from os.path import join, expanduser
 import sqlite3
+from genericpath import exists
+from tempfile import TemporaryDirectory
 
-buku = imp.load_source('buku', '../buku')
+import pytest
+import unittest
+from unittest import mock as mock
+
+from buku import BukuDb, parse_tags, prompt
 
 TEST_TEMP_DIR_OBJ = TemporaryDirectory(prefix='bukutest_')
 TEST_TEMP_DIR_PATH = TEST_TEMP_DIR_OBJ.name
-TEST_TEMP_DBDIR_PATH = join(TEST_TEMP_DIR_PATH, 'buku')
-TEST_TEMP_DBFILE_PATH = join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
+TEST_TEMP_DBDIR_PATH = os.path.join(TEST_TEMP_DIR_PATH, 'buku')
+TEST_TEMP_DBFILE_PATH = os.path.join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
 
-from buku import BukuDb, parse_tags
-
-TEST_BOOKMARKS = [ ['http://slashdot.org',
-                    'SLASHDOT',
-                    parse_tags(['old,news']),
-                    "News for old nerds, stuff that doesn't matter",
-                    ],
-
-                   ['http://www.zażółćgęśląjaźń.pl/',
-                    'ZAŻÓŁĆ',
-                    parse_tags(['zażółć,gęślą,jaźń']),
-                    "Testing UTF-8, zażółć gęślą jaźń.",
-                    ],
-
-                   ['https://test.com:8080',
-                    'test',
-                    parse_tags(['test,tes,est,es']),
-                    "a case for replace_tag test",
-                    ],
+TEST_BOOKMARKS = [
+    ['http://slashdot.org',
+     'SLASHDOT',
+     parse_tags(['old,news']),
+     "News for old nerds, stuff that doesn't matter"],
+    ['http://www.zażółćgęśląjaźń.pl/',
+     'ZAŻÓŁĆ',
+     parse_tags(['zażółć,gęślą,jaźń']),
+     "Testing UTF-8, zażółć gęślą jaźń."],
+    ['https://test.com:8080',
+     'test',
+     parse_tags(['test,tes,est,es']),
+     "a case for replace_tag test"],
 ]
+
 
 @pytest.fixture()
 def setup():
@@ -46,6 +42,7 @@ def setup():
     # start every test from a clean state
     if exists(TEST_TEMP_DBFILE_PATH):
         os.remove(TEST_TEMP_DBFILE_PATH)
+
 
 class TestBukuDb(unittest.TestCase):
 
@@ -65,7 +62,7 @@ class TestBukuDb(unittest.TestCase):
     # @unittest.skip('skipping')
     def test_get_dbdir_path(self):
         dbdir_expected = TEST_TEMP_DBDIR_PATH
-        dbdir_local_expected = join(expanduser('~'), '.local', 'share', 'buku')
+        dbdir_local_expected = os.path.join(os.path.expanduser('~'), '.local', 'share', 'buku')
         dbdir_relative_expected = os.path.abspath('.')
 
         # desktop linux
@@ -113,12 +110,12 @@ class TestBukuDb(unittest.TestCase):
 
         # the expected bookmark
         expected = (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,',
-                "News for old nerds, stuff that doesn't matter", 0)
+                    "News for old nerds, stuff that doesn't matter", 0)
         bookmark_from_db = self.bdb.get_bm_by_id(1)
         # asserting bookmark matches expected
         self.assertEqual(expected, bookmark_from_db)
         # asserting None returned if index out of range
-        self.assertIsNone(self.bdb.get_bm_by_id( len(self.bookmarks[0]) + 1 ))
+        self.assertIsNone(self.bdb.get_bm_by_id(len(self.bookmarks[0]) + 1))
 
     # @unittest.skip('skipping')
     def test_get_bm_id(self):
@@ -190,18 +187,17 @@ class TestBukuDb(unittest.TestCase):
         # tags to add
         new_tags = ",foo,bar,baz"
         # record of original tags for each bookmark
-        old_tagsets = { i: self.bdb.get_bm_by_id(i)[3] for i in inclusive_range(1, len(self.bookmarks)) }
+        old_tagsets = {i: self.bdb.get_bm_by_id(i)[3] for i in inclusive_range(1, len(self.bookmarks))}
 
         with mock.patch('builtins.input', return_value='y'):
             self.bdb.append_tag_at_index(0, new_tags)
             # updated tags for each bookmark
-            from_db = [ (i, self.bdb.get_bm_by_id(i)[3]) for i in inclusive_range(1, len(self.bookmarks)) ]
+            from_db = [(i, self.bdb.get_bm_by_id(i)[3]) for i in inclusive_range(1, len(self.bookmarks))]
             for index, tagset in from_db:
                 # checking if new tags added to bookmark
                 self.assertTrue(split_and_test_membership(new_tags, tagset))
                 # checking if old tags still exist for boomark
                 self.assertTrue(split_and_test_membership(old_tagsets[index], tagset))
-
 
     # @unittest.skip('skipping')
     def test_delete_tag_at_index(self):
@@ -211,7 +207,7 @@ class TestBukuDb(unittest.TestCase):
 
         get_tags_at_idx = lambda i: self.bdb.get_bm_by_id(i)[3]
         # list of two-tuples, each containg bookmark index and corresponding tags
-        tags_by_index = [ (i, get_tags_at_idx(i)) for i in inclusive_range(1, len(self.bookmarks)) ]
+        tags_by_index = [(i, get_tags_at_idx(i)) for i in inclusive_range(1, len(self.bookmarks))]
 
         for i, tags in tags_by_index:
             # get the first tag from the bookmark
@@ -242,10 +238,10 @@ class TestBukuDb(unittest.TestCase):
             title_search = bookmark[1]
             # Expect a five-tuple containing all bookmark data
             # db index, URL, title, tags, description
-            expected = [(i + 1,) +  tuple(bookmark)]
+            expected = [(i + 1,) + tuple(bookmark)]
             # search db by tag, url (domain name), and title
             for keyword in (tag_search, url_search, title_search):
-                with mock.patch('buku.prompt') as mock_prompt:
+                with mock.patch('buku.prompt'):
                     # search by keyword
                     results = self.bdb.searchdb([keyword])
                     self.assertEqual(results, expected)
@@ -256,7 +252,7 @@ class TestBukuDb(unittest.TestCase):
         for bookmark in self.bookmarks:
             self.bdb.add_bm(*bookmark)
 
-        with mock.patch('buku.prompt') as mock_prompt:
+        with mock.patch('buku.prompt'):
             get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
             for i in range(len(self.bookmarks)):
                 # search for bookmark with a tag that is known to exist
@@ -280,16 +276,16 @@ class TestBukuDb(unittest.TestCase):
                     # search the db with keywords from each bookmark
                     # searching using the first tag from bookmarks
                     get_first_tag = lambda x: x[2].split(',')[1]
-                    results = self.bdb.searchdb([ get_first_tag(bm) for bm in self.bookmarks ])
-                    buku.prompt(results)
+                    results = self.bdb.searchdb([get_first_tag(bm) for bm in self.bookmarks])
+                    prompt(results)
                 except StopIteration:
                     # catch exception thrown by reaching the end of the side effect iterable
                     pass
 
                 # collect arguments passed to open_in_browser
-                arg_list = [ args[0] for args, _ in mock_open_in_browser.call_args_list ]
+                arg_list = [args[0] for args, _ in mock_open_in_browser.call_args_list]
                 # expect a list of one-tuples that are bookmark URLs
-                expected = [ x[0] for x in self.bookmarks]
+                expected = [x[0] for x in self.bookmarks]
                 # checking if open_in_browser called with expected arguments
                 self.assertEqual(arg_list, expected)
 
@@ -306,16 +302,16 @@ class TestBukuDb(unittest.TestCase):
                     # search the db with keywords from each bookmark
                     # searching using the first tag from bookmarks
                     get_first_tag = lambda x: x[2].split(',')[1]
-                    results = self.bdb.searchdb([ get_first_tag(bm) for bm in self.bookmarks[:2] ])
-                    buku.prompt(results)
+                    results = self.bdb.searchdb([get_first_tag(bm) for bm in self.bookmarks[:2]])
+                    prompt(results)
                 except StopIteration:
                     # catch exception thrown by reaching the end of the side effect iterable
                     pass
 
                 # collect arguments passed to open_in_browser
-                arg_list = [ args[0] for args, _ in mock_open_in_browser.call_args_list ]
+                arg_list = [args[0] for args, _ in mock_open_in_browser.call_args_list]
                 # expect a list of one-tuples that are bookmark URLs
-                expected = [ x[0] for x in self.bookmarks][:2]
+                expected = [x[0] for x in self.bookmarks][:2]
                 # checking if open_in_browser called with expected arguments
                 self.assertEqual(arg_list, expected)
 
@@ -377,7 +373,7 @@ class TestBukuDb(unittest.TestCase):
         # removing nonexistent tag which is also a substring of other tag
         self.bdb.replace_tag("e")
 
-        for url, title, _, _  in self.bookmarks:
+        for url, title, _, _ in self.bookmarks:
             # retrieving from db
             index = self.bdb.get_bm_id(url)
             from_db = self.bdb.get_bm_by_id(index)
@@ -407,6 +403,7 @@ class TestBukuDb(unittest.TestCase):
 
     # def test_import_bookmark(self):
         # self.fail()
+
 
 def test_print_bm(capsys, caplog, setup):
     bdb = BukuDb()
@@ -445,6 +442,7 @@ def test_print_bm(capsys, caplog, setup):
     assert out == "\x1b[1m3 records found\x1b[21m\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m4. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
     assert err == ''
 
+
 def test_list_tags(capsys, setup):
     bdb = BukuDb()
 
@@ -459,6 +457,7 @@ def test_list_tags(capsys, setup):
     out, err = capsys.readouterr()
     assert out == "     1. 1\n     2. 2\n     3. 3\n     4. Ant\n     5. ant\n     6. bee\n     7. Bee\n     8. Cat\n     9. cat\n"
     assert err == ''
+
 
 def test_compactdb(setup):
     bdb = BukuDb()
@@ -478,10 +477,12 @@ def test_compactdb(setup):
 
 # Helper functions for testcases
 
+
 def split_and_test_membership(a, b):
     # :param a, b: comma separated strings to split
     # test everything in a in b
-    return all( x in b.split(',') for x in a.split(',') )
+    return all(x in b.split(',') for x in a.split(','))
+
 
 def inclusive_range(start, end):
     return range(start, end + 1)
