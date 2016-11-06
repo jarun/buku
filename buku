@@ -1427,15 +1427,16 @@ def network_handler(url):
     retry = False
 
     try:
-        urlconn, resp = connect_server(url)
-
         while True:
+            urlconn, resp = connect_server(url)
+            logger.debug('HTTP response: [%s] %s', resp.status, resp.reason)
+
             if resp is None:
                 break
             elif resp.status == 200:
                 get_page_title(resp)
                 break
-            elif resp.status in [301, 302]:
+            elif resp.status in {301, 302, 303, 307, 308}:
                 redirurl = urljoin(url, resp.getheader('location', ''))
                 logger.debug('REDIRECTION: %s', redirurl)
                 retry = False       # Reset retry, start fresh on redirection
@@ -1454,10 +1455,9 @@ def network_handler(url):
                     logger.error('Detected repeated redirection to same URL')
                     break
 
+                # try with redirection URL
                 url = redirurl
                 urlconn.close()
-                # Try with complete URL on redirection
-                urlconn, resp = connect_server(url)
             elif resp.status == 403 and not retry:
                 # Handle URLs in the form of
                 # https://www.domain.com or
@@ -1470,8 +1470,8 @@ def network_handler(url):
                 # Remove trailing /
                 if url[-1] == '/':
                     url = url[:-1]
-                urlconn, resp = connect_server(url)
                 retry = True
+                urlconn.close()
             else:
                 logger.error('[%s] %s', resp.status, resp.reason)
                 break
