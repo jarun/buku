@@ -662,10 +662,10 @@ class BukuDb:
                 print('\x1B[91mTitle: []\x1B[0m')
             logger.debug('Title: [%s]', meta)
         elif not to_update and not (append_tag or delete_tag):
-            self.refreshdb(index)
-            if index and verbose:
+            ret = self.refreshdb(index)
+            if ret and index and verbose:
                 self.print_bm(index)
-            return True
+            return ret
 
         if meta is not None:
             query = '%s metadata = ?,' % query
@@ -720,6 +720,10 @@ class BukuDb:
                              flags & 1 != 1', (index,))
 
         resultset = self.cur.fetchall()
+        if not len(resultset):
+            logger.error('No matching index or title immutable or empty DB')
+            return False
+
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
         for row in resultset:
             title = network_handler(row[1])
@@ -735,8 +739,8 @@ class BukuDb:
                 logger.warning('^C pressed. Aborting DB refresh...')
                 break
 
-        if len(resultset):
-            self.conn.commit()
+        self.conn.commit()
+        return True
 
     def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
         '''Search the database for an entries with tags or URL
