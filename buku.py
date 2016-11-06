@@ -736,7 +736,7 @@ class BukuDb:
                 print('Title: [%s]' % title)
 
             self.cur.execute(query, (title, row[0],))
-            print('Index %d updated\n' % row[0])
+            print('\x1B[92mIndex %d updated\x1B[0m\n' % row[0])
             if interrupted:
                 logger.warning('^C pressed. Aborting DB refresh...')
                 break
@@ -1432,11 +1432,12 @@ def network_handler(url):
     try:
         while True:
             urlconn, resp = connect_server(url)
-            logger.debug('HTTP response: [%s] %s', resp.status, resp.reason)
-
-            if resp is None:
+            if resp:
+                logger.debug('HTTP resp: [%s] %s', resp.status, resp.reason)
+            else:
                 break
-            elif resp.status == 200:
+
+            if resp.status == 200:
                 get_page_title(resp)
                 break
             elif resp.status in {301, 302, 303, 307, 308}:
