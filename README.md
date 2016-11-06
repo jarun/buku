@@ -161,8 +161,9 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            search bookmarks for ANY matching keyword
       -S, --sall keyword [...]
                            search bookmarks with ALL keywords
-                           special keyword -
+                           special keywords -
                            "blank": list entries with empty title/tag
+                           "immutable": list entries with locked title
       --deep               match substrings ('pen' matches 'opened')
       --sreg expr          run a regex search
       --st, --stag [...]   search bookmarks by tag
@@ -400,7 +401,10 @@ The same number of iterations must be specified for one lock & unlock instance. 
 25. To list bookmarks with no title or tags for **bookkeeping**:
 
         $ buku -S blank
-26. More **help**:
+26. To list bookmarks with **immutable title**:
+
+        $ buku -S immutable
+27. More **help**:
 
         $ buku
         $ man buku

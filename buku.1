@@ -97,9 +97,13 @@ Search bookmarks for ANY of the keyword(s) in URL, title or tags and show the re
 .BI \-S " " \--sall " keyword [...]"
 Search bookmarks with ALL keywords in URL, title or tags and show the results. Behaviour same as --sany.
 .br
-Special keyword:
+Special keywords:
 .br
 "blank": list entries with empty title/tag
+.br
+"immutable": list entries with locked title
+.br
+NOTE: To search the keywords, use --sany
 .TP
 .BI \--sreg " expr"
 Scan for a regular expression match.
@@ -406,6 +410,13 @@ To list bookmarks with no title or tags for \fBbookkeeping\fR:
 .EX
 .IP
 .B buku -S blank
+.PP
+.IP 26. 4
+To list bookmarks with \fBimmutable title\fR:
+.PP
+.EX
+.IP
+.B buku -S immutable
 .SH AUTHOR
 Arun Prakash Jana <engineerarun@gmail.com>.
 .SH HOME

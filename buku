@@ -292,6 +292,7 @@ class BukuDb:
 
         :param json: print results in json format
         :param field_filter: bookmark print format specifier
+        :param immutable: disable title fetch from web
         '''
 
         self.conn, self.cur = BukuDb.initdb()
@@ -721,7 +722,7 @@ class BukuDb:
 
         resultset = self.cur.fetchall()
         if not len(resultset):
-            logger.error('No matching index or title immutable or empty DB')
+            logger.error('No matching index or title immutable')
             return False
 
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
@@ -947,24 +948,30 @@ class BukuDb:
         print('All bookmarks deleted')
         return True
 
-    def print_bm(self, index, empty=False):
+    def print_bm(self, index, empty=False, immutable=False):
         '''Print bookmark details at index or all bookmarks if index is 0
         Print only bookmarks with blank title or tag if empty is True
         Note: URL is printed on top because title may be blank
 
         :param index: index to print (0 for all)
         :param empty: flag to show only bookmarks with no title or tags
+        :param immutable: flag to show only bookmarks with immutable titles
         '''
 
         if index == 0:  # Show all entries
-            if not empty:
-                self.cur.execute('SELECT * FROM bookmarks')
-                resultset = self.cur.fetchall()
-            else:
+            if empty:
                 qry = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ?"
                 self.cur.execute(qry, (DELIM,))
                 resultset = self.cur.fetchall()
                 print('\x1b[1m%s records found\x1b[21m\n' % len(resultset))
+            elif immutable:
+                qry = "SELECT * FROM bookmarks WHERE flags & 1 == 1"
+                self.cur.execute(qry)
+                resultset = self.cur.fetchall()
+                print('\x1b[1m%s records found\x1b[21m\n' % len(resultset))
+            else:
+                self.cur.execute('SELECT * FROM bookmarks')
+                resultset = self.cur.fetchall()
 
             if not self.json:
                 if self.field_filter == 0:
@@ -1937,8 +1944,9 @@ if __name__ == '__main__':
                      search bookmarks for ANY matching keyword
 -S, --sall keyword [...]
                      search bookmarks with ALL keywords
-                     special keyword -
+                     special keywords -
                      "blank": list entries with empty title/tag
+                     "immutable": list entries with locked title
 --deep               match substrings ('pen' matches 'opened')
 --sreg expr          run a regex search
 --st, --stag [...]   search bookmarks by tag
@@ -2136,6 +2144,8 @@ if __name__ == '__main__':
         search_opted = True
         if args.sall[0] == 'blank' and len(args.sall) == 1:
             bdb.print_bm(0, True)
+        elif args.sall[0] == 'immutable' and len(args.sall) == 1:
+            bdb.print_bm(0, False, True)
         else:
             search_results = bdb.searchdb(args.sall, True, args.deep)
 
