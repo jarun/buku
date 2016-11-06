@@ -318,7 +318,9 @@ where, >: title, +: comment, #: tags
 2. **Add** a bookmark with tags `linux news` and `open source` & **immutable custom title** `Linux magazine`:
 
         $ buku -a http://tuxdiary.com linux news, open source -t 'Linux magazine' --immutable 1
-        Added at index 15012014
+        336. http://tuxdiary.com (L)
+        > Linux magazine
+        # linux news,open source
 Note that URL must precede tags.
 3. **Add** a bookmark **without a title** (works for update too):
 
