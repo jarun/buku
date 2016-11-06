@@ -1088,7 +1088,7 @@ class BukuDb:
 
             # Return if no entries in DB
             if result is None:
-                print("No bookmarks added yet ...")
+                print('No bookmarks added yet ...')
                 return False
 
             index = result[0]
@@ -1190,7 +1190,7 @@ class BukuDb:
 
             outfp.write('    </DL><p>\n</DL><p>')
         else:
-            outfp.write("List of buku bookmarks:\n\n")
+            outfp.write('List of buku bookmarks:\n\n')
             for row in resultset:
                 if row[2] == '':
                     out = '- [Untitled](%s)\n' % (row[1])
@@ -1607,10 +1607,15 @@ def print_record(row, idx=0):
 
     # Start with index and URL
     if idx != 0:
-        pr = "\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m \
-\x1B[1m[%s]\x1B[0m\n" % (idx, row[1], row[0])
+        pr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m \
+\x1B[1m[%s]\x1B[0m\n' % (idx, row[1], row[0])
     else:
-        pr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m\n' % (row[0], row[1])
+        pr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m' % (row[0], row[1])
+        # Indicate if record is immutable
+        if row[5] & 1:
+            pr = '%s \x1B[1m(L)\x1B[0m\n' % (pr)
+        else:
+            pr = '%s\n' % (pr)
 
     # Append title
     if row[2] != '':

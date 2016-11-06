@@ -216,6 +216,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 - It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes (`'`/`"`).
 - URLs are unique in DB. The same URL cannot be added twice.
+- Bookmarks with immutable titles are listed with bold `(I)` after the URL.
 - **Tags**:
   - Comma (`,`) is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags can be replaced.
 - **Update** operation:

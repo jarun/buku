@@ -32,6 +32,8 @@ If the URL contains characters like ';', '&' or brackets they may be interpreted
 .PP
 URLs are unique in DB. The same URL cannot be added twice.
 .PP
+Bookmarks with immutable titles are listed with bold '(I)' after the URL.
+.PP
 \fITags\fR:
   - Comma (',') is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags can be replaced.
 .PP
@@ -90,7 +92,7 @@ Set the title of a bookmark immutable during updates. Works with --add, --update
 .SH SEARCH OPTIONS
 .TP
 .BI \-s " " \--sany " keyword [...]"
-Search bookmarks for ANY of the keyword(s) in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential result index is not the DB index. The DB index is shown in the end within '[]'.
+Search bookmarks for ANY of the keyword(s) in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential result index is not the DB index. The DB index is shown in bold within '[]' after the URL.
 .TP
 .BI \-S " " \--sall " keyword [...]"
 Search bookmarks with ALL keywords in URL, title or tags and show the results. Behaviour same as --sany.
