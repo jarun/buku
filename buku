@@ -287,18 +287,20 @@ class BukuCrypt:
 
 class BukuDb:
 
-    def __init__(self, json=False, field_filter=0, immutable=-1):
+    def __init__(self, json=False, field_filter=0, immutable=-1, chatty=False):
         '''Database initialization API
 
         :param json: print results in json format
         :param field_filter: bookmark print format specifier
         :param immutable: disable title fetch from web
+        :param chatty: set the verbosity of the APIs
         '''
 
         self.conn, self.cur = BukuDb.initdb()
         self.json = json
         self.field_filter = field_filter
         self.immutable = immutable
+        self.chatty = chatty
 
     @staticmethod
     def get_dbdir_path():
@@ -442,7 +444,7 @@ class BukuDb:
         return resultset[0][0]
 
     def add_bm(self, url, title_in=None, tags_in=None, desc=None,
-               delay_commit=False, verbose=False):
+               delay_commit=False):
         '''Add a new bookmark
 
         :param url: URL to bookmark
@@ -450,7 +452,6 @@ class BukuDb:
         :param tags_in: string of comma-separated tags to add manually
         :param desc: string description
         :param delay_commit: do not commit to DB, caller responsibility
-        :param verbose: print details of added bookmark
         :return: True on success, False on failure
         '''
 
@@ -497,7 +498,7 @@ class BukuDb:
             self.cur.execute(query, (url, meta, tags_in, desc, flagset))
             if not delay_commit:
                 self.conn.commit()
-            if verbose:
+            if self.chatty:
                 self.print_bm(self.cur.lastrowid)
             return True
         except Exception as e:
@@ -505,12 +506,11 @@ class BukuDb:
             logger.error('%s(), ln %d: %s', func, linenumber, e)
             return False
 
-    def append_tag_at_index(self, index, tags_in, verbose=False):
+    def append_tag_at_index(self, index, tags_in):
         '''Append tags for bookmark at index
 
         :param index: int position of record, 0 for all
         :param tags_in: string of comma-separated tags to add manually
-        :param verbose: show updated bookmark details
         :return: True on success, False on failure
         '''
 
@@ -530,18 +530,17 @@ class BukuDb:
             tags = '%s%s' % (row[1], tags_in[1:])
             tags = parse_tags([tags])
             self.cur.execute(query, (tags, row[0],))
-            if verbose:
+            if self.chatty:
                 self.print_bm(row[0])
 
         self.conn.commit()
         return True
 
-    def delete_tag_at_index(self, index, tags_in, verbose=False):
+    def delete_tag_at_index(self, index, tags_in):
         '''Delete tags for bookmark at index
 
         :param index: int position of record, 0 for all
         :param tags_in: string of comma-separated tags to delete manually
-        :param verbose: show updated bookmark details
         :return: True on success, False on failure
         '''
 
@@ -564,7 +563,7 @@ class BukuDb:
 
                     tags = tags.replace('%s%s%s' % (DELIM, tag, DELIM,), DELIM)
                     self.cur.execute(query2, (parse_tags([tags]), row[0],))
-                    if verbose:
+                    if self.chatty:
                         self.print_bm(row[0])
 
                 if len(resultset):
@@ -587,7 +586,7 @@ class BukuDb:
         return True
 
     def update_bm(self, index, url='', title_in=None, tags_in=None, desc=None,
-                  append_tag=False, delete_tag=False, verbose=False):
+                  append_tag=False, delete_tag=False):
         '''Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
@@ -599,7 +598,6 @@ class BukuDb:
         :param desc: string description
         :param append_tag: add tag(s) to existing tag(s)
         :param delete_tag: delete tag(s) from existing tag(s)
-        :param verbose: show updated bookmark details
         :return: True on success, False on failure
         '''
 
@@ -620,9 +618,9 @@ class BukuDb:
         # Update tags if passed as argument
         if tags_in is not None:
             if append_tag:
-                ret = self.append_tag_at_index(index, tags_in, verbose)
+                ret = self.append_tag_at_index(index, tags_in)
             elif delete_tag:
-                ret = self.delete_tag_at_index(index, tags_in, verbose)
+                ret = self.delete_tag_at_index(index, tags_in)
             else:
                 query = '%s tags = ?,' % query
                 arguments += (tags_in,)
@@ -664,7 +662,7 @@ class BukuDb:
             logger.debug('Title: [%s]', meta)
         elif not to_update and not (append_tag or delete_tag):
             ret = self.refreshdb(index)
-            if ret and index and verbose:
+            if ret and index and self.chatty:
                 self.print_bm(index)
             return ret
 
@@ -691,7 +689,7 @@ class BukuDb:
         try:
             self.cur.execute(query, arguments)
             self.conn.commit()
-            if self.cur.rowcount and verbose:
+            if self.cur.rowcount and self.chatty:
                 self.print_bm(index)
 
             if self.cur.rowcount == 0:
@@ -722,7 +720,7 @@ class BukuDb:
 
         resultset = self.cur.fetchall()
         if not len(resultset):
-            logger.error('No matching index or title immutable')
+            logger.error('No matching index or title immutable or empty DB')
             return False
 
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
@@ -1242,7 +1240,7 @@ class BukuDb:
                 self.add_bm(tag['href'], tag.string, ('%s%s%s' %
                             (DELIM, tag['tags'], DELIM))
                             if tag.has_attr('tags') else None,
-                            desc, True, True)
+                            desc, True)
 
             self.conn.commit()
             infp.close()
@@ -1264,7 +1262,7 @@ class BukuDb:
                             # Parse url
                             url = line[index + 2:index + 2 + url_end_delim]
 
-                            self.add_bm(url, title, None, None, True, True)
+                            self.add_bm(url, title, None, None, True)
 
             self.conn.commit()
             infp.close()
@@ -1294,7 +1292,7 @@ class BukuDb:
 
         resultset = indb_cur.fetchall()
         for row in resultset:
-            self.add_bm(row[1], row[2], row[3], row[4], True, True)
+            self.add_bm(row[1], row[2], row[3], row[4], True)
 
         if len(resultset):
             self.conn.commit()
@@ -1997,6 +1995,7 @@ if __name__ == '__main__':
 --noprompt           do not show the prompt, run and exit
 -o, --open [N]       open bookmark at DB index N in web browser
                      open a random index if N is omitted
+--tacit              reduce verbosity
 --upstream           check latest upstream version available
 -z, --debug          show debug information and additional logs''')
     addarg = power_grp.add_argument
@@ -2020,6 +2019,7 @@ if __name__ == '__main__':
            help=argparse.SUPPRESS)
     addarg('-o', '--open', nargs='?', dest='openurl', type=int, const=0,
            metavar='N', help=argparse.SUPPRESS)
+    addarg('--tacit', action='store_true', help=argparse.SUPPRESS)
     addarg('--upstream', action='store_true', help=argparse.SUPPRESS)
     addarg('-z', '--debug', dest='debug', action='store_true',
            help=argparse.SUPPRESS)
@@ -2058,8 +2058,9 @@ if __name__ == '__main__':
     if args.decrypt is not None:
         BukuCrypt.decrypt_file(args.decrypt)
 
-    # Initialize the database and get handles
-    bdb = BukuDb(args.json_output, args.field_filter, args.immutable)
+    # Initialize the database and get handles, set verbose by default
+    bdb = BukuDb(args.json_output, args.field_filter, args.immutable,
+                 not args.tacit)
 
     # Add a record
     if args.addurl is not None:
@@ -2080,7 +2081,7 @@ if __name__ == '__main__':
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_bm(args.addurl[0], title_in, tags, description, verbose=True)
+        bdb.add_bm(args.addurl[0], title_in, tags, description)
 
     # Update record
     if update:
@@ -2108,12 +2109,12 @@ if __name__ == '__main__':
 
         if len(args.update) == 0:
             bdb.update_bm(0, url_in, title_in, tags, description, append,
-                          delete, True)
+                          delete)
         else:
             for idx in args.update:
                 if is_int(idx):
                     bdb.update_bm(int(idx), url_in, title_in, tags,
-                                  description, append, delete, True)
+                                  description, append, delete)
                 elif '-' in idx and is_int(idx.split('-')[0]) \
                         and is_int(idx.split('-')[1]):
                     lower = int(idx.split('-')[0])
@@ -2124,11 +2125,11 @@ if __name__ == '__main__':
                     # Update only once if range starts from 0 (all)
                     if lower == 0:
                         bdb.update_bm(0, url_in, title_in, tags, description,
-                                      append, delete, True)
+                                      append, delete)
                     else:
                         for _id in range(lower, upper + 1):
                             bdb.update_bm(_id, url_in, title_in, tags,
-                                          description, append, delete, True)
+                                          description, append, delete)
 
     # Search operations
     search_results = None

@@ -13,7 +13,7 @@ _buku () {
     opts=(-a --add -c --comment --deep -d --delete -e --export -h --help
           --immutable -i --import -k --unlock -l --lock --markdown -m --merge
           --noprompt -o --open -p --print -r --replace -s --sany -S --sall
-          --st --stag --tag -t --title -u --update --upstream --url)
+          --st --stag --tacit --tag -t --title -u --update --upstream --url)
     opts_with_arg=(-a --add -e --export --immutable -i --import -m --merge
                    -o --open -r --replace -s --sany -S --sall --url)
 

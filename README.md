@@ -195,6 +195,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       --noprompt           do not show the prompt, run and exit
       -o, --open [N]       open bookmark at DB index N in web browser
                            open a random index if N is omitted
+      --tacit              reduce verbosity
       --upstream           check latest upstream version available
       -z, --debug          show debug information and additional logs
 
