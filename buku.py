@@ -1255,10 +1255,10 @@ class BukuDb:
                     # Find position of title end, url start delimiter combo
                     index = line.find('](')
                     if index != -1:
-                        # Reverse find title start delimiter
-                        title_start_delim = line[:index].rfind('[')
-                        # Find the url end delimiter
-                        url_end_delim = line[index + 2:].find(')')
+                        # Find title start delimiter
+                        title_start_delim = line[:index].find('[')
+                        # Reverse find the url end delimiter
+                        url_end_delim = line[index + 2:].rfind(')')
 
                         if title_start_delim != -1 and url_end_delim > 0:
                             # Parse title
