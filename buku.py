@@ -1802,8 +1802,12 @@ def main():
         usage='''buku [OPTIONS] [KEYWORD [KEYWORD ...]]''',
         add_help=False
     )
+    HIDE = argparse.SUPPRESS
 
-    # General options group
+    # ---------------------
+    # GENERAL OPTIONS GROUP
+    # ---------------------
+
     general_grp = argparser.add_argument_group(
         title='general options',
         description='''-a, --add URL [tags ...]
@@ -1820,14 +1824,15 @@ def main():
                      delete all bookmarks, if no arguments
 -h, --help           show this information and exit''')
     addarg = general_grp.add_argument
-    addarg('-a', '--add', nargs='+', metavar=('URL', 'tags'),
-           help=argparse.SUPPRESS)
-    addarg('-u', '--update', nargs='*', action=CustomUpdateAction,
-           metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
-    addarg('-d', '--delete', nargs='*', metavar='N', help=argparse.SUPPRESS)
-    addarg('-h', '--help', action='store_true', help=argparse.SUPPRESS)
+    addarg('-a', '--add', nargs='+', help=HIDE)
+    addarg('-u', '--update', nargs='*', action=CustomUpdateAction, help=HIDE)
+    addarg('-d', '--delete', nargs='*', help=HIDE)
+    addarg('-h', '--help', action='store_true', help=HIDE)
 
-    # Edit options group
+    # ------------------
+    # EDIT OPTIONS GROUP
+    # ------------------
+
     edit_grp = argparser.add_argument_group(
         title='edit options',
         description='''--url keyword        specify url, works with -u only
@@ -1844,17 +1849,16 @@ def main():
                      works with -a, -u
                      N=0: mutable (default), N=1: immutable''')
     addarg = edit_grp.add_argument
-    addarg('--url', nargs=1, metavar='url', help=argparse.SUPPRESS)
-    addarg('--tag', nargs='*', action=CustomTagAction, metavar='tag',
-           help=argparse.SUPPRESS)
-    addarg('-t', '--title', nargs='*', action=CustomTitleAction,
-           metavar='title', help=argparse.SUPPRESS)
-    addarg('-c', '--comment', nargs='*', type=str, action=CustomDescAction,
-           metavar='desc', help=argparse.SUPPRESS)
-    addarg('--immutable', type=int, default=-1, choices=[0, 1], metavar='N',
-           help=argparse.SUPPRESS)
+    addarg('--url', nargs=1, help=HIDE)
+    addarg('--tag', nargs='*', action=CustomTagAction, help=HIDE)
+    addarg('-t', '--title', nargs='*', action=CustomTitleAction, help=HIDE)
+    addarg('-c', '--comment', nargs='*', action=CustomDescAction, help=HIDE)
+    addarg('--immutable', type=int, default=-1, choices={0, 1}, help=HIDE)
 
-    # Search options group
+    # --------------------
+    # SEARCH OPTIONS GROUP
+    # --------------------
+
     search_grp = argparser.add_argument_group(
         title='search options',
         description='''-s, --sany keyword [...]
@@ -1869,16 +1873,16 @@ def main():
 --stag [...]         search bookmarks by tag
                      list tags alphabetically, if no arguments''')
     addarg = search_grp.add_argument
-    addarg('-s', '--sany', nargs='+', metavar='keyword',
-           help=argparse.SUPPRESS)
-    addarg('-S', '--sall', nargs='+', metavar='keyword',
-           help=argparse.SUPPRESS)
-    addarg('--sreg', nargs=1, metavar='keyword', help=argparse.SUPPRESS)
-    addarg('--deep', action='store_true', help=argparse.SUPPRESS)
-    addarg('--stag', nargs='*', action=CustomTagSearchAction,
-           metavar='keyword', help=argparse.SUPPRESS)
+    addarg('-s', '--sany', nargs='+', help=HIDE)
+    addarg('-S', '--sall', nargs='+', help=HIDE)
+    addarg('--sreg', nargs=1, help=HIDE)
+    addarg('--deep', action='store_true', help=HIDE)
+    addarg('--stag', nargs='*', action=CustomTagSearchAction, help=HIDE)
 
-    # Encryption options group
+    # ------------------------
+    # ENCRYPTION OPTIONS GROUP
+    # ------------------------
+
     crypto_grp = argparser.add_argument_group(
         title='encryption options',
         description='''-l, --lock [N]       encrypt DB file with N (> 0, default 8)
@@ -1886,12 +1890,13 @@ def main():
 -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
                      hash iterations to generate key''')
     addarg = crypto_grp.add_argument
-    addarg('-k', '--unlock', nargs='?', type=int, const=8, metavar='N',
-           help=argparse.SUPPRESS)
-    addarg('-l', '--lock', nargs='?', type=int, const=8, metavar='N',
-           help=argparse.SUPPRESS)
+    addarg('-k', '--unlock', nargs='?', type=int, const=8, help=HIDE)
+    addarg('-l', '--lock', nargs='?', type=int, const=8, help=HIDE)
 
-    # Power toys group
+    # ----------------
+    # POWER TOYS GROUP
+    # ----------------
+
     power_grp = argparser.add_argument_group(
         title='power toys',
         description='''-e, --export file    export bookmarks to Firefox format html
@@ -1917,23 +1922,19 @@ def main():
 --upstream           check latest upstream version available
 -z, --debug          show debug information and additional logs''')
     addarg = power_grp.add_argument
-    addarg('-e', '--export', nargs=1, metavar='file', help=argparse.SUPPRESS)
-    addarg('-i', '--import', nargs=1, dest='importfile', metavar='file',
-           help=argparse.SUPPRESS)
-    addarg('--markdown', action='store_true', help=argparse.SUPPRESS)
-    addarg('-m', '--merge', nargs=1, metavar='file', help=argparse.SUPPRESS)
-    addarg('-p', '--print', nargs='*', metavar='N', help=argparse.SUPPRESS)
-    addarg('-f', '--format', type=int, default=0, choices=[1, 2, 3],
-           metavar='N', help=argparse.SUPPRESS)
-    addarg('-r', '--replace', nargs='+', metavar=('oldtag', 'newtag'),
-           help=argparse.SUPPRESS)
-    addarg('-j', '--json', action='store_true', help=argparse.SUPPRESS)
-    addarg('--noprompt', action='store_true', help=argparse.SUPPRESS)
-    addarg('-o', '--open', nargs='?', type=int, const=0, metavar='N',
-           help=argparse.SUPPRESS)
-    addarg('--tacit', action='store_true', help=argparse.SUPPRESS)
-    addarg('--upstream', action='store_true', help=argparse.SUPPRESS)
-    addarg('-z', '--debug', action='store_true', help=argparse.SUPPRESS)
+    addarg('-e', '--export', nargs=1, help=HIDE)
+    addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
+    addarg('--markdown', action='store_true', help=HIDE)
+    addarg('-m', '--merge', nargs=1, help=HIDE)
+    addarg('-p', '--print', nargs='*', help=HIDE)
+    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3}, help=HIDE)
+    addarg('-r', '--replace', nargs='+', help=HIDE)
+    addarg('-j', '--json', action='store_true', help=HIDE)
+    addarg('--noprompt', action='store_true', help=HIDE)
+    addarg('-o', '--open', nargs='?', type=int, const=0, help=HIDE)
+    addarg('--tacit', action='store_true', help=HIDE)
+    addarg('--upstream', action='store_true', help=HIDE)
+    addarg('-z', '--debug', action='store_true', help=HIDE)
 
     # Show help and exit if no arguments
     if len(sys.argv) < 2:
