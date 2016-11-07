@@ -24,9 +24,8 @@ import re
 import argparse
 import webbrowser
 import html.parser as HTMLParser
-from http.client import HTTPConnection, HTTPSConnection
-from urllib.parse import urljoin, quote, unquote
-import gzip
+import urllib3
+from urllib.parse import unquote
 import signal
 import json
 import logging
@@ -51,6 +50,8 @@ tagsearch = False  # Search bookmarks by tag
 title_data = None  # Title fetched from a webpage
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
+SKIP_MIMES = {'.txt', '.pdf'}  # Skip connecting to web for these mimes
+http_handler = None  # urllib3 PoolManager handler
 
 # Crypto globals
 BLOCKSIZE = 65536
@@ -1326,88 +1327,15 @@ class BukuDb:
 
 # Generic functions
 
-def connect_server(url):
-    '''Connect to a server and fetch the requested page data.
-    Supports gzip compression.
-
-    :param url: URL to fetch
-    :return: (connection, HTTP(S) GET response) tuple
-    '''
-
-    if url.find('%20') != -1:
-        url = unquote(url).replace(' ', '%20')
-    else:
-        url = unquote(url)
-
-    logger.debug('unquoted: %s', url)
-
-    if url.find('https://') >= 0:  # Secure connection
-        server = url[8:]
-        marker = server.find('/')
-        if marker > 0:
-            url = server[marker:]
-            server = server[:marker]
-        else:  # Handle domain name without trailing /
-            url = '/'
-        urlconn = HTTPSConnection(server, timeout=30)
-    elif url.find('http://') >= 0:  # Insecure connection
-        server = url[7:]
-        marker = server.find('/')
-        if marker > 0:
-            url = server[marker:]
-            server = server[:marker]
-        else:
-            url = '/'
-        urlconn = HTTPConnection(server, timeout=30)
-    else:
-        logger.debug('Not a valid HTTP(S) URL')
-        if url.find(':') == -1:
-            logger.debug('Not a valid URI either')
-        return (None, None)
-
-    logger.debug('server [%s] rel [%s]', server, url)
-
-    # Handle URLs passed with %xx escape
-    try:
-        url.encode('ascii')
-    except Exception:
-        url = quote(url)
-
-    urlconn.request('GET', url, None, {
-        'Accept-encoding': 'gzip',
-        'DNT': '1',
-    })
-    return (urlconn, urlconn.getresponse())
-
-
 def get_page_title(resp):
     '''Invoke HTML parser and extract title from HTTP response
 
     :param resp: HTTP(S) GET response
     '''
 
-    data = None
-    charset = resp.headers.get_content_charset()
-
-    if resp.headers.get('Content-Encoding') == 'gzip':
-        payload = resp.read()
-        logger.debug('gzip response')
-        data = gzip.decompress(payload)
-    else:
-        data = resp.read()
-
-    if charset is None:
-        logger.debug('Charset missing in response')
-        charset = 'utf-8'
-
-    logger.debug('charset: %s', charset)
-
     parser = BMHTMLParser()
     try:
-        if charset == 'utf-8':
-            parser.feed(data.decode(charset, 'replace'))
-        else:
-            parser.feed(data.decode(charset))
+        parser.feed(resp.data.decode(errors='replace'))
     except Exception as e:
         # Suppress Exception due to intentional self.reset() in HTMLParser
         if logger.isEnabledFor(logging.DEBUG) \
@@ -1423,45 +1351,32 @@ def network_handler(url):
     :return: page title, or empty string, if not found
     '''
 
-    global title_data
+    global title_data, http_handler
 
     title_data = None
-    urlconn = None
     retry = False
+    resp = None
+
+    if not (url.startswith('http://') or url.startswith('https://')):
+        return ''
+
+    for mime in SKIP_MIMES:
+        if url.lower().endswith(mime):
+            return ''
+
+    if not http_handler:
+        http_handler = urllib3.PoolManager()
 
     try:
         while True:
-            urlconn, resp = connect_server(url)
-            if resp:
-                logger.debug('HTTP resp: [%s] %s', resp.status, resp.reason)
-            else:
-                break
-
+            resp = http_handler.request(
+                                'GET', url, timeout=40,
+                                headers={'Accept-Encoding': 'gzip,deflate',
+                                         'DNT': '1'}
+                                       )
             if resp.status == 200:
                 get_page_title(resp)
                 break
-            elif resp.status in {301, 302, 303, 307, 308}:
-                redirurl = urljoin(url, resp.getheader('location', ''))
-                logger.debug('REDIRECTION: %s', redirurl)
-                retry = False       # Reset retry, start fresh on redirection
-
-                # gracefully handle Google blocks
-                if redirurl.find('sorry/IndexRedirect?') >= 0:
-                    logger.error('Connection blocked due to unusual activity')
-                    break
-
-                marker = redirurl.find('redirectUrl=')
-                if marker != -1:
-                    redirurl = redirurl[marker + 12:]
-
-                # break same URL redirection loop
-                if url == redirurl:
-                    logger.error('Detected repeated redirection to same URL')
-                    break
-
-                # try with redirection URL
-                url = redirurl
-                urlconn.close()
             elif resp.status == 403 and not retry:
                 # Handle URLs in the form of
                 # https://www.domain.com or
@@ -1469,22 +1384,22 @@ def network_handler(url):
                 # which fail when trying to fetch
                 # resource '/', retry with full path
 
-                urlconn.close()
                 logger.debug('Received status 403: retrying...')
                 # Remove trailing /
                 if url[-1] == '/':
                     url = url[:-1]
                 retry = True
-                urlconn.close()
             else:
                 logger.error('[%s] %s', resp.status, resp.reason)
                 break
+
+            resp.release_conn()
     except Exception as e:
         _, _, linenumber, func, _, _ = inspect.stack()[0]
         logger.error('%s(), ln %d: %s', func, linenumber, e)
     finally:
-        if urlconn is not None:
-            urlconn.close()
+        if resp:
+            resp.release_conn()
         if title_data is None:
             return ''
         return title_data.strip().replace('\n', '')
@@ -2054,6 +1969,8 @@ def main():
     if args.debug:
         logger.setLevel(logging.DEBUG)
         logger.debug('Version %s', __version__)
+    else:
+        logging.disable(logging.WARNING)
 
     # Move pre-1.9 database to new location
     # BukuDb.move_legacy_dbfile()
@@ -2216,7 +2133,7 @@ def main():
                 ids.sort(key=lambda x: int(x), reverse=True)
                 for idx in ids:
                     bdb.delete_bm(int(idx))
-            except ValueError as e:
+            except ValueError:
                 logger.error('Incorrect index or range')
 
     # Print records
