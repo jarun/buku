@@ -111,7 +111,7 @@ Scan for a regular expression match.
 .BI \--deep
 Search modifier to match substrings. Works with --sany, --sall.
 .TP
-.BI \--st " " \--stag " [...]"
+.BI \--stag " [...]"
 Search bookmarks by tag. List all tags alphabetically, if no arguments.
 .SH ENCRYPTION OPTIONS
 .TP
@@ -165,7 +165,7 @@ if
 is omitted.
 .TP
 .BI \-j " " \--json
-Output data formatted as json, works with --print, --sany, --sall, --stag.
+Output data formatted as json, works with --print output and search results.
 .TP
 .BI \--noprompt
 Do not show the prompt, run and exit.
@@ -341,14 +341,14 @@ The last index is moved to the deleted index to keep the DB compact.
 .PP
 .EX
 .IP
-.B buku --st general kernel concepts
+.B buku --stag general kernel concepts
 .PP
 .IP 17. 4
 List \fBall unique tags\fR alphabetically:
 .PP
 .EX
 .IP
-.B buku --st
+.B buku --stag
 .PP
 .IP 18. 4
 \fBEncrypt or decrypt\fR DB with \fBcustom number of iterations\fR (15) to generate key:

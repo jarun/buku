@@ -1820,15 +1820,12 @@ def main():
                      delete all bookmarks, if no arguments
 -h, --help           show this information and exit''')
     addarg = general_grp.add_argument
-    addarg('-a', '--add', nargs='+', dest='addurl', metavar=('URL', 'tags'),
+    addarg('-a', '--add', nargs='+', metavar=('URL', 'tags'),
            help=argparse.SUPPRESS)
-    addarg('-u', '--update', nargs='*', dest='update',
-           action=CustomUpdateAction, metavar=('N', 'URL tags'),
-           help=argparse.SUPPRESS)
-    addarg('-d', '--delete', nargs='*', dest='delete', metavar='N',
-           help=argparse.SUPPRESS)
-    addarg('-h', '--help', dest='help', action='store_true',
-           help=argparse.SUPPRESS)
+    addarg('-u', '--update', nargs='*', action=CustomUpdateAction,
+           metavar=('N', 'URL tags'), help=argparse.SUPPRESS)
+    addarg('-d', '--delete', nargs='*', metavar='N', help=argparse.SUPPRESS)
+    addarg('-h', '--help', action='store_true', help=argparse.SUPPRESS)
 
     # Edit options group
     edit_grp = argparser.add_argument_group(
@@ -1847,15 +1844,15 @@ def main():
                      works with -a, -u
                      N=0: mutable (default), N=1: immutable''')
     addarg = edit_grp.add_argument
-    addarg('--url', nargs=1, dest='url', metavar='url', help=argparse.SUPPRESS)
-    addarg('--tag', nargs='*', dest='tag', action=CustomTagAction,
-           metavar='tag', help=argparse.SUPPRESS)
-    addarg('-t', '--title', nargs='*', dest='title', action=CustomTitleAction,
+    addarg('--url', nargs=1, metavar='url', help=argparse.SUPPRESS)
+    addarg('--tag', nargs='*', action=CustomTagAction, metavar='tag',
+           help=argparse.SUPPRESS)
+    addarg('-t', '--title', nargs='*', action=CustomTitleAction,
            metavar='title', help=argparse.SUPPRESS)
-    addarg('-c', '--comment', nargs='*', dest='desc', type=str,
-           action=CustomDescAction, metavar='desc', help=argparse.SUPPRESS)
-    addarg('--immutable', type=int, default=-1,
-           choices=[0, 1], metavar='N', help=argparse.SUPPRESS)
+    addarg('-c', '--comment', nargs='*', type=str, action=CustomDescAction,
+           metavar='desc', help=argparse.SUPPRESS)
+    addarg('--immutable', type=int, default=-1, choices=[0, 1], metavar='N',
+           help=argparse.SUPPRESS)
 
     # Search options group
     search_grp = argparser.add_argument_group(
@@ -1869,7 +1866,7 @@ def main():
                      "immutable": list entries with locked title
 --deep               match substrings ('pen' matches 'opened')
 --sreg expr          run a regex search
---st, --stag [...]   search bookmarks by tag
+--stag [...]         search bookmarks by tag
                      list tags alphabetically, if no arguments''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', nargs='+', metavar='keyword',
@@ -1877,10 +1874,9 @@ def main():
     addarg('-S', '--sall', nargs='+', metavar='keyword',
            help=argparse.SUPPRESS)
     addarg('--sreg', nargs=1, metavar='keyword', help=argparse.SUPPRESS)
-    addarg('--deep', dest='deep', action='store_true', help=argparse.SUPPRESS)
-    addarg('--st', '--stag', nargs='*', dest='stag',
-           action=CustomTagSearchAction, metavar='keyword',
-           help=argparse.SUPPRESS)
+    addarg('--deep', action='store_true', help=argparse.SUPPRESS)
+    addarg('--stag', nargs='*', action=CustomTagSearchAction,
+           metavar='keyword', help=argparse.SUPPRESS)
 
     # Encryption options group
     crypto_grp = argparser.add_argument_group(
@@ -1890,10 +1886,10 @@ def main():
 -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
                      hash iterations to generate key''')
     addarg = crypto_grp.add_argument
-    addarg('-k', '--unlock', nargs='?', dest='decrypt', type=int, const=8,
-           metavar='N', help=argparse.SUPPRESS)
-    addarg('-l', '--lock', nargs='?', dest='encrypt', type=int, const=8,
-           metavar='N', help=argparse.SUPPRESS)
+    addarg('-k', '--unlock', nargs='?', type=int, const=8, metavar='N',
+           help=argparse.SUPPRESS)
+    addarg('-l', '--lock', nargs='?', type=int, const=8, metavar='N',
+           help=argparse.SUPPRESS)
 
     # Power toys group
     power_grp = argparser.add_argument_group(
@@ -1913,7 +1909,7 @@ def main():
 -r, --replace oldtag [newtag ...]
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
--j, --json           Json formatted output for -p, -s, -S, --st
+-j, --json           Json formatted output for -p and search
 --noprompt           do not show the prompt, run and exit
 -o, --open [N]       open bookmark at DB index N in web browser
                      open a random index if N is omitted
@@ -1921,30 +1917,23 @@ def main():
 --upstream           check latest upstream version available
 -z, --debug          show debug information and additional logs''')
     addarg = power_grp.add_argument
-    addarg('-e', '--export', nargs=1, dest='export', metavar='file',
+    addarg('-e', '--export', nargs=1, metavar='file', help=argparse.SUPPRESS)
+    addarg('-i', '--import', nargs=1, dest='importfile', metavar='file',
            help=argparse.SUPPRESS)
-    addarg('-i', '--import', nargs=1, dest='imports', metavar='file',
-           help=argparse.SUPPRESS)
-    addarg('--markdown', dest='markdown', action='store_true',
-           help=argparse.SUPPRESS)
-    addarg('-m', '--merge', nargs=1, dest='merge', metavar='file',
-           help=argparse.SUPPRESS)
-    addarg('-p', '--print', nargs='*', dest='print', metavar='N',
-           help=argparse.SUPPRESS)
-    addarg('-f', '--format', dest='field_filter', type=int, default=0,
-           choices=[1, 2, 3], metavar='N', help=argparse.SUPPRESS)
-    addarg('-r', '--replace', nargs='+', dest='replace',
-           metavar=('oldtag', 'newtag'), help=argparse.SUPPRESS)
-    addarg('-j', '--json', dest='json_output', action='store_true',
-           help=argparse.SUPPRESS)
-    addarg('--noprompt', dest='noninteractive', action='store_true',
-           help=argparse.SUPPRESS)
-    addarg('-o', '--open', nargs='?', dest='openurl', type=int, const=0,
+    addarg('--markdown', action='store_true', help=argparse.SUPPRESS)
+    addarg('-m', '--merge', nargs=1, metavar='file', help=argparse.SUPPRESS)
+    addarg('-p', '--print', nargs='*', metavar='N', help=argparse.SUPPRESS)
+    addarg('-f', '--format', type=int, default=0, choices=[1, 2, 3],
            metavar='N', help=argparse.SUPPRESS)
+    addarg('-r', '--replace', nargs='+', metavar=('oldtag', 'newtag'),
+           help=argparse.SUPPRESS)
+    addarg('-j', '--json', action='store_true', help=argparse.SUPPRESS)
+    addarg('--noprompt', action='store_true', help=argparse.SUPPRESS)
+    addarg('-o', '--open', nargs='?', type=int, const=0, metavar='N',
+           help=argparse.SUPPRESS)
     addarg('--tacit', action='store_true', help=argparse.SUPPRESS)
     addarg('--upstream', action='store_true', help=argparse.SUPPRESS)
-    addarg('-z', '--debug', dest='debug', action='store_true',
-           help=argparse.SUPPRESS)
+    addarg('-z', '--debug', action='store_true', help=argparse.SUPPRESS)
 
     # Show help and exit if no arguments
     if len(sys.argv) < 2:
@@ -1964,8 +1953,8 @@ def main():
         tags_in = args.tag
     if title_in is not None and len(args.title) > 0:
         title_in = ' '.join(args.title)
-    if description is not None and len(args.desc) > 0:
-        description = ' '.join(args.desc)
+    if description is not None and len(args.comment) > 0:
+        description = ' '.join(args.comment)
     if args.debug:
         logger.setLevel(logging.DEBUG)
         logger.debug('Version %s', __version__)
@@ -1976,36 +1965,36 @@ def main():
     # BukuDb.move_legacy_dbfile()
 
     # Handle encrypt/decrypt options at top priority
-    if args.encrypt is not None:
-        BukuCrypt.encrypt_file(args.encrypt)
+    if args.lock is not None:
+        BukuCrypt.encrypt_file(args.lock)
 
-    if args.decrypt is not None:
-        BukuCrypt.decrypt_file(args.decrypt)
+    if args.unlock is not None:
+        BukuCrypt.decrypt_file(args.unlock)
 
     # Initialize the database and get handles, set verbose by default
-    bdb = BukuDb(args.json_output, args.field_filter, args.immutable,
+    bdb = BukuDb(args.json, args.format, args.immutable,
                  not args.tacit)
 
     # Add a record
-    if args.addurl is not None:
+    if args.add is not None:
         # Parse tags into a comma-separated string
         tags = DELIM
-        keywords = args.addurl
+        keywords = args.add
         if tags_in is not None:
             if tags_in[0] == '+' and len(tags_in) == 1:
                 pass
             elif tags_in[0] == '+':
                 tags_in = tags_in[1:]
-                # In case of add, args.addurl may have URL followed by tags
+                # In case of add, args.add may have URL followed by tags
                 # Add delimiter as url+tags may not end with one
-                keywords = args.addurl + [DELIM] + tags_in
+                keywords = args.add + [DELIM] + tags_in
             else:
-                keywords = args.addurl + [DELIM] + tags_in
+                keywords = args.add + [DELIM] + tags_in
 
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_bm(args.addurl[0], title_in, tags, description)
+        bdb.add_bm(args.add[0], title_in, tags, description)
 
     # Update record
     if update:
@@ -2089,15 +2078,15 @@ def main():
             bdb.list_tags()
 
     if search_results:
-        oneshot = args.noninteractive
+        oneshot = args.noprompt
         # In case of search and delete, prompt should be non-interactive
         if args.delete is not None and len(args.delete) == 0:
             oneshot = True
 
-        if not args.json_output:
+        if not args.json:
             prompt(search_results, oneshot)
         else:
-            print(format_json(search_results, field_filter=args.field_filter))
+            print(format_json(search_results, field_filter=args.format))
 
         # Delete search results if opted
         if args.delete is not None and len(args.delete) == 0:
@@ -2173,19 +2162,19 @@ def main():
             bdb.exportdb(args.export[0], args.markdown, args.tag)
 
     # Import bookmarks
-    if args.imports is not None:
-        bdb.importdb(args.imports[0], args.markdown)
+    if args.importfile is not None:
+        bdb.importdb(args.importfile[0], args.markdown)
 
     # Merge a database file and exit
     if args.merge is not None:
         bdb.mergedb(args.merge[0])
 
     # Open URL in browser
-    if args.openurl is not None:
-        if args.openurl < 0:
+    if args.open is not None:
+        if args.open < 0:
             logger.error('Index must be >= 0')
             bdb.close_quit(1)
-        bdb.browse_by_index(args.openurl)
+        bdb.browse_by_index(args.open)
 
     # Report upstream version
     if args.upstream:

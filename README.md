@@ -167,7 +167,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            "immutable": list entries with locked title
       --deep               match substrings ('pen' matches 'opened')
       --sreg expr          run a regex search
-      --st, --stag [...]   search bookmarks by tag
+      --stag [...]         search bookmarks by tag
                            list tags alphabetically, if no arguments
 
     encryption options:
@@ -192,7 +192,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -r, --replace oldtag [newtag ...]
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
-      -j, --json           Json formatted output for -p, -s, -S, --st
+      -j, --json           Json formatted output for -p and search
       --noprompt           do not show the prompt, run and exit
       -o, --open [N]       open bookmark at DB index N in web browser
                            open a random index if N is omitted
@@ -373,10 +373,10 @@ The last index is moved to the deleted index to keep the DB compact.
         $ buku -S kernel debugging
 16. **Search** bookmarks **tagged** `general kernel concepts`:
 
-        $ buku --st general kernel concepts
+        $ buku --stag general kernel concepts
 17. List **all unique tags** alphabetically:
 
-        $ buku --st
+        $ buku --stag
 18. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
