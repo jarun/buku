@@ -1332,8 +1332,10 @@ def is_bad_url(url):
         if not netloc:
             return True
 
-    # netloc cannot start with a '.'
-    if netloc.startswith('.'):
+    logger.debug('netloc: %s' % netloc)
+
+    # netloc cannot start or end with a '.'
+    if netloc.startswith('.') or netloc.endswith('.'):
         return True
 
     # netloc should have at least one '.'
@@ -1341,12 +1343,7 @@ def is_bad_url(url):
     if index < 0:
         return True
 
-    # '.' can be followed by 3 chars at most
-    revindex = len(netloc) - 1 - index
-    if revindex > 0 and revindex < 4:
-        return False
-
-    return True
+    return False
 
 
 def is_ignored_mime(url):
