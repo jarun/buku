@@ -350,8 +350,8 @@ class BukuDb:
 
         # Show info on first creation
         if not os.path.exists(dbfile):
-            print('DB file is being created at \x1B[1m%s\x1B[0m.' % dbfile)
-            print('You should \x1B[1mencrypt it\x1B[0m later.')
+            print('DB file is being created at \x1b[1m%s\x1b[0m.' % dbfile)
+            print('You should \x1b[1mencrypt it\x1b[0m later.')
 
         try:
             # Create a connection
@@ -726,7 +726,7 @@ class BukuDb:
             self.cur.execute(query, (title, row[0],))
 
             if self.chatty:
-                print('Title: [%s]\n\x1B[92mIndex %d updated\x1B[0m\n'
+                print('Title: [%s]\n\x1b[92mIndex %d updated\x1b[0m\n'
                       % (title, row[0]))
             if interrupted:
                 break
@@ -1571,27 +1571,27 @@ def print_record(row, idx=0):
 
     # Start with index and URL
     if idx != 0:
-        pr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m \
-\x1B[1m[%s]\x1B[0m\n' % (idx, row[1], row[0])
+        pr = '\x1b[1m\x1b[93m%d. \x1b[0m\x1b[92m%s\x1b[0m \
+\x1b[1m[%s]\x1b[0m\n' % (idx, row[1], row[0])
     else:
-        pr = '\x1B[1m\x1B[93m%d. \x1B[0m\x1B[92m%s\x1B[0m' % (row[0], row[1])
+        pr = '\x1b[1m\x1b[93m%d. \x1b[0m\x1b[92m%s\x1b[0m' % (row[0], row[1])
         # Indicate if record is immutable
         if row[5] & 1:
-            pr = '%s \x1B[1m(L)\x1B[0m\n' % (pr)
+            pr = '%s \x1b[1m(L)\x1b[0m\n' % (pr)
         else:
             pr = '%s\n' % (pr)
 
     # Append title
     if row[2] != '':
-        pr = '%s   \x1B[91m>\x1B[0m %s\n' % (pr, row[2])
+        pr = '%s   \x1b[91m>\x1b[0m %s\n' % (pr, row[2])
 
     # Append description
     if row[4] != '':
-        pr = '%s   \x1B[91m+\x1B[0m %s\n' % (pr, row[4])
+        pr = '%s   \x1b[91m+\x1b[0m %s\n' % (pr, row[4])
 
     # Append tags IF not default (delimiter)
     if row[3] != DELIM:
-        pr = '%s   \x1B[91m#\x1B[0m %s\n' % (pr, row[3][1:-1])
+        pr = '%s   \x1b[91m#\x1b[0m %s\n' % (pr, row[3][1:-1])
 
     print(pr)
 
