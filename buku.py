@@ -25,12 +25,13 @@ import argparse
 import webbrowser
 import html.parser as HTMLParser
 import urllib3
-from urllib.parse import unquote
+from urllib.parse import urlparse, unquote
 import signal
 import json
 import logging
 import inspect
 import atexit
+
 try:
     import readline
     readline
@@ -50,7 +51,7 @@ tagsearch = False  # Search bookmarks by tag
 title_data = None  # Title fetched from a webpage
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
-SKIP_MIMES = {'.pdf', '.txt'}  # Skip connecting to web for these mimes
+SKIP_MIMES = {'.pdf', '.txt'}
 http_handler = None  # urllib3 PoolManager handler
 
 # Crypto globals
@@ -445,10 +446,15 @@ class BukuDb:
         if title_in is not None:
             meta = title_in
         else:
-            meta = network_handler(url)
-            if meta == '':
-                print('\x1B[91mTitle: []\x1B[0m\n')
-            logger.debug('Title: [%s]', meta)
+            meta, mime, bad = network_handler(url)
+            if bad:
+                print('\x1b[91mMalformed URL\x1b[0m\n')
+            elif mime:
+                logger.debug('mime recognized, only HEAD fetch attempted\n')
+            elif meta == '':
+                print('\x1b[91mTitle: []\x1b[0m\n')
+            else:
+                logger.debug('Title: [%s]', meta)
 
         # Process tags
         if tags_in is None:
@@ -627,23 +633,29 @@ class BukuDb:
         #    if URL is passed, update the title from web using the URL
         # 4. if no other argument (url, tag, comment, immutable) passed,
         #    update title from web using DB URL (if title is mutable)
-        meta = None
+        title_to_insert = None
         if title_in is not None:
-            meta = title_in
+            title_to_insert = title_in
         elif url != '':
-            meta = network_handler(url)
-            if meta == '':
-                print('\x1B[91mTitle: []\x1B[0m')
-            logger.debug('Title: [%s]', meta)
+            title_to_insert, mime, bad = network_handler(url)
+            if bad:
+                print('\x1b[91mMalformed URL\x1b[0m\n')
+            elif mime:
+                print('\x1b[91mSkipped mime\x1b[0m\n')
+            elif title_to_insert == '':
+                print('\x1b[91mTitle: []\x1b[0m')
+            else:
+                logger.debug('Title: [%s]', title_to_insert)
         elif not to_update and not (append_tag or delete_tag):
             ret = self.refreshdb(index)
             if ret and index and self.chatty:
+                pass
                 self.print_bm(index)
             return ret
 
-        if meta is not None:
+        if title_to_insert is not None:
             query = '%s metadata = ?,' % query
-            arguments += (meta,)
+            arguments += (title_to_insert,)
             to_update = True
 
         if not to_update:       # Nothing to update
@@ -700,17 +712,15 @@ class BukuDb:
 
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
         for row in resultset:
-            title = network_handler(row[1])
-            if title == '':
-                skip = False
-                for mime in SKIP_MIMES:
-                    if row[1].lower().endswith(mime):
-                        skip = True
-                        break
-                if skip:
-                    print('\x1b[1mIndex %d: skipped mime\x1B[0m\n' % row[0])
-                else:
-                    print('\x1b[1mIndex %d: no title\x1B[0m\n' % row[0])
+            title, mime, bad = network_handler(row[1])
+            if bad:
+                print('\x1b[1mIndex %d: malformed URL\x1b[0m\n' % row[0])
+                continue
+            elif mime:
+                print('\x1b[1mIndex %d: skipped mime\x1b[0m\n' % row[0])
+                continue
+            elif title == '':
+                print('\x1b[1mIndex %d: no title\x1b[0m\n' % row[0])
                 continue
 
             self.cur.execute(query, (title, row[0],))
@@ -1306,8 +1316,57 @@ class BukuDb:
 
 # Generic functions
 
+def is_bad_url(url):
+    '''Check if URL is malformed
+    This API is not bulletproof but works in most cases.
+
+    :param url: URL to scan
+    :return: True or False
+    '''
+
+    # Get the netloc token
+    netloc = urlparse(url).netloc
+    if not netloc:
+        # Try of prepend '//' and get netloc
+        netloc = urlparse('//' + url).netloc
+        if not netloc:
+            return True
+
+    # netloc cannot start with a '.'
+    if netloc.startswith('.'):
+        return True
+
+    # netloc should have at least one '.'
+    index = netloc.rfind('.')
+    if index < 0:
+        return True
+
+    # '.' can be followed by 3 chars at most
+    revindex = len(netloc) - 1 - index
+    if revindex > 0 and revindex < 4:
+        return False
+
+    return True
+
+
+def is_ignored_mime(url):
+    '''Check if URL links to ignored mime
+    Only a 'HEAD' request is made for these URLs
+
+    :param url: URL to scan
+    :return: True or False
+    '''
+
+    for mime in SKIP_MIMES:
+        if url.lower().endswith(mime):
+            return True
+
+    return False
+
+
 def get_page_title(resp):
     '''Invoke HTML parser and extract title from HTTP response
+    The page title is set in a global variable
 
     :param resp: HTTP(S) GET response
     '''
@@ -1327,20 +1386,20 @@ def network_handler(url):
     '''Handle server connection and redirections
 
     :param url: URL to fetch
-    :return: page title, or empty string, if not found
+    :return: {title, recognized mime, bad url} tuple
     '''
 
     global title_data, http_handler
 
     title_data = None
     resp = None
+    method = 'GET'
 
-    if not (url.startswith('http://') or url.startswith('https://')):
-        return ''
+    if is_bad_url(url):
+        return ('', 0, 1)
 
-    for mime in SKIP_MIMES:
-        if url.lower().endswith(mime):
-            return ''
+    if is_ignored_mime(url):
+        method = 'HEAD'
 
     if not http_handler:
         http_handler = urllib3.PoolManager()
@@ -1348,10 +1407,11 @@ def network_handler(url):
     try:
         while True:
             resp = http_handler.request(
-                                'GET', url, timeout=40,
+                                method, url, timeout=40,
                                 headers={'Accept-Encoding': 'gzip,deflate',
                                          'DNT': '1'}
                                        )
+
             if resp.status == 200:
                 get_page_title(resp)
                 break
@@ -1378,9 +1438,11 @@ def network_handler(url):
     finally:
         if resp:
             resp.release_conn()
+        if method == 'HEAD':
+            return ('', 1, 0)
         if title_data is None:
-            return ''
-        return title_data.strip().replace('\n', '')
+            return ('', 0, 0)
+        return (title_data.strip().replace('\n', ''), 0, 0)
 
 
 def parse_tags(keywords=None):
@@ -2014,6 +2076,11 @@ def main():
                         for _id in range(lower, upper + 1):
                             bdb.update_bm(_id, url_in, title_in, tags,
                                           description, append, delete)
+                            if interrupted:
+                                break
+
+                if interrupted:
+                    break
 
     # Search operations
     search_results = None

@@ -216,7 +216,6 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
   - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
   - the **current directory**.
-- It's  advisable  to copy URLs directly from the browser address bar, i.e., along with the leading `http://` or `https://` token. buku looks up title data (found within <title></title> tags of HTML) from the web ONLY for fully-formed HTTP(S) URLs.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes (`'`/`"`).
 - URLs are unique in DB. The same URL cannot be added twice.
 - Bookmarks with immutable titles are listed with bold `(L)` after the URL.
@@ -352,6 +351,7 @@ Applies to --title and --tag too. URL cannot be deleted without deleting the boo
 10. **Update** or refresh **full DB** with page titles from the web:
 
         $ buku -u
+        $ buku -u --tacit (show only failures and exceptions)
 This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
 11. **Delete** bookmark at index 15012014:
 
