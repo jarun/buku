@@ -50,7 +50,7 @@ tagsearch = False  # Search bookmarks by tag
 title_data = None  # Title fetched from a webpage
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
-SKIP_MIMES = {'.txt', '.pdf'}  # Skip connecting to web for these mimes
+SKIP_MIMES = {'.pdf', '.txt'}  # Skip connecting to web for these mimes
 http_handler = None  # urllib3 PoolManager handler
 
 # Crypto globals
@@ -702,15 +702,23 @@ class BukuDb:
         for row in resultset:
             title = network_handler(row[1])
             if title == '':
-                print('\x1b[1mIndex %d: no title\x1b[21m\x1B[0m\n' % row[0])
+                skip = False
+                for mime in SKIP_MIMES:
+                    if row[1].lower().endswith(mime):
+                        skip = True
+                        break
+                if skip:
+                    print('\x1b[1mIndex %d: skipped mime\x1B[0m\n' % row[0])
+                else:
+                    print('\x1b[1mIndex %d: no title\x1B[0m\n' % row[0])
                 continue
-            else:
-                print('Title: [%s]' % title)
 
             self.cur.execute(query, (title, row[0],))
-            print('\x1B[92mIndex %d updated\x1B[0m\n' % row[0])
+
+            if self.chatty:
+                print('Title: [%s]\n\x1B[92mIndex %d updated\x1B[0m\n'
+                      % (title, row[0]))
             if interrupted:
-                logger.warning('^C pressed. Aborting DB refresh...')
                 break
 
         self.conn.commit()
