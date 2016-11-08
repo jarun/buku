@@ -44,11 +44,10 @@ __license__ = 'GPLv3'
 
 # Globals
 update = False  # Update a bookmark in DB
-tags_in = None  # Input tags specified at cmdline
 title_in = None  # Input title specified at cmdline
-description = None  # Description of the bookmark
+tags_in = None  # Input tags specified at cmdline
+desc_in = None  # Description of the bookmark
 tagsearch = False  # Search bookmarks by tag
-title_data = None  # Title fetched from a webpage
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
@@ -71,27 +70,26 @@ class BMHTMLParser(HTMLParser.HTMLParser):
 
     def __init__(self):
         HTMLParser.HTMLParser.__init__(self)
-        self.inTitle = False
+        self.in_title_tag = False
         self.data = ''
-        self.lasttag = None
+        self.prev_tag = None
+        self.parsed_title = None
 
     def handle_starttag(self, tag, attrs):
-        self.inTitle = False
+        self.in_title_tag = False
         if tag == 'title':
-            self.inTitle = True
-            self.lasttag = tag
+            self.in_title_tag = True
+            self.prev_tag = tag
 
     def handle_endtag(self, tag):
-        global title_data
-
         if tag == 'title':
-            self.inTitle = False
+            self.in_title_tag = False
             if self.data != '':
-                title_data = self.data
+                self.parsed_title = self.data
                 self.reset()  # We have received title data, exit parsing
 
     def handle_data(self, data):
-        if self.lasttag == 'title' and self.inTitle:
+        if self.prev_tag == 'title' and self.in_title_tag:
             self.data = '%s%s' % (self.data, data)
 
     def error(self, message):
@@ -1363,9 +1361,9 @@ def is_ignored_mime(url):
 
 def get_page_title(resp):
     '''Invoke HTML parser and extract title from HTTP response
-    The page title is set in a global variable
 
     :param resp: HTTP(S) GET response
+    :return: title fetched from parsed page
     '''
 
     parser = BMHTMLParser()
@@ -1377,6 +1375,8 @@ def get_page_title(resp):
                 and str(e) != 'we should not get here!':
             _, _, linenumber, func, _, _ = inspect.stack()[0]
             logger.error('%s(), ln %d: %s', func, linenumber, e)
+    finally:
+        return parser.parsed_title
 
 
 def network_handler(url):
@@ -1386,9 +1386,9 @@ def network_handler(url):
     :return: {title, recognized mime, bad url} tuple
     '''
 
-    global title_data, http_handler
+    global http_handler
 
-    title_data = None
+    page_title = None
     resp = None
     method = 'GET'
 
@@ -1410,7 +1410,7 @@ def network_handler(url):
                                        )
 
             if resp.status == 200:
-                get_page_title(resp)
+                page_title = get_page_title(resp)
                 break
             elif resp.status == 403:
                 # HTTP response Forbidden
@@ -1437,9 +1437,9 @@ def network_handler(url):
             resp.release_conn()
         if method == 'HEAD':
             return ('', 1, 0)
-        if title_data is None:
+        if page_title is None:
             return ('', 0, 0)
-        return (title_data.strip().replace('\n', ''), 0, 0)
+        return (page_title.strip().replace('\n', ''), 0, 0)
 
 
 def parse_tags(keywords=None):
@@ -1754,9 +1754,9 @@ class CustomDescAction(argparse.Action):
     '''
 
     def __call__(self, parser, args, values, option_string=None):
-        global description
+        global desc_in
 
-        description = ''
+        desc_in = ''
         setattr(args, self.dest, values)
 
 
@@ -1813,7 +1813,7 @@ def piped_input(argv, pipeargs=None):
 
 
 def main():
-    global tags_in, title_in, description
+    global tags_in, title_in, desc_in
 
     pipeargs = []
     atexit.register(logging.shutdown)
@@ -1986,8 +1986,8 @@ def main():
         tags_in = args.tag
     if title_in is not None and len(args.title) > 0:
         title_in = ' '.join(args.title)
-    if description is not None and len(args.comment) > 0:
-        description = ' '.join(args.comment)
+    if desc_in is not None and len(args.comment) > 0:
+        desc_in = ' '.join(args.comment)
     if args.debug:
         logger.setLevel(logging.DEBUG)
         logger.debug('Version %s', __version__)
@@ -2024,7 +2024,7 @@ def main():
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_bm(args.add[0], title_in, tags, description)
+        bdb.add_bm(args.add[0], title_in, tags, desc_in)
 
     # Update record
     if update:
@@ -2051,13 +2051,12 @@ def main():
         tags = parse_tags(tags_in)
 
         if len(args.update) == 0:
-            bdb.update_bm(0, url_in, title_in, tags, description, append,
-                          delete)
+            bdb.update_bm(0, url_in, title_in, tags, desc_in, append, delete)
         else:
             for idx in args.update:
                 if is_int(idx):
-                    bdb.update_bm(int(idx), url_in, title_in, tags,
-                                  description, append, delete)
+                    bdb.update_bm(int(idx), url_in, title_in, tags, desc_in,
+                                  append, delete)
                 elif '-' in idx and is_int(idx.split('-')[0]) \
                         and is_int(idx.split('-')[1]):
                     lower = int(idx.split('-')[0])
@@ -2067,12 +2066,12 @@ def main():
 
                     # Update only once if range starts from 0 (all)
                     if lower == 0:
-                        bdb.update_bm(0, url_in, title_in, tags, description,
+                        bdb.update_bm(0, url_in, title_in, tags, desc_in,
                                       append, delete)
                     else:
                         for _id in range(lower, upper + 1):
-                            bdb.update_bm(_id, url_in, title_in, tags,
-                                          description, append, delete)
+                            bdb.update_bm(_id, url_in, title_in, tags, desc_in,
+                                          append, delete)
                             if interrupted:
                                 break
 
