@@ -455,7 +455,7 @@ class BukuDb:
             if bad:
                 print('\x1b[91mMalformed URL\x1b[0m\n')
             elif mime:
-                logger.debug('mime recognized, only HEAD fetch attempted\n')
+                logger.debug('Mime HEAD requested\n')
             elif meta == '':
                 print('\x1b[91mTitle: []\x1b[0m\n')
             else:
@@ -646,7 +646,7 @@ class BukuDb:
             if bad:
                 print('\x1b[91mMalformed URL\x1b[0m\n')
             elif mime:
-                print('\x1b[91mSkipped mime\x1b[0m\n')
+                print('\x1b[91mMime head requested\x1b[0m\n')
             elif title_to_insert == '':
                 print('\x1b[91mTitle: []\x1b[0m')
             else:
@@ -722,7 +722,7 @@ class BukuDb:
                 print('\x1b[1mIndex %d: malformed URL\x1b[0m\n' % row[0])
                 continue
             elif mime:
-                print('\x1b[1mIndex %d: skipped mime\x1b[0m\n' % row[0])
+                print('\x1b[1mIndex %d: mime HEAD requested\x1b[0m\n' % row[0])
                 continue
             elif title == '':
                 print('\x1b[1mIndex %d: no title\x1b[0m\n' % row[0])
@@ -731,7 +731,7 @@ class BukuDb:
             self.cur.execute(query, (title, row[0],))
 
             if self.chatty:
-                print('Title: [%s]\n\x1b[92mIndex %d updated\x1b[0m\n'
+                print('Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
                       % (title, row[0]))
             if interrupted:
                 break
