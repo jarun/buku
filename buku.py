@@ -1612,18 +1612,13 @@ def open_in_browser(url):
 def check_upstream_release():
     '''Check and report the latest upstream release version'''
 
-    import urllib.request
+    import requests
 
-    request = urllib.request.Request(
-                'https://api.github.com/repos/jarun/buku/tags?per_page=1',
-                headers={'Accept': 'application/vnd.github.v3+json'})
-
-    response = urllib.request.urlopen(request)
-    if response.status != 200:
-        logger.error('Failed to fetch release information. Received %s'
-                     % response.status)
+    r = requests.get('https://api.github.com/repos/jarun/buku/tags?per_page=1')
+    if r.status_code != 200:
+        logger.error('[%s] %s', r.status_code, r.reason)
     else:
-        latest = json.loads(response.read().decode('utf-8'))[0]['name']
+        latest = r.json()[0]['name']
         if latest == 'v' + __version__:
             print('This is the latest release')
         else:
