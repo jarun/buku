@@ -52,6 +52,7 @@ interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
 http_handler = None  # urllib3 PoolManager handler
+htmlparser = None  # Use a single HTML Parser instance
 
 # Crypto globals
 BLOCKSIZE = 65536
@@ -70,6 +71,12 @@ class BMHTMLParser(HTMLParser.HTMLParser):
 
     def __init__(self):
         HTMLParser.HTMLParser.__init__(self)
+        self.in_title_tag = False
+        self.data = ''
+        self.prev_tag = None
+        self.parsed_title = None
+
+    def reinit(self):
         self.in_title_tag = False
         self.data = ''
         self.prev_tag = None
@@ -1366,9 +1373,15 @@ def get_page_title(resp):
     :return: title fetched from parsed page
     '''
 
-    parser = BMHTMLParser()
+    global htmlparser
+
+    if not htmlparser:
+        htmlparser = BMHTMLParser()
+    else:
+        htmlparser.reinit()
+
     try:
-        parser.feed(resp.data.decode(errors='replace'))
+        htmlparser.feed(resp.data.decode(errors='replace'))
     except Exception as e:
         # Suppress Exception due to intentional self.reset() in HTMLParser
         if logger.isEnabledFor(logging.DEBUG) \
@@ -1376,7 +1389,7 @@ def get_page_title(resp):
             _, _, linenumber, func, _, _ = inspect.stack()[0]
             logger.error('%s(), ln %d: %s', func, linenumber, e)
     finally:
-        return parser.parsed_title
+        return htmlparser.parsed_title
 
 
 def network_handler(url):
