@@ -327,35 +327,6 @@ class BukuDb:
         return os.path.join(data_home, 'buku')
 
     @staticmethod
-    def move_legacy_dbfile():
-        '''Move database file from earlier path used in versions <= 1.8
-        to new path. Errors out if both the old and new DB files exist.
-        '''
-
-        old_db_path = os.path.join(os.environ.get('HOME'), '.cache', 'buku')
-        old_db_file = os.path.join(old_db_path, 'bookmarks.db')
-
-        if not os.path.exists(old_db_file):
-            return
-
-        new_db_path = BukuDb.get_dbdir_path()
-        new_db_file = os.path.join(new_db_path, 'bookmarks.db')
-
-        if os.path.exists(new_db_file):
-            logger.error('Both old (%s) and new (%s) DB files exist',
-                         old_db_file, new_db_file)
-            sys.exit(1)
-
-        if not os.path.exists(new_db_path):
-            os.makedirs(new_db_path)
-
-        os.rename(old_db_file, new_db_file)
-        print('Database was moved from old (%s) to new (%s) location.\n'
-              % (old_db_file, new_db_file))
-
-        os.rmdir(old_db_path)
-
-    @staticmethod
     def initdb():
         '''Initialize the database connection. Create DB
         file and/or bookmarks table if they don't exist.
@@ -1961,9 +1932,6 @@ def main():
         logger.debug('Version %s', __version__)
     else:
         logging.disable(logging.WARNING)
-
-    # Move pre-1.9 database to new location
-    # BukuDb.move_legacy_dbfile()
 
     # Handle encrypt/decrypt options at top priority
     if args.lock is not None:
