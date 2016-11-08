@@ -1325,7 +1325,6 @@ def network_handler(url):
     global title_data, http_handler
 
     title_data = None
-    retry = False
     resp = None
 
     if not (url.startswith('http://') or url.startswith('https://')):
@@ -1348,18 +1347,18 @@ def network_handler(url):
             if resp.status == 200:
                 get_page_title(resp)
                 break
-            elif resp.status == 403 and not retry:
-                # Handle URLs in the form of
-                # https://www.domain.com or
-                # https://www.domain.com/
-                # which fail when trying to fetch
-                # resource '/', retry with full path
+            elif resp.status == 403:
+                # HTTP response Forbidden
+                # Handle URLs in the form of https://www.domain.com/
+                # which fail when trying to fetch resource '/'
+                # retry without trailing '/'
 
                 logger.debug('Received status 403: retrying...')
                 # Remove trailing /
                 if url[-1] == '/':
                     url = url[:-1]
-                retry = True
+                else:
+                    break
             else:
                 logger.error('[%s] %s', resp.status, resp.reason)
                 break
