@@ -54,6 +54,9 @@ SKIP_MIMES = {'.pdf', '.txt'}
 http_handler = None  # urllib3 PoolManager handler
 htmlparser = None  # Use a single HTML Parser instance
 
+# Disguise as Firefox on Ubuntu
+USER_AGENT = ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0')
+
 # Crypto globals
 BLOCKSIZE = 65536
 SALT_SIZE = 32
@@ -1419,13 +1422,14 @@ def network_handler(url):
             resp = http_handler.request(
                                 method, url, timeout=40,
                                 headers={'Accept-Encoding': 'gzip,deflate',
+                                         'User-Agent': USER_AGENT,
+                                         'Accept': '*/*',
                                          'DNT': '1'}
                                        )
 
             if resp.status == 200:
                 page_title = get_page_title(resp)
-                break
-            elif resp.status == 403:
+            elif resp.status == 403 and url.endswith('/'):
                 # HTTP response Forbidden
                 # Handle URLs in the form of https://www.domain.com/
                 # which fail when trying to fetch resource '/'
@@ -1433,15 +1437,13 @@ def network_handler(url):
 
                 logger.debug('Received status 403: retrying...')
                 # Remove trailing /
-                if url[-1] == '/':
-                    url = url[:-1]
-                else:
-                    break
+                url = url[:-1]
+                resp.release_conn()
+                continue
             else:
                 logger.error('[%s] %s', resp.status, resp.reason)
-                break
 
-            resp.release_conn()
+            break
     except Exception as e:
         _, _, linenumber, func, _, _ = inspect.stack()[0]
         logger.error('%s(), ln %d: %s', func, linenumber, e)
