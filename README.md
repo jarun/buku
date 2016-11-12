@@ -49,7 +49,7 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 
 ## Features
 
-- Add, open, tag, comment on, search, update, remove URLs
+- Add, open, tag, comment on, search, update, remove, shorten URLs
 - Portable, merge-able database, to sync between systems
 - Import/export bookmarks in markdown or HTML (FF, Chrome, IE compatible)
 - Fetch page title from web, refresh all titles in a go
@@ -197,6 +197,8 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       --noprompt           do not show the prompt, run and exit
       -o, --open [N]       open bookmark at DB index N in web browser
                            open a random index if N is omitted
+      --shorten N/URL      shorten using tny.im url shortener service
+                           accepts either a DB index or a URL
       --tacit              reduce verbosity
       --upstream           check latest upstream version available
       -z, --debug          show debug information and additional logs
@@ -412,13 +414,17 @@ The same number of iterations must be specified for one lock & unlock instance. 
 24. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-25. To list bookmarks with no title or tags for **bookkeeping**:
+25. List bookmarks with **no title or tags** for bookkeeping:
 
         $ buku -S blank
-26. To list bookmarks with **immutable title**:
+26. List bookmarks with **immutable title**:
 
         $ buku -S immutable
-27. More **help**:
+27. **Shorten URL** www.google.com and the URL at index 20:
+
+        $ buku --shorten www.google.com
+        $ buku --shorten 20
+28. More **help**:
 
         $ buku
         $ man buku

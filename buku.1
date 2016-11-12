@@ -9,7 +9,7 @@ is a command-line tool to save, tag and search bookmarks.
 .PP
 .B Features
 .PP
-  * Add, open, tag, comment on, search, update, remove URLs
+  * Add, open, tag, comment on, search, update, remove, shorten URLs
   * Portable merge-able database, to sync between systems
   * Import/export bookmarks in markdown or HTML (FF, Chrome, IE compatible)
   * Fetch page title from web, refresh all titles in a go
@@ -172,6 +172,13 @@ Do not show the prompt, run and exit.
 Open URL at DB index
 .I N
 in browser. Open a random index if N is omitted.
+.TP
+.BI \--shorten " N/URL"
+Shorten the URL at DB index
+.I N
+or an independent
+.I URL
+using the tny.im URL shortener service.
 .TP
 .BI \--tacit
 Show lesser output. Reduces the verbosity of certain operations like add, update etc.
@@ -407,18 +414,26 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -o 15012014
 .PP
 .IP 25. 4
-To list bookmarks with no title or tags for \fBbookkeeping\fR:
+List bookmarks with \fBno title or tags\fR for bookkeeping:
 .PP
 .EX
 .IP
 .B buku -S blank
 .PP
 .IP 26. 4
-To list bookmarks with \fBimmutable title\fR:
+List bookmarks with \fBimmutable title\fR:
 .PP
 .EX
 .IP
 .B buku -S immutable
+.PP
+.IP 27. 4
+\fBShorten\fR the URL www.google.com and the URL at index 20:
+.PP
+.EX
+.IP
+.B buku --shorten www.google.com
+.B buku --shorten 20
 .SH AUTHOR
 Arun Prakash Jana <engineerarun@gmail.com>.
 .SH HOME

@@ -25,6 +25,7 @@ import argparse
 import webbrowser
 import html.parser as HTMLParser
 import urllib3
+import requests
 from urllib.parse import urlparse, unquote
 import signal
 import json
@@ -1360,6 +1361,41 @@ class BukuDb:
 
         return True
 
+    def shorten_url(self, index=0, url=None):
+        '''Shorted a URL using Google URL shortener
+
+        :param index: shorten the URL at DB index (int)
+        :param url: pass a URL (string)
+        :return: shortened url string on success, None on failure
+        '''
+
+        if not index and not url:
+            logger.error('Either a valid DB index or URL required')
+            return None
+
+        if index:
+            self.cur.execute('SELECT url FROM bookmarks WHERE id = ?',
+                             (index,))
+            results = self.cur.fetchall()
+            if len(results):
+                url = results[0][0]
+            else:
+                return None
+
+        r = requests.post(
+            'http://tny.im/yourls-api.php?action=shorturl&format=simple&url=' +
+            url,
+            headers={
+                     'content-type': 'application/json',
+                     'User-Agent': USER_AGENT
+                    }
+                         )
+        if r.status_code != 200:
+            logger.error('[%s] %s', r.status_code, r.reason)
+            return None
+
+        return r.text
+
     def close_quit(self, exitval=0):
         '''Close a DB connection and exit
 
@@ -1747,8 +1783,6 @@ def open_in_browser(url):
 def check_upstream_release():
     '''Check and report the latest upstream release version'''
 
-    import requests
-
     r = requests.get('https://api.github.com/repos/jarun/buku/tags?per_page=1')
     if r.status_code != 200:
         logger.error('[%s] %s', r.status_code, r.reason)
@@ -2019,6 +2053,8 @@ def main():
 --noprompt           do not show the prompt, run and exit
 -o, --open [N]       open bookmark at DB index N in web browser
                      open a random index if N is omitted
+--shorten N/URL      shorten using tny.im url shortener service
+                     accepts either a DB index or a URL
 --tacit              reduce verbosity
 --upstream           check latest upstream version available
 -z, --debug          show debug information and additional logs''')
@@ -2033,6 +2069,7 @@ def main():
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--noprompt', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='?', type=int, const=0, help=HIDE)
+    addarg('--shorten', nargs=1, help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
     addarg('--upstream', action='store_true', help=HIDE)
     addarg('-z', '--debug', action='store_true', help=HIDE)
@@ -2277,6 +2314,16 @@ def main():
             logger.error('Index must be >= 0')
             bdb.close_quit(1)
         bdb.browse_by_index(args.open)
+
+    # Shorten URL:
+    if args.shorten and len(args.shorten):
+        if is_int(args.shorten[0]):
+            shorturl = bdb.shorten_url(index=int(args.shorten[0]))
+        else:
+            shorturl = bdb.shorten_url(url=args.shorten[0])
+
+        if shorturl:
+            print(shorturl)
 
     # Report upstream version
     if args.upstream:

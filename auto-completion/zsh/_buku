@@ -27,6 +27,8 @@ args=(
     '(-r --replace)'{-r,--replace}'[replace a tag]:tag to replace'
     '(-s --sany)'{-s,--sany}'[search any keyword]:keyword(s)'
     '(-s --sall)'{-s,--sall}'[search all keywords]:keyword(s)'
+    '(--shorten)--shorten[shorten a URL]'
+    '(--sreg)--sreg[search by a regular exression]'
     '(--stag)--stag[search by tag or show tags]'
     '(--tacit)--tacit[reduce verbosity]'
     '(--tag)--tag[set tags, use + to append, - to remove]'
