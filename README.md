@@ -39,8 +39,9 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
   - [Cmdline options](#cmdline-options)
   - [Operational notes](#operational-notes)
 - [GUI integration](#gui-integration)
-  - [Add bookmarks to buku](#add-bookmarks-to-buku)
+  - [Add bookmarks from anywhere](#add-bookmarks-from-anywhere)
   - [Import bookmarks to browser](#import-bookmarks-to-browser)
+- [As a library](#as-a-library)
 - [Examples](#examples)
 - [Contributions](#contributions)
 - [Mentions](#mentions)
@@ -246,7 +247,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 `buku` can integrate in a GUI environment with simple tweaks.
 
-### Add bookmarks to buku
+### Add bookmarks from anywhere
 
 With support for piped input, it's possible to add bookmarks to `buku` using keyboard shortcuts on Linux and OS X. CLIPBOARD (plus PRIMARY on Linux) text selections can be added directly this way. The additional utility required is `xsel` (on Linux) or `pbpaste` (on OS X).
 
@@ -300,6 +301,15 @@ To export specific tags, run:
 
     $ buku --export path_to_bookmarks.html --tag tag 1, tag 2
 Once exported, import the html file in your browser.
+
+## As a library
+
+`buku` can be used as a powerful bookmark management library. All functionality are available through carefully designed APIs. `main()` is a good usage example. It's also possible to use a custom database file in multi-user scenarios. Check out the documentation for the following APIs which accept an optional argument as database file:
+
+    BukuDb.initdb(dbfile=None)
+    BukuCrypt.encrypt_file(iterations, dbfile=None)
+    BukuCrypt.decrypt_file(iterations, dbfile=None)
+NOTE: This flexibility is not exposed in the program.
 
 ## Examples
 

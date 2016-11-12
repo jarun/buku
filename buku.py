@@ -55,7 +55,7 @@ http_handler = None  # urllib3 PoolManager handler
 htmlparser = None  # Use a single HTML Parser instance
 
 # Disguise as Firefox on Ubuntu
-USER_AGENT = ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0')
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0'
 
 # Crypto globals
 BLOCKSIZE = 65536
@@ -136,10 +136,11 @@ class BukuCrypt:
             return hasher.digest()
 
     @staticmethod
-    def encrypt_file(iterations):
+    def encrypt_file(iterations, dbfile=None):
         '''Encrypt the bookmarks database file
 
         :param iterations: number of iterations for key generation
+        :param dbfile: custom database file path (including filename)
         '''
 
         try:
@@ -157,14 +158,20 @@ class BukuCrypt:
             logger.error('Iterations must be >= 1')
             sys.exit(1)
 
-        dbpath = os.path.join(BukuDb.get_dbdir_path(), 'bookmarks.db')
-        encpath = '%s.enc' % dbpath
-        if not os.path.exists(dbpath):
-            logger.error('%s missing. Already encrypted?', dbpath)
-            sys.exit(1)
+        if not dbfile:
+            dbfile = os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
+        encfile = '%s.enc' % dbfile
 
-        # If both encrypted file and flat file exist, error out
-        if os.path.exists(dbpath) and os.path.exists(encpath):
+        db_exists = os.path.exists(dbfile)
+        enc_exists = os.path.exists(encfile)
+
+        if db_exists and not enc_exists:
+            pass
+        elif not db_exists:
+            logger.error('%s missing. Already encrypted?', dbfile)
+            sys.exit(1)
+        else:
+            # db_exists and enc_exists
             logger.error('Both encrypted and flat DB files exist!')
             sys.exit(1)
 
@@ -178,8 +185,12 @@ class BukuCrypt:
             logger.error('Passwords do not match')
             sys.exit(1)
 
-        # Get SHA256 hash of DB file
-        dbhash = BukuCrypt.get_filehash(dbpath)
+        try:
+            # Get SHA256 hash of DB file
+            dbhash = BukuCrypt.get_filehash(dbfile)
+        except Exception as e:
+            logger.error(e)
+            sys.exit(1)
 
         # Generate random 256-bit salt and key
         salt = os.urandom(SALT_SIZE)
@@ -194,10 +205,10 @@ class BukuCrypt:
             modes.CBC(iv),
             backend=default_backend()
         ).encryptor()
-        filesize = os.path.getsize(dbpath)
+        filesize = os.path.getsize(dbfile)
 
-        with open(dbpath, 'rb') as infp:
-            with open(encpath, 'wb') as outfp:
+        try:
+            with open(dbfile, 'rb') as infp, open(encfile, 'wb') as outfp:
                 outfp.write(struct.pack('<Q', filesize))
                 outfp.write(salt)
                 outfp.write(iv)
@@ -214,15 +225,20 @@ class BukuCrypt:
 
                     outfp.write(encryptor.update(chunk) + encryptor.finalize())
 
-        os.remove(dbpath)
-        print('File encrypted')
-        sys.exit(0)
+            os.remove(dbfile)
+            print('File encrypted')
+            sys.exit(0)
+        except Exception as e:
+            logger.error(e)
+            sys.exit(1)
 
     @staticmethod
-    def decrypt_file(iterations):
+    def decrypt_file(iterations, dbfile=None):
         '''Decrypt the bookmarks database file
 
         :param iterations: number of iterations for key generation
+        :param dbfile: custom database file path (including filename)
+        :              The '.enc' suffix must be omitted.
         '''
 
         try:
@@ -240,14 +256,24 @@ class BukuCrypt:
             logger.error('Decryption failed')
             sys.exit(1)
 
-        dbpath = os.path.join(BukuDb.get_dbdir_path(), 'bookmarks.db')
-        encpath = '%s.enc' % dbpath
-        if not os.path.exists(encpath):
-            logger.error('%s missing', encpath)
-            sys.exit(1)
+        if not dbfile:
+            dbfile = os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
+        else:
+            dbfile = os.path.abspath(dbfile)
+            dbpath, filename = os.path.split(dbfile)
 
-        # If both encrypted file and flat file exist, error out
-        if os.path.exists(dbpath) and os.path.exists(encpath):
+        encfile = '%s.enc' % dbfile
+
+        enc_exists = os.path.exists(encfile)
+        db_exists = os.path.exists(dbfile)
+
+        if enc_exists and not db_exists:
+            pass
+        elif not enc_exists:
+            logger.error('%s missing', encfile)
+            sys.exit(1)
+        else:
+            # db_exists and enc_exists
             logger.error('Both encrypted and flat DB files exist!')
             sys.exit(1)
 
@@ -257,66 +283,76 @@ class BukuCrypt:
             logger.error('Decryption failed')
             sys.exit(1)
 
-        with open(encpath, 'rb') as infp:
-            origsize = struct.unpack('<Q', infp.read(struct.calcsize('Q')))[0]
+        try:
+            with open(encfile, 'rb') as infp:
+                size = struct.unpack('<Q', infp.read(struct.calcsize('Q')))[0]
 
-            # Read 256-bit salt and generate key
-            salt = infp.read(32)
-            key = ('%s%s' % (password,
-                   salt.decode('utf-8', 'replace'))).encode('utf-8')
-            for _ in range(iterations):
-                key = sha256(key).digest()
+                # Read 256-bit salt and generate key
+                salt = infp.read(32)
+                key = ('%s%s' % (password,
+                       salt.decode('utf-8', 'replace'))).encode('utf-8')
+                for _ in range(iterations):
+                    key = sha256(key).digest()
 
-            iv = infp.read(16)
-            decryptor = Cipher(
-                algorithms.AES(key),
-                modes.CBC(iv),
-                backend=default_backend(),
-            ).decryptor()
+                iv = infp.read(16)
+                decryptor = Cipher(
+                    algorithms.AES(key),
+                    modes.CBC(iv),
+                    backend=default_backend(),
+                ).decryptor()
 
-            # Get original DB file's SHA256 hash from encrypted file
-            enchash = infp.read(32)
+                # Get original DB file's SHA256 hash from encrypted file
+                enchash = infp.read(32)
 
-            with open(dbpath, 'wb') as outfp:
-                while True:
-                    chunk = infp.read(CHUNKSIZE)
-                    if len(chunk) == 0:
-                        break
+                with open(dbfile, 'wb') as outfp:
+                    while True:
+                        chunk = infp.read(CHUNKSIZE)
+                        if len(chunk) == 0:
+                            break
 
-                    outfp.write(decryptor.update(chunk) + decryptor.finalize())
+                        outfp.write(
+                                decryptor.update(chunk) + decryptor.finalize())
 
-                outfp.truncate(origsize)
+                    outfp.truncate(size)
 
-        # Match hash of generated file with that of original DB file
-        dbhash = BukuCrypt.get_filehash(dbpath)
-        if dbhash != enchash:
-            os.remove(dbpath)
-            logger.error('Decryption failed')
+            # Match hash of generated file with that of original DB file
+            dbhash = BukuCrypt.get_filehash(dbfile)
+            if dbhash != enchash:
+                os.remove(dbfile)
+                logger.error('Decryption failed')
+                sys.exit(1)
+            else:
+                os.remove(encfile)
+                print('File decrypted')
+        except struct.error:
+            logger.error('Tainted file')
             sys.exit(1)
-        else:
-            os.remove(encpath)
-            print('File decrypted')
+        except Exception as e:
+            logger.error(e)
+            sys.exit(1)
 
 
 class BukuDb:
 
-    def __init__(self, json=False, field_filter=0, immutable=-1, chatty=False):
+    def __init__(self, json=False, field_filter=0, immutable=-1, chatty=False,
+                 dbfile=None):
         '''Database initialization API
 
         :param json: print results in json format
         :param field_filter: bookmark print format specifier
         :param immutable: disable title fetch from web
         :param chatty: set the verbosity of the APIs
+        :param dbfile: custom database file path (including filename)
         '''
 
-        self.conn, self.cur = BukuDb.initdb()
+        self.conn, self.cur = BukuDb.initdb(dbfile)
         self.json = json
         self.field_filter = field_filter
         self.immutable = immutable
         self.chatty = chatty
 
     @staticmethod
-    def get_dbdir_path():
+    def get_default_dbdir():
         '''Determine the directory path where dbfile will be stored:
         if $XDG_DATA_HOME is defined, use it
         else if $HOME exists, use it
@@ -336,30 +372,48 @@ class BukuDb:
         return os.path.join(data_home, 'buku')
 
     @staticmethod
-    def initdb():
+    def initdb(dbfile=None):
         '''Initialize the database connection. Create DB
         file and/or bookmarks table if they don't exist.
         Alert on encryption options on first execution.
 
+        :param dbfile: custom database file path (including filename)
         :return: (connection, cursor) tuple
         '''
 
-        dbpath = BukuDb.get_dbdir_path()
-        if not os.path.exists(dbpath):
-            os.makedirs(dbpath)
+        if not dbfile:
+            dbpath = BukuDb.get_default_dbdir()
+            filename = 'bookmarks.db'
+            dbfile = os.path.join(dbpath, filename)
+        else:
+            dbfile = os.path.abspath(dbfile)
+            dbpath, filename = os.path.split(dbfile)
 
-        dbfile = os.path.join(dbpath, 'bookmarks.db')
+        encfile = dbfile + '.enc'
 
-        encpath = os.path.join(dbpath, 'bookmarks.db.enc')
-        # Notify if DB file needs to be decrypted first
-        if os.path.exists(encpath) and not os.path.exists(dbfile):
+        try:
+            if not os.path.exists(dbpath):
+                os.makedirs(dbpath)
+        except Exception as e:
+            logger.error(e)
+            os.exit(1)
+
+        db_exists = os.path.exists(dbfile)
+        enc_exists = os.path.exists(encfile)
+
+        if db_exists and not enc_exists:
+            pass
+        elif enc_exists and not db_exists:
             logger.error('Unlock database first')
             sys.exit(1)
 
-        # Show info on first creation
-        if not os.path.exists(dbfile):
+        elif db_exists and enc_exists:
+            logger.error('Both encrypted and flat DB files exist!')
+            sys.exit(1)
+        else:
+            # not db_exists and not enc_exists
             print('DB file is being created at \x1b[1m%s\x1b[0m.' % dbfile)
-            print('You should \x1b[1mencrypt it\x1b[0m later.')
+            print('You should \x1b[1mencrypt it\x1b[0m later.\n')
 
         try:
             # Create a connection
@@ -1816,15 +1870,15 @@ Webpage: https://github.com/jarun/Buku
         self.print_extended_help(file)
 
 
-'''main starts here'''
-
-
 # Handle piped input
 def piped_input(argv, pipeargs=None):
     if not sys.stdin.isatty():
         pipeargs.extend(argv)
         for s in sys.stdin.readlines():
             pipeargs.extend(s.split())
+
+
+'''main starts here'''
 
 
 def main():
@@ -2017,8 +2071,7 @@ def main():
         BukuCrypt.decrypt_file(args.unlock)
 
     # Initialize the database and get handles, set verbose by default
-    bdb = BukuDb(args.json, args.format, args.immutable,
-                 not args.tacit)
+    bdb = BukuDb(args.json, args.format, args.immutable, not args.tacit)
 
     # Add a record
     if args.add is not None:
