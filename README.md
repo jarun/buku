@@ -51,7 +51,7 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 
 - Add, open, tag, comment on, search, update, remove, shorten URLs
 - Portable, merge-able database, to sync between systems
-- Import/export bookmarks in markdown or HTML (FF, Chrome, IE compatible)
+- Import/export bookmarks in markdown or HTML (FF, Chrome compatible)
 - Fetch page title from web, refresh all titles in a go
 - Open (multiple) search results directly in default browser
 - Manual password protection using AES256 encryption
@@ -145,8 +145,9 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     edit options:
       --url keyword        specify url, works with -u only
-      --tag [+|-] [...]    set comma-separated tags, works with -a, -u
+      --tag [+|-] [...]    set comma-separated tags
                            clear tags, if no arguments
+                           works with -a, -u
                            append specified tags, if preceded by '+'
                            remove specified tags, if preceded by '-'
       -t, --title [...]    manually set title, works with -a, -u
@@ -154,18 +155,18 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            -a: do not set title, -u: clear title
       -c, --comment [...]  description of the bookmark, works with
                            -a, -u; clears comment, if no arguments
-      --immutable N        disable title fetch from web during update
+      --immutable N        disable title fetch from web on update
                            works with -a, -u
                            N=0: mutable (default), N=1: immutable
 
     search options:
       -s, --sany keyword [...]
-                           search bookmarks for ANY matching keyword
+                           search records for ANY matching keyword
       -S, --sall keyword [...]
-                           search bookmarks with ALL keywords
+                           search records with ALL keywords
                            special keywords -
-                           "blank": list entries with empty title/tag
-                           "immutable": list entries with locked title
+                           "blank": entries with empty title/tag
+                           "immutable": entries with locked title
       --deep               match substrings ('pen' matches 'opened')
       --sreg expr          run a regex search
       --stag [...]         search bookmarks by tag
@@ -180,16 +181,16 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
     power toys:
       -e, --export file    export bookmarks to Firefox format html
                            use --tag to export only specific tags
-      -i, --import file    import bookmarks from html file; Firefox,
-                           Google Chrome and IE formats supported
+      -i, --import file    import bookmarks from html file; Firefox
+                           and Google Chrome formats supported
       --markdown           use markdown with -e and -i
                            supported format: [title](url), 1 per line
       -m, --merge file     merge bookmarks from another buku database
       -p, --print [...]    show details of bookmark by DB index
                            accepts indices and ranges
                            show all bookmarks, if no arguments
-      -f, --format N       modify -p, search output. N=1: show only URL,
-                           N=2: show URL and tag, N=3: show only title
+      -f, --format N       fields to show in -p or search output
+                           1: URL, 2: URL and tag, 3: title
       -r, --replace oldtag [newtag ...]
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
@@ -204,8 +205,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -z, --debug          show debug information and additional logs
 
     prompt keys:
-      1-N                  open the Nth search result in web browser
-                           ranges, space-separated result indices work
+      1-N                  browse search result indices and/or ranges
       double Enter         exit buku
 
     symbols:
@@ -355,7 +355,6 @@ All bookmarks are exported if --tag is not specified.
 
         $ buku -i bookmarks.html
         $ buku -i bookmarks.md --markdown
-HTML exports from Firefox, Google Chrome and IE are supported.
 9. **Delete only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c

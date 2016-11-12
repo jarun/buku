@@ -1883,8 +1883,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
     def print_extended_help(file=None):
         file.write('''
 prompt keys:
-  1-N                  open the Nth search result in web browser
-                       ranges, space-separated result indices work
+  1-N                  browse search result indices and/or ranges
   double Enter         exit buku
 
 symbols:
@@ -1971,8 +1970,9 @@ def main():
     edit_grp = argparser.add_argument_group(
         title='edit options',
         description='''--url keyword        specify url, works with -u only
---tag [+|-] [...]    set comma-separated tags, works with -a, -u
+--tag [+|-] [...]    set comma-separated tags
                      clear tags, if no arguments
+                     works with -a, -u
                      append specified tags, if preceded by '+'
                      remove specified tags, if preceded by '-'
 -t, --title [...]    manually set title, works with -a, -u
@@ -1980,7 +1980,7 @@ def main():
                      -a: do not set title, -u: clear title
 -c, --comment [...]  description of the bookmark, works with
                      -a, -u; clears comment, if no arguments
---immutable N        disable title fetch from web during update
+--immutable N        disable title fetch from web on update
                      works with -a, -u
                      N=0: mutable (default), N=1: immutable''')
     addarg = edit_grp.add_argument
@@ -1997,12 +1997,12 @@ def main():
     search_grp = argparser.add_argument_group(
         title='search options',
         description='''-s, --sany keyword [...]
-                     search bookmarks for ANY matching keyword
+                     search records for ANY matching keyword
 -S, --sall keyword [...]
-                     search bookmarks with ALL keywords
+                     search records with ALL keywords
                      special keywords -
-                     "blank": list entries with empty title/tag
-                     "immutable": list entries with locked title
+                     "blank": entries with empty title/tag
+                     "immutable": entries with locked title
 --deep               match substrings ('pen' matches 'opened')
 --sreg expr          run a regex search
 --stag [...]         search bookmarks by tag
@@ -2036,16 +2036,16 @@ def main():
         title='power toys',
         description='''-e, --export file    export bookmarks to Firefox format html
                      use --tag to export only specific tags
--i, --import file    import bookmarks from html file; Firefox,
-                     Google Chrome and IE formats supported
+-i, --import file    import bookmarks from html file; Firefox
+                     and Google Chrome formats supported
 --markdown           use markdown with -e and -i
                      supported format: [title](url), 1 per line
 -m, --merge file     merge bookmarks from another buku database
 -p, --print [...]    show details of bookmark by DB index
                      accepts indices and ranges
                      show all bookmarks, if no arguments
--f, --format N       modify -p, search output. N=1: show only URL,
-                     N=2: show URL and tag, N=3: show only title
+-f, --format N       fields to show in -p or search output
+                     1: URL, 2: URL and tag, 3: title
 -r, --replace oldtag [newtag ...]
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag

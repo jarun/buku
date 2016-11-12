@@ -11,7 +11,7 @@ is a command-line tool to save, tag and search bookmarks.
 .PP
   * Add, open, tag, comment on, search, update, remove, shorten URLs
   * Portable merge-able database, to sync between systems
-  * Import/export bookmarks in markdown or HTML (FF, Chrome, IE compatible)
+  * Import/export bookmarks in markdown or HTML (FF, Chrome compatible)
   * Fetch page title from web, refresh all titles in a go
   * Open (multiple) search results directly in default browser
   * Manual password protection using AES256 encryption
@@ -128,7 +128,7 @@ Decrypt (unlock) the DB file with
 Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags.
 .TP
 .BI \-i " " \--import " file"
-Import bookmarks exported from Firefox, Google Chrome or IE in HTML format.
+Import bookmarks exported from Firefox or Google Chrome in HTML format.
 .TP
 .BI \--markdown
 Use markdown for --export and --import. Supported format is '[title](url)', one entry per line.
@@ -140,7 +140,7 @@ Merge bookmarks from another Buku database file.
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices.
 .TP
 .BI \-f " " \--format " N"
-Show selective monochrome output with specific fields. Works with --print and search options. Useful for creating batch update scripts.
+Show selective monochrome output with specific fields. Works with --print and search options. Useful for creating batch scripts.
 .br
 .I N
 = 1, show only URL.
@@ -191,7 +191,7 @@ Show debug information and additional logs.
 .SH PROMPT KEYS
 .TP
 .BI "1-N"
-Open
+Open the
 .I Nth
 search result in browser. Multiple bookmarks are opened if ranges or space-separated result indices are specified.
 .TP
@@ -274,10 +274,6 @@ All bookmarks are exported if --tag is not specified.
 .IP
 .B buku -i bookmarks.html
 .B buku -i bookmarks.md --markdown
-.EE
-.PP
-.IP "" 4
-HTML exports from Firefox, Google Chrome and IE are supported.
 .PP
 .IP 9. 4
 \fBDelete only comment\fR for bookmark at 15012014:
