@@ -56,7 +56,8 @@ http_handler = None  # urllib3 PoolManager handler
 htmlparser = None  # Use a single HTML Parser instance
 
 # Disguise as Firefox on Ubuntu
-USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0'
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 \
+Firefox/48.0'
 
 # Crypto globals
 BLOCKSIZE = 65536
@@ -80,11 +81,12 @@ class BMHTMLParser(HTMLParser.HTMLParser):
         self.prev_tag = None
         self.parsed_title = None
 
-    def reinit(self):
+    def feed(self, data):
         self.in_title_tag = False
         self.data = ''
         self.prev_tag = None
         self.parsed_title = None
+        HTMLParser.HTMLParser.feed(self, data)
 
     def handle_starttag(self, tag, attrs):
         self.in_title_tag = False
@@ -1470,8 +1472,6 @@ def get_page_title(resp):
 
     if not htmlparser:
         htmlparser = BMHTMLParser()
-    else:
-        htmlparser.reinit()
 
     try:
         htmlparser.feed(resp.data.decode(errors='replace'))
