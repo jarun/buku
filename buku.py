@@ -811,39 +811,43 @@ class BukuDb:
         '''
 
         arguments = []
-        placeholder = "'%' || ? || '%'"
         query = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE'
+        # Non-deep query string
+        q1 = '(tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc \
+             REGEXP ?)'
+        # Deep query string
+        q2 = "(tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%') OR \
+             metadata LIKE ('%' || ? || '%') OR desc LIKE ('%' || ? || '%'))"
 
-        if all_keywords:  # Match all keywords in URL or Title
+        if regex:
+            for token in keywords:
+                query = '%s %s OR' % (query, q1)
+
+                arguments += (token, token, token, token)
+            query = query[:-3]
+        elif all_keywords:
             for token in keywords:
                 if not deep:
                     token = '\\b' + token + '\\b'
-                    query = '%s (tags REGEXP ? OR URL REGEXP ? OR metadata \
-                            REGEXP ? OR desc REGEXP ?) AND' % (query)
+                    query = '%s %s AND' % (query, q1)
                 else:
-                    query = '%s (tags LIKE (%s) OR URL LIKE (%s) OR metadata \
-                            LIKE (%s) OR desc LIKE (%s)) AND' \
-                            % (query, placeholder, placeholder, placeholder,
-                               placeholder)
+                    query = '%s %s AND' % (query, q2)
 
                 arguments += (token, token, token, token)
             query = query[:-4]
-        else:  # Match any keyword in URL or Title
+        elif not all_keywords:
             for token in keywords:
                 if not deep:
-                    if not regex:
-                        token = '\\b' + token + '\\b'
-                    query = '%s tags REGEXP ? OR URL REGEXP ? OR metadata \
-                            REGEXP ? OR desc REGEXP ? OR' % (query)
+                    token = '\\b' + token + '\\b'
+                    query = '%s %s OR' % (query, q1)
                 else:
-                    query = '%s tags LIKE (%s) OR URL LIKE (%s) OR metadata \
-                            LIKE (%s) OR desc LIKE (%s) OR' \
-                            % (query, placeholder, placeholder, placeholder,
-                               placeholder)
+                    query = '%s %s OR' % (query, q2)
 
                 arguments += (token, token, token, token)
-
             query = query[:-3]
+        else:
+            logger.error('Invalid search option')
+            return None
 
         query = '%s ORDER BY id ASC' % query
 
@@ -2205,7 +2209,7 @@ def main():
     # Run a regular expression search
     elif args.sreg is not None:
         search_opted = True
-        search_results = bdb.searchdb(args.sreg, False, regex=True)
+        search_results = bdb.searchdb(args.sreg, regex=True)
 
     # Search bookmarks by tag and delete if wanted
     elif tagsearch:
