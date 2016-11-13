@@ -353,6 +353,7 @@ class BukuDb:
         self.field_filter = field_filter
         self.immutable = immutable
         self.chatty = chatty
+        self.deep_search = False  # Is deep search opted
 
     @staticmethod
     def get_default_dbdir():
@@ -812,35 +813,37 @@ class BukuDb:
 
         arguments = []
         query = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE'
-        # Non-deep query string
-        q1 = '(tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc \
-             REGEXP ?)'
         # Deep query string
-        q2 = "(tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%') OR \
+        q1 = "(tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%') OR \
              metadata LIKE ('%' || ? || '%') OR desc LIKE ('%' || ? || '%'))"
+        # Non-deep query string
+        q2 = '(tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc \
+             REGEXP ?)'
 
         if regex:
             for token in keywords:
-                query = '%s %s OR' % (query, q1)
+                query = '%s %s OR' % (query, q2)
 
                 arguments += (token, token, token, token)
             query = query[:-3]
         elif all_keywords:
             for token in keywords:
-                if not deep:
-                    token = '\\b' + token + '\\b'
+                if deep:
                     query = '%s %s AND' % (query, q1)
+                    self.deep_search = True
                 else:
+                    token = '\\b' + token + '\\b'
                     query = '%s %s AND' % (query, q2)
 
                 arguments += (token, token, token, token)
             query = query[:-4]
         elif not all_keywords:
             for token in keywords:
-                if not deep:
-                    token = '\\b' + token + '\\b'
+                if deep:
                     query = '%s %s OR' % (query, q1)
+                    self.deep_search = True
                 else:
+                    token = '\\b' + token + '\\b'
                     query = '%s %s OR' % (query, q2)
 
                 arguments += (token, token, token, token)
@@ -863,10 +866,11 @@ class BukuDb:
     def search_by_tag(self, tag):
         '''Search and list bookmarks with a tag
 
-        :param tag: tag to search
+        :param tag: a tag to search as string
         :return: search results, or None, if no matches
         '''
 
+        tag = '%s%s%s' % (DELIM, tag.strip(DELIM), DELIM)
         query = "SELECT id, url, metadata, tags, desc FROM bookmarks \
                 WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC"
         logger.debug('query: "%s", args: %s', query, tag)
@@ -1603,21 +1607,31 @@ def parse_tags(keywords=None):
     return '%s%s%s' % (DELIM, DELIM.join(sorted_tags), DELIM)
 
 
-def prompt(results, noninteractive=False):
+def prompt(obj, results, noninteractive=False):
     '''Show each matching result from a search and prompt
 
+    :param obj: a valid instance of BukuDb class
+    :param results: result set from a DB query
     :param noninteractive: do not seek user input
     '''
 
-    count = 0
-    for row in results:
-        count += 1
-        print_record(row, count)
-
-    if noninteractive:
+    new_results = True
+    if not type(obj) is BukuDb:
+        logger.error('Not a BukuDb instance')
         return
 
     while True:
+        if results and new_results:
+            count = 0
+            print()
+
+            for row in results:
+                count += 1
+                print_record(row, count)
+
+            if noninteractive:
+                return
+
         try:
             nav = input('Results, ranges (x-y,(a)ll) to open: ')
             if not nav:
@@ -1628,7 +1642,60 @@ def prompt(results, noninteractive=False):
         except EOFError:
             return
 
-        # open all results and re-prompt if 'a' is pressed
+        # search ANY match with new keywords
+        if nav.startswith('s ') and len(nav) > 2:
+            results = obj.searchdb(nav[2:].split(), False, obj.deep_search)
+            new_results = True
+            continue
+
+        # search ALL match with new keywords
+        if nav.startswith('S ') and len(nav) > 2:
+            results = obj.searchdb(nav[2:].split(), True, obj.deep_search)
+            new_results = True
+            continue
+
+        # regular expressions search with new keywords
+        if nav.startswith('r ') and len(nav) > 2:
+            results = obj.searchdb(nav[2:].split(), True, regex=True)
+            new_results = True
+            continue
+
+        # tag search with new keywords
+        if nav.startswith('t ') and len(nav) > 2:
+            results = obj.search_by_tag(nav[2:])
+            new_results = True
+            continue
+
+        # list tags with 't'
+        if nav == 't':
+            obj.list_tags()
+            results = None
+            new_results = False
+            continue
+
+        # quit with 'q'
+        if nav == 'q':
+            return
+
+        # toggle deep search with 'd'
+        if nav == 'd':
+            obj.deep_search = not obj.deep_search
+            if obj.deep_search:
+                print('deep search on')
+            else:
+                print('deep search off')
+
+            new_results = False
+            continue
+
+        new_results = False
+
+        # Nothing to browse if there are no results
+        if not results:
+            print('Not in a search context')
+            continue
+
+        # open all results and re-prompt with 'a'
         if nav == 'a':
             for index in range(0, count):
                 try:
@@ -1665,6 +1732,7 @@ def prompt(results, noninteractive=False):
                         logger.error('%s(), ln %d: %s',
                                      func, linenumber, e)
             else:
+                print('Invalid input')
                 break
 
 
@@ -1888,7 +1956,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
         file.write('''
 prompt keys:
   1-N                  browse search result indices and/or ranges
-  double Enter         exit buku
+  q, double Enter      exit buku
 
 symbols:
   >                    title
@@ -2009,7 +2077,7 @@ def main():
                      "immutable": entries with locked title
 --deep               match substrings ('pen' matches 'opened')
 --sreg expr          run a regex search
---stag [...]         search bookmarks by tag
+--stag [...]         search bookmarks by a tag
                      list tags alphabetically, if no arguments''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', nargs='+', help=HIDE)
@@ -2215,8 +2283,7 @@ def main():
     elif tagsearch:
         search_opted = True
         if len(args.stag) > 0:
-            tag = '%s%s%s' % (DELIM, ' '.join(args.stag).strip(DELIM), DELIM)
-            search_results = bdb.search_by_tag(tag)
+            search_results = bdb.search_by_tag(' '.join(args.stag))
         else:
             bdb.list_tags()
 
@@ -2227,8 +2294,9 @@ def main():
             oneshot = True
 
         if not args.json:
-            prompt(search_results, oneshot)
+            prompt(bdb, search_results, oneshot)
         else:
+            # Printing in Json format is non-interactive
             print(format_json(search_results, field_filter=args.format))
 
         # Delete search results if opted

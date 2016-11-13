@@ -49,7 +49,8 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 
 ## Features
 
-- Add, open, tag, comment on, search, update, remove, shorten URLs
+- Add, open, tag, comment on, update, remove, shorten URLs
+- Multiple search options, continuous search at prompt
 - Portable, merge-able database, to sync between systems
 - Import/export bookmarks in markdown or HTML (FF, Chrome compatible)
 - Fetch page title from web, refresh all titles in a go
@@ -169,7 +170,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            "immutable": entries with locked title
       --deep               match substrings ('pen' matches 'opened')
       --sreg expr          run a regex search
-      --stag [...]         search bookmarks by tag
+      --stag [...]         search bookmarks by a tag
                            list tags alphabetically, if no arguments
 
     encryption options:
@@ -206,7 +207,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     prompt keys:
       1-N                  browse search result indices and/or ranges
-      double Enter         exit buku
+      q, double Enter      exit buku
 
     symbols:
       >                    title
@@ -239,7 +240,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - --sall : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
-  - --stag : search bookmarks by tag, or show all tags alphabetically.
+  - --stag : search bookmarks by a tag, or show all tags alphabetically (if no arguments).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 
