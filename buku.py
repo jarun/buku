@@ -1615,10 +1615,12 @@ def prompt(obj, results, noninteractive=False):
     :param noninteractive: do not seek user input
     '''
 
-    new_results = True
     if not type(obj) is BukuDb:
         logger.error('Not a BukuDb instance')
         return
+
+    new_results = True
+    msg = '\x1b[7mbuku (? for help)\x1b[0m '
 
     while True:
         if results and new_results:
@@ -1633,9 +1635,9 @@ def prompt(obj, results, noninteractive=False):
                 return
 
         try:
-            nav = input('Results, ranges (x-y,(a)ll) to open: ')
+            nav = input(msg)
             if not nav:
-                nav = input('Results, ranges (x-y,(a)ll) to open: ')
+                nav = input(msg)
                 if not nav:
                     # Quit on double enter
                     break
