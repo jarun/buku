@@ -162,14 +162,14 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     search options:
       -s, --sany keyword [...]
-                           search records for ANY matching keyword
+                           search records with ANY keyword
       -S, --sall keyword [...]
                            search records with ALL keywords
                            special keywords -
                            "blank": entries with empty title/tag
                            "immutable": entries with locked title
       --deep               match substrings ('pen' matches 'opened')
-      --sreg expr          run a regex search
+      --sreg expression    run a regex search
       --stag [...]         search bookmarks by a tag
                            list tags alphabetically, if no arguments
 
@@ -204,10 +204,6 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       --tacit              reduce verbosity
       --upstream           check latest upstream version available
       -z, --debug          show debug information and additional logs
-
-    prompt keys:
-      1-N                  browse search result indices and/or ranges
-      q, double Enter      exit buku
 
     symbols:
       >                    title
@@ -440,4 +436,4 @@ Pull requests are welcome. Please visit [#78](https://github.com/jarun/Buku/issu
 
 ## Copyright
 
-Copyright (C) 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
+Copyright © 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com)

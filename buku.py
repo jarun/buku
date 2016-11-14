@@ -1641,6 +1641,7 @@ def prompt(obj, results, noninteractive=False):
                 if not nav:
                     # Quit on double enter
                     break
+            nav = nav.strip()
         except EOFError:
             return
 
@@ -1687,6 +1688,12 @@ def prompt(obj, results, noninteractive=False):
             else:
                 print('deep search off')
 
+            new_results = False
+            continue
+
+        # Show help with '?'
+        if nav == '?':
+            ExtendedArgumentParser.print_prompt_help(sys.stdout)
             new_results = False
             continue
 
@@ -1952,29 +1959,43 @@ class CustomTagSearchAction(argparse.Action):
 class ExtendedArgumentParser(argparse.ArgumentParser):
     '''Extend classic argument parser'''
 
-    # Print additional help and info
+    # Print program info
     @staticmethod
-    def print_extended_help(file=None):
+    def print_program_info(file=None):
         file.write('''
-prompt keys:
-  1-N                  browse search result indices and/or ranges
-  q, double Enter      exit buku
-
 symbols:
   >                    title
   +                    comment
   #                    tags
 
+
 Version %s
-Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
+© 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
 License: GPLv3
 Webpage: https://github.com/jarun/Buku
 ''' % __version__)
 
+    # Print prompt help
+    @staticmethod
+    def print_prompt_help(file=None):
+        file.write('''
+keys:
+  1-N                  browse search result indices and/or ranges
+  a                    open all results in browser
+  s keyword [...]      search for records with ANY keyword
+  S keyword [...]      search for records with ALL keywords
+  d                    match substrings ('pen' matches 'opened')
+  r expression         run a regex search
+  t [...]              search bookmarks by a tag or list all tags
+  ?                    show this help
+  q, ^D, double Enter  exit buku
+
+''')
+
     # Help
     def print_help(self, file=None):
         super(ExtendedArgumentParser, self).print_help(file)
-        self.print_extended_help(file)
+        self.print_program_info(file)
 
 
 # Handle piped input
@@ -2071,14 +2092,14 @@ def main():
     search_grp = argparser.add_argument_group(
         title='search options',
         description='''-s, --sany keyword [...]
-                     search records for ANY matching keyword
+                     search records with ANY keyword
 -S, --sall keyword [...]
                      search records with ALL keywords
                      special keywords -
                      "blank": entries with empty title/tag
                      "immutable": entries with locked title
 --deep               match substrings ('pen' matches 'opened')
---sreg expr          run a regex search
+--sreg expression    run a regex search
 --stag [...]         search bookmarks by a tag
                      list tags alphabetically, if no arguments''')
     addarg = search_grp.add_argument

@@ -91,7 +91,7 @@ Set the title of a bookmark immutable during updates. Works with --add, --update
 .SH SEARCH OPTIONS
 .TP
 .BI \-s " " \--sany " keyword [...]"
-Search bookmarks for ANY of the keyword(s) in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential result index is not the DB index. The DB index is shown in bold within '[]' after the URL.
+Search bookmarks with ANY of the keyword(s) in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential result index is not the DB index. The DB index is shown in bold within '[]' after the URL.
 .TP
 .BI \-S " " \--sall " keyword [...]"
 Search bookmarks with ALL keywords in URL, title or tags and show the results. Behaviour same as --sany.
@@ -104,7 +104,7 @@ Special keywords:
 .br
 NOTE: To search the keywords, use --sany
 .TP
-.BI \--sreg " expr"
+.BI \--sreg " expression"
 Scan for a regular expression match.
 .TP
 .BI \--deep
@@ -192,11 +192,30 @@ Show debug information and additional logs.
 .SH PROMPT KEYS
 .TP
 .BI "1-N"
-Open the
-.I Nth
-search result in browser. Multiple bookmarks are opened if ranges or space-separated result indices are specified.
+Browse search results by indices and ranges.
 .TP
-.BI "q, double Enter"
+.BI "a"
+Open all search results in browser.
+.TP
+.BI "s" " keyword [...]"
+Search for records with ANY keyword.
+.TP
+.BI "S" " keyword [...]"
+Search for records with ALL keywords.
+.TP
+.BI "d"
+Toggle deep search to match substrings ('pen' matches 'opened').
+.TP
+.BI "r" " expression"
+Run a regular expression search.
+.TP
+.BI "t" " [...]"
+Search bookmarks by a tag. List all tags alphabetically, if no arguments.
+.TP
+.BI "?"
+Show help on prompt keys.
+.TP
+.BI "q, ^D, double Enter"
 Exit buku.
 .SH ENVIRONMENT
 .TP
