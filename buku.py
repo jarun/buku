@@ -353,7 +353,6 @@ class BukuDb:
         self.field_filter = field_filter
         self.immutable = immutable
         self.chatty = chatty
-        self.deep_search = False  # Is deep search opted
 
     @staticmethod
     def get_default_dbdir():
@@ -830,7 +829,6 @@ class BukuDb:
             for token in keywords:
                 if deep:
                     query = '%s %s AND' % (query, q1)
-                    self.deep_search = True
                 else:
                     token = '\\b' + token + '\\b'
                     query = '%s %s AND' % (query, q2)
@@ -841,7 +839,6 @@ class BukuDb:
             for token in keywords:
                 if deep:
                     query = '%s %s OR' % (query, q1)
-                    self.deep_search = True
                 else:
                     token = '\\b' + token + '\\b'
                     query = '%s %s OR' % (query, q2)
@@ -1607,12 +1604,13 @@ def parse_tags(keywords=None):
     return '%s%s%s' % (DELIM, DELIM.join(sorted_tags), DELIM)
 
 
-def prompt(obj, results, noninteractive=False):
+def prompt(obj, results, noninteractive=False, deep=False):
     '''Show each matching result from a search and prompt
 
     :param obj: a valid instance of BukuDb class
     :param results: result set from a DB query
     :param noninteractive: do not seek user input
+    :param deep: use deep search
     '''
 
     if not type(obj) is BukuDb:
@@ -1647,13 +1645,13 @@ def prompt(obj, results, noninteractive=False):
 
         # search ANY match with new keywords
         if nav.startswith('s ') and len(nav) > 2:
-            results = obj.searchdb(nav[2:].split(), False, obj.deep_search)
+            results = obj.searchdb(nav[2:].split(), False, deep)
             new_results = True
             continue
 
         # search ALL match with new keywords
         if nav.startswith('S ') and len(nav) > 2:
-            results = obj.searchdb(nav[2:].split(), True, obj.deep_search)
+            results = obj.searchdb(nav[2:].split(), True, deep)
             new_results = True
             continue
 
@@ -1682,8 +1680,8 @@ def prompt(obj, results, noninteractive=False):
 
         # toggle deep search with 'd'
         if nav == 'd':
-            obj.deep_search = not obj.deep_search
-            if obj.deep_search:
+            deep = not deep
+            if deep:
                 print('deep search on')
             else:
                 print('deep search off')
@@ -2039,7 +2037,7 @@ def main():
 
     general_grp = argparser.add_argument_group(
         title='general options',
-        description='''-a, --add URL [tags ...]
+        description='''-a, --add URL [tag, ...]
                      bookmark URL with comma-separated tags
 -u, --update [...]   update fields of bookmark at DB indices
                      accepts indices and ranges
@@ -2152,7 +2150,7 @@ def main():
                      accepts either a DB index or a URL
 --tacit              reduce verbosity
 --upstream           check latest upstream version available
--z, --debug          show debug information and additional logs''')
+-z, --debug          show debug information and extra logs''')
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
@@ -2317,7 +2315,7 @@ def main():
             oneshot = True
 
         if not args.json:
-            prompt(bdb, search_results, oneshot)
+            prompt(bdb, search_results, oneshot, args.deep)
         else:
             # Printing in Json format is non-interactive
             print(format_json(search_results, field_filter=args.format))

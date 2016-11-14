@@ -130,7 +130,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
     A powerful command-line bookmark manager. Your mini web!
 
     general options:
-      -a, --add URL [tags ...]
+      -a, --add URL [tag, ...]
                            bookmark URL with comma-separated tags
       -u, --update [...]   update fields of bookmark at DB indices
                            accepts indices and ranges
@@ -203,7 +203,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            accepts either a DB index or a URL
       --tacit              reduce verbosity
       --upstream           check latest upstream version available
-      -z, --debug          show debug information and additional logs
+      -z, --debug          show debug information and extra logs
 
     symbols:
       >                    title
