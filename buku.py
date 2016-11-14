@@ -944,7 +944,7 @@ class BukuDb:
                 if not delay_commit:
                     self.conn.commit()
             except IndexError:
-                logger.error('Index out of bound')
+                logger.error('Index out of range')
                 return False
         elif index == 0:  # Remove the table
             return self.cleardb()
@@ -961,7 +961,7 @@ class BukuDb:
                     logger.error('No matching index')
                     return False
             except IndexError:
-                logger.error('Index out of bound')
+                logger.error('Index out of range')
                 return False
 
         return True
@@ -1058,7 +1058,7 @@ class BukuDb:
                     logger.error('No matching index')
                     return
             except IndexError:
-                logger.error('Index out of bound')
+                logger.error('Index out of range')
                 return
 
             if not self.json:
@@ -1074,10 +1074,12 @@ class BukuDb:
             else:
                 print(format_json(results, True, self.field_filter))
 
-    def list_tags(self):
-        '''Print all unique tags ordered alphabetically'''
+    def get_all_tags(self):
+        '''Get list of tags in DB
 
-        count = 1
+        :return: list of unique tags sorted alphabetically
+        '''
+
         tags = []
         unique_tags = []
         query = 'SELECT DISTINCT tags FROM bookmarks ORDER BY tags'
@@ -1091,9 +1093,8 @@ class BukuDb:
             unique_tags = sorted(tags[1:], key=str.lower)
         else:
             unique_tags = sorted(tags, key=str.lower)
-        for tag in unique_tags:
-            print('%6d. %s' % (count, tag))
-            count += 1
+
+        return unique_tags
 
     def replace_tag(self, orig, new=None):
         '''Replace orig tags with new tags in DB for all records.
@@ -1170,7 +1171,7 @@ class BukuDb:
                 return True
             logger.error('No matching index')
         except IndexError:
-            logger.error('Index out of bound')
+            logger.error('Index out of range')
 
         return False
 
@@ -1604,6 +1605,54 @@ def parse_tags(keywords=None):
     return '%s%s%s' % (DELIM, DELIM.join(sorted_tags), DELIM)
 
 
+def taglist_subprompt(obj):
+    '''Additional prompt to show unique tag list
+
+    :param obj: a valid instance of BukuDb class
+    :return: New command string
+    '''
+
+    unique_tags = obj.get_all_tags()
+    msg = '\x1b[7mbuku (? for help)\x1b[0m '
+    new_results = True
+
+    while True:
+        if new_results:
+            count = 1
+            for tag in unique_tags:
+                print('%6d. %s' % (count, tag))
+                count += 1
+
+        try:
+            nav = input(msg)
+            if not nav:
+                nav = input(msg)
+                if not nav:
+                    # Quit on double enter
+                    return 'q'
+            nav = nav.strip()
+        except EOFError:
+            return 'q'
+
+        if is_int(nav) and int(nav) > 0 and int(nav) < count:
+            return 't ' + unique_tags[int(nav) - 1]
+        elif is_int(nav):
+            print('Index out of range')
+            new_results = False
+        elif is_int(nav[0]):
+            print('Invalid input')
+            new_results = False
+        elif nav == 't':
+            new_results = True
+            continue
+        elif (nav == 'q' or nav == 'd' or nav == '?' or
+              nav.startswith('s ') or nav.startswith('S ') or
+              nav.startswith('r ') or nav.startswith('t ')):
+            return nav
+        else:
+            print('Invalid input')
+            new_results = False
+
 def prompt(obj, results, noninteractive=False, deep=False):
     '''Show each matching result from a search and prompt
 
@@ -1623,7 +1672,6 @@ def prompt(obj, results, noninteractive=False, deep=False):
     while True:
         if results and new_results:
             count = 0
-            print()
 
             for row in results:
                 count += 1
@@ -1643,35 +1691,32 @@ def prompt(obj, results, noninteractive=False, deep=False):
         except EOFError:
             return
 
+        # list tags with 't'
+        if nav == 't':
+            nav = taglist_subprompt(obj)
+
         # search ANY match with new keywords
-        if nav.startswith('s ') and len(nav) > 2:
+        if nav.startswith('s '):
             results = obj.searchdb(nav[2:].split(), False, deep)
             new_results = True
             continue
 
         # search ALL match with new keywords
-        if nav.startswith('S ') and len(nav) > 2:
+        if nav.startswith('S '):
             results = obj.searchdb(nav[2:].split(), True, deep)
             new_results = True
             continue
 
         # regular expressions search with new keywords
-        if nav.startswith('r ') and len(nav) > 2:
+        if nav.startswith('r '):
             results = obj.searchdb(nav[2:].split(), True, regex=True)
             new_results = True
             continue
 
         # tag search with new keywords
-        if nav.startswith('t ') and len(nav) > 2:
+        if nav.startswith('t '):
             results = obj.search_by_tag(nav[2:])
             new_results = True
-            continue
-
-        # list tags with 't'
-        if nav == 't':
-            obj.list_tags()
-            results = None
-            new_results = False
             continue
 
         # quit with 'q'
@@ -1718,7 +1763,7 @@ def prompt(obj, results, noninteractive=False, deep=False):
             if is_int(nav):
                 index = int(nav) - 1
                 if index < 0 or index >= count:
-                    logger.error('Index out of bound')
+                    logger.error('Index out of range')
                     continue
                 try:
                     open_in_browser(unquote(results[index][1]))
@@ -1984,7 +2029,8 @@ keys:
   S keyword [...]      search for records with ALL keywords
   d                    match substrings ('pen' matches 'opened')
   r expression         run a regex search
-  t [...]              search bookmarks by a tag or list all tags
+  t [...]              search bookmarks by a tag or show tag list
+                       (tag list index fetches bookmarks by tag)
   ?                    show this help
   q, ^D, double Enter  exit buku
 
@@ -2306,7 +2352,11 @@ def main():
         if len(args.stag) > 0:
             search_results = bdb.search_by_tag(' '.join(args.stag))
         else:
-            bdb.list_tags()
+            unique_tags = bdb.get_all_tags()
+            count = 1
+            for tag in unique_tags:
+                print('%6d. %s' % (count, tag))
+                count += 1
 
     if search_results:
         oneshot = args.noprompt
