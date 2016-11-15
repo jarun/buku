@@ -259,7 +259,8 @@ The following steps explore the procedure on Linux with Ubuntu as the reference 
 
         #!/bin/bash
 
-        xsel | buku -a
+        buku -a $(xsel) $1
+
 
   `-a` is the option to add a bookmark.
 3. Make the script executable:
