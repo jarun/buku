@@ -1618,10 +1618,14 @@ def taglist_subprompt(obj):
 
     while True:
         if new_results:
-            count = 1
-            for tag in unique_tags:
-                print('%6d. %s' % (count, tag))
-                count += 1
+            if len(unique_tags) == 0:
+                count = 0
+                print('0 tags')
+            else:
+                count = 1
+                for tag in unique_tags:
+                    print('%6d. %s' % (count, tag))
+                    count += 1
 
         try:
             nav = input(msg)
@@ -1670,12 +1674,15 @@ def prompt(obj, results, noninteractive=False, deep=False):
     msg = '\x1b[7mbuku (? for help)\x1b[0m '
 
     while True:
-        if results and new_results:
-            count = 0
+        if new_results:
+            if results:
+                count = 0
 
-            for row in results:
-                count += 1
-                print_record(row, count)
+                for row in results:
+                    count += 1
+                    print_record(row, count)
+            else:
+                print('0 results')
 
             if noninteractive:
                 return
@@ -1763,7 +1770,7 @@ def prompt(obj, results, noninteractive=False, deep=False):
             if is_int(nav):
                 index = int(nav) - 1
                 if index < 0 or index >= count:
-                    logger.error('No matching index')
+                    print('No matching index')
                     continue
                 try:
                     open_in_browser(unquote(results[index][1]))
@@ -1778,7 +1785,10 @@ def prompt(obj, results, noninteractive=False, deep=False):
                     lower, upper = upper, lower
                 for index in range(lower-1, upper):
                     try:
-                        open_in_browser(unquote(results[index][1]))
+                        if 0 <= index < count:
+                            open_in_browser(unquote(results[index][1]))
+                        else:
+                            print('No matching index')
                     except Exception as e:
                         _, _, linenumber, func, _, _ = inspect.stack()[0]
                         logger.error('%s(), ln %d: %s',
