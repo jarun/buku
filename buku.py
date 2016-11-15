@@ -944,7 +944,7 @@ class BukuDb:
                 if not delay_commit:
                     self.conn.commit()
             except IndexError:
-                logger.error('Index out of range')
+                logger.error('No matching index')
                 return False
         elif index == 0:  # Remove the table
             return self.cleardb()
@@ -961,7 +961,7 @@ class BukuDb:
                     logger.error('No matching index')
                     return False
             except IndexError:
-                logger.error('Index out of range')
+                logger.error('No matching index')
                 return False
 
         return True
@@ -1058,7 +1058,7 @@ class BukuDb:
                     logger.error('No matching index')
                     return
             except IndexError:
-                logger.error('Index out of range')
+                logger.error('No matching index')
                 return
 
             if not self.json:
@@ -1171,7 +1171,7 @@ class BukuDb:
                 return True
             logger.error('No matching index')
         except IndexError:
-            logger.error('Index out of range')
+            logger.error('No matching index')
 
         return False
 
@@ -1637,7 +1637,7 @@ def taglist_subprompt(obj):
         if is_int(nav) and int(nav) > 0 and int(nav) < count:
             return 't ' + unique_tags[int(nav) - 1]
         elif is_int(nav):
-            print('Index out of range')
+            print('No matching index')
             new_results = False
         elif is_int(nav[0]):
             print('Invalid input')
@@ -1763,7 +1763,7 @@ def prompt(obj, results, noninteractive=False, deep=False):
             if is_int(nav):
                 index = int(nav) - 1
                 if index < 0 or index >= count:
-                    logger.error('Index out of range')
+                    logger.error('No matching index')
                     continue
                 try:
                     open_in_browser(unquote(results[index][1]))
@@ -2258,6 +2258,7 @@ def main():
             if tags_in[0] == '+' and len(tags_in) == 1:
                 pass
             elif tags_in[0] == '+':
+                # The case: buku -a url tag1, tag2 --tag + tag3, tag4
                 tags_in = tags_in[1:]
                 # In case of add, args.add may have URL followed by tags
                 # Add delimiter as url+tags may not end with one
