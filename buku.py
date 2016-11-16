@@ -1511,6 +1511,7 @@ def network_handler(url):
         method = 'HEAD'
 
     if not http_handler:
+        urllib3.disable_warnings()
         http_handler = urllib3.PoolManager()
 
     try:
