@@ -1241,7 +1241,8 @@ class BukuDb:
 <H1>Bookmarks</H1>
 
 <DL><p>
-    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>
+    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" PERSONAL_TOOLBAR_FOLDER="true">\
+Buku bookmarks</H3>
     <DL><p>
 ''' % (timestamp, timestamp))
 
@@ -1658,6 +1659,7 @@ def taglist_subprompt(obj):
             print('Invalid input')
             new_results = False
 
+
 def prompt(obj, results, noninteractive=False, deep=False):
     '''Show each matching result from a search and prompt
 
@@ -1896,6 +1898,9 @@ def open_in_browser(url):
     '''
 
     url = url.replace('%22', '\"')
+    if not urlparse(url).scheme:
+        logger.error('scheme missing in URI, trying http')
+        url = '%s%s' % ('http://', url)
 
     _stderr = os.dup(2)
     os.close(2)
