@@ -222,6 +222,20 @@ Exit buku.
 .BI BROWSER
 Overrides the default browser. Ref:
 .I http://docs.python.org/library/webbrowser.html
+.TP
+.BR http_proxy ", " HTTP_PROXY ", " https_proxy "  or " HTTPS_PROXY"
+
+If defined, will be used to access http and https resources through the configured proxy. 
+For https requests, if https proxy is not defined but http is, the latter will be used 
+instead. 
+
+They should be in the following format:
+
+    http[s]://proxyhost:proxyport
+
+Buku uses urllib3 for proxy support, but that library doesn't support authenticated
+proxies. So, if that's your need, you should use a local intermediate proxy, such as 
+cntlm, TinyProxy or Polipo.
 .SH EXAMPLES
 .PP
 .IP 1. 4
