@@ -1498,11 +1498,20 @@ def get_PoolManager():
     :return: ProxyManager if https_proxy is defined, else PoolManager.
     '''
 
-    https_proxy = os.environ.get('https_proxy')
-    print(https_proxy)
+    proxy = os.environ.get('https_proxy')
 
-    if https_proxy:
-        return urllib3.ProxyManager(https_proxy)
+    if proxy:
+        headers = None
+        url = urlparse(proxy)
+        # Strip username and password and create header, if present
+        if url.username:
+            proxy = proxy.replace(url.username + ':' + url.password + '@', '')
+            headers = urllib3.util.make_headers(
+                                basic_auth=url.username + ':' + url.password
+                                               )
+
+        logger.debug('proxy: [%s]' % proxy)
+        return urllib3.ProxyManager(proxy, headers=headers)
 
     return urllib3.PoolManager()
 
@@ -1914,6 +1923,10 @@ def open_in_browser(url):
 
     url = url.replace('%22', '\"')
     if not urlparse(url).scheme:
+        # Prefix with 'http://' is no scheme
+        # Otherwise, opening in browser fails anyway
+        # We expect http to https redirection
+        # will happen for https-only websites
         logger.error('scheme missing in URI, trying http')
         url = '%s%s' % ('http://', url)
 
