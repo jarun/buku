@@ -57,6 +57,8 @@ Bookmarks with immutable titles are listed with bold '(L)' after the URL.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within '[]' after the URL.
 .PP
 \fIEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
+.PP
+\fIProxy\fR support: refer to the \fBENVIRONMENT\fR section.
 .SH GENERAL OPTIONS
 .TP
 .BI \-a " " \--add " URL [tag, ...]"
@@ -223,19 +225,11 @@ Exit buku.
 Overrides the default browser. Ref:
 .I http://docs.python.org/library/webbrowser.html
 .TP
-.BR http_proxy ", " HTTP_PROXY ", " https_proxy "  or " HTTPS_PROXY"
+.BI https_proxy
+If defined, will be used to access http and https resources through the configured proxy. Supported format:
 
-If defined, will be used to access http and https resources through the configured proxy. 
-For https requests, if https proxy is not defined but http is, the latter will be used 
-instead. 
+    http[s]://proxyhost:proxyport/
 
-They should be in the following format:
-
-    http[s]://proxyhost:proxyport
-
-Buku uses urllib3 for proxy support, but that library doesn't support authenticated
-proxies. So, if that's your need, you should use a local intermediate proxy, such as 
-cntlm, TinyProxy or Polipo.
 .SH EXAMPLES
 .PP
 .IP 1. 4

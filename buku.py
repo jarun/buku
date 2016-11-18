@@ -1492,35 +1492,19 @@ def get_page_title(resp):
         return htmlparser.parsed_title
 
 
-def create_poolmanager(url):
-    '''Creates a pool manager with proxy support, if needed.
-    
-    Checks to see if there are proxy variables defined and creates
-    a ProxyManager. If not, creates a PoolManager.
+def get_PoolManager():
+    '''Creates a pool manager with proxy support, if applicable
+
+    :return: ProxyManager if https_proxy is defined, else PoolManager.
     '''
 
-    # Check if http_proxy or HTTP_PROXY is defined
-    http_proxy = os.environ.get('http_proxy')
-    if not http_proxy:
-        http_proxy = os.environ.get('HTTP_PROXY')
-
-    # Check if https_proxy or HTTPS_PROXY is defined
     https_proxy = os.environ.get('https_proxy')
-    if not https_proxy:
-        https_proxy = os.environ.get('HTTPS_PROXY')
+    print(https_proxy)
 
-    # If not, falls back to http_proxy, which is more common.
-    if not https_proxy:
-        https_proxy = http_proxy
+    if https_proxy:
+        return urllib3.ProxyManager(https_proxy)
 
-    # Create a pool manager with or without proxy support as needed.
-    if url.startswith('http://') and http_proxy:
-        manager = urllib3.ProxyManager(http_proxy)
-    elif url.startswith('https://') and https_proxy:
-        manager = urllib3.ProxyManager(https_proxy)
-    else:
-        manager = urllib3.PoolManager()
-    return manager;
+    return urllib3.PoolManager()
 
 
 def network_handler(url):
@@ -1544,7 +1528,7 @@ def network_handler(url):
 
     if not http_handler:
         urllib3.disable_warnings()
-        http_handler = create_poolmanager(url)
+        http_handler = get_PoolManager()
 
     try:
         while True:
