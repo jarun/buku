@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/2bc3vq5ndxfvg0sm9jp8xlz03"><img src="https://asciinema.org/a/2bc3vq5ndxfvg0sm9jp8xlz03.png" alt="Asciicast" width="734"/></a>
+<a href="https://asciinema.org/a/93428"><img src="https://asciinema.org/a/93428.png" alt="Asciicast" width="734"/></a>
 </p>
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
