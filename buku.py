@@ -1417,6 +1417,34 @@ Buku bookmarks</H3>
 
         return r.text
 
+    def fixtags(self):
+        '''Undocumented API to fix tags set
+        in earlier versions. Functionalities:
+
+        1. Remove duplicate tags
+        2. Sort tags
+        3. Use lower case to store tags
+        '''
+
+        to_commit = False
+        self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
+        resultset = self.cur.fetchall()
+        query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
+        for row in resultset:
+            oldtags = row[1]
+            if oldtags == ',':
+                continue
+
+            tags = parse_tags([oldtags])
+            if tags == oldtags:
+                continue
+
+            self.cur.execute(query, (tags, row[0],))
+            to_commit = True
+
+        if to_commit:
+            self.conn.commit()
+
     def close_quit(self, exitval=0):
         '''Close a DB connection and exit
 
@@ -1634,7 +1662,7 @@ def parse_tags(keywords=None):
     orig_tags += tags.strip(DELIM).split(DELIM)
     for tag in orig_tags:
         if tag.lower() not in unique_tags:
-            # Add unique tags in lowercase
+            # Add unique tags in lower case
             unique_tags += (tag.lower(), )
 
     # Sort the tags
@@ -2269,6 +2297,8 @@ def main():
     addarg('--tacit', action='store_true', help=HIDE)
     addarg('--upstream', action='store_true', help=HIDE)
     addarg('-z', '--debug', action='store_true', help=HIDE)
+    # Undocumented API
+    addarg('--fixtags', action='store_true', help=HIDE)
 
     # Show help and exit if no arguments
     if len(sys.argv) < 2:
@@ -2529,6 +2559,10 @@ def main():
     # Report upstream version
     if args.upstream:
         check_upstream_release()
+
+    # Fix tags
+    if args.fixtags:
+        bdb.fixtags()
 
     # Close DB connection and quit
     bdb.close_quit(0)
