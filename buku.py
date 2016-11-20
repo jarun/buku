@@ -810,50 +810,56 @@ class BukuDb:
         :return: search results, or None, if no matches
         '''
 
-        arguments = []
-        query = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE'
+        qry = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE'
         # Deep query string
         q1 = "(tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%') OR \
              metadata LIKE ('%' || ? || '%') OR desc LIKE ('%' || ? || '%'))"
         # Non-deep query string
         q2 = '(tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc \
              REGEXP ?)'
+        qargs = []
 
         if regex:
             for token in keywords:
-                query = '%s %s OR' % (query, q2)
+                qry = '%s %s OR' % (qry, q2)
 
-                arguments += (token, token, token, token)
-            query = query[:-3]
+                qargs += (token, token, token, token,)
+            qry = qry[:-3]
         elif all_keywords:
-            for token in keywords:
-                if deep:
-                    query = '%s %s AND' % (query, q1)
-                else:
-                    token = '\\b' + token + '\\b'
-                    query = '%s %s AND' % (query, q2)
+            if len(keywords) == 1 and keywords[0] == 'blank':
+                qry = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ?"
+                qargs += (DELIM,)
+            elif len(keywords) == 1 and keywords[0] == 'immutable':
+                qry = "SELECT * FROM bookmarks WHERE flags & 1 == 1"
+            else:
+                for token in keywords:
+                    if deep:
+                        qry = '%s %s AND' % (qry, q1)
+                    else:
+                        token = '\\b' + token + '\\b'
+                        qry = '%s %s AND' % (qry, q2)
 
-                arguments += (token, token, token, token)
-            query = query[:-4]
+                    qargs += (token, token, token, token,)
+                qry = qry[:-4]
         elif not all_keywords:
             for token in keywords:
                 if deep:
-                    query = '%s %s OR' % (query, q1)
+                    qry = '%s %s OR' % (qry, q1)
                 else:
                     token = '\\b' + token + '\\b'
-                    query = '%s %s OR' % (query, q2)
+                    qry = '%s %s OR' % (qry, q2)
 
-                arguments += (token, token, token, token)
-            query = query[:-3]
+                qargs += (token, token, token, token,)
+            qry = qry[:-3]
         else:
             logger.error('Invalid search option')
             return None
 
-        query = '%s ORDER BY id ASC' % query
-        logger.debug('query: "%s", args: %s', query, arguments)
+        qry = '%s ORDER BY id ASC' % qry
+        logger.debug('query: "%s", args: %s', qry, qargs)
 
         try:
-            self.cur.execute(query, arguments)
+            self.cur.execute(qry, qargs)
         except sqlite3.OperationalError as e:
             logger.error(e)
             return None
@@ -1013,47 +1019,14 @@ class BukuDb:
         print('All bookmarks deleted')
         return True
 
-    def print_bm(self, index, empty=False, immutable=False):
+    def print_bm(self, index):
         '''Print bookmark details at index or all bookmarks if index is 0
-        Print only bookmarks with blank title or tag if empty is True
         Note: URL is printed on top because title may be blank
 
-        :param index: index to print (0 for all)
-        :param empty: flag to show only bookmarks with no title or tags
-        :param immutable: flag to show only bookmarks with immutable titles
+        :param index: index to print, 0 prints all
         '''
 
-        if index == 0:  # Show all entries
-            if empty:
-                qry = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ?"
-                self.cur.execute(qry, (DELIM,))
-                resultset = self.cur.fetchall()
-                print('\x1b[1m%s records found\x1b[21m\n' % len(resultset))
-            elif immutable:
-                qry = "SELECT * FROM bookmarks WHERE flags & 1 == 1"
-                self.cur.execute(qry)
-                resultset = self.cur.fetchall()
-                print('\x1b[1m%s records found\x1b[21m\n' % len(resultset))
-            else:
-                self.cur.execute('SELECT * FROM bookmarks')
-                resultset = self.cur.fetchall()
-
-            if not self.json:
-                if self.field_filter == 0:
-                    for row in resultset:
-                        print_record(row)
-                elif self.field_filter == 1:
-                    for row in resultset:
-                        print('%s\t%s' % (row[0], row[1]))
-                elif self.field_filter == 2:
-                    for row in resultset:
-                        print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-                elif self.field_filter == 3:
-                    for row in resultset:
-                        print('%s\t%s' % (row[0], row[2]))
-            else:
-                print(format_json(resultset, field_filter=self.field_filter))
-        else:  # Show record at index
+        if index != 0:  # Show record at index
             try:
                 query = 'SELECT * FROM bookmarks WHERE id = ?'
                 self.cur.execute(query, (index,))
@@ -1077,6 +1050,25 @@ class BukuDb:
                         print('%s\t%s' % (row[0], row[2]))
             else:
                 print(format_json(results, True, self.field_filter))
+        else:  # Show all entries
+            self.cur.execute('SELECT * FROM bookmarks')
+            resultset = self.cur.fetchall()
+
+            if not self.json:
+                if self.field_filter == 0:
+                    for row in resultset:
+                        print_record(row)
+                elif self.field_filter == 1:
+                    for row in resultset:
+                        print('%s\t%s' % (row[0], row[1]))
+                elif self.field_filter == 2:
+                    for row in resultset:
+                        print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
+                elif self.field_filter == 3:
+                    for row in resultset:
+                        print('%s\t%s' % (row[0], row[2]))
+            else:
+                print(format_json(resultset, field_filter=self.field_filter))
 
     def get_all_tags(self):
         '''Get list of tags in DB
@@ -2422,12 +2414,7 @@ def main():
     # Search URLs, titles, tags with all keywords and delete if wanted
     elif args.sall is not None:
         search_opted = True
-        if args.sall[0] == 'blank' and len(args.sall) == 1:
-            bdb.print_bm(0, True)
-        elif args.sall[0] == 'immutable' and len(args.sall) == 1:
-            bdb.print_bm(0, False, True)
-        else:
-            search_results = bdb.searchdb(args.sall, True, args.deep)
+        search_results = bdb.searchdb(args.sall, True, args.deep)
 
     # Run a regular expression search
     elif args.sreg is not None:
