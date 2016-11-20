@@ -2260,7 +2260,7 @@ def main():
 -p, --print [...]    show details of bookmark by DB index
                      accepts indices and ranges
                      show all bookmarks, if no arguments
--f, --format N       fields to show in -p or search output
+-f, --format N       fields to show in -p or Json search output
                      1: URL, 2: URL and tag, 3: title
 -r, --replace oldtag [newtag ...]
                      replace oldtag with newtag everywhere
