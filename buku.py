@@ -1685,6 +1685,7 @@ def taglist_subprompt(obj):
                 for tag in unique_tags:
                     print('%6d. %s (%d)' % (count, tag, dic[tag]))
                     count += 1
+                print()
 
         try:
             nav = input(msg)
@@ -1717,13 +1718,14 @@ def taglist_subprompt(obj):
             new_results = False
 
 
-def prompt(obj, results, noninteractive=False, deep=False):
+def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
     '''Show each matching result from a search and prompt
 
     :param obj: a valid instance of BukuDb class
     :param results: result set from a DB query
     :param noninteractive: do not seek user input
     :param deep: use deep search
+    :param subprompt: jump directly to sub prompt
     '''
 
     if not type(obj) is BukuDb:
@@ -1734,29 +1736,33 @@ def prompt(obj, results, noninteractive=False, deep=False):
     msg = '\x1b[7mbuku (? for help)\x1b[0m '
 
     while True:
-        if new_results:
-            if results:
-                count = 0
+        if not subprompt:
+            if new_results:
+                if results:
+                    count = 0
 
-                for row in results:
-                    count += 1
-                    print_record(row, count)
-            else:
-                print('0 results')
+                    for row in results:
+                        count += 1
+                        print_record(row, count)
+                else:
+                    print('0 results')
 
-            if noninteractive:
-                return
+                if noninteractive:
+                    return
 
-        try:
-            nav = input(msg)
-            if not nav:
+            try:
                 nav = input(msg)
                 if not nav:
-                    # Quit on double enter
-                    break
-            nav = nav.strip()
-        except EOFError:
-            return
+                    nav = input(msg)
+                    if not nav:
+                        # Quit on double enter
+                        break
+                nav = nav.strip()
+            except EOFError:
+                return
+        else:
+            nav = 't'
+            subprompt = False
 
         # list tags with 't'
         if nav == 't':
@@ -2427,11 +2433,8 @@ def main():
         if len(args.stag) > 0:
             search_results = bdb.search_by_tag(' '.join(args.stag))
         else:
-            unique_tags, dic = bdb.get_all_tags()
-            count = 1
-            for tag in unique_tags:
-                print('%6d. %s (%d)' % (count, tag, dic[tag]))
-                count += 1
+            # Use sub prompt to list all tags
+            prompt(bdb, None, subprompt=True)
 
     if search_results:
         oneshot = args.noprompt
