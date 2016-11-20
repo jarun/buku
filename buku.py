@@ -1089,6 +1089,9 @@ class BukuDb:
                 if tag not in tags:
                     tags += (tag,)
 
+        if len(tags) == 0:
+            return tags
+
         if tags[0] == '':
             unique_tags = sorted(tags[1:], key=str.lower)
         else:
