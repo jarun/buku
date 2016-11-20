@@ -1078,26 +1078,31 @@ class BukuDb:
         '''Get list of tags in DB
 
         :return: list of unique tags sorted alphabetically
+        :return: a dictionary of {tag:usage_count}
         '''
 
         tags = []
         unique_tags = []
-        query = 'SELECT DISTINCT tags FROM bookmarks ORDER BY tags'
-        for row in self.cur.execute(query):
+        dic = {}
+        qry = 'SELECT DISTINCT tags, COUNT(tags) FROM bookmarks GROUP BY tags'
+        for row in self.cur.execute(qry):
             tagset = row[0].strip(DELIM).split(DELIM)
             for tag in tagset:
                 if tag not in tags:
+                    dic[tag] = row[1]
                     tags += (tag,)
+                else:
+                    dic[tag] += row[1]
 
         if len(tags) == 0:
             return tags
 
         if tags[0] == '':
-            unique_tags = sorted(tags[1:], key=str.lower)
+            unique_tags = sorted(tags[1:])
         else:
-            unique_tags = sorted(tags, key=str.lower)
+            unique_tags = sorted(tags)
 
-        return unique_tags
+        return unique_tags, dic
 
     def replace_tag(self, orig, new=None):
         '''Replace orig tags with new tags in DB for all records.
@@ -1642,7 +1647,7 @@ def taglist_subprompt(obj):
     :return: new command string
     '''
 
-    unique_tags = obj.get_all_tags()
+    unique_tags, dic = obj.get_all_tags()
     msg = '\x1b[7mbuku (? for help)\x1b[0m '
     new_results = True
 
@@ -1654,7 +1659,7 @@ def taglist_subprompt(obj):
             else:
                 count = 1
                 for tag in unique_tags:
-                    print('%6d. %s' % (count, tag))
+                    print('%6d. %s (%d)' % (count, tag, dic[tag]))
                     count += 1
 
         try:
@@ -2401,10 +2406,10 @@ def main():
         if len(args.stag) > 0:
             search_results = bdb.search_by_tag(' '.join(args.stag))
         else:
-            unique_tags = bdb.get_all_tags()
+            unique_tags, dic = bdb.get_all_tags()
             count = 1
             for tag in unique_tags:
-                print('%6d. %s' % (count, tag))
+                print('%6d. %s (%d)' % (count, tag, dic[tag]))
                 count += 1
 
     if search_results:

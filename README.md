@@ -236,7 +236,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - --sall : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
-  - --stag : search bookmarks by a tag, or show all tags alphabetically (if no arguments).
+  - --stag : search bookmarks by a tag, or show all tags alphabetically with usage count (if no arguments).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 - **Proxy** support: environment variable *https_proxy*, if defined, is used to tunnel data for both http and https connections. The supported format is:
