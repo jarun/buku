@@ -1624,11 +1624,12 @@ def parse_tags(keywords=None):
 
     orig_tags += tags.strip(DELIM).split(DELIM)
     for tag in orig_tags:
-        if tag not in unique_tags:
-            unique_tags += (tag, )  # Select unique tags
+        if tag.lower() not in unique_tags:
+            # Add unique tags in lowercase
+            unique_tags += (tag.lower(), )
 
     # Sort the tags
-    sorted_tags = sorted(unique_tags, key=str.lower)
+    sorted_tags = sorted(unique_tags)
 
     # Wrap with delimiter
     return '%s%s%s' % (DELIM, DELIM.join(sorted_tags), DELIM)

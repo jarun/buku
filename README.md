@@ -220,7 +220,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 - URLs are unique in DB. The same URL cannot be added twice.
 - Bookmarks with immutable titles are listed with bold `(L)` after the URL.
 - **Tags**:
-  - Comma (`,`) is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags can be replaced.
+  - Comma (`,`) is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
 - **Update** operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
