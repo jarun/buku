@@ -850,10 +850,14 @@ class BukuDb:
             return None
 
         query = '%s ORDER BY id ASC' % query
-
         logger.debug('query: "%s", args: %s', query, arguments)
 
-        self.cur.execute(query, arguments)
+        try:
+            self.cur.execute(query, arguments)
+        except sqlite3.OperationalError as e:
+            logger.error(e)
+            return None
+
         results = self.cur.fetchall()
         if len(results) == 0:
             return None
