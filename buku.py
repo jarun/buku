@@ -627,6 +627,9 @@ class BukuDb:
                     tags = tags.replace('%s%s%s' % (DELIM, tag, DELIM,), DELIM)
 
                 self.cur.execute(query, (parse_tags([tags]), row[0],))
+                if self.chatty:
+                    self.print_bm(row[0])
+
                 self.conn.commit()
 
         return True
@@ -714,7 +717,6 @@ class BukuDb:
         elif not to_update and not (append_tag or delete_tag):
             ret = self.refreshdb(index)
             if ret and index and self.chatty:
-                pass
                 self.print_bm(index)
             return ret
 
