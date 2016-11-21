@@ -30,8 +30,10 @@ setup(
         'console_scripts': ['buku=buku:main']
     },
     extras_require={
+        'HTTP': ['urllib3'],
         'CRYPTO': ['cryptography'],
-        'HTML': ['beautifulsoup4']
+        'HTML': ['beautifulsoup4'],
+        'REQUESTS': ['requests']
     },
     test_suite='tests',
     tests_require=['pytest-cov', 'pytest-catchlog'],
