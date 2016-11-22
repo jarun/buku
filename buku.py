@@ -67,6 +67,8 @@ CHUNKSIZE = 0x80000  # Read/write 512 KB chunks
 # Set up logging
 logging.basicConfig(format='[%(levelname)s] %(message)s')
 logger = logging.getLogger()
+logdbg = logger.debug
+logerr = logger.error
 
 
 class BMHTMLParser(HTMLParser.HTMLParser):
@@ -154,11 +156,11 @@ class BukuCrypt:
             from cryptography.hazmat.primitives.ciphers import (Cipher, modes,
                                                                 algorithms)
         except ImportError:
-            logger.error('cryptography lib(s) missing')
+            logerr('cryptography lib(s) missing')
             sys.exit(1)
 
         if iterations < 1:
-            logger.error('Iterations must be >= 1')
+            logerr('Iterations must be >= 1')
             sys.exit(1)
 
         if not dbfile:
@@ -171,28 +173,28 @@ class BukuCrypt:
         if db_exists and not enc_exists:
             pass
         elif not db_exists:
-            logger.error('%s missing. Already encrypted?', dbfile)
+            logerr('%s missing. Already encrypted?', dbfile)
             sys.exit(1)
         else:
             # db_exists and enc_exists
-            logger.error('Both encrypted and flat DB files exist!')
+            logerr('Both encrypted and flat DB files exist!')
             sys.exit(1)
 
         password = ''
         password = getpass()
         passconfirm = getpass()
         if password == '':
-            logger.error('Empty password')
+            logerr('Empty password')
             sys.exit(1)
         if password != passconfirm:
-            logger.error('Passwords do not match')
+            logerr('Passwords do not match')
             sys.exit(1)
 
         try:
             # Get SHA256 hash of DB file
             dbhash = BukuCrypt.get_filehash(dbfile)
         except Exception as e:
-            logger.error(e)
+            logerr(e)
             sys.exit(1)
 
         # Generate random 256-bit salt and key
@@ -232,7 +234,7 @@ class BukuCrypt:
             print('File encrypted')
             sys.exit(0)
         except Exception as e:
-            logger.error(e)
+            logerr(e)
             sys.exit(1)
 
     @staticmethod
@@ -252,11 +254,11 @@ class BukuCrypt:
             from cryptography.hazmat.primitives.ciphers import (Cipher, modes,
                                                                 algorithms)
         except ImportError:
-            logger.error('cryptography lib(s) missing')
+            logerr('cryptography lib(s) missing')
             sys.exit(1)
 
         if iterations < 1:
-            logger.error('Decryption failed')
+            logerr('Decryption failed')
             sys.exit(1)
 
         if not dbfile:
@@ -273,17 +275,17 @@ class BukuCrypt:
         if enc_exists and not db_exists:
             pass
         elif not enc_exists:
-            logger.error('%s missing', encfile)
+            logerr('%s missing', encfile)
             sys.exit(1)
         else:
             # db_exists and enc_exists
-            logger.error('Both encrypted and flat DB files exist!')
+            logerr('Both encrypted and flat DB files exist!')
             sys.exit(1)
 
         password = ''
         password = getpass()
         if password == '':
-            logger.error('Decryption failed')
+            logerr('Decryption failed')
             sys.exit(1)
 
         try:
@@ -322,16 +324,16 @@ class BukuCrypt:
             dbhash = BukuCrypt.get_filehash(dbfile)
             if dbhash != enchash:
                 os.remove(dbfile)
-                logger.error('Decryption failed')
+                logerr('Decryption failed')
                 sys.exit(1)
             else:
                 os.remove(encfile)
                 print('File decrypted')
         except struct.error:
-            logger.error('Tainted file')
+            logerr('Tainted file')
             sys.exit(1)
         except Exception as e:
-            logger.error(e)
+            logerr(e)
             sys.exit(1)
 
 
@@ -398,7 +400,7 @@ class BukuDb:
             if not os.path.exists(dbpath):
                 os.makedirs(dbpath)
         except Exception as e:
-            logger.error(e)
+            logerr(e)
             os.exit(1)
 
         db_exists = os.path.exists(dbfile)
@@ -407,11 +409,10 @@ class BukuDb:
         if db_exists and not enc_exists:
             pass
         elif enc_exists and not db_exists:
-            logger.error('Unlock database first')
+            logerr('Unlock database first')
             sys.exit(1)
-
         elif db_exists and enc_exists:
-            logger.error('Both encrypted and flat DB files exist!')
+            logerr('Both encrypted and flat DB files exist!')
             sys.exit(1)
         else:
             # not db_exists and not enc_exists
@@ -432,7 +433,7 @@ class BukuDb:
             conn.commit()
         except Exception as e:
             _, _, linenumber, func, _, _ = inspect.stack()[0]
-            logger.error('%s(), ln %d: %s', func, linenumber, e)
+            logerr('%s(), ln %d: %s', func, linenumber, e)
             sys.exit(1)
 
         # Add description column in existing DB (from version 2.1)
@@ -498,13 +499,13 @@ class BukuDb:
 
         # Return error for empty URL
         if not url or url == '':
-            logger.error('Invalid URL')
+            logerr('Invalid URL')
             return False
 
         # Ensure that the URL does not exist in DB already
         id = self.get_bm_id(url)
         if id != -1:
-            logger.error('URL [%s] already exists at index %d', url, id)
+            logerr('URL [%s] already exists at index %d', url, id)
             return False
 
         # Process title
@@ -515,11 +516,11 @@ class BukuDb:
             if bad:
                 print('\x1b[91mMalformed URL\x1b[0m\n')
             elif mime:
-                logger.debug('Mime HEAD requested\n')
+                logdbg('Mime HEAD requested\n')
             elif meta == '':
                 print('\x1b[91mTitle: []\x1b[0m\n')
             else:
-                logger.debug('Title: [%s]', meta)
+                logdbg('Title: [%s]', meta)
 
         # Process tags
         if tags_in is None:
@@ -549,7 +550,7 @@ class BukuDb:
             return True
         except Exception as e:
             _, _, linenumber, func, _, _ = inspect.stack()[0]
-            logger.error('%s(), ln %d: %s', func, linenumber, e)
+            logerr('%s(), ln %d: %s', func, linenumber, e)
             return False
 
     def append_tag_at_index(self, index, tags_in):
@@ -658,7 +659,7 @@ class BukuDb:
         # Update URL if passed as argument
         if url != '':
             if index == 0:
-                logger.error('All URLs cannot be same')
+                logerr('All URLs cannot be same')
                 return False
             query = '%s URL = ?,' % query
             arguments += (url,)
@@ -713,7 +714,7 @@ class BukuDb:
             elif title_to_insert == '':
                 print('\x1b[91mTitle: []\x1b[0m')
             else:
-                logger.debug('Title: [%s]', title_to_insert)
+                logdbg('Title: [%s]', title_to_insert)
         elif not to_update and not (append_tag or delete_tag):
             ret = self.refreshdb(index)
             if ret and index and self.chatty:
@@ -738,7 +739,7 @@ class BukuDb:
             query = '%s WHERE id = ?' % query[:-1]
             arguments += (index,)
 
-        logger.debug('query: "%s", args: %s', query, arguments)
+        logdbg('query: "%s", args: %s', query, arguments)
 
         try:
             self.cur.execute(query, arguments)
@@ -747,10 +748,10 @@ class BukuDb:
                 self.print_bm(index)
 
             if self.cur.rowcount == 0:
-                logger.error('No matching index %s', index)
+                logerr('No matching index %s', index)
                 return False
         except sqlite3.IntegrityError:
-            logger.error('URL already exists')
+            logerr('URL already exists')
             return False
 
         return True
@@ -774,7 +775,7 @@ class BukuDb:
 
         resultset = self.cur.fetchall()
         if not len(resultset):
-            logger.error('No matching index or title immutable or empty DB')
+            logerr('No matching index or title immutable or empty DB')
             return False
 
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
@@ -854,16 +855,16 @@ class BukuDb:
                 qargs += (token, token, token, token,)
             qry = qry[:-3]
         else:
-            logger.error('Invalid search option')
+            logerr('Invalid search option')
             return None
 
         qry = '%s ORDER BY id ASC' % qry
-        logger.debug('query: "%s", args: %s', qry, qargs)
+        logdbg('query: "%s", args: %s', qry, qargs)
 
         try:
             self.cur.execute(qry, qargs)
         except sqlite3.OperationalError as e:
-            logger.error(e)
+            logerr(e)
             return None
 
         results = self.cur.fetchall()
@@ -882,7 +883,7 @@ class BukuDb:
         tag = '%s%s%s' % (DELIM, tag.strip(DELIM), DELIM)
         query = "SELECT id, url, metadata, tags, desc FROM bookmarks \
                 WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC"
-        logger.debug('query: "%s", args: %s', query, tag)
+        logdbg('query: "%s", args: %s', query, tag)
 
         self.cur.execute(query, (tag,))
         results = self.cur.fetchall()
@@ -956,7 +957,7 @@ class BukuDb:
                 if not delay_commit:
                     self.conn.commit()
             except IndexError:
-                logger.error('No matching index')
+                logerr('No matching index')
                 return False
         elif index == 0:  # Remove the table
             return self.cleardb()
@@ -970,10 +971,10 @@ class BukuDb:
                     print('Removed index %d' % index)
                     self.compactdb(index, delay_commit)
                 else:
-                    logger.error('No matching index')
+                    logerr('No matching index')
                     return False
             except IndexError:
-                logger.error('No matching index')
+                logerr('No matching index')
                 return False
 
         return True
@@ -1034,10 +1035,10 @@ class BukuDb:
                 self.cur.execute(query, (index,))
                 results = self.cur.fetchall()
                 if len(results) == 0:
-                    logger.error('No matching index')
+                    logerr('No matching index')
                     return
             except IndexError:
-                logger.error('No matching index')
+                logerr('No matching index')
                 return
 
             if not self.json:
@@ -1167,7 +1168,7 @@ class BukuDb:
                 return False
 
             index = result[0]
-            logger.debug('Opening random index ' + str(index))
+            logdbg('Opening random index ' + str(index))
 
         query = 'SELECT URL FROM bookmarks WHERE id = ?'
         try:
@@ -1175,9 +1176,9 @@ class BukuDb:
                 url = unquote(row[0])
                 open_in_browser(url)
                 return True
-            logger.error('No matching index')
+            logerr('No matching index')
         except IndexError:
-            logger.error('No matching index')
+            logerr('No matching index')
 
         return False
 
@@ -1202,7 +1203,7 @@ class BukuDb:
             tagstr = parse_tags(taglist)
 
             if len(tagstr) == 0 or tagstr == DELIM:
-                logger.error('Invalid tag')
+                logerr('Invalid tag')
                 return False
 
             if len(tagstr) > 0:
@@ -1220,7 +1221,7 @@ class BukuDb:
                 else:
                     query = query[:-6]
 
-        logger.debug('(%s), %s' % (query, arguments))
+        logdbg('(%s), %s' % (query, arguments))
         self.cur.execute(query, arguments)
         resultset = self.cur.fetchall()
 
@@ -1236,7 +1237,7 @@ class BukuDb:
         try:
             outfp = open(filepath, mode='w', encoding='utf-8')
         except Exception as e:
-            logger.error(e)
+            logerr(e)
             return False
 
         if not markdown:
@@ -1294,10 +1295,10 @@ Buku bookmarks</H3>
                 with open(filepath, mode='r', encoding='utf-8') as infp:
                     soup = bs4.BeautifulSoup(infp, 'html.parser')
             except ImportError:
-                logger.error('Beautiful Soup not found')
+                logerr('Beautiful Soup not found')
                 return False
             except Exception as e:
-                logger.error(e)
+                logerr(e)
                 return False
 
             html_tags = soup.findAll('a')
@@ -1358,7 +1359,7 @@ Buku bookmarks</H3>
             indb_cur = indb_conn.cursor()
             indb_cur.execute('SELECT * FROM bookmarks')
         except Exception as e:
-            logger.error(e)
+            logerr(e)
             return False
 
         resultset = indb_cur.fetchall()
@@ -1385,7 +1386,7 @@ Buku bookmarks</H3>
         '''
 
         if not index and not url:
-            logger.error('Either a valid DB index or URL required')
+            logerr('Either a valid DB index or URL required')
             return None
 
         if index:
@@ -1406,7 +1407,7 @@ Buku bookmarks</H3>
                     }
                          )
         if r.status_code != 200:
-            logger.error('[%s] %s', r.status_code, r.reason)
+            logerr('[%s] %s', r.status_code, r.reason)
             return None
 
         return r.text
@@ -1473,7 +1474,7 @@ def is_bad_url(url):
         if not netloc:
             return True
 
-    logger.debug('netloc: %s' % netloc)
+    logdbg('netloc: %s' % netloc)
 
     # netloc cannot start or end with a '.'
     if netloc.startswith('.') or netloc.endswith('.'):
@@ -1521,7 +1522,7 @@ def get_page_title(resp):
         if logger.isEnabledFor(logging.DEBUG) \
                 and str(e) != 'we should not get here!':
             _, _, linenumber, func, _, _ = inspect.stack()[0]
-            logger.error('%s(), ln %d: %s', func, linenumber, e)
+            logerr('%s(), ln %d: %s', func, linenumber, e)
     finally:
         return htmlparser.parsed_title
 
@@ -1544,7 +1545,7 @@ def get_PoolManager():
                                 basic_auth=url.username + ':' + url.password
                                                )
 
-        logger.debug('proxy: [%s]' % proxy)
+        logdbg('proxy: [%s]' % proxy)
         return urllib3.ProxyManager(proxy, headers=headers)
 
     return urllib3.PoolManager()
@@ -1554,7 +1555,7 @@ def network_handler(url):
     '''Handle server connection and redirections
 
     :param url: URL to fetch
-    :return: {title, recognized mime, bad url} tuple
+    :return: (title, recognized mime, bad url) tuple
     '''
 
     global http_handler
@@ -1591,18 +1592,18 @@ def network_handler(url):
                 # which fail when trying to fetch resource '/'
                 # retry without trailing '/'
 
-                logger.debug('Received status 403: retrying...')
+                logdbg('Received status 403: retrying...')
                 # Remove trailing /
                 url = url[:-1]
                 resp.release_conn()
                 continue
             else:
-                logger.error('[%s] %s', resp.status, resp.reason)
+                logerr('[%s] %s', resp.status, resp.reason)
 
             break
     except Exception as e:
         _, _, linenumber, func, _, _ = inspect.stack()[0]
-        logger.error('%s(), ln %d: %s', func, linenumber, e)
+        logerr('%s(), ln %d: %s', func, linenumber, e)
     finally:
         if resp:
             resp.release_conn()
@@ -1647,8 +1648,8 @@ def parse_tags(keywords=None):
     if tagstr != '':
         tags = '%s%s%s' % (tags, tagstr, DELIM)
 
-    logger.debug('keywords: %s', keywords)
-    logger.debug('parsed tags: [%s]', tags)
+    logdbg('keywords: %s', keywords)
+    logdbg('parsed tags: [%s]', tags)
 
     if tags == DELIM:
         return tags
@@ -1731,7 +1732,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
     '''
 
     if not type(obj) is BukuDb:
-        logger.error('Not a BukuDb instance')
+        logerr('Not a BukuDb instance')
         return
 
     new_results = True
@@ -1829,7 +1830,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                     open_in_browser(unquote(results[index][1]))
                 except Exception as e:
                     _, _, linenumber, func, _, _ = inspect.stack()[0]
-                    logger.error('%s(), ln %d: %s', func, linenumber, e)
+                    logerr('%s(), ln %d: %s', func, linenumber, e)
 
             continue
 
@@ -1844,7 +1845,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                     open_in_browser(unquote(results[index][1]))
                 except Exception as e:
                     _, _, linenumber, func, _, _ = inspect.stack()[0]
-                    logger.error('%s(), ln %d: %s', func, linenumber, e)
+                    logerr('%s(), ln %d: %s', func, linenumber, e)
             elif '-' in nav and is_int(nav.split('-')[0]) \
                     and is_int(nav.split('-')[1]):
                 lower = int(nav.split('-')[0])
@@ -1859,8 +1860,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                             print('No matching index')
                     except Exception as e:
                         _, _, linenumber, func, _, _ = inspect.stack()[0]
-                        logger.error('%s(), ln %d: %s',
-                                     func, linenumber, e)
+                        logerr('%s(), ln %d: %s', func, linenumber, e)
             else:
                 print('Invalid input')
                 break
@@ -1968,7 +1968,7 @@ def open_in_browser(url):
         # Otherwise, opening in browser fails anyway
         # We expect http to https redirection
         # will happen for https-only websites
-        logger.error('scheme missing in URI, trying http')
+        logerr('scheme missing in URI, trying http')
         url = '%s%s' % ('http://', url)
 
     _stderr = os.dup(2)
@@ -1982,7 +1982,7 @@ def open_in_browser(url):
         webbrowser.open(url)
     except Exception as e:
         _, _, linenumber, func, _, _ = inspect.stack()[0]
-        logger.error('%s(), ln %d: %s', func, linenumber, e)
+        logerr('%s(), ln %d: %s', func, linenumber, e)
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
@@ -1994,7 +1994,7 @@ def check_upstream_release():
 
     r = requests.get('https://api.github.com/repos/jarun/buku/tags?per_page=1')
     if r.status_code != 200:
-        logger.error('[%s] %s', r.status_code, r.reason)
+        logerr('[%s] %s', r.status_code, r.reason)
     else:
         latest = r.json()[0]['name']
         if latest == 'v' + __version__:
@@ -2322,7 +2322,7 @@ def main():
         desc_in = ' '.join(args.comment)
     if args.debug:
         logger.setLevel(logging.DEBUG)
-        logger.debug('Version %s', __version__)
+        logdbg('Version %s', __version__)
     else:
         logging.disable(logging.WARNING)
 
@@ -2370,7 +2370,7 @@ def main():
         if tags_in is not None:
             if (tags_in[0] == '+' or tags_in[0] == '-') \
                     and len(tags_in) == 1:
-                logger.error('Please specify a tag')
+                logerr('Please specify a tag')
                 bdb.close_quit(1)
             elif tags_in[0] == '+':
                 tags_in = tags_in[1:]
@@ -2470,7 +2470,7 @@ def main():
                 else:
                     bdb.delete_bm(0, int(vals[1]), int(vals[0]), True)
             else:
-                logger.error('Incorrect index or range')
+                logerr('Incorrect index or range')
                 bdb.close_quit(1)
         else:
             ids = []
@@ -2485,7 +2485,7 @@ def main():
                 for idx in ids:
                     bdb.delete_bm(int(idx))
             except ValueError:
-                logger.error('Incorrect index or range')
+                logerr('Incorrect index or range')
 
     # Print records
     if args.print is not None:
@@ -2504,7 +2504,7 @@ def main():
                     for _id in range(lower, upper + 1):
                         bdb.print_bm(_id)
                 else:
-                    logger.error('Invalid index or range')
+                    logerr('Invalid index or range')
                     bdb.close_quit(1)
 
     # Replace a tag in DB
@@ -2519,7 +2519,7 @@ def main():
         if args.tag is None:
             bdb.exportdb(args.export[0], args.markdown)
         elif len(args.tag) == 0:
-            logger.error('Missing tag')
+            logerr('Missing tag')
         else:
             bdb.exportdb(args.export[0], args.markdown, args.tag)
 
@@ -2534,7 +2534,7 @@ def main():
     # Open URL in browser
     if args.open is not None:
         if args.open < 0:
-            logger.error('Index must be >= 0')
+            logerr('Index must be >= 0')
             bdb.close_quit(1)
         bdb.browse_by_index(args.open)
 
