@@ -41,6 +41,7 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 - [GUI integration](#gui-integration)
   - [Add bookmarks from anywhere](#add-bookmarks-from-anywhere)
   - [Import bookmarks to browser](#import-bookmarks-to-browser)
+- [Sync database across systems](#sync-database-across-systems)
 - [As a library](#as-a-library)
 - [Examples](#examples)
 - [Contributions](#contributions)
@@ -303,6 +304,10 @@ To export specific tags, run:
 
     $ buku --export path_to_bookmarks.html --tag tag 1, tag 2
 Once exported, import the html file in your browser.
+
+## Sync database across systems
+
+`buku` has the capability to import records from another `buku` database file. However, users with a cloud service client installed on multiple systems can keep the database synced across these systems automatically. To achieve this store the actual database file in a synced directory and create a symbolic link to it in the location where the database file would exist otherwise. For example, `$HOME/.local/share/buku/bookmarks.db` can be a symbolic link to `~/Dropbox/Public/bookmarks.db`.
 
 ## As a library
 
