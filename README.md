@@ -163,16 +163,16 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     search options:
       -s, --sany keyword [...]
-                           search records with ANY keyword
+                           find records with ANY search keyword
       -S, --sall keyword [...]
-                           search records with ALL keywords
+                           find records with ALL search keywords
                            special keywords -
                            "blank": entries with empty title/tag
                            "immutable": entries with locked title
-      --deep               match substrings ('pen' matches 'opened')
+      --deep               match substrings ('pen' matches 'opens')
       --sreg expression    run a regex search
       --stag [...]         search bookmarks by a tag
-                           list tags alphabetically, if no arguments
+                           list all tags, if no arguments
 
     encryption options:
       -l, --lock [N]       encrypt DB file with N (> 0, default 8)
@@ -183,28 +183,28 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
     power toys:
       -e, --export file    export bookmarks to Firefox format html
                            use --tag to export only specific tags
-      -i, --import file    import bookmarks from html file; Firefox
-                           and Google Chrome formats supported
+      -i, --import file    import bookmarks from html file
+                           FF and Google Chrome formats supported
       --markdown           use markdown with -e and -i
-                           supported format: [title](url), 1 per line
-      -m, --merge file     merge bookmarks from another buku database
+                           format: [title](url), 1 per line
+      -m, --merge file     merge records from another buku DB file
       -p, --print [...]    show details of bookmark by DB index
                            accepts indices and ranges
                            show all bookmarks, if no arguments
-      -f, --format N       fields to show in -p or Json search output
+      -f, --format N       limit fields in -p or Json search output
                            1: URL, 2: URL and tag, 3: title
       -r, --replace oldtag [newtag ...]
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
       -j, --json           Json formatted output for -p and search
       --noprompt           do not show the prompt, run and exit
-      -o, --open [N]       open bookmark at DB index N in web browser
+      -o, --open [N]       open bookmark at DB index N in browser
                            open a random index if N is omitted
-      --shorten N/URL      shorten using tny.im url shortener service
+      --shorten N/URL      fetch shortened url from tny.im service
                            accepts either a DB index or a URL
       --tacit              reduce verbosity
       --upstream           check latest upstream version available
-      -z, --debug          show debug information and extra logs
+      -z, --debug          show debug information and verbose logs
 
     symbols:
       >                    title
@@ -237,7 +237,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - --sall : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
-  - --stag : search bookmarks by a tag, or show all tags alphabetically with usage count (if no arguments).
+  - --stag : search bookmarks by a tag, or list all tags alphabetically with usage count (if no arguments).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 - **Proxy** support: environment variable *https_proxy*, if defined, is used to tunnel data for both http and https connections. The supported format is:

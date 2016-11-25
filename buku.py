@@ -2221,16 +2221,16 @@ def main():
     search_grp = argparser.add_argument_group(
         title='search options',
         description='''-s, --sany keyword [...]
-                     search records with ANY keyword
+                     find records with ANY search keyword
 -S, --sall keyword [...]
-                     search records with ALL keywords
+                     find records with ALL search keywords
                      special keywords -
                      "blank": entries with empty title/tag
                      "immutable": entries with locked title
---deep               match substrings ('pen' matches 'opened')
+--deep               match substrings ('pen' matches 'opens')
 --sreg expression    run a regex search
 --stag [...]         search bookmarks by a tag
-                     list tags alphabetically, if no arguments''')
+                     list all tags, if no arguments''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', nargs='+', help=HIDE)
     addarg('-S', '--sall', nargs='+', help=HIDE)
@@ -2260,28 +2260,28 @@ def main():
         title='power toys',
         description='''-e, --export file    export bookmarks to Firefox format html
                      use --tag to export only specific tags
--i, --import file    import bookmarks from html file; Firefox
-                     and Google Chrome formats supported
+-i, --import file    import bookmarks from html file
+                     FF and Google Chrome formats supported
 --markdown           use markdown with -e and -i
-                     supported format: [title](url), 1 per line
--m, --merge file     merge bookmarks from another buku database
+                     format: [title](url), 1 per line
+-m, --merge file     merge bookmarks from another buku DB file
 -p, --print [...]    show details of bookmark by DB index
                      accepts indices and ranges
                      show all bookmarks, if no arguments
--f, --format N       fields to show in -p or Json search output
+-f, --format N       limit fields in -p or Json search output
                      1: URL, 2: URL and tag, 3: title
 -r, --replace oldtag [newtag ...]
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
 -j, --json           Json formatted output for -p and search
 --noprompt           do not show the prompt, run and exit
--o, --open [N]       open bookmark at DB index N in web browser
+-o, --open [N]       open bookmark at DB index N in browser
                      open a random index if N is omitted
---shorten N/URL      shorten using tny.im url shortener service
+--shorten N/URL      fetch shortened url from tny.im service
                      accepts either a DB index or a URL
 --tacit              reduce verbosity
 --upstream           check latest upstream version available
--z, --debug          show debug information and extra logs''')
+-z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
