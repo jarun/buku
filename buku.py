@@ -2178,7 +2178,7 @@ def main():
 -d, --delete [...]   delete bookmarks. Valid inputs: either
                      a hyphenated single range (100-200),
                      OR space-separated indices (100 15 200)
-                     delete search results with search options
+                     delete results with search options
                      delete all bookmarks, if no arguments
 -h, --help           show this information and exit''')
     addarg = general_grp.add_argument
@@ -2193,12 +2193,12 @@ def main():
 
     edit_grp = argparser.add_argument_group(
         title='edit options',
-        description='''--url keyword        specify url, works with -u only
---tag [+|-] [...]    set comma-separated tags
+        description='''--url keyword        specify url, works only with -u option
+--tag [+|-] [...]    set comma-separated tags with -a and -u
                      clear tags, if no arguments
                      works with -a, -u
-                     append specified tags, if preceded by '+'
-                     remove specified tags, if preceded by '-'
+                     append to tags, if preceded by '+'
+                     remove from tags, if preceded by '-'
 -t, --title [...]    manually set title, works with -a, -u
                      if no arguments:
                      -a: do not set title, -u: clear title
@@ -2412,31 +2412,27 @@ def main():
 
     # Search operations
     search_results = None
-    search_opted = False
+    search_opted = True
 
-    # Search URLs, titles, tags for any keyword and delete if wanted
     if args.sany is not None:
-        search_opted = True
+        # Search URLs, titles, tags for any keyword
         search_results = bdb.searchdb(args.sany, False, args.deep)
-
-    # Search URLs, titles, tags with all keywords and delete if wanted
     elif args.sall is not None:
-        search_opted = True
+        # Search URLs, titles, tags with all keywords
         search_results = bdb.searchdb(args.sall, True, args.deep)
-
-    # Run a regular expression search
     elif args.sreg is not None:
-        search_opted = True
+        # Run a regular expression search
         search_results = bdb.searchdb(args.sreg, regex=True)
-
-    # Search bookmarks by tag and delete if wanted
     elif tagsearch:
-        search_opted = True
+        # Search bookmarks by tag
         if len(args.stag) > 0:
             search_results = bdb.search_by_tag(' '.join(args.stag))
         else:
             # Use sub prompt to list all tags
             prompt(bdb, None, subprompt=True)
+            search_opted = False
+    else:
+        search_opted = False
 
     if search_results:
         oneshot = args.noprompt
@@ -2538,7 +2534,7 @@ def main():
             bdb.close_quit(1)
         bdb.browse_by_index(args.open)
 
-    # Shorten URL:
+    # Shorten URL
     if args.shorten and len(args.shorten):
         if is_int(args.shorten[0]):
             shorturl = bdb.shorten_url(index=int(args.shorten[0]))

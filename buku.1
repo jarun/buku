@@ -381,6 +381,13 @@ List \fBall unique tags\fR alphabetically:
 .B buku --stag
 .PP
 .IP 18. 4
+Run a \fBsearch and delete\fR the results:
+.PP
+.EX
+.IP
+.B buku -s kernel debugging -d
+.PP
+.IP 19. 4
 \fBEncrypt or decrypt\fR DB with \fBcustom number of iterations\fR (15) to generate key:
 .PP
 .EX
@@ -393,14 +400,14 @@ List \fBall unique tags\fR alphabetically:
 .IP "" 4
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
 .PP
-.IP 19. 4
+.IP 20. 4
 \fBShow details\fR of bookmarks at index 15012014 and ranges 20-30, 40-50:
 .PP
 .EX
 .IP
 .B buku -p 20-30 15012014 40-50
 .PP
-.IP 20. 4
+.IP 21. 4
 \fBShow all\fR bookmarks with real index from database:
 .PP
 .EX
@@ -408,21 +415,21 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -p
 .B buku -p | more
 .PP
-.IP 21. 4
+.IP 22. 4
 \fBReplace tag\fR 'old tag' with 'new tag':
 .PP
 .EX
 .IP
 .B buku -r 'old tag' new tag
 .PP
-.IP 22. 4
+.IP 23. 4
 \fBDelete tag\fR 'old tag' from DB:
 .PP
 .EX
 .IP
 .B buku -r 'old tag'
 .PP
-.IP 23. 4
+.IP 24. 4
 \fBAppend (or delete) tags\fR 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 .PP
 .EX
@@ -430,28 +437,28 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -u 15012014 --tag + tag 1, tag 2
 .B buku -u 15012014 --tag - tag 1, tag 2
 .PP
-.IP 24. 4
+.IP 25. 4
 \fBOpen URL\fR at index 15012014 in browser:
 .PP
 .EX
 .IP
 .B buku -o 15012014
 .PP
-.IP 25. 4
+.IP 26. 4
 List bookmarks with \fBno title or tags\fR for bookkeeping:
 .PP
 .EX
 .IP
 .B buku -S blank
 .PP
-.IP 26. 4
+.IP 27. 4
 List bookmarks with \fBimmutable title\fR:
 .PP
 .EX
 .IP
 .B buku -S immutable
 .PP
-.IP 27. 4
+.IP 28. 4
 \fBShorten\fR the URL www.google.com and the URL at index 20:
 .PP
 .EX

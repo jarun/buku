@@ -141,17 +141,16 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -d, --delete [...]   delete bookmarks. Valid inputs: either
                            a hyphenated single range (100-200),
                            OR space-separated indices (100 15 200)
-                           delete search results with search options
+                           delete results with search options
                            delete all bookmarks, if no arguments
       -h, --help           show this information and exit
 
     edit options:
-      --url keyword        specify url, works with -u only
-      --tag [+|-] [...]    set comma-separated tags
+      --url keyword        specify url, works only with -u option
+      --tag [+|-] [...]    set comma-separated tags with -a and -u
                            clear tags, if no arguments
-                           works with -a, -u
-                           append specified tags, if preceded by '+'
-                           remove specified tags, if preceded by '-'
+                           append to tags, if preceded by '+'
+                           remove from tags, if preceded by '-'
       -t, --title [...]    manually set title, works with -a, -u
                            if no arguments:
                            -a: do not set title, -u: clear title
@@ -393,44 +392,47 @@ The last index is moved to the deleted index to keep the DB compact.
 17. List **all unique tags** alphabetically:
 
         $ buku --stag
-18. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+18. Run a **search and delete** the results:
+
+        $ buku -s kernel debugging -d
+19. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
-19. **Show details** of bookmark at index 15012014 and ranges 20-30, 40-50:
+20. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
 
         $ buku -p 20-30 15012014 40-50
-20. **Show all** bookmarks with real index from database:
+21. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-21. **Replace tag** 'old tag' with 'new tag':
+22. **Replace tag** 'old tag' with 'new tag':
 
         $ buku -r 'old tag' new tag
-22. **Delete tag** 'old tag' from DB:
+23. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-23. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
+24. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
         $ buku -u 15012014 --tag - tag 1, tag 2
-24. **Open URL** at index 15012014 in browser:
+25. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-25. List bookmarks with **no title or tags** for bookkeeping:
+26. List bookmarks with **no title or tags** for bookkeeping:
 
         $ buku -S blank
-26. List bookmarks with **immutable title**:
+27. List bookmarks with **immutable title**:
 
         $ buku -S immutable
-27. **Shorten URL** www.google.com and the URL at index 20:
+28. **Shorten URL** www.google.com and the URL at index 20:
 
         $ buku --shorten www.google.com
         $ buku --shorten 20
-28. More **help**:
+29. More **help**:
 
-        $ buku
+        $ buku -h
         $ man buku
 
 ## Contributions
