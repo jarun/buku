@@ -594,27 +594,22 @@ class BukuDb:
         tags_to_delete = tags_in.strip(DELIM).split(DELIM)
 
         if index == 0:
-            resp = input('Delete specified tags from ALL bookmarks? (y/n): ')
+            resp = input('Delete specified tag(s) from ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
-            query1 = "SELECT id, tags FROM bookmarks WHERE tags \
-                     LIKE '%' || ? || '%' ORDER BY id ASC"
-            query2 = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
+            count = 0
+            match = "'%' || ? || '%'"
             for tag in tags_to_delete:
-                self.cur.execute(query1, (DELIM + tag + DELIM,))
-                resultset = self.cur.fetchall()
+                q = "UPDATE bookmarks SET tags = replace(tags, '%s%s%s', '%s')\
+	             WHERE tags LIKE %s" % (DELIM, tag, DELIM, DELIM, match)
+                self.cur.execute(q, (DELIM + tag + DELIM,))
+                count += self.cur.rowcount
 
-                for row in resultset:
-                    tags = row[1]
-
-                    tags = tags.replace('%s%s%s' % (DELIM, tag, DELIM,), DELIM)
-                    self.cur.execute(query2, (parse_tags([tags]), row[0],))
-                    if self.chatty:
-                        self.print_bm(row[0])
-
-                if len(resultset):
-                    self.conn.commit()
+            if count:
+                self.conn.commit()
+                if self.chatty:
+                    print('%d records updated' % count)
         else:
             query = 'SELECT id, tags FROM bookmarks WHERE id = ?'
             self.cur.execute(query, (index,))
@@ -1104,29 +1099,26 @@ class BukuDb:
         return unique_tags, dic
 
     def replace_tag(self, orig, new=None):
-        '''Replace orig tags with new tags in DB for all records.
-        Remove orig tag if new tag is empty.
+        '''Replace original tag by new tags in all records.
+        Remove original tag if new tag is empty.
 
-        :param orig: original tags
-        :param new: replacement tags
+        :param orig: original tag as string
+        :param new: replacement tags as list
         :return: True on success, False on failure
         '''
 
-        update = False
-        delete = False
         newtags = DELIM
 
         orig = '%s%s%s' % (DELIM, orig, DELIM)
-        if new is None:
-            delete = True
-        else:
+        if new is not None:
             newtags = parse_tags(new)
-            if newtags == DELIM:
-                delete = True
 
         if orig == newtags:
             print('Tags are same.')
             return False
+
+        if newtags == DELIM:
+            return self.delete_tag_at_index(0, orig)
 
         query = 'SELECT id, tags FROM bookmarks WHERE tags LIKE ?'
         self.cur.execute(query, ('%' + orig + '%',))
@@ -1134,21 +1126,15 @@ class BukuDb:
 
         query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
         for row in results:
-            if not delete:
-                # Check if tag newtags is already added
-                if row[1].find(newtags) >= 0:
-                    newtags = DELIM
-
             tags = row[1].replace(orig, newtags)
             tags = parse_tags([tags])
             self.cur.execute(query, (tags, row[0],))
             print('Index %d updated' % row[0])
-            update = True
 
-        if update:
+        if len(results):
             self.conn.commit()
 
-        return update
+        return True
 
     def browse_by_index(self, index):
         '''Open URL at index in browser
@@ -2513,7 +2499,7 @@ def main():
     # Replace a tag in DB
     if args.replace is not None:
         if len(args.replace) == 1:
-            bdb.replace_tag(args.replace[0])
+            bdb.delete_tag_at_index(0, args.replace[0])
         else:
             bdb.replace_tag(args.replace[0], args.replace[1:])
 

@@ -18,7 +18,7 @@ With tagging and multiple options to search bookmarks, including regex and a dee
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
-`buku` doesn't track you - no history, obsolete records, usage analytics or homing.
+*Buku* is too busy to track you - no history, obsolete records, usage analytics or homing.
 
 <br>
 <p align="center">
