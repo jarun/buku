@@ -18,6 +18,8 @@ With tagging and multiple options to search bookmarks, including regex and a dee
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
+`buku` doesn't track you - no history, obsolete records, usage analytics or homing.
+
 <br>
 <p align="center">
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000" alt="Donate" /></a>
@@ -306,7 +308,7 @@ Once exported, import the html file in your browser.
 
 ## Sync database across systems
 
-`buku` has the capability to import records from another `buku` database file. However, users with a cloud service client installed on multiple systems can keep the database synced across these systems automatically. To achieve this store the actual database file in a synced directory and create a symbolic link to it in the location where the database file would exist otherwise. For example, `$HOME/.local/share/buku/bookmarks.db` can be a symbolic link to `~/Dropbox/Public/bookmarks.db`.
+`buku` has the capability to import records from another `buku` database file. However, users with a cloud service client installed on multiple systems can keep the database synced across these systems automatically. To achieve this store the actual database file in a synced directory and create a symbolic link to it in the location where the database file would exist otherwise. For example, `$HOME/.local/share/buku/bookmarks.db` can be a symbolic link to `~/synced_dir/bookmarks.db`.
 
 ## As a library
 
