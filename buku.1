@@ -1,19 +1,19 @@
 .TH "BUKU" "1" "Nov 2016" "Version 2.6" "User Commands"
 .SH NAME
-buku \- A powerful command-line bookmark manager. Your mini web!
+buku \- Powerful command-line bookmark manager. Your mini web!
 .SH SYNOPSIS
 .B buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 .SH DESCRIPTION
 .B buku
-is a command-line tool to store, tag, search and manage bookmarks.
+is a command-line utility to store, tag, search and organize bookmarks.
 .PP
 .B Features
 .PP
   * Add, open, tag, comment on, update, remove, shorten URLs
+  * Fetch page title from web, refresh all titles in a go
   * Multiple search options, continuous search at prompt
   * Portable merge-able database to sync between systems
   * Import/export in Markdown or HTML (FF, Chrome compatible)
-  * Fetch page title from web, refresh all titles in a go
   * Open (multiple) search results directly in default browser
   * Manual password protection using AES256 encryption
   * Completion scripts (Bash, Fish, Zsh), man page with examples
@@ -22,31 +22,39 @@ is a command-line tool to store, tag, search and manage bookmarks.
   * Minimal dependencies
 .SH OPERATIONAL NOTES
 .PP
-The SQLite3 database file is stored in:
+.IP 1. 4
+The database file is stored in:
   - \fI$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined (first preference) or
   - \fI$HOME/.local/share/buku/bookmarks.db\fR, if HOME is defined (second preference) or
   - the \fIcurrent directory\fR.
 .PP
+.IP 2. 4
 If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes ('/").
 .PP
+.IP 3. 4
 URLs are unique in DB. The same URL cannot be added twice.
 .PP
+.IP 4. 4
 Bookmarks with immutable titles are listed with bold '(L)' after the URL.
 .PP
-\fITags\fR:
+.IP 5. 4
+\fBTags\fR:
   - Comma (',') is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
 .PP
-\fIUpdate\fR operation:
+.IP 6. 4
+\fBUpdate\fR operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
   - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles from web. Bookmarks marked immutable are skipped.
 .PP
-\fIDelete\fR operation:
+.IP 7. 4
+\fBDelete\fR operation:
   - When a record is deleted, the last record is moved to the index.
   - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
   - Can delete bookmarks matching a search, when combined with any of the search options.
 .PP
-\fISearch\fR works in mysterious ways:
+.IP 8. 4
+\fBSearch\fR works in mysterious ways:
   - Case-insensitive.
   - Matches exact words in URL, title and tags.
   - --sany : match any of the keywords in URL, title or tags.
@@ -56,9 +64,11 @@ Bookmarks with immutable titles are listed with bold '(L)' after the URL.
   - --stag : search bookmarks by a tag, or list all tags alphabetically with usage count (if no arguments).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within '[]' after the URL.
 .PP
-\fIEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
+.IP 9. 4
+\fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
 .PP
-\fIProxy\fR support: refer to the \fBENVIRONMENT\fR section.
+.IP 10. 4
+\fBProxy\fR support: refer to the \fBENVIRONMENT\fR section.
 .SH GENERAL OPTIONS
 .TP
 .BI \-a " " \--add " URL [tag, ...]"
@@ -222,14 +232,20 @@ Exit buku.
 .SH ENVIRONMENT
 .TP
 .BI BROWSER
-Overrides the default browser. Ref:
+Overrides the default browser. Refer to:
+.br
 .I http://docs.python.org/library/webbrowser.html
 .TP
 .BI https_proxy
 If defined, will be used to access http and https resources through the configured proxy. Supported format:
 
     http[s]://[username:password@]proxyhost:proxyport/
-
+.TP
+.BI "GUI integration"
+.B buku
+can be integrated in a GUI environment with simple tweaks. Refer to:
+.br
+.I https://github.com/jarun/Buku#gui-integration
 .SH EXAMPLES
 .PP
 .IP 1. 4

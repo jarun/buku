@@ -53,10 +53,10 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 ## Features
 
 - Add, open, tag, comment on, update, remove, shorten URLs
+- Fetch page title from web, refresh all titles in a go
 - Multiple search options, continuous search at prompt
 - Portable, merge-able database to sync between systems
 - Import/export in Markdown or HTML (FF, Chrome compatible)
-- Fetch page title from web, refresh all titles in a go
 - Open (multiple) search results directly in default browser
 - Manual password protection using AES256 encryption
 - Completion scripts (Bash, Fish, Zsh), man page with examples
@@ -214,7 +214,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 ### Operational notes
 
-- The SQLite3 database file is stored in:
+- The database file is stored in:
   - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
   - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
   - the **current directory**.
@@ -249,7 +249,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 ![buku](http://i.imgur.com/8Y6PTPw.png)
 
-`buku` can integrate in a GUI environment with simple tweaks.
+`buku` can be integrated in a GUI environment with simple tweaks.
 
 ### Add bookmarks from anywhere
 
