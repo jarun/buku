@@ -1667,10 +1667,11 @@ def parse_tags(keywords=None):
     return '%s%s%s' % (DELIM, DELIM.join(sorted_tags), DELIM)
 
 
-def taglist_subprompt(obj):
+def taglist_subprompt(obj, noninteractive=False):
     '''Additional prompt to show unique tag list
 
     :param obj: a valid instance of BukuDb class
+    :param noninteractive: do not seek user input
     :return: new command string
     '''
 
@@ -1689,6 +1690,9 @@ def taglist_subprompt(obj):
                     print('%6d. %s (%d)' % (count, tag, dic[tag]))
                     count += 1
                 print()
+
+            if noninteractive:
+                return
 
         try:
             nav = input(msg)
@@ -1769,7 +1773,9 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
 
         # list tags with 't'
         if nav == 't':
-            nav = taglist_subprompt(obj)
+            nav = taglist_subprompt(obj, noninteractive)
+            if noninteractive:
+                return
 
         # search ANY match with new keywords
         if nav.startswith('s '):
