@@ -1919,6 +1919,7 @@ def format_json(resultset, single_record=False, field_filter=0):
             elif field_filter == 3:
                 marks['title'] = row[2]
             else:
+                marks['index'] = row[0]
                 marks['uri'] = row[1]
                 marks['title'] = row[2]
                 marks['description'] = row[4]
@@ -1933,7 +1934,7 @@ def format_json(resultset, single_record=False, field_filter=0):
             elif field_filter == 3:
                 record = {'title': row[2]}
             else:
-                record = {'uri': row[1], 'title': row[2],
+                record = {'index': row[0], 'uri': row[1], 'title': row[2],
                           'description': row[4], 'tags': row[3][1:-1]}
 
             marks.append(record)
