@@ -218,7 +218,7 @@ Build-Depends: debhelper (>= 9)
 
 Package: $pkgname
 Architecture: all
-Depends: \${shlibs:Depends}, \${misc:Depends}, python3 (>= 3.3), python3-cryptography, python3-bs4
+Depends: \${shlibs:Depends}, \${misc:Depends}, python3 (>= 3.3), python3-urllib3, python3-cryptography, python3-bs4, python3-requests
 Description: Powerful command-line bookmark manager
  See https://github.com/jarun/Buku#readme.
 EOF

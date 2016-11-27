@@ -52,12 +52,12 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 
 - Add, open, tag, comment on, update, remove, shorten URLs
 - Multiple search options, continuous search at prompt
-- Portable, merge-able database, to sync between systems
-- Import/export bookmarks in markdown or HTML (FF, Chrome compatible)
+- Portable, merge-able database to sync between systems
+- Import/export in Markdown or HTML (FF, Chrome compatible)
 - Fetch page title from web, refresh all titles in a go
 - Open (multiple) search results directly in default browser
 - Manual password protection using AES256 encryption
-- Tab-completion scripts (Bash, Fish, Zsh), man page with examples
+- Completion scripts (Bash, Fish, Zsh), man page with examples
 - Several options for power users (see help or man page)
 - Fast and clean interface, distinct symbols for record fields
 - Minimal dependencies
@@ -70,10 +70,10 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 
 To install package dependencies, run:
 
-    $ sudo pip3 install cryptography beautifulsoup4
+    $ sudo pip3 install urllib3 cryptography beautifulsoup4 requests
 or on Ubuntu:
 
-    $ sudo apt-get install python3-cryptography python3-bs4
+    $ sudo apt-get install python3-urllib3 python3-cryptography python3-bs4 python3-requests
 
 ### Installing from this repository
 
@@ -128,7 +128,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
     usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 
-    A powerful command-line bookmark manager. Your mini web!
+    Powerful command-line bookmark manager. Your mini web!
 
     general options:
       -a, --add URL [tag, ...]

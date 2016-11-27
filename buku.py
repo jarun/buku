@@ -2156,7 +2156,7 @@ def main():
 
     # Setup custom argument parser
     argparser = ExtendedArgumentParser(
-        description='A powerful command-line bookmark manager. Your mini web!',
+        description='Powerful command-line bookmark manager. Your mini web!',
         formatter_class=argparse.RawTextHelpFormatter,
         usage='''buku [OPTIONS] [KEYWORD [KEYWORD ...]]''',
         add_help=False
