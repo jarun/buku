@@ -404,6 +404,25 @@ class TestBukuDb(unittest.TestCase):
     # def test_import_bookmark(self):
         # self.fail()
 
+    # @unittest.skip('skipping')
+    def test_delete_resultset(self):
+        # add bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_bm(*bookmark)
+        for i in range(len(self.bookmarks)):
+            get_first_tag = lambda x: ''.join(x[2].split(',')[:2])
+            # search for bookmark with a tag that is known to exist
+            results = self.bdb.search_by_tag(get_first_tag(self.bookmarks[i]))
+
+        # delete bookmarks
+        with mock.patch('builtins.input', return_value='y'):
+            assert self.bdb.delete_resultset(results) is True
+        # ensure all bookmarks were deleted
+        for pos in enumerate(results):
+            idx = results[pos][0]
+            with self.assertRaises(IndexError):
+                self.delete_bm(idx, delay_commit=True)
+
 
 def test_print_bm(capsys, caplog, setup):
     bdb = BukuDb()
