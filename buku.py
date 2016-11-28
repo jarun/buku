@@ -939,9 +939,7 @@ class BukuDb:
             try:
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
-                if not delay_commit:
-                    self.conn.commit()
-                print('Bookmarks from index %s to %s deleted' % (low, high))
+                print('Bookmarks from index %d to %d deleted' % (low, high))
 
                 # Compact DB by ascending order of index to ensure
                 # the existing higher indices move only once
@@ -960,11 +958,11 @@ class BukuDb:
             try:
                 query = 'DELETE FROM bookmarks WHERE id = ?'
                 self.cur.execute(query, (index,))
-                if not delay_commit:
-                    self.conn.commit()
                 if self.cur.rowcount == 1:
                     print('Removed index %d' % index)
-                    self.compactdb(index, delay_commit)
+                    self.compactdb(index, delay_commit=True)
+                    if not delay_commit:
+                        self.conn.commit()
                 else:
                     logerr('No matching index')
                     return False
