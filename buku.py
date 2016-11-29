@@ -32,6 +32,7 @@ import json
 import logging
 import inspect
 import atexit
+import threading
 
 try:
     import readline
@@ -53,7 +54,6 @@ interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
 http_handler = None  # urllib3 PoolManager handler
-htmlparser = None  # Use a single HTML Parser instance
 
 # Disguise as Firefox on Ubuntu
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 \
@@ -421,7 +421,7 @@ class BukuDb:
 
         try:
             # Create a connection
-            conn = sqlite3.connect(dbfile)
+            conn = sqlite3.connect(dbfile, check_same_thread = False)
             conn.create_function('REGEXP', 2, regexp)
             cur = conn.cursor()
 
@@ -757,7 +757,6 @@ class BukuDb:
         the record if title is empty.
         This API doesn't change DB index, URL or tags of a bookmark.
         This API is verbose.
-
         :param index: index of record to update, or 0 for all records
         '''
 
@@ -767,34 +766,52 @@ class BukuDb:
         else:
             self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ? AND \
                              flags & 1 != 1', (index,))
-
+                             
         resultset = self.cur.fetchall()
         if not len(resultset):
             logerr('No matching index or title immutable or empty DB')
-            return False
+            return False    
 
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
-        for row in resultset:
-            title, mime, bad = network_handler(row[1])
-            if bad:
-                print('\x1b[1mIndex %d: malformed URL\x1b[0m\n' % row[0])
-                continue
-            elif mime:
-                print('\x1b[1mIndex %d: mime HEAD requested\x1b[0m\n' % row[0])
-                continue
-            elif title == '':
-                print('\x1b[1mIndex %d: no title\x1b[0m\n' % row[0])
-                continue
 
-            self.cur.execute(query, (title, row[0],))
+        LOCK = threading.Lock()
 
-            if self.chatty:
-                print('Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
-                      % (title, row[0]))
-            if interrupted:
-                break
+        def refresh():
+            '''Fetch title and update the records.
+            '''
 
-        self.conn.commit()
+            while len(resultset) > 0:
+
+                row = resultset.pop()
+                title, mime, bad = network_handler(row[1])
+                if bad:
+                    print('\x1b[1mIndex %d: malformed URL\x1b[0m\n' % row[0])
+                    continue
+                elif mime:
+                    print('\x1b[1mIndex %d: mime HEAD requested\x1b[0m\n' % row[0])
+                    continue
+                elif title == '':
+                    print('\x1b[1mIndex %d: no title\x1b[0m\n' % row[0])
+                    continue
+
+                LOCK.acquire()
+                self.cur.execute(query, (title, row[0],))
+                self.conn.commit()
+                if interrupted:
+                    return True
+                LOCK.release()
+
+                if self.chatty:
+                    print('Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
+                          % (title, row[0]))
+                '''
+                # do we need this?
+                '''
+
+        for thread in range(4):
+            thread = threading.Thread(target=refresh)
+            thread.start()
+
         return True
 
     def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
@@ -1336,9 +1353,9 @@ Buku bookmarks</H3>
             # Connect to input DB
             if sys.version_info >= (3, 4, 4):
                 # Python 3.4.4 and above
-                indb_conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True)
+                indb_conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True, check_same_thread = False)
             else:
-                indb_conn = sqlite3.connect(path)
+                indb_conn = sqlite3.connect(path, check_same_thread = False)
 
             indb_cur = indb_conn.cursor()
             indb_cur.execute('SELECT * FROM bookmarks')
@@ -1494,10 +1511,7 @@ def get_page_title(resp):
     :return: title fetched from parsed page
     '''
 
-    global htmlparser
-
-    if not htmlparser:
-        htmlparser = BMHTMLParser()
+    htmlparser = BMHTMLParser()
 
     try:
         htmlparser.feed(resp.data.decode(errors='replace'))
@@ -2542,9 +2556,6 @@ def main():
     # Fix tags
     if args.fixtags:
         bdb.fixtags()
-
-    # Close DB connection and quit
-    bdb.close_quit(0)
 
 if __name__ == '__main__':
     main()
