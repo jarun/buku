@@ -1,3 +1,27 @@
+Buku 2.7
+2016-11-30
+
+Modifications
+- Continuous search at (redesigned) prompt
+- urllib3 for all HTTP operations
+- Use HTTP HEAD method for pdf and txt mime types
+- Add user agent (Firefox 50 on Ubuntu)
+- Support URL shortening
+- List bookmarks by tag index in tag list
+- Show tag usage count in tag list
+- Store tags in lowercase (use undocumented option `--fixtags` to fix old tags)
+- Support environment variable *https_proxy*
+- Support option `--immutable` to pin titles
+- Keyword `immutable` to search (`-S`) pinned titles
+- Show index in Json output
+- New key *q* to quit prompt
+- Support deflate compression
+- Add option `--tacit` to reduce verbosity of some operations
+- **Removed** option `--st`, only `--stag` to search tags
+- Support custom DB file location (for library, not exposed to user)
+
+-------------------------------------------------------------------------------
+
 Buku v2.6
 2016-11-04
 

@@ -39,7 +39,7 @@ try:
 except ImportError:
     pass
 
-__version__ = '2.6'
+__version__ = '2.7'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -56,8 +56,8 @@ http_handler = None  # urllib3 PoolManager handler
 htmlparser = None  # Use a single HTML Parser instance
 
 # Disguise as Firefox on Ubuntu
-USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 \
-Firefox/48.0'
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 \
+Firefox/50.0'
 
 # Crypto globals
 BLOCKSIZE = 65536
