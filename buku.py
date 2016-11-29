@@ -777,9 +777,7 @@ class BukuDb:
         LOCK = threading.Lock()
 
         def refresh():
-            '''call network_handler and update db
-
-            :param db: a BukuDb object
+            '''helper function to call network_handler and update db
             '''
 
             while len(resultset) > 0:
@@ -796,10 +794,9 @@ class BukuDb:
                     print('\x1b[1mIndex %d: no title\x1b[0m\n' % row[0])
                     continue
 
-                
                 LOCK.acquire()
-                self.cur.execute(query, (title, row[0],))
-                self.conn.commit() 
+                self.cur.execute(query, (title, row[0],)) # the connection is closed
+                self.conn.commit()
                 LOCK.release()
 
                 if self.chatty:
@@ -816,7 +813,6 @@ class BukuDb:
             thread.start()
 
         return True
-
 
     def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
         '''Search the database for an entries with tags or URL
@@ -2562,7 +2558,7 @@ def main():
         bdb.fixtags()
 
     # Close DB connection and quit
-    bdb.close_quit(0)
+    # bdb.close_quit(0)
 
 if __name__ == '__main__':
     main()
