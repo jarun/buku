@@ -421,7 +421,7 @@ class BukuDb:
 
         try:
             # Create a connection
-            conn = sqlite3.connect(dbfile, timeout = 30, check_same_thread = False)
+            conn = sqlite3.connect(dbfile, check_same_thread = False)
             conn.create_function('REGEXP', 2, regexp)
             cur = conn.cursor()
 
@@ -751,7 +751,6 @@ class BukuDb:
 
         return True
 
-# single connection attempt
     def refreshdb(self, index):
         '''Refresh ALL records in the database. Fetch title for each
         bookmark from the web and update the records. Doesn't update
@@ -785,7 +784,7 @@ class BukuDb:
 
             while len(resultset) > 0:
 
-                row = resultset.pop(0)
+                row = resultset.pop()
                 title, mime, bad = network_handler(row[1])
                 if bad:
                     print('\x1b[1mIndex %d: malformed URL\x1b[0m\n' % row[0])
@@ -818,88 +817,6 @@ class BukuDb:
 
         return True
 
-# multi-connection attempt
-    def other_refreshdb(self, index):
-        '''Refresh ALL records in the database. Fetch title for each
-        bookmark from the web and update the records. Doesn't update
-        the record if title is empty.
-        This API doesn't change DB index, URL or tags of a bookmark.
-        This API is verbose.
-        :param index: index of record to update, or 0 for all records
-        '''
-
-        if index == 0:
-            self.cur.execute('SELECT id, url FROM bookmarks WHERE \
-                             flags & 1 != 1 ORDER BY id ASC')
-        else:
-            self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ? AND \
-                             flags & 1 != 1', (index,))
-                             
-        resultset = self.cur.fetchall()
-        if not len(resultset):
-            logerr('No matching index or title immutable or empty DB')
-            return False    
-
-        query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
-
-        LOCK = threading.Lock()
-
-        dbfile = os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
-
-        bdb2 = BukuDb(dbfile = dbfile)
-        bdb3 = BukuDb(dbfile = dbfile)
-        bdb4 = BukuDb(dbfile = dbfile)
-
-        def refresh(db):
-            '''call network_handler and update db
-
-            :param db: a BukuDb object
-            '''
-
-            while len(resultset) > 0:
-
-                row = resultset.pop(0)
-                title, mime, bad = network_handler(row[1])
-                if bad:
-                    print('\x1b[1mIndex %d: malformed URL\x1b[0m\n' % row[0])
-                    continue
-                elif mime:
-                    print('\x1b[1mIndex %d: mime HEAD requested\x1b[0m\n' % row[0])
-                    continue
-                elif title == '':
-                    print('\x1b[1mIndex %d: no title\x1b[0m\n' % row[0])
-                    continue
-
-                
-                LOCK.acquire()
-                db.cur.execute(query, (title, row[0],))
-                db.conn.commit()
-                LOCK.release()
-
-                if db.chatty:
-                    print('Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
-                          % (title, row[0]))
-                '''
-                # do we need this?
-                if interrupted:
-                    break
-                '''
-
-        for thread in range(4):
-            if thread == 0:
-                first_thread = threading.Thread(target=refresh, args = (self,))
-                first_thread.start()
-            elif thread == 1:
-                second_thread = threading.Thread(target=refresh, args = (bdb2,))
-                second_thread.start()
-            elif thread == 2:
-                third_thread = threading.Thread(target=refresh, args = (bdb3,))
-                third_thread.start()
-            elif thread == 3:
-                fourth_thread = threading.Thread(target=refresh, args = (bdb4,))
-                fourth_thread.start()
-
-        return True
 
     def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
         '''Search the database for an entries with tags or URL
@@ -1440,9 +1357,9 @@ Buku bookmarks</H3>
             # Connect to input DB
             if sys.version_info >= (3, 4, 4):
                 # Python 3.4.4 and above
-                indb_conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True, timeout = 30, check_same_thread = False)
+                indb_conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True, check_same_thread = False)
             else:
-                indb_conn = sqlite3.connect(path, timeout = 30, check_same_thread = False)
+                indb_conn = sqlite3.connect(path, check_same_thread = False)
 
             indb_cur = indb_conn.cursor()
             indb_cur.execute('SELECT * FROM bookmarks')
