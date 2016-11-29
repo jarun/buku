@@ -54,6 +54,7 @@ interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
 http_handler = None  # urllib3 PoolManager handler
+NUM_THREADS = 5  # Number of threads for full DB refresh
 
 # Disguise as Firefox on Ubuntu
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 \
@@ -82,13 +83,6 @@ class BMHTMLParser(HTMLParser.HTMLParser):
         self.data = ''
         self.prev_tag = None
         self.parsed_title = None
-
-    def feed(self, data):
-        self.in_title_tag = False
-        self.data = ''
-        self.prev_tag = None
-        self.parsed_title = None
-        HTMLParser.HTMLParser.feed(self, data)
 
     def handle_starttag(self, tag, attrs):
         self.in_title_tag = False
@@ -421,7 +415,7 @@ class BukuDb:
 
         try:
             # Create a connection
-            conn = sqlite3.connect(dbfile, check_same_thread = False)
+            conn = sqlite3.connect(dbfile, check_same_thread=False)
             conn.create_function('REGEXP', 2, regexp)
             cur = conn.cursor()
 
@@ -602,7 +596,7 @@ class BukuDb:
             match = "'%' || ? || '%'"
             for tag in tags_to_delete:
                 q = "UPDATE bookmarks SET tags = replace(tags, '%s%s%s', '%s')\
-	             WHERE tags LIKE %s" % (DELIM, tag, DELIM, DELIM, match)
+                     WHERE tags LIKE %s" % (DELIM, tag, DELIM, DELIM, match)
                 self.cur.execute(q, (DELIM + tag + DELIM,))
                 count += self.cur.rowcount
 
@@ -766,52 +760,82 @@ class BukuDb:
         else:
             self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ? AND \
                              flags & 1 != 1', (index,))
-                             
+
         resultset = self.cur.fetchall()
         if not len(resultset):
             logerr('No matching index or title immutable or empty DB')
-            return False    
+            return False
 
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
 
-        LOCK = threading.Lock()
+        cond = threading.Condition()
+        cond.acquire()
 
-        def refresh():
-            '''Fetch title and update the records.
+        def refresh(count, cond):
+            '''Inner function to fetch titles and update records
+
+            param cond: threading condition object
             '''
 
-            while len(resultset) > 0:
+            count = 0
 
-                row = resultset.pop()
+            while True:
+                cond.acquire()
+                if len(resultset) > 0:
+                    row = resultset.pop()
+                else:
+                    cond.release()
+                    break
+                cond.release()
+
                 title, mime, bad = network_handler(row[1])
+                count += 1
+
+                cond.acquire()
                 if bad:
                     print('\x1b[1mIndex %d: malformed URL\x1b[0m\n' % row[0])
+                    cond.release()
                     continue
                 elif mime:
-                    print('\x1b[1mIndex %d: mime HEAD requested\x1b[0m\n' % row[0])
+                    print('\x1b[1mIndex %d: mime HEAD requested\x1b[0m\n'
+                          % row[0])
+                    cond.release()
                     continue
                 elif title == '':
                     print('\x1b[1mIndex %d: no title\x1b[0m\n' % row[0])
+                    cond.release()
                     continue
 
-                LOCK.acquire()
                 self.cur.execute(query, (title, row[0],))
-                self.conn.commit()
-                if interrupted:
-                    return True
-                LOCK.release()
+                # Save after fetching 32 titles per thread
+                if count & 0b11111 == 0:
+                    self.conn.commit()
 
                 if self.chatty:
                     print('Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
                           % (title, row[0]))
-                '''
-                # do we need this?
-                '''
+                cond.release()
 
-        for thread in range(4):
-            thread = threading.Thread(target=refresh)
+                if interrupted:
+                    break
+
+            logdbg('Thread %d: processed %d' % (threading.get_ident(), count))
+            with cond:
+                cond.notify()
+
+        thread_count = NUM_THREADS
+        for i in range(NUM_THREADS):
+            thread = threading.Thread(target=refresh, args=(i, cond))
             thread.start()
 
+        while thread_count > 0:
+            cond.wait()
+            thread_count -= 1
+            logdbg('%d threads still active', thread_count)
+
+        cond.release()
+
+        self.conn.commit()
         return True
 
     def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
@@ -1353,9 +1377,9 @@ Buku bookmarks</H3>
             # Connect to input DB
             if sys.version_info >= (3, 4, 4):
                 # Python 3.4.4 and above
-                indb_conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True, check_same_thread = False)
+                indb_conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True)
             else:
-                indb_conn = sqlite3.connect(path, check_same_thread = False)
+                indb_conn = sqlite3.connect(path)
 
             indb_cur = indb_conn.cursor()
             indb_cur.execute('SELECT * FROM bookmarks')
@@ -1511,18 +1535,18 @@ def get_page_title(resp):
     :return: title fetched from parsed page
     '''
 
-    htmlparser = BMHTMLParser()
+    parser = BMHTMLParser()
 
     try:
-        htmlparser.feed(resp.data.decode(errors='replace'))
+        parser.feed(resp.data.decode(errors='replace'))
     except Exception as e:
-        # Suppress Exception due to intentional self.reset() in HTMLParser
+        # Suppress Exception due to intentional self.reset() in BHTMLParser
         if logger.isEnabledFor(logging.DEBUG) \
                 and str(e) != 'we should not get here!':
             _, _, linenumber, func, _, _ = inspect.stack()[0]
             logerr('%s(), ln %d: %s', func, linenumber, e)
     finally:
-        return htmlparser.parsed_title
+        return parser.parsed_title
 
 
 def get_PoolManager():
@@ -1598,13 +1622,14 @@ def network_handler(url):
             else:
                 logerr('[%s] %s', resp.status, resp.reason)
 
+            if resp:
+                resp.release_conn()
+
             break
     except Exception as e:
         _, _, linenumber, func, _, _ = inspect.stack()[0]
         logerr('%s(), ln %d: %s', func, linenumber, e)
     finally:
-        if resp:
-            resp.release_conn()
         if method == 'HEAD':
             return ('', 1, 0)
         if page_title is None:
@@ -2015,7 +2040,11 @@ def sigint_handler(signum, frame):
 
     interrupted = True
     print('\nInterrupted.', file=sys.stderr)
-    sys.exit(1)
+    if http_handler:
+        http_handler.clear()
+
+    # Do a hard exit from here
+    os._exit(1)
 
 signal.signal(signal.SIGINT, sigint_handler)
 
@@ -2556,6 +2585,9 @@ def main():
     # Fix tags
     if args.fixtags:
         bdb.fixtags()
+
+    # Close DB connection and quit
+    bdb.close_quit(0)
 
 if __name__ == '__main__':
     main()
