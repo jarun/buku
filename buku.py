@@ -777,7 +777,7 @@ class BukuDb:
         LOCK = threading.Lock()
 
         def refresh():
-            '''helper function to call network_handler and update db
+            '''Fetch title and update the records.
             '''
 
             while len(resultset) > 0:
@@ -795,8 +795,10 @@ class BukuDb:
                     continue
 
                 LOCK.acquire()
-                self.cur.execute(query, (title, row[0],)) # the connection is closed
+                self.cur.execute(query, (title, row[0],))
                 self.conn.commit()
+                if interrupted:
+                    return True
                 LOCK.release()
 
                 if self.chatty:
@@ -804,8 +806,6 @@ class BukuDb:
                           % (title, row[0]))
                 '''
                 # do we need this?
-                if interrupted:
-                    break
                 '''
 
         for thread in range(4):
@@ -2556,9 +2556,6 @@ def main():
     # Fix tags
     if args.fixtags:
         bdb.fixtags()
-
-    # Close DB connection and quit
-    # bdb.close_quit(0)
 
 if __name__ == '__main__':
     main()
