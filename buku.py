@@ -767,7 +767,7 @@ class BukuDb:
             return False
 
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
-
+        done = {'value': 0}  # count threads completed
         cond = threading.Condition()
         cond.acquire()
 
@@ -821,17 +821,16 @@ class BukuDb:
 
             logdbg('Thread %d: processed %d' % (threading.get_ident(), count))
             with cond:
+                done['value'] += 1
                 cond.notify()
 
-        thread_count = NUM_THREADS
         for i in range(NUM_THREADS):
             thread = threading.Thread(target=refresh, args=(i, cond))
             thread.start()
 
-        while thread_count > 0:
+        while done['value'] < NUM_THREADS:
             cond.wait()
-            thread_count -= 1
-            logdbg('%d threads still active', thread_count)
+            logdbg('%d threads completed', done['value'])
 
         cond.release()
 
