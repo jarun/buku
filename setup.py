@@ -9,7 +9,7 @@ if sys.version_info < (3, 3):
     print('ERROR: Buku requires at least Python 3.3 to run.')
     sys.exit(1)
 
-with open('buku.py') as f:
+with open('buku.py', encoding='utf-8') as f:
     version = re.search('__version__ = \'([^\']+)\'', f.read()).group(1)
 
 with open('README.md', encoding='utf-8') as f:
