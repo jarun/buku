@@ -833,7 +833,6 @@ class BukuDb:
             logdbg('%d threads completed', done['value'])
 
         cond.release()
-
         self.conn.commit()
         return True
 
@@ -1554,22 +1553,28 @@ def get_PoolManager():
     :return: ProxyManager if https_proxy is defined, else PoolManager.
     '''
 
-    proxy = os.environ.get('https_proxy')
+    headers={'Accept-Encoding': 'gzip,deflate',
+             'User-Agent': USER_AGENT,
+             'Accept': '*/*',
+             'Cookie': '',
+             'DNT': '1'
+            }
 
+    proxy = os.environ.get('https_proxy')
     if proxy:
-        headers = None
         url = urlparse(proxy)
         # Strip username and password and create header, if present
         if url.username:
             proxy = proxy.replace(url.username + ':' + url.password + '@', '')
-            headers = urllib3.util.make_headers(
+            auth_headers = urllib3.util.make_headers(
                                 basic_auth=url.username + ':' + url.password
-                                               )
+                                                    )
+            headers.update(auth_headers)
 
         logdbg('proxy: [%s]', proxy)
         return urllib3.ProxyManager(proxy, headers=headers)
 
-    return urllib3.PoolManager()
+    return urllib3.PoolManager(headers=headers)
 
 
 def network_handler(url):
@@ -1597,13 +1602,7 @@ def network_handler(url):
 
     try:
         while True:
-            resp = http_handler.request(
-                                method, url, timeout=40,
-                                headers={'Accept-Encoding': 'gzip,deflate',
-                                         'User-Agent': USER_AGENT,
-                                         'Accept': '*/*',
-                                         'DNT': '1'}
-                                       )
+            resp = http_handler.request(method, url, timeout=40)
 
             if resp.status == 200:
                 page_title = get_page_title(resp)
