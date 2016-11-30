@@ -754,6 +754,8 @@ class BukuDb:
         :param index: index of record to update, or 0 for all records
         '''
 
+        global NUM_THREADS
+
         if index == 0:
             self.cur.execute('SELECT id, url FROM bookmarks WHERE \
                              flags & 1 != 1 ORDER BY id ASC')
@@ -762,7 +764,8 @@ class BukuDb:
                              flags & 1 != 1', (index,))
 
         resultset = self.cur.fetchall()
-        if not len(resultset):
+        recs = len(resultset)
+        if not recs:
             logerr('No matching index or title immutable or empty DB')
             return False
 
@@ -774,6 +777,7 @@ class BukuDb:
         def refresh(count, cond):
             '''Inner function to fetch titles and update records
 
+            param count: dummy input to adhere to convention
             param cond: threading condition object
             '''
 
@@ -823,6 +827,9 @@ class BukuDb:
             with cond:
                 done['value'] += 1
                 cond.notify()
+
+        if recs < NUM_THREADS:
+            NUM_THREADS = recs
 
         for i in range(NUM_THREADS):
             thread = threading.Thread(target=refresh, args=(i, cond))
