@@ -819,7 +819,7 @@ class BukuDb:
                 if interrupted:
                     break
 
-            logdbg('Thread %d: processed %d' % (threading.get_ident(), count))
+            logdbg('Thread %d: processed %d', threading.get_ident(), count)
             with cond:
                 done['value'] += 1
                 cond.notify()
@@ -1192,7 +1192,7 @@ class BukuDb:
                 return False
 
             index = result[0]
-            logdbg('Opening random index ' + str(index))
+            logdbg('Opening random index %d', index)
 
         query = 'SELECT URL FROM bookmarks WHERE id = ?'
         try:
@@ -1245,7 +1245,7 @@ class BukuDb:
                 else:
                     query = query[:-6]
 
-        logdbg('(%s), %s' % (query, arguments))
+        logdbg('(%s), %s', query, arguments)
         self.cur.execute(query, arguments)
         resultset = self.cur.fetchall()
 
@@ -1498,7 +1498,7 @@ def is_bad_url(url):
         if not netloc:
             return True
 
-    logdbg('netloc: %s' % netloc)
+    logdbg('netloc: %s', netloc)
 
     # netloc cannot start or end with a '.'
     if netloc.startswith('.') or netloc.endswith('.'):
@@ -1566,7 +1566,7 @@ def get_PoolManager():
                                 basic_auth=url.username + ':' + url.password
                                                )
 
-        logdbg('proxy: [%s]' % proxy)
+        logdbg('proxy: [%s]', proxy)
         return urllib3.ProxyManager(proxy, headers=headers)
 
     return urllib3.PoolManager()
