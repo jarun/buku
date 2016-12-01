@@ -58,6 +58,8 @@ NUM_THREADS = 5  # Number of threads for full DB refresh
 # Disguise as Firefox on Ubuntu
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 \
 Firefox/50.0'
+headers = None  # Default dictionary of headers
+proxy = None  # Default proxy
 
 # Crypto globals
 BLOCKSIZE = 65536
@@ -1566,26 +1568,33 @@ def get_PoolManager():
     :return: ProxyManager if https_proxy is defined, else PoolManager.
     '''
 
-    headers = {
-               'Accept-Encoding': 'gzip,deflate',
-               'User-Agent': USER_AGENT,
-               'Accept': '*/*',
-               'Cookie': '',
-               'DNT': '1'
-              }
+    global headers, proxy
 
-    proxy = os.environ.get('https_proxy')
-    if proxy:
-        url = urlparse(proxy)
-        # Strip username and password and create header, if present
-        if url.username:
-            proxy = proxy.replace(url.username + ':' + url.password + '@', '')
-            auth_headers = urllib3.util.make_headers(
+    if not headers:
+        headers = {
+                   'Accept-Encoding': 'gzip,deflate',
+                   'User-Agent': USER_AGENT,
+                   'Accept': '*/*',
+                   'Cookie': '',
+                   'DNT': '1'
+                  }
+
+        proxy = os.environ.get('https_proxy')
+        if proxy:
+            url = urlparse(proxy)
+            # Strip username and password and create header, if present
+            if url.username:
+                proxy = proxy.replace(
+                                url.username + ':' + url.password + '@', ''
+                                     )
+                auth_headers = urllib3.util.make_headers(
                                 basic_auth=url.username + ':' + url.password
-                                                    )
-            headers.update(auth_headers)
+                                                        )
+                headers.update(auth_headers)
 
-        logdbg('proxy: [%s]', proxy)
+            logdbg('proxy: [%s]', proxy)
+
+    if proxy:
         return urllib3.ProxyManager(proxy, num_pools=1, headers=headers)
 
     return urllib3.PoolManager(num_pools=1, headers=headers)
@@ -1615,7 +1624,8 @@ def network_handler(url):
             resp = http_handler.request(method, url, timeout=40)
 
             if resp.status == 200:
-                page_title = get_page_title(resp)
+                if method == 'GET':
+                    page_title = get_page_title(resp)
             elif resp.status == 403 and url.endswith('/'):
                 # HTTP response Forbidden
                 # Handle URLs in the form of https://www.domain.com/
@@ -2049,8 +2059,6 @@ def sigint_handler(signum, frame):
 
     interrupted = True
     print('\nInterrupted.', file=sys.stderr)
-    if http_handler:
-        http_handler.clear()
 
     # Do a hard exit from here
     os._exit(1)
