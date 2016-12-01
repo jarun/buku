@@ -53,7 +53,6 @@ tagsearch = False  # Search bookmarks by tag
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
-http_handler = None  # urllib3 PoolManager handler
 NUM_THREADS = 5  # Number of threads for full DB refresh
 
 # Disguise as Firefox on Ubuntu
@@ -1587,9 +1586,9 @@ def get_PoolManager():
             headers.update(auth_headers)
 
         logdbg('proxy: [%s]', proxy)
-        return urllib3.ProxyManager(proxy, headers=headers)
+        return urllib3.ProxyManager(proxy, num_pools=1, headers=headers)
 
-    return urllib3.PoolManager(headers=headers)
+    return urllib3.PoolManager(num_pools=1, headers=headers)
 
 
 def network_handler(url):
@@ -1598,8 +1597,6 @@ def network_handler(url):
     :param url: URL to fetch
     :return: (title, recognized mime, bad url) tuple
     '''
-
-    global http_handler
 
     page_title = None
     resp = None
@@ -1611,9 +1608,7 @@ def network_handler(url):
     if is_ignored_mime(url):
         method = 'HEAD'
 
-    if not http_handler:
-        urllib3.disable_warnings()
-        http_handler = get_PoolManager()
+    http_handler = get_PoolManager()
 
     try:
         while True:
@@ -1643,6 +1638,7 @@ def network_handler(url):
         _, _, linenumber, func, _, _ = inspect.stack()[0]
         logerr('%s(), ln %d: %s', func, linenumber, e)
     finally:
+        http_handler.clear()
         if method == 'HEAD':
             return ('', 1, 0)
         if page_title is None:
@@ -2372,6 +2368,7 @@ def main():
         logdbg('Version %s', __version__)
     else:
         logging.disable(logging.WARNING)
+        urllib3.disable_warnings()
 
     # Handle encrypt/decrypt options at top priority
     if args.lock is not None:
