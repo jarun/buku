@@ -771,6 +771,8 @@ class BukuDb:
 
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
         done = {'value': 0}  # count threads completed
+        processed = {'value': 0}  # count number of records processed
+
         cond = threading.Condition()
         cond.acquire()
 
@@ -826,6 +828,7 @@ class BukuDb:
             logdbg('Thread %d: processed %d', threading.get_ident(), count)
             with cond:
                 done['value'] += 1
+                processed['value'] += count
                 cond.notify()
 
         if recs < NUM_THREADS:
@@ -838,6 +841,10 @@ class BukuDb:
         while done['value'] < NUM_THREADS:
             cond.wait()
             logdbg('%d threads completed', done['value'])
+
+        # Guard: records found == total records processed
+        if recs != processed['value']:
+            logerr('Records: %d, processed: %d !!!', recs, processed['value'])
 
         cond.release()
         self.conn.commit()
@@ -1560,12 +1567,13 @@ def get_PoolManager():
     :return: ProxyManager if https_proxy is defined, else PoolManager.
     '''
 
-    headers={'Accept-Encoding': 'gzip,deflate',
-             'User-Agent': USER_AGENT,
-             'Accept': '*/*',
-             'Cookie': '',
-             'DNT': '1'
-            }
+    headers = {
+               'Accept-Encoding': 'gzip,deflate',
+               'User-Agent': USER_AGENT,
+               'Accept': '*/*',
+               'Cookie': '',
+               'DNT': '1'
+              }
 
     proxy = os.environ.get('https_proxy')
     if proxy:
