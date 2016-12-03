@@ -1433,14 +1433,22 @@ Buku bookmarks</H3>
             else:
                 return None
 
-        r = requests.post(
-            'http://tny.im/yourls-api.php?action=shorturl&format=simple&url=' +
-            url,
-            headers={
-                     'content-type': 'application/json',
-                     'User-Agent': USER_AGENT
-                    }
-                         )
+        proxies = {
+            'https': os.environ.get('https_proxy'),
+        }
+        _u = 'https://tny.im/yourls-api.php?action=shorturl&format=simple&url='
+
+        try:
+            r = requests.post(_u + url,
+                              headers={
+                                       'content-type': 'application/json',
+                                       'User-Agent': USER_AGENT
+                                      },
+                              proxies=proxies)
+        except Exception as e:
+            logerr(e)
+            return None
+
         if r.status_code != 200:
             logerr('[%s] %s', r.status_code, r.reason)
             return None
@@ -2038,7 +2046,19 @@ def open_in_browser(url):
 def check_upstream_release():
     '''Check and report the latest upstream release version'''
 
-    r = requests.get('https://api.github.com/repos/jarun/buku/tags?per_page=1')
+    proxies = {
+        'https': os.environ.get('https_proxy'),
+    }
+
+    try:
+        r = requests.get(
+                    'https://api.github.com/repos/jarun/buku/tags?per_page=1',
+                    proxies=proxies
+                        )
+    except Exception as e:
+        logerr(e)
+        return
+
     if r.status_code != 200:
         logerr('[%s] %s', r.status_code, r.reason)
     else:
@@ -2345,7 +2365,7 @@ def main():
     addarg('-o', '--open', nargs='?', type=int, const=0, help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
-    addarg('--threads', type=int, default=4, choices=range(1,11), help=HIDE)
+    addarg('--threads', type=int, default=4, choices=range(1, 11), help=HIDE)
     addarg('--upstream', action='store_true', help=HIDE)
     addarg('-z', '--debug', action='store_true', help=HIDE)
     # Undocumented API
