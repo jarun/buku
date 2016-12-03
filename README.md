@@ -188,7 +188,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            FF and Google Chrome formats supported
       --markdown           use markdown with -e and -i
                            format: [title](url), 1 per line
-      -m, --merge file     merge records from another buku DB file
+      -m, --merge file     add bookmarks from another buku DB file
       -p, --print [...]    show details of bookmark by DB index
                            accepts indices and ranges
                            show all bookmarks, if no arguments
