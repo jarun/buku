@@ -486,6 +486,7 @@ class BukuDb:
         :param url: URL to bookmark
         :param title_in: string title to add manually
         :param tags_in: string of comma-separated tags to add manually
+                        must start and end with comma
         :param desc: string description
         :param delay_commit: do not commit to DB, caller responsibility
         :return: True on success, False on failure
@@ -625,7 +626,7 @@ class BukuDb:
         return True
 
     def update_bm(self, index, url='', title_in=None, tags_in=None, desc=None,
-                  append_tag=False, delete_tag=False, threads=5):
+                  threads=5):
         '''Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
@@ -634,15 +635,17 @@ class BukuDb:
         :param url: bookmark address
         :param title_in: string title to add manually
         :param tags_in: string of comma-separated tags to add manually
+                        must start and end with comma
+                        prefix with '+,' to append to current tags
+                        prefix with '-,' to delete from current tags
         :param desc: string description
-        :param append_tag: add tag(s) to existing tag(s)
-        :param delete_tag: delete tag(s) from existing tag(s)
         :return: True on success, False on failure
         '''
 
         arguments = []
         query = 'UPDATE bookmarks SET'
         to_update = False
+        tag_modified = False
         ret = False
 
         # Update URL if passed as argument
@@ -656,10 +659,16 @@ class BukuDb:
 
         # Update tags if passed as argument
         if tags_in is not None:
-            if append_tag:
-                ret = self.append_tag_at_index(index, tags_in)
-            elif delete_tag:
-                ret = self.delete_tag_at_index(index, tags_in)
+            if tags_in == '+,' or tags_in == '-,':
+                logerr('Please specify a tag')
+                return False
+
+            if tags_in.startswith('+,'):
+                ret = self.append_tag_at_index(index, tags_in[1:])
+                tag_modified = True
+            elif tags_in.startswith('-,'):
+                ret = self.delete_tag_at_index(index, tags_in[1:])
+                tag_modified = True
             else:
                 query = '%s tags = ?,' % query
                 arguments += (tags_in,)
@@ -704,7 +713,7 @@ class BukuDb:
                 print('\x1b[91mTitle: []\x1b[0m')
             else:
                 logdbg('Title: [%s]', title_to_insert)
-        elif not to_update and not (append_tag or delete_tag):
+        elif not to_update and not tag_modified:
             ret = self.refreshdb(index, threads)
             if ret and index and self.chatty:
                 self.print_bm(index)
@@ -2437,31 +2446,24 @@ def main():
         else:
             url_in = ''
 
-        append = False
-        delete = False
-        if tags_in is not None:
-            if (tags_in[0] == '+' or tags_in[0] == '-') \
-                    and len(tags_in) == 1:
-                logerr('Please specify a tag')
-                bdb.close_quit(1)
-            elif tags_in[0] == '+':
-                tags_in = tags_in[1:]
-                append = True
-            elif tags_in[0] == '-':
-                tags_in = tags_in[1:]
-                delete = True
-
         # Parse tags into a comma-separated string
-        tags = parse_tags(tags_in)
+        if tags_in and len(tags_in):
+            if tags_in[0] == '+':
+                tags = '+%s' % parse_tags(tags_in[1:])
+            elif tags_in[0] == '-':
+                tags = '-%s' % parse_tags(tags_in[1:])
+            else:
+                tags = parse_tags(tags_in)
+        else:
+            tags = None
 
         if len(args.update) == 0:
-            bdb.update_bm(0, url_in, title_in, tags, desc_in, append, delete,
-                          args.threads)
+            bdb.update_bm(0, url_in, title_in, tags, desc_in, args.threads)
         else:
             for idx in args.update:
                 if is_int(idx):
                     bdb.update_bm(int(idx), url_in, title_in, tags, desc_in,
-                                  append, delete, args.threads)
+                                  args.threads)
                 elif '-' in idx and is_int(idx.split('-')[0]) \
                         and is_int(idx.split('-')[1]):
                     lower = int(idx.split('-')[0])
@@ -2472,11 +2474,11 @@ def main():
                     # Update only once if range starts from 0 (all)
                     if lower == 0:
                         bdb.update_bm(0, url_in, title_in, tags, desc_in,
-                                      append, delete, args.threads)
+                                      args.threads)
                     else:
                         for _id in range(lower, upper + 1):
                             bdb.update_bm(_id, url_in, title_in, tags, desc_in,
-                                          append, delete, args.threads)
+                                          args.threads)
                             if interrupted:
                                 break
 
