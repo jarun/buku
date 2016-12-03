@@ -196,6 +196,11 @@ using the tny.im URL shortener service.
 .BI \--tacit
 Show lesser output. Reduces the verbosity of certain operations like add, update etc.
 .TP
+.BI \--threads
+Maximum number of parallel network connection threads to use during full DB refresh. By default 4 connections are spawned.
+.I N
+can range from 1 to 10.
+.TP
 .BI \--upstream
 Check the latest upstream version available. This is FYI. It is possible the latest upstream released version is still not available in your package manager as the process takes a while.
 .TP

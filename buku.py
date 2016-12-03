@@ -53,7 +53,6 @@ tagsearch = False  # Search bookmarks by tag
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
-NUM_THREADS = 5  # Number of threads for full DB refresh
 
 # Disguise as Firefox on Ubuntu
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 \
@@ -626,7 +625,7 @@ class BukuDb:
         return True
 
     def update_bm(self, index, url='', title_in=None, tags_in=None, desc=None,
-                  append_tag=False, delete_tag=False):
+                  append_tag=False, delete_tag=False, threads=5):
         '''Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
@@ -706,7 +705,7 @@ class BukuDb:
             else:
                 logdbg('Title: [%s]', title_to_insert)
         elif not to_update and not (append_tag or delete_tag):
-            ret = self.refreshdb(index)
+            ret = self.refreshdb(index, threads)
             if ret and index and self.chatty:
                 self.print_bm(index)
             return ret
@@ -746,7 +745,7 @@ class BukuDb:
 
         return True
 
-    def refreshdb(self, index):
+    def refreshdb(self, index, threads):
         '''Refresh ALL records in the database. Fetch title for each
         bookmark from the web and update the records. Doesn't update
         the record if title is empty.
@@ -754,8 +753,6 @@ class BukuDb:
         This API is verbose.
         :param index: index of record to update, or 0 for all records
         '''
-
-        global NUM_THREADS
 
         if index == 0:
             self.cur.execute('SELECT id, url FROM bookmarks WHERE \
@@ -832,14 +829,14 @@ class BukuDb:
                 processed['value'] += count
                 cond.notify()
 
-        if recs < NUM_THREADS:
-            NUM_THREADS = recs
+        if recs < threads:
+            threads = recs
 
-        for i in range(NUM_THREADS):
+        for i in range(threads):
             thread = threading.Thread(target=refresh, args=(i, cond))
             thread.start()
 
-        while done['value'] < NUM_THREADS:
+        while done['value'] < threads:
             cond.wait()
             logdbg('%d threads completed', done['value'])
 
@@ -2331,6 +2328,8 @@ def main():
 --shorten N/URL      fetch shortened url from tny.im service
                      accepts either a DB index or a URL
 --tacit              reduce verbosity
+--threads N          max network connections in full refresh
+                     default 4, min 1, max 10
 --upstream           check latest upstream version available
 -z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
@@ -2346,6 +2345,7 @@ def main():
     addarg('-o', '--open', nargs='?', type=int, const=0, help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
+    addarg('--threads', type=int, default=4, choices=range(1,11), help=HIDE)
     addarg('--upstream', action='store_true', help=HIDE)
     addarg('-z', '--debug', action='store_true', help=HIDE)
     # Undocumented API
@@ -2435,12 +2435,13 @@ def main():
         tags = parse_tags(tags_in)
 
         if len(args.update) == 0:
-            bdb.update_bm(0, url_in, title_in, tags, desc_in, append, delete)
+            bdb.update_bm(0, url_in, title_in, tags, desc_in, append, delete,
+                          args.threads)
         else:
             for idx in args.update:
                 if is_int(idx):
                     bdb.update_bm(int(idx), url_in, title_in, tags, desc_in,
-                                  append, delete)
+                                  append, delete, args.threads)
                 elif '-' in idx and is_int(idx.split('-')[0]) \
                         and is_int(idx.split('-')[1]):
                     lower = int(idx.split('-')[0])
@@ -2451,11 +2452,11 @@ def main():
                     # Update only once if range starts from 0 (all)
                     if lower == 0:
                         bdb.update_bm(0, url_in, title_in, tags, desc_in,
-                                      append, delete)
+                                      append, delete, args.threads)
                     else:
                         for _id in range(lower, upper + 1):
                             bdb.update_bm(_id, url_in, title_in, tags, desc_in,
-                                          append, delete)
+                                          append, delete, args.threads)
                             if interrupted:
                                 break
 
