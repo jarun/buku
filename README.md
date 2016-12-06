@@ -45,9 +45,10 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
   - [Import bookmarks to browser](#import-bookmarks-to-browser)
 - [Sync database across systems](#sync-database-across-systems)
 - [As a library](#as-a-library)
+- [Related projects](#related-projects)
+- [Mentions](#mentions)
 - [Examples](#examples)
 - [Contributions](#contributions)
-- [Mentions](#mentions)
 - [Copyright](#copyright)
 
 ## Features
@@ -111,6 +112,7 @@ Please substitute `$version` with the appropriate package version.
 ### Installing with a package manager
 
 `buku` is also available on
+- [PyPi](https://pypi.python.org/pypi/buku/) ( `$ pip install buku` )
 - [AUR](https://aur.archlinux.org/packages/buku/) for Arch Linux
 - [Ubuntu](https://launchpad.net/ubuntu/+source/buku)
 - [Homebrew](http://braumeister.org/formula/buku) for OS X
@@ -321,6 +323,17 @@ Once exported, import the html file in your browser.
     BukuCrypt.decrypt_file(iterations, dbfile=None)
 NOTE: This flexibility is not exposed in the program.
 
+## Related projects
+
+- [buku_run](https://github.com/carnager/buku_run), a rofi frontend
+- [oil](https://github.com/AndreiUlmeyda/oil), a search-as-you-type cli frontend
+
+## Mentions
+
+- [One Thing Well](http://onethingwell.org/post/144952807044/buku)
+- [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
+- [Make Tech Easier](https://www.maketecheasier.com/manage-browser-bookmarks-ubuntu-command-line/)
+
 ## Examples
 
 1. **Add** a bookmark with **tags** `linux news` and `open source`, **comment** `Informative website on Linux and open source`, **fetch page title** from the web:
@@ -441,12 +454,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 
 ## Contributions
 
-Pull requests are welcome. Please visit [#78](https://github.com/jarun/Buku/issues/78) for a list of TODOs.
-
-## Mentions
-
-- [One Thing Well](http://onethingwell.org/post/144952807044/buku)
-- [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
+Pull requests are welcome. Please visit [#103](https://github.com/jarun/Buku/issues/103) for a list of TODOs.
 
 ## Copyright
 
