@@ -894,7 +894,7 @@ class BukuDb:
                     if deep:
                         qry = '%s %s AND' % (qry, q1)
                     else:
-                        token = '\\b' + token + '\\b'
+                        token = '\\b' + token.rstrip('/') + '\\b'
                         qry = '%s %s AND' % (qry, q2)
 
                     qargs += (token, token, token, token,)
@@ -904,7 +904,7 @@ class BukuDb:
                 if deep:
                     qry = '%s %s OR' % (qry, q1)
                 else:
-                    token = '\\b' + token + '\\b'
+                    token = '\\b' + token.rstrip('/') + '\\b'
                     qry = '%s %s OR' % (qry, q2)
 
                 qargs += (token, token, token, token,)

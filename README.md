@@ -235,7 +235,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
   - Can delete bookmarks matching a search, when combined with any of the search options.
 - **Search** works in mysterious ways:
   - Case-insensitive.
-  - Matches exact words in URL, title and tags.
+  - Matches words in URL, title and tags.
   - --sany : match any of the keywords in URL, title or tags.
   - --sall : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
