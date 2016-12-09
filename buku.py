@@ -25,8 +25,8 @@ import argparse
 import webbrowser
 import html.parser as HTMLParser
 import urllib3
+from urllib3.util import parse_url, make_headers
 import requests
-from urllib.parse import urlparse, unquote
 import signal
 import json
 import logging
@@ -1217,8 +1217,7 @@ class BukuDb:
         query = 'SELECT URL FROM bookmarks WHERE id = ?'
         try:
             for row in self.cur.execute(query, (index,)):
-                url = unquote(row[0])
-                open_in_browser(url)
+                open_in_browser(row[0])
                 return True
             logerr('No matching index')
         except IndexError:
@@ -1519,10 +1518,10 @@ def is_bad_url(url):
     '''
 
     # Get the netloc token
-    netloc = urlparse(url).netloc
+    netloc = parse_url(url).netloc
     if not netloc:
         # Try of prepend '//' and get netloc
-        netloc = urlparse('//' + url).netloc
+        netloc = parse_url('//' + url).netloc
         if not netloc:
             return True
 
@@ -1595,15 +1594,15 @@ def get_PoolManager():
 
         proxy = os.environ.get('https_proxy')
         if proxy:
-            url = urlparse(proxy)
+            url = parse_url(proxy)
             # Strip username and password and create header, if present
             if url.username:
                 proxy = proxy.replace(
                                 url.username + ':' + url.password + '@', ''
                                      )
-                auth_headers = urllib3.util.make_headers(
+                auth_headers = make_headers(
                                 basic_auth=url.username + ':' + url.password
-                                                        )
+                                           )
                 headers.update(auth_headers)
 
             logdbg('proxy: [%s]', proxy)
@@ -1889,7 +1888,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
         if nav == 'a':
             for index in range(0, count):
                 try:
-                    open_in_browser(unquote(results[index][1]))
+                    open_in_browser(results[index][1])
                 except Exception as e:
                     _, _, linenumber, func, _, _ = inspect.stack()[0]
                     logerr('%s(), ln %d: %s', func, linenumber, e)
@@ -1904,7 +1903,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                     print('No matching index')
                     continue
                 try:
-                    open_in_browser(unquote(results[index][1]))
+                    open_in_browser(results[index][1])
                 except Exception as e:
                     _, _, linenumber, func, _, _ = inspect.stack()[0]
                     logerr('%s(), ln %d: %s', func, linenumber, e)
@@ -1917,7 +1916,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                 for index in range(lower-1, upper):
                     try:
                         if 0 <= index < count:
-                            open_in_browser(unquote(results[index][1]))
+                            open_in_browser(results[index][1])
                         else:
                             print('No matching index')
                     except Exception as e:
@@ -2025,8 +2024,7 @@ def open_in_browser(url):
     :param url: URL to open
     '''
 
-    url = url.replace('%22', '\"')
-    if not urlparse(url).scheme:
+    if not parse_url(url).scheme:
         # Prefix with 'http://' is no scheme
         # Otherwise, opening in browser fails anyway
         # We expect http to https redirection
