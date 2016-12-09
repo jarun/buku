@@ -30,8 +30,6 @@ import requests
 import signal
 import json
 import logging
-import inspect
-import atexit
 import threading
 
 try:
@@ -426,8 +424,7 @@ class BukuDb:
                         desc text default \'\')')
             conn.commit()
         except Exception as e:
-            _, _, linenumber, func, _, _ = inspect.stack()[0]
-            logerr('%s(), ln %d: %s', func, linenumber, e)
+            logerr('initdb(): %s', e)
             sys.exit(1)
 
         # Add description column in existing DB (from version 2.1)
@@ -544,8 +541,7 @@ class BukuDb:
                 self.print_bm(self.cur.lastrowid)
             return True
         except Exception as e:
-            _, _, linenumber, func, _, _ = inspect.stack()[0]
-            logerr('%s(), ln %d: %s', func, linenumber, e)
+            logerr('add_bm(): %s', e)
             return False
 
     def append_tag_at_index(self, index, tags_in):
@@ -1569,8 +1565,7 @@ def get_page_title(resp):
         # Suppress Exception due to intentional self.reset() in BHTMLParser
         if logger.isEnabledFor(logging.DEBUG) \
                 and str(e) != 'we should not get here!':
-            _, _, linenumber, func, _, _ = inspect.stack()[0]
-            logerr('%s(), ln %d: %s', func, linenumber, e)
+            logerr('get_page_title(): %s', e)
     finally:
         return parser.parsed_title
 
@@ -1658,8 +1653,7 @@ def network_handler(url):
 
             break
     except Exception as e:
-        _, _, linenumber, func, _, _ = inspect.stack()[0]
-        logerr('%s(), ln %d: %s', func, linenumber, e)
+        logerr('network_handler(): %s', e)
     finally:
         http_handler.clear()
         if method == 'HEAD':
@@ -1890,8 +1884,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                 try:
                     open_in_browser(results[index][1])
                 except Exception as e:
-                    _, _, linenumber, func, _, _ = inspect.stack()[0]
-                    logerr('%s(), ln %d: %s', func, linenumber, e)
+                    logerr('prompt() 1: %s', e)
 
             continue
 
@@ -1905,8 +1898,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                 try:
                     open_in_browser(results[index][1])
                 except Exception as e:
-                    _, _, linenumber, func, _, _ = inspect.stack()[0]
-                    logerr('%s(), ln %d: %s', func, linenumber, e)
+                    logerr('prompt() 2: %s', e)
             elif '-' in nav and is_int(nav.split('-')[0]) \
                     and is_int(nav.split('-')[1]):
                 lower = int(nav.split('-')[0])
@@ -1920,8 +1912,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                         else:
                             print('No matching index')
                     except Exception as e:
-                        _, _, linenumber, func, _, _ = inspect.stack()[0]
-                        logerr('%s(), ln %d: %s', func, linenumber, e)
+                        logerr('prompt() 3: %s', e)
             else:
                 print('Invalid input')
                 break
@@ -2042,8 +2033,7 @@ def open_in_browser(url):
     try:
         webbrowser.open(url)
     except Exception as e:
-        _, _, linenumber, func, _, _ = inspect.stack()[0]
-        logerr('%s(), ln %d: %s', func, linenumber, e)
+        logerr('open_in_browser(): %s', e)
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
@@ -2217,7 +2207,6 @@ def main():
     global tags_in, title_in, desc_in
 
     pipeargs = []
-    atexit.register(logging.shutdown)
 
     try:
         piped_input(sys.argv, pipeargs)
