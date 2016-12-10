@@ -1416,11 +1416,12 @@ Buku bookmarks</H3>
 
         return True
 
-    def shorten_url(self, index=0, url=None):
+    def tnyfy_url(self, index=0, url=None, shorten=True):
         '''Shorted a URL using Google URL shortener
 
         :param index: shorten the URL at DB index (int)
         :param url: pass a URL (string)
+        :param shorten: True (default) to shorten, False to expand (boolean)
         :return: shortened url string on success, None on failure
         '''
 
@@ -1440,10 +1441,15 @@ Buku bookmarks</H3>
         proxies = {
             'https': os.environ.get('https_proxy'),
         }
-        _u = 'https://tny.im/yourls-api.php?action=shorturl&format=simple&url='
+
+        urlbase = 'https://tny.im/yourls-api.php?action='
+        if shorten:
+            _u = '%s%s%s' % (urlbase, 'shorturl&format=simple&url=', url)
+        else:
+            _u = '%s%s%s' % (urlbase, 'expand&format=simple&shorturl=', url)
 
         try:
-            r = requests.post(_u + url,
+            r = requests.post(_u,
                               headers={
                                        'content-type': 'application/json',
                                        'User-Agent': USER_AGENT
@@ -2343,6 +2349,7 @@ def main():
                      open a random index if N is omitted
 --shorten N/URL      fetch shortened url from tny.im service
                      accepts either a DB index or a URL
+--expand N/URL       expand a tny.im shortened url
 --tacit              reduce verbosity
 --threads N          max network connections in full refresh
                      default 4, min 1, max 10
@@ -2360,6 +2367,7 @@ def main():
     addarg('--noprompt', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='?', type=int, const=0, help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
+    addarg('--expand', nargs=1, help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=HIDE)
     addarg('--upstream', action='store_true', help=HIDE)
@@ -2597,14 +2605,24 @@ def main():
         bdb.browse_by_index(args.open)
 
     # Shorten URL
-    if args.shorten and len(args.shorten):
+    if args.shorten:
         if is_int(args.shorten[0]):
-            shorturl = bdb.shorten_url(index=int(args.shorten[0]))
+            shorturl = bdb.tnyfy_url(index=int(args.shorten[0]))
         else:
-            shorturl = bdb.shorten_url(url=args.shorten[0])
+            shorturl = bdb.tnyfy_url(url=args.shorten[0])
 
         if shorturl:
             print(shorturl)
+
+    # Expand URL
+    if args.expand:
+        if is_int(args.expand[0]):
+            url = bdb.tnyfy_url(index=int(args.expand[0]), shorten=False)
+        else:
+            url = bdb.tnyfy_url(url=args.expand[0], shorten=False)
+
+        if url:
+            print(url)
 
     # Report upstream version
     if args.upstream:

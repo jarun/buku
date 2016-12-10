@@ -205,6 +205,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            open a random index if N is omitted
       --shorten N/URL      fetch shortened url from tny.im service
                            accepts either a DB index or a URL
+      --expand N/URL       expand a tny.im shortened url
       --tacit              reduce verbosity
       --threads N          max network connections in full refresh
                            default 4, min 1, max 10
