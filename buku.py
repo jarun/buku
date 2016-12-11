@@ -55,8 +55,8 @@ SKIP_MIMES = {'.pdf', '.txt'}
 # Disguise as Firefox on Ubuntu
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 \
 Firefox/50.0'
-headers = None  # Default dictionary of headers
-proxy = None  # Default proxy
+myheaders = None  # Default dictionary of headers
+myproxy = None  # Default proxy
 
 # Crypto globals
 BLOCKSIZE = 65536
@@ -775,6 +775,14 @@ class BukuDb:
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
         done = {'value': 0}  # count threads completed
         processed = {'value': 0}  # count number of records processed
+
+        # An additional call to generate default headers
+        # gen_headers() is called within network_handler()
+        # However, this initial call to setup headers
+        # ensures there is no race condition among the
+        # initial threads to setup headers
+        if not myheaders:
+            gen_headers()
 
         cond = threading.Condition()
         cond.acquire()
@@ -1576,42 +1584,46 @@ def get_page_title(resp):
         return parser.parsed_title
 
 
+def gen_headers():
+    '''Generate headers for network connection'''
+
+    global myheaders, myproxy
+
+    myheaders = {
+                 'Accept-Encoding': 'gzip,deflate',
+                 'User-Agent': USER_AGENT,
+                 'Accept': '*/*',
+                 'Cookie': '',
+                 'DNT': '1'
+                }
+
+    myproxy = os.environ.get('https_proxy')
+    if myproxy:
+        try:
+            url = parse_url(myproxy)
+        except Exception as e:
+            logerr(e)
+            return
+
+        # Strip username and password (if present) and update headers
+        if url.auth:
+            myproxy = myproxy.replace(url.auth + '@', '')
+            auth_headers = make_headers(basic_auth=url.auth)
+            myheaders.update(auth_headers)
+
+        logdbg('proxy: [%s]', myproxy)
+
+
 def get_PoolManager():
     '''Creates a pool manager with proxy support, if applicable
 
     :return: ProxyManager if https_proxy is defined, else PoolManager.
     '''
 
-    global headers, proxy
+    if myproxy:
+        return urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders)
 
-    if not headers:
-        headers = {
-                   'Accept-Encoding': 'gzip,deflate',
-                   'User-Agent': USER_AGENT,
-                   'Accept': '*/*',
-                   'Cookie': '',
-                   'DNT': '1'
-                  }
-
-        proxy = os.environ.get('https_proxy')
-        if proxy:
-            url = parse_url(proxy)
-            # Strip username and password and create header, if present
-            if url.username:
-                proxy = proxy.replace(
-                                url.username + ':' + url.password + '@', ''
-                                     )
-                auth_headers = make_headers(
-                                basic_auth=url.username + ':' + url.password
-                                           )
-                headers.update(auth_headers)
-
-            logdbg('proxy: [%s]', proxy)
-
-    if proxy:
-        return urllib3.ProxyManager(proxy, num_pools=1, headers=headers)
-
-    return urllib3.PoolManager(num_pools=1, headers=headers)
+    return urllib3.PoolManager(num_pools=1, headers=myheaders)
 
 
 def network_handler(url):
@@ -1621,6 +1633,7 @@ def network_handler(url):
     :return: (title, recognized mime, bad url) tuple
     '''
 
+    http_handler = None
     page_title = None
     resp = None
     method = 'GET'
@@ -1631,9 +1644,12 @@ def network_handler(url):
     if is_ignored_mime(url):
         method = 'HEAD'
 
-    http_handler = get_PoolManager()
+    if not myheaders:
+        gen_headers()
 
     try:
+        http_handler = get_PoolManager()
+
         while True:
             resp = http_handler.request(method, url, timeout=40)
 
@@ -1661,7 +1677,8 @@ def network_handler(url):
     except Exception as e:
         logerr('network_handler(): %s', e)
     finally:
-        http_handler.clear()
+        if http_handler:
+            http_handler.clear()
         if method == 'HEAD':
             return ('', 1, 0)
         if page_title is None:
