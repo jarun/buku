@@ -17,20 +17,20 @@
 # You should have received a copy of the GNU General Public License
 # along with Buku.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import os
-import sqlite3
-import re
 import argparse
-import webbrowser
 import html.parser as HTMLParser
-import urllib3
-from urllib3.util import parse_url, make_headers
-import requests
-import signal
 import json
 import logging
+import os
+import re
+import requests
+import signal
+import sqlite3
+import sys
 import threading
+import urllib3
+from urllib3.util import parse_url, make_headers
+import webbrowser
 
 try:
     import readline
@@ -2553,7 +2553,7 @@ def main():
                 else:
                     bdb.delete_bm(0, int(vals[1]), int(vals[0]), True)
             else:
-                logerr('Incorrect index or range')
+                logerr('Invalid index or range')
                 bdb.close_quit(1)
         else:
             ids = []
@@ -2568,7 +2568,7 @@ def main():
                 for idx in ids:
                     bdb.delete_bm(int(idx))
             except ValueError:
-                logerr('Incorrect index or range')
+                logerr('Invalid index or range')
 
     # Print records
     if args.print is not None:
