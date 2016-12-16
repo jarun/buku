@@ -59,8 +59,8 @@ myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
 
 # Crypto globals
-BLOCKSIZE = 65536
-SALT_SIZE = 32
+BLOCKSIZE = 0x10000  # 64 KB blocks
+SALT_SIZE = 0x20
 CHUNKSIZE = 0x80000  # Read/write 512 KB chunks
 
 # Set up logging
