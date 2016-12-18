@@ -2371,6 +2371,7 @@ def main():
 --threads N          max network connections in full refresh
                      default 4, min 1, max 10
 --upstream           check latest upstream version available
+-v, --version        show program version and exit
 -z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
@@ -2388,6 +2389,7 @@ def main():
     addarg('--tacit', action='store_true', help=HIDE)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=HIDE)
     addarg('--upstream', action='store_true', help=HIDE)
+    addarg('-v', '--version', action='version', version=__version__, help=HIDE)
     addarg('-z', '--debug', action='store_true', help=HIDE)
     # Undocumented API
     addarg('--fixtags', action='store_true', help=HIDE)

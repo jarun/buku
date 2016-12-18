@@ -37,5 +37,6 @@ args=(
     '(-u --update)'{-u,--update}'[update bookmark]'
     '(--upstream)--upstream[check latest upstream release]'
     '(--url)--url[set url]'
+    '(-v --version)'{-v,--version}'[show program version]'
 )
 _arguments -S -s $args

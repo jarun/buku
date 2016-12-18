@@ -211,6 +211,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       --threads N          max network connections in full refresh
                            default 4, min 1, max 10
       --upstream           check latest upstream version available
+      -v, --version        show program version and exit
       -z, --debug          show debug information and verbose logs
 
     symbols:
