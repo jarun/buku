@@ -331,13 +331,11 @@ class BukuCrypt:
 
 class BukuDb:
 
-    def __init__(self, json=False, field_filter=0, immutable=-1, chatty=False,
-                 dbfile=None):
+    def __init__(self, json=False, field_filter=0, chatty=False, dbfile=None):
         '''Database initialization API
 
         :param json: print results in json format
         :param field_filter: bookmark print format specifier
-        :param immutable: disable title fetch from web
         :param chatty: set the verbosity of the APIs
         :param dbfile: custom database file path (including filename)
         '''
@@ -345,7 +343,6 @@ class BukuDb:
         self.conn, self.cur = BukuDb.initdb(dbfile)
         self.json = json
         self.field_filter = field_filter
-        self.immutable = immutable
         self.chatty = chatty
 
     @staticmethod
@@ -476,7 +473,7 @@ class BukuDb:
 
         return resultset[0][0]
 
-    def add_bm(self, url, title_in=None, tags_in=None, desc=None,
+    def add_bm(self, url, title_in=None, tags_in=None, desc=None, immutable=0,
                delay_commit=False):
         '''Add a new bookmark
 
@@ -485,6 +482,7 @@ class BukuDb:
         :param tags_in: string of comma-separated tags to add manually
                         must start and end with comma
         :param desc: string description
+        :param immutable: disable title fetch from web
         :param delay_commit: do not commit to DB, caller responsibility
         :return: True on success, False on failure
         '''
@@ -529,8 +527,8 @@ class BukuDb:
 
         try:
             flagset = 0
-            if self.immutable == 1:
-                flagset |= self.immutable
+            if immutable == 1:
+                flagset |= immutable
 
             query = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) \
                     VALUES (?, ?, ?, ?, ?)'
@@ -622,7 +620,7 @@ class BukuDb:
         return True
 
     def update_bm(self, index, url='', title_in=None, tags_in=None, desc=None,
-                  threads=5):
+                  immutable=-1, threads=4):
         '''Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
@@ -635,6 +633,8 @@ class BukuDb:
                         prefix with '+,' to append to current tags
                         prefix with '-,' to delete from current tags
         :param desc: string description
+        :param immutable: disable title fetch from web, if 1
+        :param threads: number of threads to use to refresh full DB
         :return: True on success, False on failure
         '''
 
@@ -677,11 +677,11 @@ class BukuDb:
             to_update = True
 
         # Update immutable flag if passed as argument
-        if self.immutable != -1:
+        if immutable != -1:
             flagset = 1
-            if self.immutable:
+            if immutable == 1:
                 query = '%s flags = flags | ?,' % query
-            else:
+            elif immutable == 0:
                 query = '%s flags = flags & ?,' % query
                 flagset = ~flagset
 
@@ -1230,7 +1230,8 @@ class BukuDb:
         return False
 
     def exportdb(self, filepath, markdown=False, taglist=None):
-        '''Export bookmarks to a Firefox bookmarks formatted html file.
+        '''Export bookmarks to a Firefox bookmarks formatted
+           html or markdown file.
 
         :param filepath: path to file to export to
         :param markdown: use markdown syntax
@@ -1328,8 +1329,8 @@ Buku bookmarks</H3>
         return True
 
     def importdb(self, filepath, markdown=False):
-        '''Import bookmarks from a html file.
-        Supports Firefox, Google Chrome and IE imports
+        '''Import bookmarks from a html or markdown file.
+        Supports Firefox, Google Chrome and IE exported html
 
         :param filepath: path to file to import
         :param markdown: use markdown syntax
@@ -1359,7 +1360,7 @@ Buku bookmarks</H3>
                 self.add_bm(tag['href'], tag.string, ('%s%s%s' %
                             (DELIM, tag['tags'], DELIM))
                             if tag.has_attr('tags') else None,
-                            desc, True)
+                            desc, 0, True)
 
             self.conn.commit()
             infp.close()
@@ -1381,7 +1382,7 @@ Buku bookmarks</H3>
                             # Parse url
                             url = line[index + 2:index + 2 + url_end_delim]
 
-                            self.add_bm(url, title, None, None, True)
+                            self.add_bm(url, title, None, None, 0, True)
 
             self.conn.commit()
             infp.close()
@@ -1411,7 +1412,7 @@ Buku bookmarks</H3>
 
         resultset = indb_cur.fetchall()
         for row in resultset:
-            self.add_bm(row[1], row[2], row[3], row[4], True)
+            self.add_bm(row[1], row[2], row[3], row[4], row[5], True)
 
         if len(resultset):
             self.conn.commit()
@@ -2429,7 +2430,7 @@ def main():
         BukuCrypt.decrypt_file(args.unlock)
 
     # Initialize the database and get handles, set verbose by default
-    bdb = BukuDb(args.json, args.format, args.immutable, not args.tacit)
+    bdb = BukuDb(args.json, args.format, not args.tacit)
 
     # Add a record
     if args.add is not None:
@@ -2451,7 +2452,7 @@ def main():
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_bm(args.add[0], title_in, tags, desc_in)
+        bdb.add_bm(args.add[0], title_in, tags, desc_in, args.immutable)
 
     # Update record
     if update:
@@ -2472,12 +2473,13 @@ def main():
             tags = None
 
         if len(args.update) == 0:
-            bdb.update_bm(0, url_in, title_in, tags, desc_in, args.threads)
+            bdb.update_bm(0, url_in, title_in, tags, desc_in, args.immutable,
+                          args.threads)
         else:
             for idx in args.update:
                 if is_int(idx):
                     bdb.update_bm(int(idx), url_in, title_in, tags, desc_in,
-                                  args.threads)
+                                  args.immutable, args.threads)
                 elif '-' in idx and is_int(idx.split('-')[0]) \
                         and is_int(idx.split('-')[1]):
                     lower = int(idx.split('-')[0])
@@ -2488,11 +2490,11 @@ def main():
                     # Update only once if range starts from 0 (all)
                     if lower == 0:
                         bdb.update_bm(0, url_in, title_in, tags, desc_in,
-                                      args.threads)
+                                      args.immutable, args.threads)
                     else:
                         for _id in range(lower, upper + 1):
                             bdb.update_bm(_id, url_in, title_in, tags, desc_in,
-                                          args.threads)
+                                          args.immutable, args.threads)
                             if interrupted:
                                 break
 
