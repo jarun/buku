@@ -418,7 +418,7 @@ class BukuDb:
             cur.execute('CREATE TABLE if not exists bookmarks \
                         (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, \
                         metadata text default \'\', tags text default \',\', \
-                        desc text default \'\')')
+                        desc text default \'\', flags integer default 0)')
             conn.commit()
         except Exception as e:
             logerr('initdb(): %s', e)
