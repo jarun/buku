@@ -515,7 +515,7 @@ class BukuDb:
                 logdbg('Title: [%s]', meta)
 
         # Process tags
-        if tags_in is None:
+        if tags_in is None or tags_in == '':
             tags_in = DELIM
         else:
             if tags_in[0] != DELIM:
