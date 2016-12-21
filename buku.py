@@ -619,8 +619,8 @@ class BukuDb:
 
         return True
 
-    def update_bm(self, index, url='', title_in=None, tags_in=None, desc=None,
-                  immutable=-1, threads=4):
+    def update_bm(self, index, url=None, title_in=None, tags_in=None,
+                  desc=None, immutable=-1, threads=4):
         '''Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
@@ -645,7 +645,7 @@ class BukuDb:
         ret = False
 
         # Update URL if passed as argument
-        if url != '':
+        if url is not None and url != '':
             if index == 0:
                 logerr('All URLs cannot be same')
                 return False
@@ -699,7 +699,7 @@ class BukuDb:
         title_to_insert = None
         if title_in is not None:
             title_to_insert = title_in
-        elif url != '':
+        elif url is not None and url != '':
             title_to_insert, mime, bad = network_handler(url)
             if bad:
                 print('\x1b[91mMalformed URL\x1b[0m\n')
