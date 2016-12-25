@@ -892,7 +892,7 @@ class BukuDb:
                 qry = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ?"
                 qargs += (DELIM,)
             elif len(keywords) == 1 and keywords[0] == 'immutable':
-                qry = "SELECT * FROM bookmarks WHERE flags & 1 == 1"
+                qry = 'SELECT * FROM bookmarks WHERE flags & 1 == 1'
             else:
                 for token in keywords:
                     if deep:
