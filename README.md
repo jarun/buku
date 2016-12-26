@@ -16,7 +16,7 @@
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
 
-With tagging and multiple options to search bookmarks, including regex and a deep scan mode (particularly for URLs), finding a bookmark is very easy. Multiple search results can be opened in the browser at once.
+`buku` fetches the title of a bookmarked web page and stores it along with any additional comments and tags. With multiple options to search bookmarks, including regex and a deep scan mode (particularly for URLs), finding a bookmark is very easy. Multiple search results can be opened in the browser at once.
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
