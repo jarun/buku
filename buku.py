@@ -742,7 +742,7 @@ class BukuDb:
                 self.print_bm(index)
 
             if self.cur.rowcount == 0:
-                logerr('No matching index %s', index)
+                logerr('No matching index %d', index)
                 return False
         except sqlite3.IntegrityError:
             logerr('URL already exists')
@@ -1028,10 +1028,10 @@ class BukuDb:
                     if not delay_commit:
                         self.conn.commit()
                 else:
-                    logerr('No matching index')
+                    logerr('No matching index %d', index)
                     return False
             except IndexError:
-                logerr('No matching index')
+                logerr('No matching index %d', index)
                 return False
 
         return True
@@ -1092,10 +1092,10 @@ class BukuDb:
                 self.cur.execute(query, (index,))
                 results = self.cur.fetchall()
                 if len(results) == 0:
-                    logerr('No matching index')
+                    logerr('No matching index %d', index)
                     return
             except IndexError:
-                logerr('No matching index')
+                logerr('No matching index %d', index)
                 return
 
             if not self.json:
@@ -1223,9 +1223,9 @@ class BukuDb:
             for row in self.cur.execute(query, (index,)):
                 open_in_browser(row[0])
                 return True
-            logerr('No matching index')
+            logerr('No matching index %d', index)
         except IndexError:
-            logerr('No matching index')
+            logerr('No matching index %d', index)
 
         return False
 
@@ -1781,7 +1781,7 @@ def taglist_subprompt(obj, noninteractive=False):
         if is_int(nav) and int(nav) > 0 and int(nav) < count:
             return 't ' + unique_tags[int(nav) - 1]
         elif is_int(nav):
-            print('No matching index')
+            print('No matching index %s' % nav)
             new_results = False
         elif is_int(nav[0]):
             print('Invalid input')
@@ -1913,11 +1913,11 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
             continue
 
         # iterate over white-space separated indices
-        for nav in (' '.join(nav.split())).split():
+        for nav in nav.split():
             if is_int(nav):
                 index = int(nav) - 1
                 if index < 0 or index >= count:
-                    print('No matching index')
+                    print('No matching index %s' % nav)
                     continue
                 try:
                     open_in_browser(results[index][1])
@@ -1934,7 +1934,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                         if 0 <= index < count:
                             open_in_browser(results[index][1])
                         else:
-                            print('No matching index')
+                            print('No matching index %d' % (index + 1))
                     except Exception as e:
                         logerr('prompt() 3: %s', e)
             else:
