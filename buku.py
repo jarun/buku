@@ -2524,7 +2524,7 @@ def main():
             search_results = bdb.search_by_tag(' '.join(args.stag))
         else:
             # Use sub prompt to list all tags
-            prompt(bdb, None, subprompt=True)
+            prompt(bdb, None, args.noprompt, subprompt=True)
             search_opted = False
     else:
         search_opted = False

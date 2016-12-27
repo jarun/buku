@@ -8,7 +8,7 @@ repo_root="$here"
 export GIT_DIR="$here/.git"
 
 declare -a watchlist
-watchlist=(buku tests)
+watchlist=(buku.py tests)
 while [[ $1 == -* ]]; do
     case $1 in
         -h|--help)
@@ -90,4 +90,4 @@ fi
 # Test buku(1) with $repo_root at the beginning of $PATH (so that buku
 # from this repo is picked up).
 cd "$here/tests"
-PATH="$repo_root:$PATH" python -m pytest test_*.py --cov buku
+PATH="$repo_root:$PATH" python -m pytest test_*.py --cov buku -vv

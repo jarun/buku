@@ -60,17 +60,17 @@ class TestBukuDb(unittest.TestCase):
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
     # @unittest.skip('skipping')
-    def test_get_dbdir_path(self):
+    def test_get_default_dbdir(self):
         dbdir_expected = TEST_TEMP_DBDIR_PATH
         dbdir_local_expected = os.path.join(os.path.expanduser('~'), '.local', 'share', 'buku')
         dbdir_relative_expected = os.path.abspath('.')
 
         # desktop linux
-        self.assertEqual(dbdir_expected, BukuDb.get_dbdir_path())
+        self.assertEqual(dbdir_expected, BukuDb.get_default_dbdir())
 
         # desktop generic
         os.environ.pop('XDG_DATA_HOME')
-        self.assertEqual(dbdir_local_expected, BukuDb.get_dbdir_path())
+        self.assertEqual(dbdir_local_expected, BukuDb.get_default_dbdir())
 
         # no desktop
 
@@ -82,7 +82,7 @@ class TestBukuDb(unittest.TestCase):
                 originals[env_var] = os.environ.pop(env_var)
             except KeyError:
                 pass
-        self.assertEqual(dbdir_relative_expected, BukuDb.get_dbdir_path())
+        self.assertEqual(dbdir_relative_expected, BukuDb.get_default_dbdir())
         for key, value in originals.items():
             os.environ[key] = value
 
@@ -220,7 +220,7 @@ class TestBukuDb(unittest.TestCase):
     # @unittest.skip('skipping')
     def test_refreshdb(self):
         self.bdb.add_rec("https://www.google.com/ncr", "?")
-        self.bdb.refreshdb(1)
+        self.bdb.refreshdb(1, 1)
         from_db = self.bdb.get_rec_by_id(1)
         self.assertEqual(from_db[2], "Google")
 
@@ -277,7 +277,7 @@ class TestBukuDb(unittest.TestCase):
                     # searching using the first tag from bookmarks
                     get_first_tag = lambda x: x[2].split(',')[1]
                     results = self.bdb.searchdb([get_first_tag(bm) for bm in self.bookmarks])
-                    prompt(results)
+                    prompt(self.bdb, results)
                 except StopIteration:
                     # catch exception thrown by reaching the end of the side effect iterable
                     pass
@@ -303,7 +303,7 @@ class TestBukuDb(unittest.TestCase):
                     # searching using the first tag from bookmarks
                     get_first_tag = lambda x: x[2].split(',')[1]
                     results = self.bdb.searchdb([get_first_tag(bm) for bm in self.bookmarks[:2]])
-                    prompt(results)
+                    prompt(self.bdb, results)
                 except StopIteration:
                     # catch exception thrown by reaching the end of the side effect iterable
                     pass
@@ -360,18 +360,30 @@ class TestBukuDb(unittest.TestCase):
             self.bdb.add_rec(*bookmark)
             index = self.bdb.get_rec_id(bookmark[0])
             indices += [index]
+
         # replacing tags
-        self.bdb.replace_tag("news", ["__01"])
-        self.bdb.replace_tag("zażółć", ["__02,__03"])
+        with mock.patch('builtins.input', return_value='y'):
+            self.bdb.replace_tag("news", ["__01"])
+        with mock.patch('builtins.input', return_value='y'):
+            self.bdb.replace_tag("zażółć", ["__02,__03"])
+
         # replacing tag which is also a substring of other tag
-        self.bdb.replace_tag("es", ["__04"])
+        with mock.patch('builtins.input', return_value='y'):
+            self.bdb.replace_tag("es", ["__04"])
+
         # removing tags
-        self.bdb.replace_tag("gęślą")
-        self.bdb.replace_tag("old")
-        # removing nonexistent tag
-        self.bdb.replace_tag("_")
+        with mock.patch('builtins.input', return_value='y'):
+            self.bdb.replace_tag("gęślą")
+        with mock.patch('builtins.input', return_value='y'):
+            self.bdb.replace_tag("old")
+
+        # removing non-existent tag
+        with mock.patch('builtins.input', return_value='y'):
+            self.bdb.replace_tag("_")
+
         # removing nonexistent tag which is also a substring of other tag
-        self.bdb.replace_tag("e")
+        with mock.patch('builtins.input', return_value='y'):
+            self.bdb.replace_tag("e")
 
         for url, title, _, _ in self.bookmarks:
             # retrieving from db
@@ -414,7 +426,7 @@ def test_print_rec(capsys, caplog, setup):
 
     for record in caplog.records():
         assert record.levelname == "ERROR"
-        assert record.getMessage() == "No matching index"
+        assert record.getMessage() == "No matching index 1"
     assert (out, err) == ('', '')
 
     # adding bookmarks
@@ -437,9 +449,10 @@ def test_print_rec(capsys, caplog, setup):
     assert err == ''
 
     # printing all bookmarks with empty fields
-    bdb.print_rec(0, empty=True)
+    results = bdb.searchdb(['blank'], True)
+    prompt(bdb, results, True)
     out, err = capsys.readouterr()
-    assert out == "\x1b[1m3 records found\x1b[21m\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m4. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
+    assert out == "\x1b[1m\x1b[93m1. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m \x1b[1m[2]\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m \x1b[1m[3]\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m \x1b[1m[4]\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
     assert err == ''
 
 
@@ -453,9 +466,9 @@ def test_list_tags(capsys, setup):
 
     # listing tags, asserting output
     out, err = capsys.readouterr()
-    bdb.list_tags()
+    prompt(bdb, None, True, subprompt=True)
     out, err = capsys.readouterr()
-    assert out == "     1. 1\n     2. 2\n     3. 3\n     4. Ant\n     5. ant\n     6. bee\n     7. Bee\n     8. Cat\n     9. cat\n"
+    assert out == "     1. 1 (2)\n     2. 2 (1)\n     3. 3 (1)\n     4. ant (3)\n     5. bee (3)\n     6. cat (3)\n\n"
     assert err == ''
 
 
