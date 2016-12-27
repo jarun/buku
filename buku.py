@@ -70,7 +70,7 @@ logdbg = logger.debug
 logerr = logger.error
 
 
-class BMHTMLParser(HTMLParser.HTMLParser):
+class BukuHTMLParser(HTMLParser.HTMLParser):
     '''Class to parse and fetch the title
     from a HTML page, if available
     '''
@@ -446,7 +446,7 @@ class BukuDb:
 
         return (conn, cur)
 
-    def get_bm_by_id(self, index):
+    def get_rec_by_id(self, index):
         '''Get a bookmark from database by its ID.
 
         :return: bookmark data as a tuple, or None, if index is not found
@@ -459,7 +459,7 @@ class BukuDb:
         else:
             return results[0]
 
-    def get_bm_id(self, url):
+    def get_rec_id(self, url):
         '''Check if URL already exists in DB
 
         :param url: URL to search
@@ -473,8 +473,8 @@ class BukuDb:
 
         return resultset[0][0]
 
-    def add_bm(self, url, title_in=None, tags_in=None, desc=None, immutable=0,
-               delay_commit=False):
+    def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0,
+                delay_commit=False):
         '''Add a new bookmark
 
         :param url: URL to bookmark
@@ -493,7 +493,7 @@ class BukuDb:
             return False
 
         # Ensure that the URL does not exist in DB already
-        id = self.get_bm_id(url)
+        id = self.get_rec_id(url)
         if id != -1:
             logerr('URL [%s] already exists at index %d', url, id)
             return False
@@ -536,10 +536,10 @@ class BukuDb:
             if not delay_commit:
                 self.conn.commit()
             if self.chatty:
-                self.print_bm(self.cur.lastrowid)
+                self.print_rec(self.cur.lastrowid)
             return True
         except Exception as e:
-            logerr('add_bm(): %s', e)
+            logerr('add_rec(): %s', e)
             return False
 
     def append_tag_at_index(self, index, tags_in):
@@ -567,7 +567,7 @@ class BukuDb:
             tags = parse_tags([tags])
             self.cur.execute(query, (tags, row[0],))
             if self.chatty:
-                self.print_bm(row[0])
+                self.print_rec(row[0])
 
         self.conn.commit()
         return True
@@ -613,14 +613,14 @@ class BukuDb:
 
                 self.cur.execute(query, (parse_tags([tags]), row[0],))
                 if self.chatty:
-                    self.print_bm(row[0])
+                    self.print_rec(row[0])
 
                 self.conn.commit()
 
         return True
 
-    def update_bm(self, index, url=None, title_in=None, tags_in=None,
-                  desc=None, immutable=-1, threads=4):
+    def update_rec(self, index, url=None, title_in=None, tags_in=None,
+                   desc=None, immutable=-1, threads=4):
         '''Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
@@ -712,7 +712,7 @@ class BukuDb:
         elif not to_update and not tag_modified:
             ret = self.refreshdb(index, threads)
             if ret and index and self.chatty:
-                self.print_bm(index)
+                self.print_rec(index)
             return ret
 
         if title_to_insert is not None:
@@ -739,7 +739,7 @@ class BukuDb:
             self.cur.execute(query, arguments)
             self.conn.commit()
             if self.cur.rowcount and self.chatty:
-                self.print_bm(index)
+                self.print_rec(index)
 
             if self.cur.rowcount == 0:
                 logerr('No matching index %d', index)
@@ -983,8 +983,8 @@ class BukuDb:
                         self.conn.commit()
                     print('Index %d moved to %d' % (row[0], index))
 
-    def delete_bm(self, index, low=0, high=0, is_range=False,
-                  delay_commit=False):
+    def delete_rec(self, index, low=0, high=0, is_range=False,
+                   delay_commit=False):
         '''Delete a single record or remove the table if index is None
 
         :param index: DB index of deleted entry
@@ -1056,7 +1056,7 @@ class BukuDb:
         pos = len(results) - 1
         while pos >= 0:
             idx = results[pos][0]
-            self.delete_bm(idx, delay_commit=True)
+            self.delete_rec(idx, delay_commit=True)
 
             # Commit at every 200th removal
             if pos % 200 == 0:
@@ -1082,7 +1082,7 @@ class BukuDb:
         print('All bookmarks deleted')
         return True
 
-    def print_bm(self, index):
+    def print_rec(self, index):
         '''Print bookmark details at index or all bookmarks if index is 0
         Note: URL is printed on top because title may be blank
 
@@ -1360,10 +1360,10 @@ Buku bookmarks</H3>
                 if comment_tag:
                     desc = comment_tag.text[0:comment_tag.text.find('\n')]
 
-                self.add_bm(tag['href'], tag.string, ('%s%s%s' %
-                            (DELIM, tag['tags'], DELIM))
-                            if tag.has_attr('tags') else None,
-                            desc, 0, True)
+                self.add_rec(tag['href'], tag.string, ('%s%s%s' %
+                             (DELIM, tag['tags'], DELIM))
+                             if tag.has_attr('tags') else None,
+                             desc, 0, True)
 
             self.conn.commit()
             infp.close()
@@ -1385,7 +1385,7 @@ Buku bookmarks</H3>
                             # Parse url
                             url = line[index + 2:index + 2 + url_end_delim]
 
-                            self.add_bm(url, title, None, None, 0, True)
+                            self.add_rec(url, title, None, None, 0, True)
 
             self.conn.commit()
             infp.close()
@@ -1415,7 +1415,7 @@ Buku bookmarks</H3>
 
         resultset = indb_cur.fetchall()
         for row in resultset:
-            self.add_bm(row[1], row[2], row[3], row[4], row[5], True)
+            self.add_rec(row[1], row[2], row[3], row[4], row[5], True)
 
         if len(resultset):
             self.conn.commit()
@@ -1575,7 +1575,7 @@ def get_page_title(resp):
     :return: title fetched from parsed page
     '''
 
-    parser = BMHTMLParser()
+    parser = BukuHTMLParser()
 
     try:
         parser.feed(resp.data.decode(errors='replace'))
@@ -2455,7 +2455,7 @@ def main():
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_bm(args.add[0], title_in, tags, desc_in, args.immutable)
+        bdb.add_rec(args.add[0], title_in, tags, desc_in, args.immutable)
 
     # Update record
     if update:
@@ -2476,13 +2476,13 @@ def main():
             tags = None
 
         if len(args.update) == 0:
-            bdb.update_bm(0, url_in, title_in, tags, desc_in, args.immutable,
-                          args.threads)
+            bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable,
+                           args.threads)
         else:
             for idx in args.update:
                 if is_int(idx):
-                    bdb.update_bm(int(idx), url_in, title_in, tags, desc_in,
-                                  args.immutable, args.threads)
+                    bdb.update_rec(int(idx), url_in, title_in, tags, desc_in,
+                                   args.immutable, args.threads)
                 elif '-' in idx and is_int(idx.split('-')[0]) \
                         and is_int(idx.split('-')[1]):
                     lower = int(idx.split('-')[0])
@@ -2492,12 +2492,13 @@ def main():
 
                     # Update only once if range starts from 0 (all)
                     if lower == 0:
-                        bdb.update_bm(0, url_in, title_in, tags, desc_in,
-                                      args.immutable, args.threads)
+                        bdb.update_rec(0, url_in, title_in, tags, desc_in,
+                                       args.immutable, args.threads)
                     else:
                         for _id in range(lower, upper + 1):
-                            bdb.update_bm(_id, url_in, title_in, tags, desc_in,
-                                          args.immutable, args.threads)
+                            bdb.update_rec(_id, url_in, title_in, tags,
+                                           desc_in, args.immutable,
+                                           args.threads)
                             if interrupted:
                                 break
 
@@ -2554,11 +2555,11 @@ def main():
             vals = str(args.delete[0]).split('-')
             if len(vals) == 2 and is_int(vals[0]) and is_int(vals[1]):
                 if int(vals[0]) == int(vals[1]):
-                    bdb.delete_bm(int(vals[0]))
+                    bdb.delete_rec(int(vals[0]))
                 elif int(vals[0]) < int(vals[1]):
-                    bdb.delete_bm(0, int(vals[0]), int(vals[1]), True)
+                    bdb.delete_rec(0, int(vals[0]), int(vals[1]), True)
                 else:
-                    bdb.delete_bm(0, int(vals[1]), int(vals[0]), True)
+                    bdb.delete_rec(0, int(vals[1]), int(vals[0]), True)
             else:
                 logerr('Invalid index or range')
                 bdb.close_quit(1)
@@ -2573,18 +2574,18 @@ def main():
                 # Index delete order - highest to lowest
                 ids.sort(key=lambda x: int(x), reverse=True)
                 for idx in ids:
-                    bdb.delete_bm(int(idx))
+                    bdb.delete_rec(int(idx))
             except ValueError:
                 logerr('Invalid index or range')
 
     # Print records
     if args.print is not None:
         if len(args.print) == 0:
-            bdb.print_bm(0)
+            bdb.print_rec(0)
         else:
             for idx in args.print:
                 if is_int(idx):
-                    bdb.print_bm(int(idx))
+                    bdb.print_rec(int(idx))
                 elif '-' in idx and is_int(idx.split('-')[0]) \
                         and is_int(idx.split('-')[1]):
                     lower = int(idx.split('-')[0])
@@ -2592,7 +2593,7 @@ def main():
                     if lower > upper:
                         lower, upper = upper, lower
                     for _id in range(lower, upper + 1):
-                        bdb.print_bm(_id)
+                        bdb.print_rec(_id)
                 else:
                     logerr('Invalid index or range')
                     bdb.close_quit(1)
