@@ -988,8 +988,8 @@ class BukuDb:
         '''Delete a single record or remove the table if index is None
 
         :param index: DB index of deleted entry
-        :param low: lower index of range
-        :param low: higher index of range
+        :param low: actual lower index of range
+        :param high: actual higher index of range
         :param is_range: a range is passed using low and high arguments
         :param delay_commit: do not commit to DB, caller's responsibility
         :return: True on success, False on failure
@@ -1003,7 +1003,10 @@ class BukuDb:
             try:
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
-                print('Bookmarks from index %d to %d deleted' % (low, high))
+                print('Index %d-%d: %d deleted'
+                      % (low, high, self.cur.rowcount))
+                if not self.cur.rowcount:
+                    return False
 
                 # Compact DB by ascending order of index to ensure
                 # the existing higher indices move only once
@@ -1023,7 +1026,7 @@ class BukuDb:
                 query = 'DELETE FROM bookmarks WHERE id = ?'
                 self.cur.execute(query, (index,))
                 if self.cur.rowcount == 1:
-                    print('Removed index %d' % index)
+                    print('Index %d deleted' % index)
                     self.compactdb(index, delay_commit=True)
                     if not delay_commit:
                         self.conn.commit()
