@@ -2327,7 +2327,7 @@ def main():
     addarg('-S', '--sall', nargs='+', help=HIDE)
     addarg('--sreg', nargs=1, help=HIDE)
     addarg('--deep', action='store_true', help=HIDE)
-    addarg('--stag', nargs='*', action=CustomTagSearchAction, help=HIDE)
+    addarg('-st', '--stag', nargs='*', action=CustomTagSearchAction, help=HIDE)
 
     # ------------------------
     # ENCRYPTION OPTIONS GROUP
