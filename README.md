@@ -22,11 +22,8 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 
 *Buku* is too busy to track you - no history, obsolete records, usage analytics or homing.
 
-<br>
 <p align="center">
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/paypal-donate-orange.svg?maxAge=2592000" alt="Donate" /></a>
-&nbsp;
-<a href="https://gitter.im/jarun/Buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a>
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://tuxtricks.files.wordpress.com/2016/12/donate.png" alt="Donate via PayPal!" title="Donate via PayPal!" /></a>
 </p>
 
 ## Table of Contents
@@ -124,8 +121,6 @@ Please substitute `$version` with the appropriate package version.
 ## Shell completion
 
 Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/Buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
-
-`buku` has a [rofi frontend](https://github.com/carnager/buku_run) written by Rasmus Steinke.
 
 ## Usage
 
@@ -458,6 +453,8 @@ The same number of iterations must be specified for one lock & unlock instance. 
 ## Contributions
 
 Pull requests are welcome. Please visit [#103](https://github.com/jarun/Buku/issues/103) for a list of TODOs.
+<br>
+<p><a href="https://gitter.im/jarun/Buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a></p>
 
 ## Copyright
 
