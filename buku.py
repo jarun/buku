@@ -58,11 +58,6 @@ Firefox/50.0'
 myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
 
-# Crypto globals
-BLOCKSIZE = 0x10000  # 64 KB blocks
-SALT_SIZE = 0x20
-CHUNKSIZE = 0x80000  # Read/write 512 KB chunks
-
 # Set up logging
 logging.basicConfig(format='[%(levelname)s] %(message)s')
 logger = logging.getLogger()
@@ -113,6 +108,11 @@ class BukuCrypt:
     a time, this doesn't seem to be an outrageous approach.
     '''
 
+    # Crypto constants
+    BLOCKSIZE = 0x10000  # 64 KB blocks
+    SALT_SIZE = 0x20
+    CHUNKSIZE = 0x80000  # Read/write 512 KB chunks
+
     @staticmethod
     def get_filehash(filepath):
         '''Get the SHA256 hash of a file
@@ -125,10 +125,10 @@ class BukuCrypt:
 
         with open(filepath, 'rb') as fp:
             hasher = sha256()
-            buf = fp.read(BLOCKSIZE)
+            buf = fp.read(BukuCrypt.BLOCKSIZE)
             while len(buf) > 0:
                 hasher.update(buf)
-                buf = fp.read(BLOCKSIZE)
+                buf = fp.read(BukuCrypt.BLOCKSIZE)
 
             return hasher.digest()
 
@@ -190,7 +190,7 @@ class BukuCrypt:
             sys.exit(1)
 
         # Generate random 256-bit salt and key
-        salt = os.urandom(SALT_SIZE)
+        salt = os.urandom(BukuCrypt.SALT_SIZE)
         key = ('%s%s' % (password,
                salt.decode('utf-8', 'replace'))).encode('utf-8')
         for _ in range(iterations):
@@ -214,7 +214,7 @@ class BukuCrypt:
                 outfp.write(dbhash)
 
                 while True:
-                    chunk = infp.read(CHUNKSIZE)
+                    chunk = infp.read(BukuCrypt.CHUNKSIZE)
                     if len(chunk) == 0:
                         break
                     elif len(chunk) % 16 != 0:
@@ -303,7 +303,7 @@ class BukuCrypt:
 
                 with open(dbfile, 'wb') as outfp:
                     while True:
-                        chunk = infp.read(CHUNKSIZE)
+                        chunk = infp.read(BukuCrypt.CHUNKSIZE)
                         if len(chunk) == 0:
                             break
 
