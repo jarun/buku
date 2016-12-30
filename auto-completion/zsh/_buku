@@ -23,7 +23,7 @@ args=(
     '(--markdown)--markdown[markdown mode]'
     '(--merge)--merge[merge another buku database]:buku db file'
     '(--noprompt)--noprompt[noninteractive mode]'
-    '(-o --open)'{-o,--open}'[open bookmark in browser]:bookmark index'
+    '(-o --open)'{-o,--open}'[open bookmarks in browser]:bookmark index'
     '(-p --print)'{-p,--print}'[show bookmark details]'
     '(-r --replace)'{-r,--replace}'[replace a tag]:tag to replace'
     '(-s --sany)'{-s,--sany}'[search any keyword]:keyword(s)'

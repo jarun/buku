@@ -2366,8 +2366,9 @@ def main():
                      delete oldtag, if no newtag
 -j, --json           Json formatted output for -p and search
 --noprompt           do not show the prompt, run and exit
--o, --open [N]       open bookmark at DB index N in browser
-                     open a random index if N is omitted
+-o, --open [...]     open bookmarks in browser by DB index
+                     accepts indices and ranges
+                     open a random index, if no arguments
 --shorten N/URL      fetch shortened url from tny.im service
                      accepts either a DB index or a URL
 --expand N/URL       expand a tny.im shortened url
@@ -2387,7 +2388,7 @@ def main():
     addarg('-r', '--replace', nargs='+', help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--noprompt', action='store_true', help=HIDE)
-    addarg('-o', '--open', nargs='?', type=int, const=0, help=HIDE)
+    addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
     addarg('--expand', nargs=1, help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
@@ -2595,7 +2596,7 @@ def main():
                     for _id in range(lower, upper + 1):
                         bdb.print_rec(_id)
                 else:
-                    logerr('Invalid index or range')
+                    logerr('Invalid index or range to print')
                     bdb.close_quit(1)
 
     # Replace a tag in DB
@@ -2624,10 +2625,23 @@ def main():
 
     # Open URL in browser
     if args.open is not None:
-        if args.open < 0:
-            logerr('Index must be >= 0')
-            bdb.close_quit(1)
-        bdb.browse_by_index(args.open)
+        if len(args.open) == 0:
+            bdb.browse_by_index(0)
+        else:
+            for idx in args.open:
+                if is_int(idx):
+                    bdb.browse_by_index(int(idx))
+                elif '-' in idx and is_int(idx.split('-')[0]) \
+                        and is_int(idx.split('-')[1]):
+                    lower = int(idx.split('-')[0])
+                    upper = int(idx.split('-')[1])
+                    if lower > upper:
+                        lower, upper = upper, lower
+                    for _id in range(lower, upper + 1):
+                        bdb.browse_by_index(_id)
+                else:
+                    logerr('Invalid index or range to open')
+                    bdb.close_quit(1)
 
     # Shorten URL
     if args.shorten:
