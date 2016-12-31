@@ -42,7 +42,7 @@ __version__ = '2.7'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
-# Globals
+# Global variables
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
@@ -1516,7 +1516,52 @@ Buku bookmarks</H3>
         sys.exit(exitval)
 
 
-# Generic functions
+class ExtendedArgumentParser(argparse.ArgumentParser):
+    '''Extend classic argument parser'''
+
+    # Print program info
+    @staticmethod
+    def print_program_info(file=None):
+        file.write('''
+symbols:
+  >                    title
+  +                    comment
+  #                    tags
+
+
+Version %s
+© 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
+License: GPLv3
+Webpage: https://github.com/jarun/Buku
+''' % __version__)
+
+    # Print prompt help
+    @staticmethod
+    def print_prompt_help(file=None):
+        file.write('''
+keys:
+  1-N                  browse search result indices and/or ranges
+  a                    open all results in browser
+  s keyword [...]      search for records with ANY keyword
+  S keyword [...]      search for records with ALL keywords
+  d                    match substrings ('pen' matches 'opened')
+  r expression         run a regex search
+  t [...]              search bookmarks by a tag or show tag list
+                       (tag list index fetches bookmarks by tag)
+  ?                    show this help
+  q, ^D, double Enter  exit buku
+
+''')
+
+    # Help
+    def print_help(self, file=None):
+        super(ExtendedArgumentParser, self).print_help(file)
+        self.print_program_info(file)
+
+
+# ----------------
+# Helper functions
+# ----------------
 
 def is_bad_url(url):
     '''Check if URL is malformed
@@ -2107,51 +2152,6 @@ def regexp(expr, item):
 
     return re.search(expr, item, re.IGNORECASE) is not None
 
-# Custom argument parser
-
-
-class ExtendedArgumentParser(argparse.ArgumentParser):
-    '''Extend classic argument parser'''
-
-    # Print program info
-    @staticmethod
-    def print_program_info(file=None):
-        file.write('''
-symbols:
-  >                    title
-  +                    comment
-  #                    tags
-
-
-Version %s
-© 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
-License: GPLv3
-Webpage: https://github.com/jarun/Buku
-''' % __version__)
-
-    # Print prompt help
-    @staticmethod
-    def print_prompt_help(file=None):
-        file.write('''
-keys:
-  1-N                  browse search result indices and/or ranges
-  a                    open all results in browser
-  s keyword [...]      search for records with ANY keyword
-  S keyword [...]      search for records with ALL keywords
-  d                    match substrings ('pen' matches 'opened')
-  r expression         run a regex search
-  t [...]              search bookmarks by a tag or show tag list
-                       (tag list index fetches bookmarks by tag)
-  ?                    show this help
-  q, ^D, double Enter  exit buku
-
-''')
-
-    # Help
-    def print_help(self, file=None):
-        super(ExtendedArgumentParser, self).print_help(file)
-        self.print_program_info(file)
-
 
 # Handle piped input
 def piped_input(argv, pipeargs=None):
@@ -2161,9 +2161,7 @@ def piped_input(argv, pipeargs=None):
             pipeargs.extend(s.split())
 
 
-'''main starts here'''
-
-
+# main starts here
 def main():
     title_in = None
     tags_in = None
