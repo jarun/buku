@@ -43,11 +43,6 @@ __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
 # Globals
-update = False  # Update a bookmark in DB
-title_in = None  # Input title specified at cmdline
-tags_in = None  # Input tags specified at cmdline
-desc_in = None  # Description of the bookmark
-tagsearch = False  # Search bookmarks by tag
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
@@ -2112,68 +2107,7 @@ def regexp(expr, item):
 
     return re.search(expr, item, re.IGNORECASE) is not None
 
-# Custom Action classes for argparse
-
-
-class CustomUpdateAction(argparse.Action):
-    '''Class to capture if optional param 'update'
-    is actually used, even if sans arguments
-    '''
-
-    def __call__(self, parser, args, values, option_string=None):
-        global update
-
-        update = True
-        # NOTE: the following converts a None argument to an empty array []
-        setattr(args, self.dest, values)
-
-
-class CustomTagAction(argparse.Action):
-    '''Class to capture if optional param 'tag'
-    is actually used, even if sans arguments
-    '''
-
-    def __call__(self, parser, args, values, option_string=None):
-        global tags_in
-
-        tags_in = [DELIM, ]
-        setattr(args, self.dest, values)
-
-
-class CustomTitleAction(argparse.Action):
-    '''Class to capture if optional param 'title'
-    is actually used, even if sans arguments
-    '''
-
-    def __call__(self, parser, args, values, option_string=None):
-        global title_in
-
-        title_in = ''
-        setattr(args, self.dest, values)
-
-
-class CustomDescAction(argparse.Action):
-    '''Class to capture if optional param 'comment'
-    is actually used, even if sans arguments
-    '''
-
-    def __call__(self, parser, args, values, option_string=None):
-        global desc_in
-
-        desc_in = ''
-        setattr(args, self.dest, values)
-
-
-class CustomTagSearchAction(argparse.Action):
-    '''Class to capture if optional param 'stag'
-    is actually used, even if sans arguments
-    '''
-
-    def __call__(self, parser, args, values, option_string=None):
-        global tagsearch
-
-        tagsearch = True
-        setattr(args, self.dest, values)
+# Custom argument parser
 
 
 class ExtendedArgumentParser(argparse.ArgumentParser):
@@ -2231,8 +2165,9 @@ def piped_input(argv, pipeargs=None):
 
 
 def main():
-    global tags_in, title_in, desc_in
-
+    title_in = None
+    tags_in = None
+    desc_in = None
     pipeargs = []
 
     try:
@@ -2274,7 +2209,7 @@ def main():
 -h, --help           show this information and exit''')
     addarg = general_grp.add_argument
     addarg('-a', '--add', nargs='+', help=HIDE)
-    addarg('-u', '--update', nargs='*', action=CustomUpdateAction, help=HIDE)
+    addarg('-u', '--update', nargs='*', help=HIDE)
     addarg('-d', '--delete', nargs='*', help=HIDE)
     addarg('-h', '--help', action='store_true', help=HIDE)
 
@@ -2300,9 +2235,9 @@ def main():
                      N=0: mutable (default), N=1: immutable''')
     addarg = edit_grp.add_argument
     addarg('--url', nargs=1, help=HIDE)
-    addarg('--tag', nargs='*', action=CustomTagAction, help=HIDE)
-    addarg('-t', '--title', nargs='*', action=CustomTitleAction, help=HIDE)
-    addarg('-c', '--comment', nargs='*', action=CustomDescAction, help=HIDE)
+    addarg('--tag', nargs='*', help=HIDE)
+    addarg('-t', '--title', nargs='*', help=HIDE)
+    addarg('-c', '--comment', nargs='*', help=HIDE)
     addarg('--immutable', type=int, default=-1, choices={0, 1}, help=HIDE)
 
     # --------------------
@@ -2327,7 +2262,7 @@ def main():
     addarg('-S', '--sall', nargs='+', help=HIDE)
     addarg('--sreg', nargs=1, help=HIDE)
     addarg('--deep', action='store_true', help=HIDE)
-    addarg('--stag', nargs='*', action=CustomTagSearchAction, help=HIDE)
+    addarg('--stag', nargs='*', help=HIDE)
 
     # ------------------------
     # ENCRYPTION OPTIONS GROUP
@@ -2412,13 +2347,28 @@ def main():
         argparser.print_help(sys.stdout)
         sys.exit(0)
 
-    # Assign the values to globals
-    if tags_in is not None and len(args.tag) > 0:
-        tags_in = args.tag
-    if title_in is not None and len(args.title) > 0:
-        title_in = ' '.join(args.title)
-    if desc_in is not None and len(args.comment) > 0:
-        desc_in = ' '.join(args.comment)
+    # Set up tags
+    if args.tag is not None:
+        if len(args.tag):
+            tags_in = args.tag
+        else:
+            tags_in = [DELIM, ]
+
+    # Set up title
+    if args.title is not None:
+        if len(args.title):
+            title_in = ' '.join(args.title)
+        else:
+            title_in = ''
+
+    # Set up comment
+    if args.comment is not None:
+        if len(args.comment) > 0:
+            desc_in = ' '.join(args.comment)
+        else:
+            desc_in = ''
+
+    # Set up debugging
     if args.debug:
         logger.setLevel(logging.DEBUG)
         logdbg('Version %s', __version__)
@@ -2459,7 +2409,7 @@ def main():
         bdb.add_rec(args.add[0], title_in, tags, desc_in, args.immutable)
 
     # Update record
-    if update:
+    if args.update is not None:
         if args.url is not None:
             url_in = args.url[0]
         else:
@@ -2519,9 +2469,9 @@ def main():
     elif args.sreg is not None:
         # Run a regular expression search
         search_results = bdb.searchdb(args.sreg, regex=True)
-    elif tagsearch:
+    elif args.stag is not None:
         # Search bookmarks by tag
-        if len(args.stag) > 0:
+        if len(args.stag):
             search_results = bdb.search_by_tag(' '.join(args.stag))
         else:
             # Use sub prompt to list all tags
