@@ -459,4 +459,4 @@ Pull requests are welcome. Please visit [#103](https://github.com/jarun/Buku/iss
 
 ## Copyright
 
-Copyright © 2015-2016 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
+Copyright © 2015-2017 [Arun Prakash Jana](mailto:engineerarun@gmail.com)

@@ -2,7 +2,7 @@
 #
 # Bookmark management utility
 #
-# Copyright (C) 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
+# Copyright © 2015-2017 Arun Prakash Jana <engineerarun@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -325,6 +325,7 @@ class BukuCrypt:
 
 
 class BukuDb:
+    '''Abstracts all database operations'''
 
     def __init__(self, json=False, field_filter=0, chatty=False, dbfile=None):
         '''Database initialization API
@@ -1530,7 +1531,7 @@ symbols:
 
 
 Version %s
-© 2015-2016 Arun Prakash Jana <engineerarun@gmail.com>
+Copyright © 2015-2017 Arun Prakash Jana <engineerarun@gmail.com>
 License: GPLv3
 Webpage: https://github.com/jarun/Buku
 ''' % __version__)
@@ -2384,7 +2385,7 @@ def main():
     # Initialize the database and get handles, set verbose by default
     bdb = BukuDb(args.json, args.format, not args.tacit)
 
-    # Add a record
+    # Add record
     if args.add is not None:
         # Parse tags into a comma-separated string
         tags = DELIM
@@ -2454,7 +2455,7 @@ def main():
                 if interrupted:
                     break
 
-    # Search operations
+    # Search record
     search_results = None
     search_opted = True
 
@@ -2494,7 +2495,7 @@ def main():
         if args.delete is not None and len(args.delete) == 0:
             bdb.delete_resultset(search_results)
 
-    # Delete record(s)
+    # Delete record
     if args.delete is not None:
         if len(args.delete) == 0:
             # Attempt delete-all only if search was not opted
@@ -2527,7 +2528,7 @@ def main():
             except ValueError:
                 logerr('Invalid index or range')
 
-    # Print records
+    # Print record
     if args.print is not None:
         if len(args.print) == 0:
             bdb.print_rec(0)

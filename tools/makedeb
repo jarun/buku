@@ -232,7 +232,7 @@ Upstream-Contact: $DEBFULLNAME <$DEBEMAIL>
 Source: https://github.com/jarun/Buku
 
 Files: *
-Copyright: 2015, 2016 Arun Prakash Jana
+Copyright: 2015-2017 Arun Prakash Jana
 License: GPL-3
  This program is free software: you can redistribute it and/or modify it under
  the terms of the GNU General Public License version 3 as published by the Free
