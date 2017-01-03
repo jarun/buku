@@ -23,6 +23,11 @@ import json
 import logging
 import os
 import re
+try:
+    import readline
+    readline
+except ImportError:
+    pass
 import requests
 import signal
 import sqlite3
@@ -31,12 +36,6 @@ import threading
 import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
-
-try:
-    import readline
-    readline
-except ImportError:
-    pass
 
 __version__ = '2.7'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -136,12 +135,12 @@ class BukuCrypt:
         '''
 
         try:
-            from getpass import getpass
-            import struct
-            from hashlib import sha256
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import (Cipher, modes,
                                                                 algorithms)
+            from getpass import getpass
+            from hashlib import sha256
+            import struct
         except ImportError:
             logerr('cryptography lib(s) missing')
             sys.exit(1)
@@ -167,10 +166,9 @@ class BukuCrypt:
             logerr('Both encrypted and flat DB files exist!')
             sys.exit(1)
 
-        password = ''
         password = getpass()
         passconfirm = getpass()
-        if password == '':
+        if not password or not passconfirm:
             logerr('Empty password')
             sys.exit(1)
         if password != passconfirm:
@@ -234,12 +232,12 @@ class BukuCrypt:
         '''
 
         try:
-            from getpass import getpass
-            import struct
-            from hashlib import sha256
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import (Cipher, modes,
                                                                 algorithms)
+            from getpass import getpass
+            from hashlib import sha256
+            import struct
         except ImportError:
             logerr('cryptography lib(s) missing')
             sys.exit(1)
@@ -269,9 +267,8 @@ class BukuCrypt:
             logerr('Both encrypted and flat DB files exist!')
             sys.exit(1)
 
-        password = ''
         password = getpass()
-        if password == '':
+        if not password:
             logerr('Decryption failed')
             sys.exit(1)
 
