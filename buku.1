@@ -41,6 +41,7 @@ Bookmarks with immutable titles are listed with bold '(L)' after the URL.
 .IP 5. 4
 \fBTags\fR:
   - Comma (',') is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
+  - Releases prior to v2.7 support both capital and lower cases in tags. From v2.7 all tags are stored in lowercase. An undocumented option --\fIfixtags\fR is introduced to modify the older tags. It also fixes another issue where the same tag appears multiple times in the tagset of a record. Run \fBbuku --fixtags\fR once.
 .PP
 .IP 6. 4
 \fBUpdate\fR operation:
@@ -66,7 +67,7 @@ Bookmarks with immutable titles are listed with bold '(L)' after the URL.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within '[]' after the URL.
 .PP
 .IP 9. 4
-\fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using buku and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
+\fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
 .PP
 .IP 10. 4
 \fBProxy\fR support: please refer to the \fBENVIRONMENT\fR section.
