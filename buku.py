@@ -1541,7 +1541,10 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
 
     # Print program info
     @staticmethod
-    def print_program_info(file=None):
+    def print_program_info(file=sys.stderr):
+        if sys.platform == 'win32' and file == sys.stdout:
+            file = sys.stderr
+            
         file.write('''
 symbols:
   >                    title
