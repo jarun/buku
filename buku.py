@@ -45,6 +45,15 @@ __license__ = 'GPLv3'
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
+colorize = True  # Allow color output by default
+
+# Default colour to print records
+ID_str = '\x1b[1m\x1b[93m%d. \x1b[0m\x1b[92m%s\x1b[0m \x1b[1m[%s]\x1b[0m\n'
+ID_DB_str = '\x1b[1m\x1b[93m%d. \x1b[0m\x1b[92m%s\x1b[0m'
+MUTE_str = '%s \x1b[1m(L)\x1b[0m\n'
+TITLE_str = '%s   \x1b[91m>\x1b[0m %s\n'
+DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
+TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
 
 # Disguise as Firefox on Ubuntu
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 \
@@ -324,19 +333,22 @@ class BukuCrypt:
 class BukuDb:
     '''Abstracts all database operations'''
 
-    def __init__(self, json=False, field_filter=0, chatty=False, dbfile=None):
+    def __init__(self, json=False, field_filter=0, chatty=False, dbfile=None,
+                 colorize=True):
         '''Database initialization API
 
         :param json: print results in json format
         :param field_filter: bookmark print format specifier
         :param chatty: set the verbosity of the APIs
         :param dbfile: custom database file path (including filename)
+        :param colorize: use colour in output
         '''
 
         self.conn, self.cur = BukuDb.initdb(dbfile)
         self.json = json
         self.field_filter = field_filter
         self.chatty = chatty
+        self.colorize = colorize
 
     @staticmethod
     def get_default_dbdir():
@@ -398,8 +410,8 @@ class BukuDb:
             sys.exit(1)
         else:
             # not db_exists and not enc_exists
-            print('DB file is being created at \x1b[1m%s\x1b[0m.' % dbfile)
-            print('You should \x1b[1mencrypt it\x1b[0m later.\n')
+            print('DB file is being created at %s.\nYou should encrypt it.'
+                  % dbfile)
 
         try:
             # Create a connection
@@ -497,11 +509,11 @@ class BukuDb:
         else:
             meta, mime, bad = network_handler(url)
             if bad:
-                print('\x1b[91mMalformed URL\x1b[0m\n')
+                print('Malformed URL\n')
             elif mime:
-                logdbg('Mime HEAD requested\n')
+                logdbg('Mime HEAD requested')
             elif meta == '':
-                print('\x1b[91mTitle: []\x1b[0m\n')
+                print('No title\n')
             else:
                 logdbg('Title: [%s]', meta)
 
@@ -695,11 +707,11 @@ class BukuDb:
         elif url is not None and url != '':
             title_to_insert, mime, bad = network_handler(url)
             if bad:
-                print('\x1b[91mMalformed URL\x1b[0m\n')
+                print('Malformed URL\n')
             elif mime:
-                print('\x1b[91mMime head requested\x1b[0m\n')
+                logdbg('Mime HEAD requested')
             elif title_to_insert == '':
-                print('\x1b[91mTitle: []\x1b[0m')
+                print('No title\n')
             else:
                 logdbg('Title: [%s]', title_to_insert)
         elif not to_update and not tag_modified:
@@ -765,6 +777,18 @@ class BukuDb:
             logerr('No matching index or title immutable or empty DB')
             return False
 
+        # Set up strings to be printed
+        if self.colorize:
+            bad_url_str = '\x1b[1mIndex %d: Malformed URL\x1b[0m\n'
+            mime_str = '\x1b[1mIndex %d: Mime HEAD requested\x1b[0m\n'
+            blank_title_str = '\x1b[1mIndex %d: No title\x1b[0m\n'
+            success_str = 'Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
+        else:
+            bad_url_str = 'Index %d: Malformed URL\n'
+            mime_str = 'Index %d: Mime HEAD requested\n'
+            blank_title_str = 'Index %d: No title\n'
+            success_str = 'Title: [%s]\nIndex %d: updated\n'
+
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
         done = {'value': 0}  # count threads completed
         processed = {'value': 0}  # count number of records processed
@@ -803,16 +827,15 @@ class BukuDb:
 
                 cond.acquire()
                 if bad:
-                    print('\x1b[1mIndex %d: malformed URL\x1b[0m\n' % row[0])
+                    print(bad_url_str % row[0])
                     cond.release()
                     continue
                 elif mime:
-                    print('\x1b[1mIndex %d: mime HEAD requested\x1b[0m\n'
-                          % row[0])
+                    print(mime_str % row[0])
                     cond.release()
                     continue
                 elif title == '':
-                    print('\x1b[1mIndex %d: no title\x1b[0m\n' % row[0])
+                    print(blank_title_str % row[0])
                     cond.release()
                     continue
 
@@ -822,8 +845,7 @@ class BukuDb:
                     self.conn.commit()
 
                 if self.chatty:
-                    print('Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
-                          % (title, row[0]))
+                    print(success_str % (title, row[0]))
                 cond.release()
 
                 if interrupted:
@@ -1781,16 +1803,16 @@ def parse_tags(keywords=None):
     return '%s%s%s' % (DELIM, DELIM.join(sorted_tags), DELIM)
 
 
-def taglist_subprompt(obj, noninteractive=False):
+def taglist_subprompt(obj, msg, noninteractive=False):
     '''Additional prompt to show unique tag list
 
     :param obj: a valid instance of BukuDb class
+    :param msg: sub-prompt message
     :param noninteractive: do not seek user input
     :return: new command string
     '''
 
     unique_tags, dic = obj.get_all_tags()
-    msg = '\x1b[7mbuku (? for help)\x1b[0m '
     new_results = True
 
     while True:
@@ -1854,7 +1876,10 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
         return
 
     new_results = True
-    msg = '\x1b[7mbuku (? for help)\x1b[0m '
+    if colorize:
+        msg = '\x1b[7mbuku (? for help)\x1b[0m '
+    else:
+        msg = 'buku (? for help): '
 
     while True:
         if not subprompt:
@@ -1887,7 +1912,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
 
         # list tags with 't'
         if nav == 't':
-            nav = taglist_subprompt(obj, noninteractive)
+            nav = taglist_subprompt(obj, msg, noninteractive)
             if noninteractive:
                 return
 
@@ -1992,27 +2017,26 @@ def print_record(row, idx=0):
 
     # Start with index and URL
     if idx != 0:
-        pr = '\x1b[1m\x1b[93m%d. \x1b[0m\x1b[92m%s\x1b[0m \
-\x1b[1m[%s]\x1b[0m\n' % (idx, row[1], row[0])
+        pr = ID_str % (idx, row[1], row[0])
     else:
-        pr = '\x1b[1m\x1b[93m%d. \x1b[0m\x1b[92m%s\x1b[0m' % (row[0], row[1])
+        pr = ID_DB_str % (row[0], row[1])
         # Indicate if record is immutable
         if row[5] & 1:
-            pr = '%s \x1b[1m(L)\x1b[0m\n' % (pr)
+            pr = MUTE_str % (pr)
         else:
             pr = '%s\n' % (pr)
 
     # Append title
     if row[2] != '':
-        pr = '%s   \x1b[91m>\x1b[0m %s\n' % (pr, row[2])
+        pr = TITLE_str % (pr, row[2])
 
     # Append description
     if row[4] != '':
-        pr = '%s   \x1b[91m+\x1b[0m %s\n' % (pr, row[4])
+        pr = DESC_str % (pr, row[4])
 
     # Append tags IF not default (delimiter)
     if row[3] != DELIM:
-        pr = '%s   \x1b[91m#\x1b[0m %s\n' % (pr, row[3][1:-1])
+        pr = TAG_str % (pr, row[3][1:-1])
 
     print(pr)
 
@@ -2161,6 +2185,8 @@ def piped_input(argv, pipeargs=None):
 
 # main starts here
 def main():
+    global colorize, ID_str, ID_DB_str, MUTE_str, TITLE_str, DESC_str, TAG_str
+
     title_in = None
     tags_in = None
     desc_in = None
@@ -2296,6 +2322,7 @@ def main():
                      replace oldtag with newtag everywhere
                      delete oldtag, if no newtag
 -j, --json           Json formatted output for -p and search
+--nocolor            disable color output
 --noprompt           do not show the prompt, run and exit
 -o, --open [...]     open bookmarks in browser by DB index
                      accepts indices and ranges
@@ -2318,6 +2345,7 @@ def main():
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3}, help=HIDE)
     addarg('-r', '--replace', nargs='+', help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
+    addarg('--nocolor', action='store_true', help=HIDE)
     addarg('--noprompt', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
@@ -2343,6 +2371,31 @@ def main():
         argparser.print_help(sys.stdout)
         sys.exit(0)
 
+    # Set up debugging
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+        logdbg('Version %s', __version__)
+    else:
+        logging.disable(logging.WARNING)
+        urllib3.disable_warnings()
+
+    # Handle color output preference
+    if args.nocolor:
+        colorize = False
+        ID_str = '%d. %s [%s]\n'
+        ID_DB_str = '%d. %s'
+        MUTE_str = '%s (L)\n'
+        TITLE_str = '%s   > %s\n'
+        DESC_str = '%s   + %s\n'
+        TAG_str = '%s   # %s\n'
+
+    # Handle encrypt/decrypt options at top priority
+    if args.lock is not None:
+        BukuCrypt.encrypt_file(args.lock)
+
+    if args.unlock is not None:
+        BukuCrypt.decrypt_file(args.unlock)
+
     # Set up tags
     if args.tag is not None:
         if len(args.tag):
@@ -2364,23 +2417,9 @@ def main():
         else:
             desc_in = ''
 
-    # Set up debugging
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
-        logdbg('Version %s', __version__)
-    else:
-        logging.disable(logging.WARNING)
-        urllib3.disable_warnings()
-
-    # Handle encrypt/decrypt options at top priority
-    if args.lock is not None:
-        BukuCrypt.encrypt_file(args.lock)
-
-    if args.unlock is not None:
-        BukuCrypt.decrypt_file(args.unlock)
-
     # Initialize the database and get handles, set verbose by default
-    bdb = BukuDb(args.json, args.format, not args.tacit)
+    bdb = BukuDb(args.json, args.format, not args.tacit,
+                 colorize=not args.nocolor)
 
     # Add record
     if args.add is not None:

@@ -10,12 +10,58 @@ _buku () {
     local IFS=$' \n'
     local cur=$2 prev=$3
     local -a opts opts_with_args
-    opts=(-a --add -c --comment --deep -d --delete --expand -e --export -h --help
-          --immutable -i --import -k --unlock -l --lock --markdown -m --merge --noprompt
-          -o --open -p --print -r --replace -s --sany -S --sall --shorten --sreg
-          --stag --tacit --tag -t --title -u --update --upstream --url -v --version)
-    opts_with_arg=(-a --add --expand -e --export --immutable -i --import -m --merge
-                   -o --open -r --replace -s --sany -S --sall --shorten --sreg --url)
+    opts=(
+        -a --add
+        -c --comment
+        -d --delete
+        --deep
+        -e --export
+        --expand
+        -f --format
+        -h --help
+        -i --import
+        --immutable
+        -j --json
+        -k --unlock
+        -l --lock
+        -m --merge
+        --markdown
+        --nocolor
+        --noprompt
+        -o --open
+        -p --print
+        -r --replace
+        -s --sany
+        -S --sall
+        --shorten
+        --sreg
+        --stag
+        -t --title
+        --tacit
+        --tag
+        --threads
+        -u --update
+        --upstream
+        --url
+        -v --version
+        -z --debug
+    )
+    opts_with_arg=(
+        -a --add
+        -e --export
+        --expand
+        -f --format
+        -i --import
+        --immutable
+        -m --merge
+        -r --replace
+        -s --sany
+        -S --sall
+        --shorten
+        --sreg
+        --threads
+        --url
+    )
 
     # Do not complete non option names
     [[ $cur == -* ]] || return 1

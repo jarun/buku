@@ -196,6 +196,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
       -j, --json           Json formatted output for -p and search
+      --nocolor            disable color output
       --noprompt           do not show the prompt, run and exit
       -o, --open [...]     open bookmarks in browser by DB index
                            accepts indices and ranges
