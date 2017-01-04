@@ -1544,19 +1544,18 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
     def print_program_info(file=sys.stderr):
         if sys.platform == 'win32' and file == sys.stdout:
             file = sys.stderr
-            
-        file.write('''
-symbols:
-  >                    title
-  +                    comment
-  #                    tags
 
+        file.write('''
+SYMBOLS:
+      >                    title
+      +                    comment
+      #                    tags
 
 Version %s
-Copyright © 2015-2017 Arun Prakash Jana <engineerarun@gmail.com>
-License: GPLv3
+Copyright © 2015-2017 %s
+License: %s
 Webpage: https://github.com/jarun/Buku
-''' % __version__)
+''' % (__version__, __author__, __license__))
 
     # Print prompt help
     @staticmethod
@@ -2218,20 +2217,20 @@ def main():
     # ---------------------
 
     general_grp = argparser.add_argument_group(
-        title='general options',
-        description='''-a, --add URL [tag, ...]
-                     bookmark URL with comma-separated tags
--u, --update [...]   update fields of bookmark at DB indices
-                     accepts indices and ranges
-                     refresh all titles, if no arguments
-                     refresh titles of bookmarks at indices,
-                     if no edit options are specified
--d, --delete [...]   delete bookmarks. Valid inputs: either
-                     a hyphenated single range (100-200),
-                     OR space-separated indices (100 15 200)
-                     delete results with search options
-                     delete all bookmarks, if no arguments
--h, --help           show this information and exit''')
+        title='GENERAL OPTIONS',
+        description='''    -a, --add URL [tag, ...]
+                         bookmark URL with comma-separated tags
+    -u, --update [...]   update fields of bookmark at DB indices
+                         accepts indices and ranges
+                         refresh all titles, if no arguments
+                         refresh titles of bookmarks at indices,
+                         if no edit options are specified
+    -d, --delete [...]   delete bookmarks. Valid inputs: either
+                         a hyphenated single range (100-200),
+                         OR space-separated indices (100 15 200)
+                         delete results with search options
+                         delete all bookmarks, if no arguments
+    -h, --help           show this information and exit''')
     addarg = general_grp.add_argument
     addarg('-a', '--add', nargs='+', help=HIDE)
     addarg('-u', '--update', nargs='*', help=HIDE)
@@ -2243,21 +2242,21 @@ def main():
     # ------------------
 
     edit_grp = argparser.add_argument_group(
-        title='edit options',
-        description='''--url keyword        specify url, works only with -u option
---tag [+|-] [...]    set comma-separated tags with -a and -u
-                     clear tags, if no arguments
-                     works with -a, -u
-                     append to tags, if preceded by '+'
-                     remove from tags, if preceded by '-'
--t, --title [...]    manually set title, works with -a, -u
-                     if no arguments:
-                     -a: do not set title, -u: clear title
--c, --comment [...]  description of the bookmark, works with
-                     -a, -u; clears comment, if no arguments
---immutable N        disable title fetch from web on update
-                     works with -a, -u
-                     N=0: mutable (default), N=1: immutable''')
+        title='EDIT OPTIONS',
+        description='''    --url keyword        specify url, works only with -u option
+    --tag [+|-] [...]    set comma-separated tags with -a and -u
+                         clear tags, if no arguments
+                         works with -a, -u
+                         append to tags, if preceded by '+'
+                         remove from tags, if preceded by '-'
+    -t, --title [...]    manually set title, works with -a, -u
+                         if no arguments:
+                         -a: do not set title, -u: clear title
+    -c, --comment [...]  description of the bookmark, works with
+                         -a, -u; clears comment, if no arguments
+    --immutable N        disable title fetch from web on update
+                         works with -a, -u
+                         N=0: mutable (default), N=1: immutable''')
     addarg = edit_grp.add_argument
     addarg('--url', nargs=1, help=HIDE)
     addarg('--tag', nargs='*', help=HIDE)
@@ -2270,18 +2269,18 @@ def main():
     # --------------------
 
     search_grp = argparser.add_argument_group(
-        title='search options',
-        description='''-s, --sany keyword [...]
-                     find records with ANY search keyword
--S, --sall keyword [...]
-                     find records with ALL search keywords
-                     special keywords -
-                     "blank": entries with empty title/tag
-                     "immutable": entries with locked title
---deep               match substrings ('pen' matches 'opens')
---sreg expression    run a regex search
---stag [...]         search bookmarks by a tag
-                     list all tags, if no arguments''')
+        title='SEARCH OPTIONS',
+        description='''    -s, --sany keyword [...]
+                         find records with ANY search keyword
+    -S, --sall keyword [...]
+                         find records with ALL search keywords
+                         special keywords -
+                         "blank": entries with empty title/tag
+                         "immutable": entries with locked title
+    --deep               match substrings ('pen' matches 'opens')
+    --sreg expression    run a regex search
+    --stag [...]         search bookmarks by a tag
+                         list all tags, if no arguments''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', nargs='+', help=HIDE)
     addarg('-S', '--sall', nargs='+', help=HIDE)
@@ -2294,11 +2293,11 @@ def main():
     # ------------------------
 
     crypto_grp = argparser.add_argument_group(
-        title='encryption options',
-        description='''-l, --lock [N]       encrypt DB file with N (> 0, default 8)
-                     hash iterations to generate key
--k, --unlock [N]     decrypt DB file with N (> 0, default 8)
-                     hash iterations to generate key''')
+        title='ENCRYPTION OPTIONS',
+        description='''    -l, --lock [N]       encrypt DB file with N (> 0, default 8)
+                         hash iterations to generate key
+    -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
+                         hash iterations to generate key''')
     addarg = crypto_grp.add_argument
     addarg('-k', '--unlock', nargs='?', type=int, const=8, help=HIDE)
     addarg('-l', '--lock', nargs='?', type=int, const=8, help=HIDE)
@@ -2308,37 +2307,37 @@ def main():
     # ----------------
 
     power_grp = argparser.add_argument_group(
-        title='power toys',
-        description='''-e, --export file    export bookmarks to Firefox format html
-                     use --tag to export only specific tags
--i, --import file    import bookmarks from html file
-                     FF and Google Chrome formats supported
---markdown           use markdown with -e and -i
-                     format: [title](url), 1 per line
--m, --merge file     add bookmarks from another buku DB file
--p, --print [...]    show details of bookmark by DB index
-                     accepts indices and ranges
-                     show all bookmarks, if no arguments
--f, --format N       limit fields in -p or Json search output
-                     1: URL, 2: URL and tag, 3: title
--r, --replace oldtag [newtag ...]
-                     replace oldtag with newtag everywhere
-                     delete oldtag, if no newtag
--j, --json           Json formatted output for -p and search
---nocolor            disable color output
---noprompt           do not show the prompt, run and exit
--o, --open [...]     open bookmarks in browser by DB index
-                     accepts indices and ranges
-                     open a random index, if no arguments
---shorten N/URL      fetch shortened url from tny.im service
-                     accepts either a DB index or a URL
---expand N/URL       expand a tny.im shortened url
---tacit              reduce verbosity
---threads N          max network connections in full refresh
-                     default 4, min 1, max 10
---upstream           check latest upstream version available
--v, --version        show program version and exit
--z, --debug          show debug information and verbose logs''')
+        title='POWER TOYS',
+        description='''    -e, --export file    export bookmarks to Firefox format html
+                         use --tag to export only specific tags
+    -i, --import file    import bookmarks from html file
+                         FF and Google Chrome formats supported
+    --markdown           use markdown with -e and -i
+                         format: [title](url), 1 per line
+    -m, --merge file     add bookmarks from another buku DB file
+    -p, --print [...]    show details of bookmark by DB index
+                         accepts indices and ranges
+                         show all bookmarks, if no arguments
+    -f, --format N       limit fields in -p or Json search output
+                         1: URL, 2: URL and tag, 3: title
+    -r, --replace oldtag [newtag ...]
+                         replace oldtag with newtag everywhere
+                         delete oldtag, if no newtag
+    -j, --json           Json formatted output for -p and search
+    --nocolor            disable color output
+    --noprompt           do not show the prompt, run and exit
+    -o, --open [...]     open bookmarks in browser by DB index
+                         accepts indices and ranges
+                         open a random index, if no arguments
+    --shorten N/URL      fetch shortened url from tny.im service
+                         accepts either a DB index or a URL
+    --expand N/URL       expand a tny.im shortened url
+    --tacit              reduce verbosity
+    --threads N          max network connections in full refresh
+                         default 4, min 1, max 10
+    --upstream           check latest upstream version available
+    -v, --version        show program version and exit
+    -z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)

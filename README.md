@@ -126,11 +126,12 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 ### Cmdline options
 
-    usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
+```
+usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 
-    Powerful command-line bookmark manager. Your mini web!
+Powerful command-line bookmark manager. Your mini web!
 
-    general options:
+GENERAL OPTIONS:
       -a, --add URL [tag, ...]
                            bookmark URL with comma-separated tags
       -u, --update [...]   update fields of bookmark at DB indices
@@ -145,10 +146,11 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            delete all bookmarks, if no arguments
       -h, --help           show this information and exit
 
-    edit options:
+EDIT OPTIONS:
       --url keyword        specify url, works only with -u option
       --tag [+|-] [...]    set comma-separated tags with -a and -u
                            clear tags, if no arguments
+                           works with -a, -u
                            append to tags, if preceded by '+'
                            remove from tags, if preceded by '-'
       -t, --title [...]    manually set title, works with -a, -u
@@ -160,7 +162,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
                            works with -a, -u
                            N=0: mutable (default), N=1: immutable
 
-    search options:
+SEARCH OPTIONS:
       -s, --sany keyword [...]
                            find records with ANY search keyword
       -S, --sall keyword [...]
@@ -173,13 +175,13 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       --stag [...]         search bookmarks by a tag
                            list all tags, if no arguments
 
-    encryption options:
+ENCRYPTION OPTIONS:
       -l, --lock [N]       encrypt DB file with N (> 0, default 8)
                            hash iterations to generate key
       -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
                            hash iterations to generate key
 
-    power toys:
+POWER TOYS:
       -e, --export file    export bookmarks to Firefox format html
                            use --tag to export only specific tags
       -i, --import file    import bookmarks from html file
@@ -211,10 +213,11 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
       -v, --version        show program version and exit
       -z, --debug          show debug information and verbose logs
 
-    symbols:
+SYMBOLS:
       >                    title
       +                    comment
       #                    tags
+```
 
 ### Operational notes
 
