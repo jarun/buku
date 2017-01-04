@@ -1550,7 +1550,7 @@ symbols:
 
 
 Version %s
-Copyright © 2015-2017 Arun Prakash Jana <engineerarun@gmail.com>
+Copyright (C) 2015-2017 Arun Prakash Jana <engineerarun@gmail.com>
 License: GPLv3
 Webpage: https://github.com/jarun/Buku
 ''' % __version__)
