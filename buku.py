@@ -18,6 +18,7 @@
 # along with Buku.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import hashlib
 import html.parser as HTMLParser
 import json
 import logging
@@ -1247,7 +1248,7 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath, markdown=False, taglist=None):
+    def exportdb(self, filepath, markdown=False, taglist=None, chromeprofile=False):
         '''Export bookmarks to a Firefox bookmarks formatted
            html or markdown file.
 
@@ -1306,7 +1307,7 @@ class BukuDb:
             logerr(e)
             return False
 
-        if not markdown:
+        if not markdown and not chromeprofile:
             outfp.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
@@ -1332,6 +1333,80 @@ Buku bookmarks</H3>
                 count += 1
 
             outfp.write('    </DL><p>\n</DL><p>')
+        elif chromeprofile:
+            enc = hashlib.new('md5');
+
+            # encode folder node
+            def _cprf_folder(_enc, _id, _name, _date_added):
+                ret = {}
+                ret['children'] = []
+                ret['date_added'] = _date_added
+                ret['date_modified'] = _date_added
+
+                ret['id'] = str(_id);
+                ret['name'] = _name;
+                ret['type'] = "folder"
+
+                _enc.update(bytes(ret['id'].encode('utf-8')))
+                _enc.update(bytes(ret['name'].encode('utf-16-le')))
+                _enc.update(bytes(ret['type'].encode('utf-8')))
+
+                return ret
+
+            # encode url node
+            def _cprf_url(_enc, _id, _name, _url, _date_added):
+                ret = {}
+                ret['date_added'] = _date_added
+
+                ret['id'] = str(_id);
+                ret['name'] = _name;
+                ret['type'] = "url"
+                ret['url'] = _url
+
+                _enc.update(bytes(ret['id'].encode('utf-8')));
+                _enc.update(bytes(ret['name'].encode('utf-16-le')));
+                _enc.update(bytes(ret['type'].encode('utf-8')));
+                _enc.update(bytes(ret['url'].encode('utf-8')));
+
+                return ret
+
+            data = {}
+
+            # i am not touching chromium time handling with a 100-yard stick.
+            # TODO: fix this (by making sense of how chrome handles time).
+            # _date_added = time.time() * 8.85 * (10 ** 6)
+            # _date_added = '{0:.0f}'.format(_date_added)
+            # this is an initial reading from my initial observations.
+            _date_added = "13126735310581247"
+
+            data['version'] = 1;
+            data['roots']   = {};
+
+            dr = data['roots'];
+            dr['bookmark_bar'] = _cprf_folder(
+                enc, 1, "Bookmarks bar", _date_added);
+
+            dr['other'] = _cprf_folder(
+                enc, 2, "Other bookmarks", _date_added);
+
+            dc = dr['other']['children']
+            for row in resultset:
+                _id = str(row[0] + 5) # first url ID starts at 6.
+                _url = row[1]
+                _meta = row[2] # utf-16 ?
+
+                dc.append( _cprf_url(enc, _id, _meta, _url, _date_added) );
+                count += 1
+
+            dr['synced'] = _cprf_folder(
+                enc, 3, "Mobile bookmarks", _date_added);
+
+            # set checksum
+            data['checksum'] = enc.hexdigest()
+
+            # write to file
+            json.dump(data, outfp,
+                sort_keys = True, indent = 3, ensure_ascii=False);
         else:
             outfp.write('List of buku bookmarks:\n\n')
             for row in resultset:
@@ -2312,6 +2387,8 @@ def main():
                      FF and Google Chrome formats supported
 --markdown           use markdown with -e and -i
                      format: [title](url), 1 per line
+--chromeprofile      use chromeprofile with -e
+                     exports bookmarks as chrome profile Bookmarks json
 -m, --merge file     add bookmarks from another buku DB file
 -p, --print [...]    show details of bookmark by DB index
                      accepts indices and ranges
@@ -2340,6 +2417,7 @@ def main():
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
     addarg('--markdown', action='store_true', help=HIDE)
+    addarg('--chromeprofile', action='store_true', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3}, help=HIDE)
@@ -2594,11 +2672,17 @@ def main():
     # Export bookmarks
     if args.export is not None:
         if args.tag is None:
-            bdb.exportdb(args.export[0], args.markdown)
+            if (args.chromeprofile):
+                bdb.exportdb(args.export[0], args.markdown, None, args.chromeprofile)
+            else:
+                bdb.exportdb(args.export[0], args.markdown)
         elif len(args.tag) == 0:
             logerr('Missing tag')
         else:
-            bdb.exportdb(args.export[0], args.markdown, args.tag)
+            if (args.chromeprofile):
+                bdb.exportdb(args.export[0], args.markdown, args.tag, args.chromeprofile)
+            else:
+                bdb.exportdb(args.export[0], args.markdown, args.tag)
 
     # Import bookmarks
     if args.importfile is not None:
