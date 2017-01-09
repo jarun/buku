@@ -2469,7 +2469,6 @@ def main():
         else:
             # Use sub prompt to list all tags
             prompt(bdb, None, args.noprompt, subprompt=True)
-            search_opted = False
     else:
         search_opted = False
 
@@ -2520,7 +2519,7 @@ def main():
             if not search_opted:
                 bdb.update_rec(0, url_in, title_in, tags, desc_in,
                                args.immutable, args.threads)
-            elif update_search_results:
+            elif update_search_results and search_results is not None:
                 print("Updated results:\n")
 
                 pos = len(search_results) - 1
