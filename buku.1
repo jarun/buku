@@ -268,22 +268,22 @@ can be integrated in a GUI environment with simple tweaks. Refer to:
 .SH EXAMPLES
 .PP
 .IP 1. 4
-\fBAdd\fR a bookmark with \fBtags\fR 'linux news' and 'open source', \fBcomment\fR 'Informative website on Linux and open source', \fBfetch page title\fR from the web:
+\fBAdd\fR a bookmark with \fBtags\fR 'search engine' and 'privacy', \fBcomment\fR 'Alternative search engine with perks', \fBfetch page title\fR from the web:
 .PP
 .EX
 .IP
-.B buku -a https://tuxdiary.com linux news, open source -c Informative website on Linux and open source
+.B buku -a https://ddg.gg search engine, privacy -c Alternative search engine with perks
 .EE
 .PP
 .IP "" 4
 In the output, >: title, +: comment, #: tags.
 .PP
 .IP 2. 4
-\fBAdd\fR a bookmark with tags 'linux news' and 'open source' & \fBimmutable custom title\fR 'Linux magazine':
+\fBAdd\fR a bookmark with tags 'search engine' & 'privacy' and \fBimmutable custom title\fR 'DDG':
 .PP
 .EX
 .IP
-.B buku -a http://tuxdiary.com linux news, open source -t 'Linux magazine' --immutable 1
+.B buku -a https://ddg.gg search engine, privacy -t 'DDG' --immutable 1
 .EE
 .PP
 .IP "" 4
@@ -294,7 +294,7 @@ Note that URL must precede tags.
 .PP
 .EX
 .IP
-.B buku -a http://tuxdiary.com linux news, open source -t
+.B buku -a https://ddg.gg search engine, privacy -t
 .EE
 .PP
 .IP 4. 4
@@ -302,7 +302,7 @@ Note that URL must precede tags.
 .PP
 .EX
 .IP
-.B buku -u 15012014 --url http://tuxdiary.com/ --tag linux news, open source, magazine -c site for Linux utilities
+.B buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Alternative search engine
 .EE
 .PP
 .IP 5. 4

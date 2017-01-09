@@ -344,30 +344,27 @@ NOTE: This flexibility is not exposed in the program.
 
 ## Examples
 
-1. **Add** a bookmark with **tags** `linux news` and `open source`, **comment** `Informative website on Linux and open source`, **fetch page title** from the web:
+1. **Add** a bookmark with **tags** `search engine` and `privacy`, **comment** `Alternative search engine with perks`, **fetch page title** from the web:
 
-        $ buku -a https://tuxdiary.com linux news, open source -c Informative website on Linux and open source
-        Title: [TuxDiary – Linux, open source, command-line, leisure.]
-        Added at index 336
-
-        336. https://tuxdiary.com
-        > TuxDiary – Linux, open source, command-line, leisure.
-        + Informative website on Linux and open source
-        # linux news,open source
+        $ buku -a https://ddg.gg search engine, privacy -c Alternative search engine with perks
+        336. https://ddg.gg
+        > DuckDuckGo
+        + Alternative search engine with perks
+        # privacy,search engine
 where, >: title, +: comment, #: tags
-2. **Add** a bookmark with tags `linux news` and `open source` & **immutable custom title** `Linux magazine`:
+2. **Add** a bookmark with tags `search engine` & `privacy` and **immutable custom title** `DDG`:
 
-        $ buku -a http://tuxdiary.com linux news, open source -t 'Linux magazine' --immutable 1
-        336. http://tuxdiary.com (L)
-        > Linux magazine
-        # linux news,open source
+        $ buku -a https://ddg.gg search engine, privacy -t 'DDG' --immutable 1
+        336. https://ddg.gg (L)
+        > DDG
+        # privacy,search engine
 Note that URL must precede tags.
 3. **Add** a bookmark **without a title** (works for update too):
 
-        $ buku -a http://tuxdiary.com linux news, open source -t
+        $ buku -a https://ddg.gg search engine, privacy -t
 4. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
-        $ buku -u 15012014 --url http://tuxdiary.com/ --tag linux news, open source, magazine -c site for Linux utilities
+        $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Alternative search engine
 5. **Fetch and update only title** for bookmark at 15012014:
 
         $ buku -u 15012014
