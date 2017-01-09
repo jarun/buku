@@ -139,11 +139,14 @@ GENERAL OPTIONS:
                            refresh all titles, if no arguments
                            refresh titles of bookmarks at indices,
                            if no edit options are specified
+                           update search results, when used with
+                           search, if no arguments
       -d, --delete [...]   delete bookmarks. Valid inputs: either
                            a hyphenated single range (100-200),
                            OR space-separated indices (100 15 200)
-                           delete results with search options
                            delete all bookmarks, if no arguments
+                           delete search results, when used with
+                           search, if no arguments
       -h, --help           show this information and exit
 
 EDIT OPTIONS:
@@ -235,10 +238,11 @@ SYMBOLS:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
   - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles from web. Bookmarks marked immutable are skipped.
+  - Can update bookmarks matching a search, when combined with any of the search options and no arguments to update are passed.
 - **Delete** operation:
   - When a record is deleted, the last record is moved to the index.
   - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
-  - Can delete bookmarks matching a search, when combined with any of the search options.
+  - Can delete bookmarks matching a search, when combined with any of the search options and no arguments to delete are passed.
 - **Search** works in mysterious ways:
   - Case-insensitive.
   - Matches words in URL, title and tags.
@@ -413,45 +417,48 @@ The last index is moved to the deleted index to keep the DB compact.
 17. List **all unique tags** alphabetically:
 
         $ buku --stag
-18. Run a **search and delete** the results:
+18. Run a **search and update** the results:
+
+        $ buku -s kernel debugging -u --tag + newtag
+19. Run a **search and delete** the results:
 
         $ buku -s kernel debugging -d
-19. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+20. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
-20. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
+21. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
 
         $ buku -p 20-30 15012014 40-50
-21. **Show all** bookmarks with real index from database:
+22. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-22. **Replace tag** 'old tag' with 'new tag':
+23. **Replace tag** 'old tag' with 'new tag':
 
         $ buku -r 'old tag' new tag
-23. **Delete tag** 'old tag' from DB:
+24. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-24. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
+25. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
         $ buku -u 15012014 --tag - tag 1, tag 2
-25. **Open URL** at index 15012014 in browser:
+26. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-26. List bookmarks with **no title or tags** for bookkeeping:
+27. List bookmarks with **no title or tags** for bookkeeping:
 
         $ buku -S blank
-27. List bookmarks with **immutable title**:
+28. List bookmarks with **immutable title**:
 
         $ buku -S immutable
-28. **Shorten URL** www.google.com and the URL at index 20:
+29. **Shorten URL** www.google.com and the URL at index 20:
 
         $ buku --shorten www.google.com
         $ buku --shorten 20
-29. More **help**:
+30. More **help**:
 
         $ buku -h
         $ man buku

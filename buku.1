@@ -48,12 +48,13 @@ Bookmarks with immutable titles are listed with bold '(L)' after the URL.
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.
   - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles from web. Bookmarks marked immutable are skipped.
+  - Can update bookmarks matching a search, when combined with any of the search options and no arguments to update are passed.
 .PP
 .IP 7. 4
 \fBDelete\fR operation:
   - When a record is deleted, the last record is moved to the index.
   - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
-  - Can delete bookmarks matching a search, when combined with any of the search options.
+  - Can delete bookmarks matching a search, when combined with any of the search options and no arguments to delete are passed.
 .PP
 .IP 8. 4
 \fBSearch\fR works in mysterious ways:
@@ -79,10 +80,10 @@ Bookmark
 along with comma-separated tags. A tag can have multiple words.
 .TP
 .BI \-u " " \--update " [...]"
-Update fields of the bookmarks at specified indices in DB. If no arguments are specified, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only indices are passed without any edit options, titles are fetched and updated (if not empty). Accepts hyphenated ranges and space-separated indices.
+Update fields of the bookmarks at specified indices in DB. If no arguments are specified, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only indices are passed without any edit options, titles are fetched and updated (if not empty). Accepts hyphenated ranges and space-separated indices. Updates search results when used with search options, if no arguments.
 .TP
 .BI \-d " " \--delete " [...]"
-Delete bookmarks. Accepts space-separated list of indices (e.g. 5 6 23 4 110 45) or a single hyphenated range (e.g. 100-200). Note that range and list don't work together. Deletes search results when combined with search options.
+Delete bookmarks. Accepts space-separated list of indices (e.g. 5 6 23 4 110 45) or a single hyphenated range (e.g. 100-200). Note that range and list don't work together. Deletes search results when combined with search options, if no arguments.
 .TP
 .BI \-h " " \--help
 Show program help and exit.
@@ -272,6 +273,9 @@ can be integrated in a GUI environment with simple tweaks. Refer to:
 .EX
 .IP
 .B buku -a https://tuxdiary.com linux news, open source -c Informative website on Linux and open source
+.EE
+.PP
+.IP "" 4
 In the output, >: title, +: comment, #: tags.
 .PP
 .IP 2. 4
@@ -291,6 +295,7 @@ Note that URL must precede tags.
 .EX
 .IP
 .B buku -a http://tuxdiary.com linux news, open source -t
+.EE
 .PP
 .IP 4. 4
 \fBUpdate\fR existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
@@ -298,6 +303,7 @@ Note that URL must precede tags.
 .EX
 .IP
 .B buku -u 15012014 --url http://tuxdiary.com/ --tag linux news, open source, magazine -c site for Linux utilities
+.EE
 .PP
 .IP 5. 4
 \fBFetch and update only title\fR for bookmark at 15012014:
@@ -305,6 +311,7 @@ Note that URL must precede tags.
 .EX
 .IP
 .B $ buku -u 15012014
+.EE
 .PP
 .IP 6. 4
 \fBUpdate only comment\fR for bookmark at 15012014:
@@ -336,6 +343,7 @@ All bookmarks are exported if --tag is not specified.
 .IP
 .B buku -i bookmarks.html
 .B buku -i bookmarks.md --markdown
+.EE
 .PP
 .IP 9. 4
 \fBDelete only comment\fR for bookmark at 15012014:
@@ -377,6 +385,7 @@ The last index is moved to the deleted index to keep the DB compact.
 .EX
 .IP
 .B buku -d
+.EE
 .PP
 .IP 13. 4
 \fBDelete\fR a \fBrange or list\fR of bookmarks:
@@ -385,6 +394,7 @@ The last index is moved to the deleted index to keep the DB compact.
 .IP
 .B $ buku -d 100-200
 .B $ buku -d 100 15 200
+.EE
 .PP
 .IP 14. 4
 \fBSearch\fR bookmarks for \fBANY\fR of the keywords 'kernel' and 'debugging' in URL, title or tags:
@@ -392,6 +402,7 @@ The last index is moved to the deleted index to keep the DB compact.
 .EX
 .IP
 .B buku -s kernel debugging
+.EE
 .PP
 .IP 15. 4
 \fBSearch\fR bookmarks with \fBALL\fR the keywords 'kernel' and 'debugging' in URL, title or tags:
@@ -399,6 +410,7 @@ The last index is moved to the deleted index to keep the DB compact.
 .EX
 .IP
 .B buku -S kernel debugging
+.EE
 .PP
 .IP 16. 4
 \fBSearch\fR bookmarks \fBtagged\fR 'general kernel concepts':
@@ -406,6 +418,7 @@ The last index is moved to the deleted index to keep the DB compact.
 .EX
 .IP
 .B buku --stag general kernel concepts
+.EE
 .PP
 .IP 17. 4
 List \fBall unique tags\fR alphabetically:
@@ -413,15 +426,25 @@ List \fBall unique tags\fR alphabetically:
 .EX
 .IP
 .B buku --stag
+.EE
 .PP
 .IP 18. 4
+Run a \fBsearch and update\fR the results:
+.PP
+.EX
+.IP
+.B buku -s kernel debugging -u --tag + newtag
+.EE
+.PP
+.IP 19. 4
 Run a \fBsearch and delete\fR the results:
 .PP
 .EX
 .IP
 .B buku -s kernel debugging -d
+.EE
 .PP
-.IP 19. 4
+.IP 20. 4
 \fBEncrypt or decrypt\fR DB with \fBcustom number of iterations\fR (15) to generate key:
 .PP
 .EX
@@ -434,71 +457,80 @@ Run a \fBsearch and delete\fR the results:
 .IP "" 4
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
 .PP
-.IP 20. 4
+.IP 21. 4
 \fBShow details\fR of bookmarks at index 15012014 and ranges 20-30, 40-50:
 .PP
 .EX
 .IP
 .B buku -p 20-30 15012014 40-50
+.EE
 .PP
-.IP 21. 4
+.IP 22. 4
 \fBShow all\fR bookmarks with real index from database:
 .PP
 .EX
 .IP
 .B buku -p
 .B buku -p | more
+.EE
 .PP
-.IP 22. 4
+.IP 23. 4
 \fBReplace tag\fR 'old tag' with 'new tag':
 .PP
 .EX
 .IP
 .B buku -r 'old tag' new tag
+.EE
 .PP
-.IP 23. 4
+.IP 24. 4
 \fBDelete tag\fR 'old tag' from DB:
 .PP
 .EX
 .IP
 .B buku -r 'old tag'
+.EE
 .PP
-.IP 24. 4
+.IP 25. 4
 \fBAppend (or delete) tags\fR 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 .PP
 .EX
 .IP
 .B buku -u 15012014 --tag + tag 1, tag 2
 .B buku -u 15012014 --tag - tag 1, tag 2
+.EE
 .PP
-.IP 25. 4
+.IP 26. 4
 \fBOpen URL\fR at index 15012014 in browser:
 .PP
 .EX
 .IP
 .B buku -o 15012014
+.EE
 .PP
-.IP 26. 4
+.IP 27. 4
 List bookmarks with \fBno title or tags\fR for bookkeeping:
 .PP
 .EX
 .IP
 .B buku -S blank
+.EE
 .PP
-.IP 27. 4
+.IP 28. 4
 List bookmarks with \fBimmutable title\fR:
 .PP
 .EX
 .IP
 .B buku -S immutable
+.EE
 .PP
-.IP 28. 4
+.IP 29. 4
 \fBShorten\fR the URL www.google.com and the URL at index 20:
 .PP
 .EX
 .IP
 .B buku --shorten www.google.com
 .B buku --shorten 20
+.EE
 .SH AUTHOR
 Arun Prakash Jana <engineerarun@gmail.com>.
 .SH HOME

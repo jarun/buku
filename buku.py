@@ -2225,11 +2225,14 @@ def main():
                          refresh all titles, if no arguments
                          refresh titles of bookmarks at indices,
                          if no edit options are specified
+                         update search results, when used with
+                         search, if no arguments
     -d, --delete [...]   delete bookmarks. Valid inputs: either
                          a hyphenated single range (100-200),
                          OR space-separated indices (100 15 200)
-                         delete results with search options
                          delete all bookmarks, if no arguments
+                         delete search results, when used with
+                         search, if no arguments
     -h, --help           show this information and exit''')
     addarg = general_grp.add_argument
     addarg('-a', '--add', nargs='+', help=HIDE)
@@ -2445,6 +2448,55 @@ def main():
 
         bdb.add_rec(args.add[0], title_in, tags, desc_in, args.immutable)
 
+    # Search record
+    search_results = None
+    search_opted = True
+    update_search_results = False
+
+    if args.sany is not None:
+        # Search URLs, titles, tags for any keyword
+        search_results = bdb.searchdb(args.sany, False, args.deep)
+    elif args.sall is not None:
+        # Search URLs, titles, tags with all keywords
+        search_results = bdb.searchdb(args.sall, True, args.deep)
+    elif args.sreg is not None:
+        # Run a regular expression search
+        search_results = bdb.searchdb(args.sreg, regex=True)
+    elif args.stag is not None:
+        # Search bookmarks by tag
+        if len(args.stag):
+            search_results = bdb.search_by_tag(' '.join(args.stag))
+        else:
+            # Use sub prompt to list all tags
+            prompt(bdb, None, args.noprompt, subprompt=True)
+            search_opted = False
+    else:
+        search_opted = False
+
+    if search_results:
+        oneshot = args.noprompt
+        to_delete = False
+
+        # In case of search and delete/update,
+        # prompt should be non-interactive
+        # delete gets priority over update
+        if args.delete is not None and len(args.delete) == 0:
+            oneshot = True
+            to_delete = True
+        elif args.update is not None and len(args.update) == 0:
+            oneshot = True
+            update_search_results = True
+
+        if not args.json:
+            prompt(bdb, search_results, oneshot, args.deep)
+        else:
+            # Printing in Json format is non-interactive
+            print(format_json(search_results, field_filter=args.format))
+
+        # Delete search results if opted
+        if to_delete:
+            bdb.delete_resultset(search_results)
+
     # Update record
     if args.update is not None:
         if args.url is not None:
@@ -2464,8 +2516,24 @@ def main():
             tags = None
 
         if len(args.update) == 0:
-            bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable,
-                           args.threads)
+            # Update all records only if search was not opted
+            if not search_opted:
+                bdb.update_rec(0, url_in, title_in, tags, desc_in,
+                               args.immutable, args.threads)
+            elif update_search_results:
+                print("Updated results:\n")
+
+                pos = len(search_results) - 1
+                while pos >= 0:
+                    idx = search_results[pos][0]
+                    bdb.update_rec(idx, url_in, title_in, tags, desc_in,
+                                   args.immutable, args.threads)
+
+                    # Commit at every 200th removal
+                    if pos % 200 == 0:
+                        bdb.conn.commit()
+
+                    pos -= 1
         else:
             for idx in args.update:
                 if is_int(idx):
@@ -2492,46 +2560,6 @@ def main():
 
                 if interrupted:
                     break
-
-    # Search record
-    search_results = None
-    search_opted = True
-
-    if args.sany is not None:
-        # Search URLs, titles, tags for any keyword
-        search_results = bdb.searchdb(args.sany, False, args.deep)
-    elif args.sall is not None:
-        # Search URLs, titles, tags with all keywords
-        search_results = bdb.searchdb(args.sall, True, args.deep)
-    elif args.sreg is not None:
-        # Run a regular expression search
-        search_results = bdb.searchdb(args.sreg, regex=True)
-    elif args.stag is not None:
-        # Search bookmarks by tag
-        if len(args.stag):
-            search_results = bdb.search_by_tag(' '.join(args.stag))
-        else:
-            # Use sub prompt to list all tags
-            prompt(bdb, None, args.noprompt, subprompt=True)
-            search_opted = False
-    else:
-        search_opted = False
-
-    if search_results:
-        oneshot = args.noprompt
-        # In case of search and delete, prompt should be non-interactive
-        if args.delete is not None and len(args.delete) == 0:
-            oneshot = True
-
-        if not args.json:
-            prompt(bdb, search_results, oneshot, args.deep)
-        else:
-            # Printing in Json format is non-interactive
-            print(format_json(search_results, field_filter=args.format))
-
-        # Delete search results if opted
-        if args.delete is not None and len(args.delete) == 0:
-            bdb.delete_resultset(search_results)
 
     # Delete record
     if args.delete is not None:
