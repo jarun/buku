@@ -1471,7 +1471,9 @@ Buku bookmarks</H3>
 
         urlbase = 'https://tny.im/yourls-api.php?action='
         if shorten:
-            _u = '%s%s%s' % (urlbase, 'shorturl&format=simple&url=', url)
+            from urllib.parse import quote_plus as qp
+
+            _u = '%s%s%s' % (urlbase, 'shorturl&format=simple&url=', qp(url))
         else:
             _u = '%s%s%s' % (urlbase, 'expand&format=simple&shorturl=', url)
 
