@@ -1541,7 +1541,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
 
     # Print program info
     @staticmethod
-    def print_program_info(file=sys.stderr):
+    def print_program_info(file=sys.stdout):
         if sys.platform == 'win32' and file == sys.stdout:
             file = sys.stderr
 
@@ -1559,7 +1559,7 @@ Webpage: https://github.com/jarun/Buku
 
     # Print prompt help
     @staticmethod
-    def print_prompt_help(file=None):
+    def print_prompt_help(file=sys.stdout):
         file.write('''
 keys:
   1-N                  browse search result indices and/or ranges
@@ -1576,7 +1576,7 @@ keys:
 ''')
 
     # Help
-    def print_help(self, file=None):
+    def print_help(self, file=sys.stdout):
         super(ExtendedArgumentParser, self).print_help(file)
         self.print_program_info(file)
 
