@@ -85,6 +85,9 @@ Update fields of the bookmarks at specified indices in DB. If no arguments are s
 .BI \-d " " \--delete " [...]"
 Delete bookmarks. Accepts space-separated list of indices (e.g. 5 6 23 4 110 45) or a single hyphenated range (e.g. 100-200). Note that range and list don't work together. Deletes search results when combined with search options, if no arguments.
 .TP
+.BI \-v " " \--version
+Show program version and exit.
+.TP
 .BI \-h " " \--help
 Show program help and exit.
 .SH EDIT OPTIONS
@@ -214,9 +217,6 @@ can range from 1 to 10.
 .TP
 .BI \--upstream
 Check the latest upstream version available. This is FYI. It is possible the latest upstream released version is still not available in your package manager as the process takes a while.
-.TP
-.BI \-v " " \--version
-Show program version and exit.
 .TP
 .BI \-z " " \--debug
 Show debug information and additional logs.

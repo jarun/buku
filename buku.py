@@ -2233,11 +2233,13 @@ def main():
                          delete all bookmarks, if no arguments
                          delete search results, when used with
                          search, if no arguments
+    -v, --version        show program version and exit
     -h, --help           show this information and exit''')
     addarg = general_grp.add_argument
     addarg('-a', '--add', nargs='+', help=HIDE)
     addarg('-u', '--update', nargs='*', help=HIDE)
     addarg('-d', '--delete', nargs='*', help=HIDE)
+    addarg('-v', '--version', action='version', version=__version__, help=HIDE)
     addarg('-h', '--help', action='store_true', help=HIDE)
 
     # ------------------
@@ -2339,7 +2341,6 @@ def main():
     --threads N          max network connections in full refresh
                          default 4, min 1, max 10
     --upstream           check latest upstream version available
-    -v, --version        show program version and exit
     -z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
@@ -2358,7 +2359,6 @@ def main():
     addarg('--tacit', action='store_true', help=HIDE)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=HIDE)
     addarg('--upstream', action='store_true', help=HIDE)
-    addarg('-v', '--version', action='version', version=__version__, help=HIDE)
     addarg('-z', '--debug', action='store_true', help=HIDE)
     # Undocumented API
     addarg('--fixtags', action='store_true', help=HIDE)

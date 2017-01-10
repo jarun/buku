@@ -147,6 +147,7 @@ GENERAL OPTIONS:
                            delete all bookmarks, if no arguments
                            delete search results, when used with
                            search, if no arguments
+      -v, --version        show program version and exit
       -h, --help           show this information and exit
 
 EDIT OPTIONS:
@@ -213,7 +214,6 @@ POWER TOYS:
       --threads N          max network connections in full refresh
                            default 4, min 1, max 10
       --upstream           check latest upstream version available
-      -v, --version        show program version and exit
       -z, --debug          show debug information and verbose logs
 
 SYMBOLS:
