@@ -139,13 +139,13 @@ GENERAL OPTIONS:
                            refresh all titles, if no arguments
                            refresh titles of bookmarks at indices,
                            if no edit options are specified
-                           update search results, when used with
+                           update search results when used with
                            search options, if no arguments
       -d, --delete [...]   delete bookmarks. Valid inputs: either
                            a hyphenated single range (100-200),
                            OR space-separated indices (100 15 200)
                            delete all bookmarks, if no arguments
-                           delete search results, when used with
+                           delete search results when used with
                            search options, if no arguments
       -v, --version        show program version and exit
       -h, --help           show this information and exit
