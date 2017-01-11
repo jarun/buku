@@ -1,3 +1,21 @@
+Buku 2.8
+2017-01-11
+
+Modifications
+- Multithreaded full DB refresh with delayed writes
+- Customize number of threads for full DB refresh (default 4)
+- Support search and update search results in a go
+- Support shortened URL expansion
+- Support multiple bookmarks with `--open`
+- Support `--nocolor` (for scripting, Windows users)
+- Support https_proxy with `--upstream` and `--shorten`
+- Remove trailing `/` from search tokens (like Google search)
+- Support `--version` to show program version
+- Fixed #109: Missing + when shortening URL
+- Performance optimizations, few module dependency removals
+
+-------------------------------------------------------------------------------
+
 Buku 2.7
 2016-11-30
 

@@ -37,7 +37,7 @@ import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
-__version__ = '2.7'
+__version__ = '2.8'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -2159,6 +2159,12 @@ def check_upstream_release():
             print('Latest upstream release is %s' % latest)
 
 
+def regexp(expr, item):
+    '''Perform a regular expression search'''
+
+    return re.search(expr, item, re.IGNORECASE) is not None
+
+
 def sigint_handler(signum, frame):
     '''Custom SIGINT handler'''
 
@@ -2171,12 +2177,6 @@ def sigint_handler(signum, frame):
     os._exit(1)
 
 signal.signal(signal.SIGINT, sigint_handler)
-
-
-def regexp(expr, item):
-    '''Perform a regular expression search'''
-
-    return re.search(expr, item, re.IGNORECASE) is not None
 
 
 # Handle piped input
@@ -2228,13 +2228,13 @@ def main():
                          refresh titles of bookmarks at indices,
                          if no edit options are specified
                          update search results, when used with
-                         search, if no arguments
+                         search options, if no arguments
     -d, --delete [...]   delete bookmarks. Valid inputs: either
                          a hyphenated single range (100-200),
                          OR space-separated indices (100 15 200)
                          delete all bookmarks, if no arguments
                          delete search results, when used with
-                         search, if no arguments
+                         search options, if no arguments
     -v, --version        show program version and exit
     -h, --help           show this information and exit''')
     addarg = general_grp.add_argument
