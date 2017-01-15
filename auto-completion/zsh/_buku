@@ -15,7 +15,7 @@ args=(
     '(--deep)--deep[search matching substrings]'
     '(-e --export)'{-e,--export}'[export bookmarks]:html output file'
     '(--expand)--expand[expand a tny.im shortened URL]:index/shorturl'
-    '(-f --format)'{-f,--format}'[limit fields in print and Json output:value'
+    '(-f --format)'{-f,--format}'[limit fields in print and Json output]:value'
     '(-h --help)'{-h,--help}'[show help]'
     '(-i --import)'{-i,--import}'[import bookmarks]:html imput file'
     '(--immutable)--immutable[disable title update from web]:value'
