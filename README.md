@@ -117,6 +117,7 @@ Please substitute `$version` with the appropriate package version.
 - [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1)
 - [Ubuntu](http://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
 - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
+- [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`$ sudo xbps-install -S buku`)
 
 ## Shell completion
 
@@ -341,6 +342,7 @@ NOTE: This flexibility is not exposed in the program.
 - [One Thing Well](http://onethingwell.org/post/144952807044/buku)
 - [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
 - [Make Tech Easier](https://www.maketecheasier.com/manage-browser-bookmarks-ubuntu-command-line/)
+- [LinuxUser Magazine 01/2017 Issue](http://www.linux-community.de/LU/2017/01/Das-Beste-aus-zwei-Welten)
 
 ## Examples
 
