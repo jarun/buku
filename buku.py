@@ -458,11 +458,11 @@ class BukuDb:
         '''
 
         self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
-        results = self.cur.fetchall()
-        if len(results) == 0:
-            return None
-        else:
-            return results[0]
+        resultset = self.cur.fetchall()
+        if resultset:
+            return resultset[0]
+
+        return None
 
     def get_rec_id(self, url):
         '''Check if URL already exists in DB
@@ -473,10 +473,10 @@ class BukuDb:
 
         self.cur.execute('SELECT id FROM bookmarks WHERE URL = ?', (url,))
         resultset = self.cur.fetchall()
-        if len(resultset) == 0:
-            return -1
+        if resultset:
+            return resultset[0][0]
 
-        return resultset[0][0]
+        return -1
 
     def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0,
                 delay_commit=False):
@@ -815,7 +815,7 @@ class BukuDb:
 
             while True:
                 cond.acquire()
-                if len(resultset) > 0:
+                if resultset:
                     row = resultset.pop()
                 else:
                     cond.release()
@@ -972,7 +972,7 @@ class BukuDb:
         self.cur.execute('SELECT MAX(id) from bookmarks')
         results = self.cur.fetchall()
         # Return if the last index left in DB was just deleted
-        if len(results) == 1 and results[0][0] is None:
+        if results[0][0] is None:
             return
 
         query1 = 'SELECT id, URL, metadata, tags, \
@@ -991,7 +991,8 @@ class BukuDb:
                                      (index, row[1], row[2], row[3], row[4],))
                     if not delay_commit:
                         self.conn.commit()
-                    print('Index %d moved to %d' % (row[0], index))
+                    if self.chatty:
+                        print('Index %d moved to %d' % (row[0], index))
 
     def delete_rec(self, index, low=0, high=0, is_range=False,
                    delay_commit=False):
@@ -1104,7 +1105,7 @@ class BukuDb:
                 query = 'SELECT * FROM bookmarks WHERE id = ?'
                 self.cur.execute(query, (index,))
                 results = self.cur.fetchall()
-                if len(results) == 0:
+                if not results:
                     logerr('No matching index %d', index)
                     return
             except IndexError:
@@ -1146,8 +1147,8 @@ class BukuDb:
     def get_all_tags(self):
         '''Get list of tags in DB
 
-        :return: list of unique tags sorted alphabetically
-        :return: a dictionary of {tag:usage_count}
+        :return: tuple (list of unique tags sorted alphabetically,
+                        a dictionary of {tag:usage_count})
         '''
 
         tags = []
@@ -1163,8 +1164,8 @@ class BukuDb:
                 else:
                     dic[tag] += row[1]
 
-        if len(tags) == 0:
-            return tags
+        if not tags:
+            return tags, dic
 
         if tags[0] == '':
             unique_tags = sorted(tags[1:])
@@ -1198,15 +1199,14 @@ class BukuDb:
         query = 'SELECT id, tags FROM bookmarks WHERE tags LIKE ?'
         self.cur.execute(query, ('%' + orig + '%',))
         results = self.cur.fetchall()
+        if results:
+            query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
+            for row in results:
+                tags = row[1].replace(orig, newtags)
+                tags = parse_tags([tags])
+                self.cur.execute(query, (tags, row[0],))
+                print('Index %d updated' % row[0])
 
-        query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
-        for row in results:
-            tags = row[1].replace(orig, newtags)
-            tags = parse_tags([tags])
-            self.cur.execute(query, (tags, row[0],))
-            print('Index %d updated' % row[0])
-
-        if len(results):
             self.conn.commit()
 
         return True
@@ -1263,30 +1263,28 @@ class BukuDb:
         if taglist is not None:
             tagstr = parse_tags(taglist)
 
-            if len(tagstr) == 0 or tagstr == DELIM:
+            if not tagstr or tagstr == DELIM:
                 logerr('Invalid tag')
                 return False
 
-            if len(tagstr) > 0:
-                tags = tagstr.split(DELIM)
-                query = '%s WHERE' % query
-                for tag in tags:
-                    if tag != '':
-                        is_tag_valid = True
-                        query += " tags LIKE '%' || ? || '%' OR"
-                        tag = '%s%s%s' % (DELIM, tag, DELIM)
-                        arguments += (tag,)
+            tags = tagstr.split(DELIM)
+            query = '%s WHERE' % query
+            for tag in tags:
+                if tag != '':
+                    is_tag_valid = True
+                    query += " tags LIKE '%' || ? || '%' OR"
+                    tag = '%s%s%s' % (DELIM, tag, DELIM)
+                    arguments += (tag,)
 
-                if is_tag_valid:
-                    query = query[:-3]
-                else:
-                    query = query[:-6]
+            if is_tag_valid:
+                query = query[:-3]
+            else:
+                query = query[:-6]
 
         logdbg('(%s), %s', query, arguments)
         self.cur.execute(query, arguments)
         resultset = self.cur.fetchall()
-
-        if len(resultset) == 0:
+        if not resultset:
             print('No bookmarks exported')
             return False
 
@@ -1424,10 +1422,10 @@ Buku bookmarks</H3>
             return False
 
         resultset = indb_cur.fetchall()
-        for row in resultset:
-            self.add_rec(row[1], row[2], row[3], row[4], row[5], True)
+        if resultset:
+            for row in resultset:
+                self.add_rec(row[1], row[2], row[3], row[4], row[5], True)
 
-        if len(resultset):
             self.conn.commit()
 
         try:
@@ -1455,10 +1453,10 @@ Buku bookmarks</H3>
             self.cur.execute('SELECT url FROM bookmarks WHERE id = ?',
                              (index,))
             results = self.cur.fetchall()
-            if len(results):
-                url = results[0][0]
-            else:
+            if not results:
                 return None
+
+            url = results[0][0]
 
         proxies = {
             'https': os.environ.get('https_proxy'),
@@ -1749,7 +1747,7 @@ def network_handler(url):
         return (page_title.strip().replace('\n', ''), 0, 0)
 
 
-def parse_tags(keywords=None):
+def parse_tags(keywords=[]):
     '''Format and get tag string from tokens
 
     :param keywords: list of tags
@@ -1760,6 +1758,9 @@ def parse_tags(keywords=None):
 
     if keywords is None:
         return None
+
+    if not keywords:
+        return DELIM
 
     tags = DELIM
     orig_tags = []
@@ -1816,7 +1817,7 @@ def taglist_subprompt(obj, msg, noninteractive=False):
 
     while True:
         if new_results:
-            if len(unique_tags) == 0:
+            if not unique_tags:
                 count = 0
                 print('0 tags')
             else:
@@ -2197,7 +2198,7 @@ def main():
         pass
 
     # If piped input, set argument vector
-    if len(pipeargs) > 0:
+    if pipeargs:
         sys.argv = pipeargs
 
     # Setup custom argument parser
@@ -2365,7 +2366,7 @@ POSITIONAL ARGUMENTS:
     addarg('--fixtags', action='store_true', help=HIDE)
 
     # Show help and exit if no arguments
-    if len(sys.argv) < 2:
+    if len(sys.argv) == 1:
         argparser.print_help(sys.stdout)
         sys.exit(1)
 
@@ -2404,21 +2405,21 @@ POSITIONAL ARGUMENTS:
 
     # Set up tags
     if args.tag is not None:
-        if len(args.tag):
+        if args.tag:
             tags_in = args.tag
         else:
             tags_in = [DELIM, ]
 
     # Set up title
     if args.title is not None:
-        if len(args.title):
+        if args.title:
             title_in = ' '.join(args.title)
         else:
             title_in = ''
 
     # Set up comment
     if args.comment is not None:
-        if len(args.comment) > 0:
+        if args.comment:
             desc_in = ' '.join(args.comment)
         else:
             desc_in = ''
@@ -2433,14 +2434,13 @@ POSITIONAL ARGUMENTS:
         tags = DELIM
         keywords = args.add
         if tags_in is not None:
-            if tags_in[0] == '+' and len(tags_in) == 1:
-                pass
-            elif tags_in[0] == '+':
-                # The case: buku -a url tag1, tag2 --tag + tag3, tag4
-                tags_in = tags_in[1:]
-                # In case of add, args.add may have URL followed by tags
-                # Add delimiter as url+tags may not end with one
-                keywords = args.add + [DELIM] + tags_in
+            if tags_in[0] == '+':
+                if len(tags_in) > 1:
+                    # The case: buku -a url tag1, tag2 --tag + tag3, tag4
+                    tags_in = tags_in[1:]
+                    # In case of add, args.add may have URL followed by tags
+                    # Add delimiter as url+tags may not end with one
+                    keywords = args.add + [DELIM] + tags_in
             else:
                 keywords = args.add + [DELIM] + tags_in
 
@@ -2482,10 +2482,10 @@ POSITIONAL ARGUMENTS:
         # In case of search and delete/update,
         # prompt should be non-interactive
         # delete gets priority over update
-        if args.delete is not None and len(args.delete) == 0:
+        if args.delete is not None and not args.delete:
             oneshot = True
             to_delete = True
-        elif args.update is not None and len(args.update) == 0:
+        elif args.update is not None and not args.update:
             oneshot = True
             update_search_results = True
 
@@ -2507,7 +2507,7 @@ POSITIONAL ARGUMENTS:
             url_in = ''
 
         # Parse tags into a comma-separated string
-        if tags_in and len(tags_in):
+        if tags_in:
             if tags_in[0] == '+':
                 tags = '+%s' % parse_tags(tags_in[1:])
             elif tags_in[0] == '-':
@@ -2517,13 +2517,14 @@ POSITIONAL ARGUMENTS:
         else:
             tags = None
 
-        if len(args.update) == 0:
+        if not args.update:
             # Update all records only if search was not opted
             if not search_opted:
                 bdb.update_rec(0, url_in, title_in, tags, desc_in,
                                args.immutable, args.threads)
             elif update_search_results and search_results is not None:
-                print("Updated results:\n")
+                if not args.tacit:
+                    print("Updated results:\n")
 
                 pos = len(search_results) - 1
                 while pos >= 0:
@@ -2565,7 +2566,7 @@ POSITIONAL ARGUMENTS:
 
     # Delete record
     if args.delete is not None:
-        if len(args.delete) == 0:
+        if not args.delete:
             # Attempt delete-all only if search was not opted
             if not search_opted:
                 bdb.cleardb()
@@ -2598,7 +2599,7 @@ POSITIONAL ARGUMENTS:
 
     # Print record
     if args.print is not None:
-        if len(args.print) == 0:
+        if not args.print:
             bdb.print_rec(0)
         else:
             for idx in args.print:
@@ -2627,7 +2628,7 @@ POSITIONAL ARGUMENTS:
     if args.export is not None:
         if args.tag is None:
             bdb.exportdb(args.export[0], args.markdown)
-        elif len(args.tag) == 0:
+        elif not args.tag:
             logerr('Missing tag')
         else:
             bdb.exportdb(args.export[0], args.markdown, args.tag)
@@ -2642,7 +2643,7 @@ POSITIONAL ARGUMENTS:
 
     # Open URL in browser
     if args.open is not None:
-        if len(args.open) == 0:
+        if not args.open:
             bdb.browse_by_index(0)
         else:
             for idx in args.open:

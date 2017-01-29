@@ -11,9 +11,12 @@ class TestHelpers(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_parse_tags(self):
-        # call without arguments
-        parsed = parse_tags()
+        # call with None
+        parsed = parse_tags(None)
         self.assertIsNone(parsed)
+        # call with empty list
+        parsed = parse_tags([])
+        self.assertEqual(parsed, ",")
         # empty tags
         parsed = parse_tags([",,,,,"])
         self.assertEqual(parsed, ",")
