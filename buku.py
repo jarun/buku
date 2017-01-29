@@ -457,7 +457,8 @@ class BukuDb:
         :return: bookmark data as a tuple, or None, if index is not found
         '''
 
-        self.cur.execute('SELECT * FROM bookmarks WHERE id = ?', (index,))
+        self.cur.execute('SELECT * FROM bookmarks WHERE id = ? LIMIT 1',
+                         (index,))
         resultset = self.cur.fetchall()
         if resultset:
             return resultset[0]
@@ -471,7 +472,8 @@ class BukuDb:
         :return: DB index if URL found, else -1
         '''
 
-        self.cur.execute('SELECT id FROM bookmarks WHERE URL = ?', (url,))
+        self.cur.execute('SELECT id FROM bookmarks WHERE URL = ? LIMIT 1',
+                         (url,))
         resultset = self.cur.fetchall()
         if resultset:
             return resultset[0][0]
@@ -562,8 +564,8 @@ class BukuDb:
 
             self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
         else:
-            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ?',
-                             (index,))
+            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ? \
+                             LIMIT 1', (index,))
 
         resultset = self.cur.fetchall()
         query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
@@ -605,7 +607,7 @@ class BukuDb:
                 if self.chatty:
                     print('%d records updated' % count)
         else:
-            query = 'SELECT id, tags FROM bookmarks WHERE id = ?'
+            query = 'SELECT id, tags FROM bookmarks WHERE id = ? LIMIT 1'
             self.cur.execute(query, (index,))
             resultset = self.cur.fetchall()
 
@@ -769,7 +771,7 @@ class BukuDb:
                              flags & 1 != 1 ORDER BY id ASC')
         else:
             self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ? AND \
-                             flags & 1 != 1', (index,))
+                             flags & 1 != 1 LIMIT 1', (index,))
 
         resultset = self.cur.fetchall()
         recs = len(resultset)
@@ -976,7 +978,7 @@ class BukuDb:
             return
 
         query1 = 'SELECT id, URL, metadata, tags, \
-                 desc FROM bookmarks WHERE id = ?'
+                 desc FROM bookmarks WHERE id = ? LIMIT 1'
         query2 = 'DELETE FROM bookmarks WHERE id = ?'
         query3 = 'INSERT INTO bookmarks(id, URL, metadata, \
                  tags, desc) VALUES (?, ?, ?, ?, ?)'
@@ -1102,7 +1104,7 @@ class BukuDb:
 
         if index != 0:  # Show record at index
             try:
-                query = 'SELECT * FROM bookmarks WHERE id = ?'
+                query = 'SELECT * FROM bookmarks WHERE id = ? LIMIT 1'
                 self.cur.execute(query, (index,))
                 results = self.cur.fetchall()
                 if not results:
@@ -1231,7 +1233,7 @@ class BukuDb:
             index = result[0]
             logdbg('Opening random index %d', index)
 
-        query = 'SELECT URL FROM bookmarks WHERE id = ?'
+        query = 'SELECT URL FROM bookmarks WHERE id = ? LIMIT 1'
         try:
             for row in self.cur.execute(query, (index,)):
                 open_in_browser(row[0])
@@ -1450,7 +1452,7 @@ Buku bookmarks</H3>
             return None
 
         if index:
-            self.cur.execute('SELECT url FROM bookmarks WHERE id = ?',
+            self.cur.execute('SELECT url FROM bookmarks WHERE id = ? LIMIT 1',
                              (index,))
             results = self.cur.fetchall()
             if not results:
