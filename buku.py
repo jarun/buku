@@ -887,6 +887,9 @@ class BukuDb:
         :return: search results, or None, if no matches
         '''
 
+        if not keywords:
+            return None
+
         qry = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE'
         # Deep query string
         q1 = "(tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%') OR \
@@ -941,11 +944,7 @@ class BukuDb:
             logerr(e)
             return None
 
-        results = self.cur.fetchall()
-        if len(results) == 0:
-            return None
-
-        return results
+        return self.cur.fetchall()
 
     def search_by_tag(self, tag):
         '''Search and list bookmarks with a tag
@@ -960,11 +959,7 @@ class BukuDb:
         logdbg('query: "%s", args: %s', query, tag)
 
         self.cur.execute(query, (tag,))
-        results = self.cur.fetchall()
-        if len(results) == 0:
-            return None
-
-        return results
+        return self.cur.fetchall()
 
     def compactdb(self, index, delay_commit=False):
         '''When an entry at index is deleted, move the
@@ -2207,12 +2202,17 @@ def main():
 
     # Setup custom argument parser
     argparser = ExtendedArgumentParser(
-        description='Powerful command-line bookmark manager. Your mini web!',
+        description='''Powerful command-line bookmark manager. Your mini web!
+
+POSITIONAL ARGUMENTS:
+      KEYWORD              search keywords''',
         formatter_class=argparse.RawTextHelpFormatter,
         usage='''buku [OPTIONS] [KEYWORD [KEYWORD ...]]''',
         add_help=False
     )
     HIDE = argparse.SUPPRESS
+
+    argparser.add_argument('keywords', nargs='*', metavar='KEYWORD', help=HIDE)
 
     # ---------------------
     # GENERAL OPTIONS GROUP
@@ -2277,23 +2277,22 @@ def main():
 
     search_grp = argparser.add_argument_group(
         title='SEARCH OPTIONS',
-        description='''    -s, --sany keyword [...]
-                         find records with ANY search keyword
-    -S, --sall keyword [...]
-                         find records with ALL search keywords
+        description='''    -s, --sany           find records with ANY search keyword
+                         this is the default search option
+    -S, --sall           find records with ALL search keywords
                          special keywords -
                          "blank": entries with empty title/tag
                          "immutable": entries with locked title
     --deep               match substrings ('pen' matches 'opens')
-    --sreg expression    run a regex search
-    --stag [...]         search bookmarks by a tag
-                         list all tags, if no arguments''')
+    --sreg               run a regex search
+    --stag               search bookmarks by a tag
+                         list all tags, if no search keywords''')
     addarg = search_grp.add_argument
-    addarg('-s', '--sany', nargs='+', help=HIDE)
-    addarg('-S', '--sall', nargs='+', help=HIDE)
-    addarg('--sreg', nargs=1, help=HIDE)
+    addarg('-s', '--sany', action='store_true', help=HIDE)
+    addarg('-S', '--sall', action='store_true', help=HIDE)
+    addarg('--sreg', action='store_true', help=HIDE)
     addarg('--deep', action='store_true', help=HIDE)
-    addarg('--stag', nargs='*', help=HIDE)
+    addarg('--stag', action='store_true', help=HIDE)
 
     # ------------------------
     # ENCRYPTION OPTIONS GROUP
@@ -2326,7 +2325,7 @@ def main():
                          accepts indices and ranges
                          show all bookmarks, if no arguments
     -f, --format N       limit fields in -p or Json search output
-                         1: URL, 2: URL and tag, 3: title
+                         N=1: URL, N=2: URL and tag, N=3: title
     -r, --replace oldtag [newtag ...]
                          replace oldtag with newtag everywhere
                          delete oldtag, if no newtag
@@ -2341,7 +2340,7 @@ def main():
     --expand N/URL       expand a tny.im shortened url
     --tacit              reduce verbosity
     --threads N          max network connections in full refresh
-                         default 4, min 1, max 10
+                         default N=4, min N=1, max N=10
     --upstream           check latest upstream version available
     -z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
@@ -2455,22 +2454,24 @@ def main():
     search_opted = True
     update_search_results = False
 
-    if args.sany is not None:
+    if args.sany:
         # Search URLs, titles, tags for any keyword
-        search_results = bdb.searchdb(args.sany, False, args.deep)
-    elif args.sall is not None:
+        search_results = bdb.searchdb(args.keywords, False, args.deep)
+    elif args.sall:
         # Search URLs, titles, tags with all keywords
-        search_results = bdb.searchdb(args.sall, True, args.deep)
-    elif args.sreg is not None:
+        search_results = bdb.searchdb(args.keywords, True, args.deep)
+    elif args.sreg:
         # Run a regular expression search
-        search_results = bdb.searchdb(args.sreg, regex=True)
-    elif args.stag is not None:
+        search_results = bdb.searchdb(args.keywords, regex=True)
+    elif args.stag:
         # Search bookmarks by tag
-        if len(args.stag):
-            search_results = bdb.search_by_tag(' '.join(args.stag))
+        if args.keywords:
+            search_results = bdb.search_by_tag(' '.join(args.keywords))
         else:
             # Use sub prompt to list all tags
             prompt(bdb, None, args.noprompt, subprompt=True)
+    elif args.keywords:
+        search_results = bdb.searchdb(args.keywords, False, args.deep)
     else:
         search_opted = False
 

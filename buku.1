@@ -60,7 +60,7 @@ Bookmarks with immutable titles are listed with bold '(L)' after the URL.
 \fBSearch\fR works in mysterious ways:
   - Case-insensitive.
   - Matches words in URL, title and tags.
-  - --sany : match any of the keywords in URL, title or tags.
+  - --sany : match any of the keywords in URL, title or tags. Default search option.
   - --sall : match all the keywords in URL, title or tags.
   - --deep : match \fBsubstrings\fR (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
@@ -110,6 +110,8 @@ Set the title of a bookmark immutable during updates. Works with --add, --update
 .TP
 .BI \-s " " \--sany " keyword [...]"
 Search bookmarks with ANY of the keyword(s) in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential result index is not the DB index. The DB index is shown in bold within '[]' after the URL.
+.br
+This is the default search option for positional arguments if no other search option is specified.
 .TP
 .BI \-S " " \--sall " keyword [...]"
 Search bookmarks with ALL keywords in URL, title or tags and show the results. Behaviour same as --sany.

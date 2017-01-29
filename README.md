@@ -132,6 +132,9 @@ usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 
 Powerful command-line bookmark manager. Your mini web!
 
+POSITIONAL ARGUMENTS:
+      KEYWORD              search keywords
+
 GENERAL OPTIONS:
       -a, --add URL [tag, ...]
                            bookmark URL with comma-separated tags
@@ -168,17 +171,16 @@ EDIT OPTIONS:
                            N=0: mutable (default), N=1: immutable
 
 SEARCH OPTIONS:
-      -s, --sany keyword [...]
-                           find records with ANY search keyword
-      -S, --sall keyword [...]
-                           find records with ALL search keywords
+      -s, --sany           find records with ANY search keyword
+                           this is the default search option
+      -S, --sall           find records with ALL search keywords
                            special keywords -
                            "blank": entries with empty title/tag
                            "immutable": entries with locked title
       --deep               match substrings ('pen' matches 'opens')
-      --sreg expression    run a regex search
-      --stag [...]         search bookmarks by a tag
-                           list all tags, if no arguments
+      --sreg               run a regex search
+      --stag               search bookmarks by a tag
+                           list all tags, if no search keywords
 
 ENCRYPTION OPTIONS:
       -l, --lock [N]       encrypt DB file with N (> 0, default 8)
@@ -198,7 +200,7 @@ POWER TOYS:
                            accepts indices and ranges
                            show all bookmarks, if no arguments
       -f, --format N       limit fields in -p or Json search output
-                           1: URL, 2: URL and tag, 3: title
+                           N=1: URL, N=2: URL and tag, N=3: title
       -r, --replace oldtag [newtag ...]
                            replace oldtag with newtag everywhere
                            delete oldtag, if no newtag
@@ -213,7 +215,7 @@ POWER TOYS:
       --expand N/URL       expand a tny.im shortened url
       --tacit              reduce verbosity
       --threads N          max network connections in full refresh
-                           default 4, min 1, max 10
+                           default N=4, min N=1, max N=10
       --upstream           check latest upstream version available
       -z, --debug          show debug information and verbose logs
 
@@ -247,7 +249,7 @@ SYMBOLS:
 - **Search** works in mysterious ways:
   - Case-insensitive.
   - Matches words in URL, title and tags.
-  - --sany : match any of the keywords in URL, title or tags.
+  - --sany : match any of the keywords in URL, title or tags. Default search option.
   - --sall : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
