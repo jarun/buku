@@ -568,15 +568,17 @@ class BukuDb:
                              LIMIT 1', (index,))
 
         resultset = self.cur.fetchall()
-        query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
-        for row in resultset:
-            tags = '%s%s' % (row[1], tags_in[1:])
-            tags = parse_tags([tags])
-            self.cur.execute(query, (tags, row[0],))
-            if self.chatty:
-                self.print_rec(row[0])
+        if resultset:
+            query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
+            for row in resultset:
+                tags = '%s%s' % (row[1], tags_in[1:])
+                tags = parse_tags([tags])
+                self.cur.execute(query, (tags, row[0],))
+                if self.chatty:
+                    self.print_rec(row[0])
 
-        self.conn.commit()
+            self.conn.commit()
+
         return True
 
     def delete_tag_at_index(self, index, tags_in):
@@ -606,11 +608,14 @@ class BukuDb:
                 self.conn.commit()
                 if self.chatty:
                     print('%d records updated' % count)
-        else:
-            query = 'SELECT id, tags FROM bookmarks WHERE id = ? LIMIT 1'
-            self.cur.execute(query, (index,))
-            resultset = self.cur.fetchall()
 
+            return True
+
+        # Process a single index
+        query = 'SELECT id, tags FROM bookmarks WHERE id = ? LIMIT 1'
+        self.cur.execute(query, (index,))
+        resultset = self.cur.fetchall()
+        if resultset:
             query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
             for row in resultset:
                 tags = row[1]
