@@ -61,6 +61,7 @@ _buku () {
         --sreg
         --threads
         --url
+        -w --write
     )
 
     # Do not complete non option names
