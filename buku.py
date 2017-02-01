@@ -36,6 +36,8 @@ import threading
 import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
+import tempfile
+import subprocess
 
 __version__ = '2.8'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -2182,6 +2184,80 @@ def sigint_handler(signum, frame):
 signal.signal(signal.SIGINT, sigint_handler)
 
 
+# ---------------------
+# Editor mode functions
+# ---------------------
+
+def open_editor(url, title_in, tags_in, desc):
+    temp_file_content = to_temp_file_content(url, title_in, tags_in, desc)
+
+    editor = os.environ.get('EDITOR', None)
+    if editor is None:
+        print("$EDITOR not set")
+        return None
+
+    with tempfile.NamedTemporaryFile(mode="w+", suffix='.tmp', encoding="utf-8") as temp:
+        temp.write(temp_file_content)
+        temp.flush()
+        subprocess.call([editor, temp.name])
+        with open(temp.name) as f: # for some reason sometimes this don't get saved properly
+            content = f.read()
+
+    parsed_content = parse_temp_file_content(content)
+    return parsed_content
+
+def to_temp_file_content(url, title_in, tags_in, desc):
+    # is there a better way for this ?
+    strings = []
+    if url is not None:
+        strings.append(url)
+    strings.extend([
+        '# to quit without saving, delete the line above',
+        '# all lines beginning with "#" will be ignored.',
+        '# the first line above is the url'
+    ])
+    title_in = title_in or ''
+    strings.append(title_in)
+    strings.extend([
+        '# insert title above this line, in a single line'
+    ])
+    strings.append(tags_in)
+    strings.extend([
+        '# insert the tags above in a single line, comma separated'
+        '# insert all the comments/descriptions below',
+    ])
+    if desc is not None:
+        strings.append(desc)
+    strings.append("# ----- #")
+    return "\n".join(strings)
+
+def parse_temp_file_content(content):
+    # refactor this to return error code instead ?
+    # this should work for now, refactor if necessary
+    content = content.split('\n')
+    # remove all comments
+    content = [ c for c in content if len(c) == 0 or c[0] != '#' ]
+    if len(content) == 0 or content[0].strip() == '':
+        print("Operation aborted")
+        return None
+
+    url = content[0]
+    title = None
+    if len(content) > 1:
+        title = content[1]
+
+    tags = ","
+    if len(content) > 2:
+        tags = content[2]
+
+    comments = []
+    if len(content) > 3:
+        comments = content[3:]
+    comments = "\n".join(comments)
+
+    return url, title, tags, comments
+
+
 # Handle piped input
 def piped_input(argv, pipeargs=None):
     if not sys.stdin.isatty():
@@ -2269,6 +2345,7 @@ POSITIONAL ARGUMENTS:
                          -a: do not set title, -u: clear title
     -c, --comment [...]  description of the bookmark, works with
                          -a, -u; clears comment, if no arguments
+    --editor             open editor to edit instead of args.
     --immutable N        disable title fetch from web on update
                          works with -a, -u
                          N=0: mutable (default), N=1: immutable''')
@@ -2277,6 +2354,7 @@ POSITIONAL ARGUMENTS:
     addarg('--tag', nargs='*', help=HIDE)
     addarg('-t', '--title', nargs='*', help=HIDE)
     addarg('-c', '--comment', nargs='*', help=HIDE)
+    addarg('--editor', action="store_true", default=False, help=HIDE)
     addarg('--immutable', type=int, default=-1, choices={0, 1}, help=HIDE)
 
     # --------------------
@@ -2454,7 +2532,14 @@ POSITIONAL ARGUMENTS:
         if len(keywords) > 1:
             tags = parse_tags(keywords[1:])
 
-        bdb.add_rec(args.add[0], title_in, tags, desc_in, args.immutable)
+        url = args.add[0]
+        if args.editor:
+            result = open_editor(url, title_in, tags, desc_in)
+            if result is None:
+                bdb.close_quit(1)
+            url, title_in, tags, desc_in = result
+
+        bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
     # Search record
     search_results = None
@@ -2545,31 +2630,52 @@ POSITIONAL ARGUMENTS:
 
                     pos -= 1
         else:
-            for idx in args.update:
-                if is_int(idx):
-                    bdb.update_rec(int(idx), url_in, title_in, tags, desc_in,
-                                   args.immutable, args.threads)
-                elif '-' in idx and is_int(idx.split('-')[0]) \
-                        and is_int(idx.split('-')[1]):
-                    lower = int(idx.split('-')[0])
-                    upper = int(idx.split('-')[1])
-                    if lower > upper:
-                        lower, upper = upper, lower
+            if args.editor: # check for editor mode
+                # currently allow only editing of one url
+                if len(args.update) != 1 or not is_int(args.update[0]):
+                    print("--editor cannot be used to modify multiple bookmarks")
+                    bdb.close_quit(1)
 
-                    # Update only once if range starts from 0 (all)
-                    if lower == 0:
-                        bdb.update_rec(0, url_in, title_in, tags, desc_in,
+                idx = int(args.update[0])
+                rec = bdb.get_rec_by_id(idx)
+                if rec is None:
+                    logerr("Bookmark at index %d not found", idx)
+                    bdb.close_quit(1)
+                else:
+                    result = open_editor(rec[1], rec[2], rec[3], rec[4])
+                    if result is None:
+                        bdb.close_quit(1)
+
+                    url, title, tags, desc = result
+                    # no need to check since update_rec is checking
+                    bdb.update_rec(idx, url, title, tags, desc)
+
+            else:
+                for idx in args.update:
+                    if is_int(idx):
+                        bdb.update_rec(int(idx), url_in, title_in, tags, desc_in,
                                        args.immutable, args.threads)
-                    else:
-                        for _id in range(lower, upper + 1):
-                            bdb.update_rec(_id, url_in, title_in, tags,
-                                           desc_in, args.immutable,
-                                           args.threads)
-                            if interrupted:
-                                break
+                    elif '-' in idx and is_int(idx.split('-')[0]) \
+                            and is_int(idx.split('-')[1]):
+                        lower = int(idx.split('-')[0])
+                        upper = int(idx.split('-')[1])
+                        if lower > upper:
+                            lower, upper = upper, lower
 
-                if interrupted:
-                    break
+                        # Update only once if range starts from 0 (all)
+                        if lower == 0:
+                            bdb.update_rec(0, url_in, title_in, tags, desc_in,
+                                           args.immutable, args.threads)
+                        else:
+                            for _id in range(lower, upper + 1):
+                                bdb.update_rec(_id, url_in, title_in, tags,
+                                               desc_in, args.immutable,
+                                               args.threads)
+                                if interrupted:
+                                    break
+
+                    if interrupted:
+                        break
 
     # Delete record
     if args.delete is not None:

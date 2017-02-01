@@ -16,6 +16,7 @@ _buku () {
         -d --delete
         --deep
         -e --export
+        --editor
         --expand
         -f --format
         -h --help
