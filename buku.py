@@ -2252,7 +2252,7 @@ def parse_temp_file_content(content):
 
     comments = []
     if len(content) > 3:
-        comments = content[3:]
+        comments = [ c for c in content[3:] if c.strip() != '' ]
     comments = "\n".join(comments)
 
     return url, title, tags, comments
