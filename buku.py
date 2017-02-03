@@ -2188,13 +2188,19 @@ signal.signal(signal.SIGINT, sigint_handler)
 # Editor mode functions
 # ---------------------
 
-def open_editor(url, title_in, tags_in, desc):
-    temp_file_content = to_temp_file_content(url, title_in, tags_in, desc)
+def open_editor(editors, url, title_in, tags_in, desc):
+    editor = None
+    if editors is not None and len(editors) > 0:
+        editor = editors[0]
+    else:
+        editor = os.environ.get('EDITOR', None)
 
-    editor = os.environ.get('EDITOR', None)
     if editor is None:
-        print("$EDITOR not set")
+        logerr("editor args not provided and $EDITOR env var is not set.")
+        logerr("Operation aborted.")
         return None
+
+    temp_file_content = to_temp_file_content(url, title_in, tags_in, desc)
 
     with tempfile.NamedTemporaryFile(mode="w+", suffix='.tmp', encoding="utf-8") as temp:
         temp.write(temp_file_content)
@@ -2207,28 +2213,36 @@ def open_editor(url, title_in, tags_in, desc):
     return parsed_content
 
 def to_temp_file_content(url, title_in, tags_in, desc):
-    # is there a better way for this ?
+    # URL
     strings = []
     if url is not None:
         strings.append(url)
     strings.extend([
-        '# to quit without saving, delete the line above',
-        '# all lines beginning with "#" will be ignored.',
-        '# the first line above is the url'
+        '# insert LINK **above** this line. (single line)',
     ])
-    title_in = title_in or ''
+
+    # TITLE
+    if title_in == '':
+        title_in = '-'
+    elif title_in is None:
+        title_in = ''
     strings.append(title_in)
     strings.extend([
-        '# insert title above this line, in a single line'
+        '# insert TITLE **above** this line, (single line) (empty line to auto fetch, "-" for empty title)'
     ])
+
+    # TAGS
     strings.append(tags_in)
     strings.extend([
-        '# insert the tags above in a single line, comma separated'
-        '# insert all the comments/descriptions below',
+        '# insert the TAGS **above** this line, comma separated. (single line)'
     ])
+
+    # DESC
     if desc is not None:
         strings.append(desc)
-    strings.append("# ----- #")
+    else:
+        strings.append('')
+    strings.append("# insert all COMMENTS **above** this line. (multiple lines)")
     return "\n".join(strings)
 
 def parse_temp_file_content(content):
@@ -2246,13 +2260,26 @@ def parse_temp_file_content(content):
     if len(content) > 1:
         title = content[1]
 
+    if title == '':
+        title = None
+    elif title == '-':
+        title = ''
+
     tags = ","
     if len(content) > 2:
         tags = content[2]
 
     comments = []
     if len(content) > 3:
-        comments = [ c for c in content[3:] if c.strip() != '' ]
+        comments = [ c for c in content[3:] ]
+        # need to remove all empty line that are at the end and not those in the middle
+        for i in range(len(comments)-1, -1, -1):
+            if comments[i].strip() != '':
+                break
+        if i == -1:
+            comments = []
+        else:
+            comments = comments[0:i+1]
     comments = "\n".join(comments)
 
     return url, title, tags, comments
@@ -2345,7 +2372,9 @@ POSITIONAL ARGUMENTS:
                          -a: do not set title, -u: clear title
     -c, --comment [...]  description of the bookmark, works with
                          -a, -u; clears comment, if no arguments
-    --editor             open editor to edit instead of args.
+    -w, --write [editor] open editor to write instead of args.
+                         works with -a -u
+                         use $EDITOR in env var if [editor] is not present.
     --immutable N        disable title fetch from web on update
                          works with -a, -u
                          N=0: mutable (default), N=1: immutable''')
@@ -2354,7 +2383,7 @@ POSITIONAL ARGUMENTS:
     addarg('--tag', nargs='*', help=HIDE)
     addarg('-t', '--title', nargs='*', help=HIDE)
     addarg('-c', '--comment', nargs='*', help=HIDE)
-    addarg('--editor', action="store_true", default=False, help=HIDE)
+    addarg('-w', '--editor', nargs='*', help=HIDE)
     addarg('--immutable', type=int, default=-1, choices={0, 1}, help=HIDE)
 
     # --------------------
@@ -2533,8 +2562,8 @@ POSITIONAL ARGUMENTS:
             tags = parse_tags(keywords[1:])
 
         url = args.add[0]
-        if args.editor:
-            result = open_editor(url, title_in, tags, desc_in)
+        if args.editor is not None:
+            result = open_editor(args.editor, url, title_in, tags, desc_in)
             if result is None:
                 bdb.close_quit(1)
             url, title_in, tags, desc_in = result
@@ -2630,7 +2659,7 @@ POSITIONAL ARGUMENTS:
 
                     pos -= 1
         else:
-            if args.editor: # check for editor mode
+            if args.editor is not None: # check for editor mode
                 # currently allow only editing of one url
                 if len(args.update) != 1 or not is_int(args.update[0]):
                     print("--editor cannot be used to modify multiple bookmarks")
@@ -2642,7 +2671,7 @@ POSITIONAL ARGUMENTS:
                     logerr("Bookmark at index %d not found", idx)
                     bdb.close_quit(1)
                 else:
-                    result = open_editor(rec[1], rec[2], rec[3], rec[4])
+                    result = open_editor(args.editor, rec[1], rec[2], rec[3], rec[4])
                     if result is None:
                         bdb.close_quit(1)
 
