@@ -2220,36 +2220,37 @@ def open_editor(editors, url, title_in, tags_in, desc):
     return parsed_content
 
 def to_temp_file_content(url, title_in, tags_in, desc):
-    # URL
     strings = []
+
+    # URL
+    strings.extend([
+        '# LINK goes below this line (single line).',
+    ])
     if url is not None:
         strings.append(url)
-    strings.extend([
-        '# insert LINK **above** this line. (single line)',
-    ])
 
     # TITLE
+    strings.extend([
+        '# TITLE goes below this line (single line). Leave empty line to auto fetch, "-" for empty title.'
+    ])
     if title_in == '':
         title_in = '-'
     elif title_in is None:
         title_in = ''
     strings.append(title_in)
-    strings.extend([
-        '# insert TITLE **above** this line, (single line) (empty line to auto fetch, "-" for empty title)'
-    ])
 
     # TAGS
-    strings.append(tags_in)
     strings.extend([
-        '# insert the TAGS **above** this line, comma separated. (single line)'
+        '# TAGS (comma-separated) go below this line (single line).'
     ])
+    strings.append(tags_in)
 
     # DESC
-    if desc is not None:
+    strings.append("# COMMENTS go below this line (multiple lines).")
+    if desc is not None and desc != '':
         strings.append(desc)
     else:
-        strings.append('')
-    strings.append("# insert all COMMENTS **above** this line. (multiple lines)")
+        strings.append('\n')
     return "\n".join(strings)
 
 def parse_temp_file_content(content):
