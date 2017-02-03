@@ -2205,8 +2205,15 @@ def open_editor(editors, url, title_in, tags_in, desc):
     with tempfile.NamedTemporaryFile(mode="w+", suffix='.tmp', encoding="utf-8") as temp:
         temp.write(temp_file_content)
         temp.flush()
-        subprocess.call([editor, temp.name])
-        with open(temp.name) as f: # for some reason sometimes this don't get saved properly
+
+        try:
+            subprocess.call([editor, temp.name])
+        except FileNotFoundError:
+            logerr("Error opening editor or tempfile")
+            return None
+
+        # for some reason the tempfile don't get updated with the new content.
+        with open(temp.name) as f:
             content = f.read()
 
     parsed_content = parse_temp_file_content(content)
