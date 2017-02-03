@@ -166,7 +166,7 @@ EDIT OPTIONS:
                            -a: do not set title, -u: clear title
       -c, --comment [...]  description of the bookmark, works with
                            -a, -u; clears comment, if no arguments
-      --editor             open editor to edit instead of args
+      --write              open editor to edit instead of args
       --immutable N        disable title fetch from web on update
                            works with -a, -u
                            N=0: mutable (default), N=1: immutable
@@ -462,7 +462,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
         $ buku --shorten 20
 30. **Open In editor**
 
-        $ buku --editor -a https://ddg.gg search engine, privacy
+        $ buku --write -a https://ddg.gg search engine, privacy
 This will open an editor with the link, and tags populated. See below for the editor mode file format.
 31. More **help**:
 
@@ -472,7 +472,7 @@ This will open an editor with the link, and tags populated. See below for the ed
 
 ## Editor mode file format.
 
-`$ buku --editor -a https://ddg.gg search engine, privacy`
+`$ buku --write -a https://ddg.gg search engine, privacy`
 ```
 https://ddg.gg
 # insert LINK **above** this line. (single line)
@@ -484,9 +484,7 @@ https://ddg.gg
 # insert all COMMENTS **above** this line. (multiple lines)
 ```
 
-All lines beginning with "#" will be striped.
-Afterwhich, line 0 will be the url, line 1 will be the title, line 2 will be tags, comma separated, and any line after will be parsed as descriptions.
-If line 0 is empty, then the current operation will be aborted.
+All lines beginning with "#" will be stripped.
 
 ## Contributions
 

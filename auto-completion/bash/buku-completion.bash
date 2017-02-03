@@ -16,7 +16,6 @@ _buku () {
         -d --delete
         --deep
         -e --export
-        --editor
         --expand
         -f --format
         -h --help
@@ -62,6 +61,7 @@ _buku () {
         --sreg
         --threads
         --url
+        -w --write
     )
 
     # Do not complete non option names

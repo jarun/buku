@@ -2188,28 +2188,28 @@ signal.signal(signal.SIGINT, sigint_handler)
 # Editor mode functions
 # ---------------------
 
-def open_editor(editors, url, title_in, tags_in, desc):
-    editor = None
-    if editors is not None and len(editors) > 0:
-        editor = editors[0]
-    else:
-        editor = os.environ.get('EDITOR', None)
+def parse_editor_args(editor_arg):
+    if editor_arg is None:
+        return None, False
 
-    if editor is None:
-        logerr("editor args not provided and $EDITOR env var is not set.")
-        logerr("Operation aborted.")
-        return None
+    if isinstance(editor_arg, list): # no arg provided
+        return os.environ.get('EDITOR', None), True
 
+    return editor_arg, True
+
+
+def open_editor(editor, url, title_in, tags_in, desc):
     temp_file_content = to_temp_file_content(url, title_in, tags_in, desc)
 
-    with tempfile.NamedTemporaryFile(mode="w+", suffix='.tmp', encoding="utf-8") as temp:
+    with tempfile.NamedTemporaryFile(mode='w+', suffix='.tmp',
+            encoding='utf-8') as temp:
         temp.write(temp_file_content)
         temp.flush()
 
         try:
             subprocess.call([editor, temp.name])
         except FileNotFoundError:
-            logerr("Error opening editor or tempfile")
+            logerr('Error opening editor or tempfile')
             return None
 
         # for some reason the tempfile don't get updated with the new content.
@@ -2218,6 +2218,7 @@ def open_editor(editors, url, title_in, tags_in, desc):
 
     parsed_content = parse_temp_file_content(content)
     return parsed_content
+
 
 def to_temp_file_content(url, title_in, tags_in, desc):
     strings = []
@@ -2233,10 +2234,10 @@ def to_temp_file_content(url, title_in, tags_in, desc):
     strings.extend([
         '# TITLE goes below this line (single line). Leave empty line to auto fetch, "-" for empty title.'
     ])
-    if title_in == '':
-        title_in = '-'
-    elif title_in is None:
+    if title_in is None:
         title_in = ''
+    elif title_in == '':
+        title_in = '-'
     strings.append(title_in)
 
     # TAGS
@@ -2246,21 +2247,19 @@ def to_temp_file_content(url, title_in, tags_in, desc):
     strings.append(tags_in)
 
     # DESC
-    strings.append("# COMMENTS go below this line (multiple lines).")
+    strings.append('# COMMENTS go below this line (multiple lines).')
     if desc is not None and desc != '':
         strings.append(desc)
     else:
         strings.append('\n')
-    return "\n".join(strings)
+    return '\n'.join(strings)
 
 def parse_temp_file_content(content):
-    # refactor this to return error code instead ?
-    # this should work for now, refactor if necessary
     content = content.split('\n')
     # remove all comments
     content = [ c for c in content if len(c) == 0 or c[0] != '#' ]
     if len(content) == 0 or content[0].strip() == '':
-        print("Operation aborted")
+        print('Operation aborted')
         return None
 
     url = content[0]
@@ -2273,14 +2272,15 @@ def parse_temp_file_content(content):
     elif title == '-':
         title = ''
 
-    tags = ","
+    tags = ','
     if len(content) > 2:
         tags = content[2]
 
     comments = []
     if len(content) > 3:
         comments = [ c for c in content[3:] ]
-        # need to remove all empty line that are at the end and not those in the middle
+        # need to remove all empty line that are at the end
+        # and not those in the middle of the text
         for i in range(len(comments)-1, -1, -1):
             if comments[i].strip() != '':
                 break
@@ -2288,7 +2288,7 @@ def parse_temp_file_content(content):
             comments = []
         else:
             comments = comments[0:i+1]
-    comments = "\n".join(comments)
+    comments = '\n'.join(comments)
 
     return url, title, tags, comments
 
@@ -2380,8 +2380,7 @@ POSITIONAL ARGUMENTS:
                          -a: do not set title, -u: clear title
     -c, --comment [...]  description of the bookmark, works with
                          -a, -u; clears comment, if no arguments
-    -w, --write [editor] open editor to write instead of args.
-                         works with -a -u
+    -w, --write [editor] open editor to write. works with -a -u
                          use $EDITOR in env var if [editor] is not present.
     --immutable N        disable title fetch from web on update
                          works with -a, -u
@@ -2391,7 +2390,7 @@ POSITIONAL ARGUMENTS:
     addarg('--tag', nargs='*', help=HIDE)
     addarg('-t', '--title', nargs='*', help=HIDE)
     addarg('-c', '--comment', nargs='*', help=HIDE)
-    addarg('-w', '--editor', nargs='*', help=HIDE)
+    addarg('-w', '--write', nargs='?', const=['no_args'], help=HIDE)
     addarg('--immutable', type=int, default=-1, choices={0, 1}, help=HIDE)
 
     # --------------------
@@ -2546,6 +2545,12 @@ POSITIONAL ARGUMENTS:
         else:
             desc_in = ''
 
+    editor, is_editor_mode = parse_editor_args(args.write)
+    if is_editor_mode and editor is None:
+        logerr('editor args not provided and $EDITOR env var is not set.')
+        logerr('Operation aborted.')
+        sys.exit(1)
+
     # Initialize the database and get handles, set verbose by default
     bdb = BukuDb(args.json, args.format, not args.tacit,
                  colorize=not args.nocolor)
@@ -2570,8 +2575,8 @@ POSITIONAL ARGUMENTS:
             tags = parse_tags(keywords[1:])
 
         url = args.add[0]
-        if args.editor is not None:
-            result = open_editor(args.editor, url, title_in, tags, desc_in)
+        if is_editor_mode:
+            result = open_editor(editor, url, title_in, tags, desc_in)
             if result is None:
                 bdb.close_quit(1)
             url, title_in, tags, desc_in = result
@@ -2667,19 +2672,19 @@ POSITIONAL ARGUMENTS:
 
                     pos -= 1
         else:
-            if args.editor is not None: # check for editor mode
+            if is_editor_mode:
                 # currently allow only editing of one url
                 if len(args.update) != 1 or not is_int(args.update[0]):
-                    print("--editor cannot be used to modify multiple bookmarks")
+                    print('--write cannot be used to modify multiple bookmarks')
                     bdb.close_quit(1)
 
                 idx = int(args.update[0])
                 rec = bdb.get_rec_by_id(idx)
                 if rec is None:
-                    logerr("Bookmark at index %d not found", idx)
+                    logerr('Bookmark at index %d not found', idx)
                     bdb.close_quit(1)
                 else:
-                    result = open_editor(args.editor, rec[1], rec[2], rec[3], rec[4])
+                    result = open_editor(editor, rec[1], rec[2], rec[3], rec[4])
                     if result is None:
                         bdb.close_quit(1)
 
