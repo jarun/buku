@@ -475,14 +475,13 @@ This will open an editor with the link, and tags populated. See below for the ed
 `$ buku --editor -a https://ddg.gg search engine, privacy`
 ```
 https://ddg.gg
-# to quit without saving, delete the line above
-# all lines beginning with "#" will be ignored.
-# the first line above is the url
+# insert LINK **above** this line. (single line)
 
-# insert title above this line, in a single line
+# insert TITLE **above** this line, (single line) (empty line to auto fetch, "-" for empty title)
 ,search engine,privacy,
-# insert the tags above in a single line, comma separated# insert all the comments/descriptions below
-# ----- #
+# insert the TAGS **above** this line, comma separated. (single line)
+
+# insert all COMMENTS **above** this line. (multiple lines)
 ```
 
 All lines beginning with "#" will be striped.
