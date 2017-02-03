@@ -2555,6 +2555,14 @@ POSITIONAL ARGUMENTS:
     bdb = BukuDb(args.json, args.format, not args.tacit,
                  colorize=not args.nocolor)
 
+    # Editor mode without add and update
+    if args.update is None and args.add is None and is_editor_mode:
+        result = open_editor(editor, "", "", "", "")
+        if result is None:
+            bdb.close_quit(1)
+        url, title_in, tags, desc_in = result
+        bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
+
     # Add record
     if args.add is not None:
         # Parse tags into a comma-separated string
