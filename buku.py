@@ -1617,8 +1617,7 @@ def is_bad_url(url):
         return True
 
     # netloc should have at least one '.'
-    index = netloc.rfind('.')
-    if index < 0:
+    if netloc.rfind('.') < 0:
         return True
 
     return False
@@ -1985,11 +1984,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
         # open all results and re-prompt with 'a'
         if nav == 'a':
             for index in range(0, count):
-                try:
-                    open_in_browser(results[index][1])
-                except Exception as e:
-                    logerr('prompt() 1: %s', e)
-
+                open_in_browser(results[index][1])
             continue
 
         # iterate over white-space separated indices
@@ -1999,10 +1994,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                 if index < 0 or index >= count:
                     print('No matching index %s' % nav)
                     continue
-                try:
-                    open_in_browser(results[index][1])
-                except Exception as e:
-                    logerr('prompt() 2: %s', e)
+                open_in_browser(results[index][1])
             elif '-' in nav and is_int(nav.split('-')[0]) \
                     and is_int(nav.split('-')[1]):
                 lower = int(nav.split('-')[0])
@@ -2010,13 +2002,10 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                 if lower > upper:
                     lower, upper = upper, lower
                 for index in range(lower-1, upper):
-                    try:
-                        if 0 <= index < count:
-                            open_in_browser(results[index][1])
-                        else:
-                            print('No matching index %d' % (index + 1))
-                    except Exception as e:
-                        logerr('prompt() 3: %s', e)
+                    if 0 <= index < count:
+                        open_in_browser(results[index][1])
+                    else:
+                        print('No matching index %d' % (index + 1))
             else:
                 print('Invalid input')
                 break
@@ -2313,7 +2302,7 @@ def edit_rec(editor, url, title_in, tags_in, desc):
             fp.flush()
             logdbg('Edited content written to %s', tmpfile)
 
-        p = subprocess.call([editor, tmpfile])
+        subprocess.call([editor, tmpfile])
 
         with open(tmpfile, 'r', encoding='utf-8') as f:
             content = f.read()
