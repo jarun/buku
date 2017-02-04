@@ -36,8 +36,6 @@ import threading
 import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
-import tempfile
-import subprocess
 
 __version__ = '2.8'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -521,14 +519,13 @@ class BukuDb:
             else:
                 logdbg('Title: [%s]', meta)
 
-        # Process tags
+        # Fix up tags, if broken
         if tags_in is None or tags_in == '':
             tags_in = DELIM
-        else:
-            if tags_in[0] != DELIM:
-                tags_in = '%s%s' % (DELIM, tags_in)
-            if tags_in[-1] != DELIM:
-                tags_in = '%s%s' % (tags_in, DELIM)
+        elif tags_in[0] != DELIM:
+            tags_in = '%s%s' % (DELIM, tags_in)
+        elif tags_in[-1] != DELIM:
+            tags_in = '%s%s' % (tags_in, DELIM)
 
         # Process description
         if desc is None:
@@ -680,6 +677,14 @@ class BukuDb:
                 ret = self.delete_tag_at_index(index, tags_in[1:])
                 tag_modified = True
             else:
+                # Fix up tags, if broken
+                if tags_in is None or tags_in == '':
+                    tags_in = DELIM
+                elif tags_in[0] != DELIM:
+                    tags_in = '%s%s' % (DELIM, tags_in)
+                elif tags_in[-1] != DELIM:
+                    tags_in = '%s%s' % (tags_in, DELIM)
+
                 query = '%s tags = ?,' % query
                 arguments += (tags_in,)
                 to_update = True
@@ -2188,52 +2193,33 @@ signal.signal(signal.SIGINT, sigint_handler)
 # Editor mode functions
 # ---------------------
 
-def parse_editor_args(editor_arg):
-    if editor_arg is None:
-        return None, False
+def get_system_editor():
+    '''Returns default system editor is $EDITOR is set'''
 
-    if isinstance(editor_arg, list): # no arg provided
-        return os.environ.get('EDITOR', None), True
-
-    return editor_arg, True
-
-
-def open_editor(editor, url, title_in, tags_in, desc):
-    temp_file_content = to_temp_file_content(url, title_in, tags_in, desc)
-
-    with tempfile.NamedTemporaryFile(mode='w+', suffix='.tmp',
-            encoding='utf-8') as temp:
-        temp.write(temp_file_content)
-        temp.flush()
-
-        try:
-            subprocess.call([editor, temp.name])
-        except FileNotFoundError:
-            logerr('Error opening editor or tempfile')
-            return None
-
-        # for some reason the tempfile don't get updated with the new content.
-        with open(temp.name) as f:
-            content = f.read()
-
-    parsed_content = parse_temp_file_content(content)
-    return parsed_content
+    return os.environ.get('EDITOR', '0')
 
 
 def to_temp_file_content(url, title_in, tags_in, desc):
+    '''Generate temporary file content string
+
+    :param url: URL to open
+    :param title_in: string title to add manually
+    :param tags_in: string of comma-separated tags to add manually
+    :param desc: string description
+    :return: lines as newline separated string
+    '''
+
     strings = []
 
     # URL
-    strings.extend([
-        '# LINK goes below this line (single line).',
-    ])
+    strings.extend(['# Lines beginning with "#" will be stripped.\n\
+# Add URL in next line (single line).', ])
     if url is not None:
         strings.append(url)
 
     # TITLE
-    strings.extend([
-        '# TITLE goes below this line (single line). Leave empty line to auto fetch, "-" for empty title.'
-    ])
+    strings.extend(['# Add TITLE in next line (single line). \
+Leave blank to web fetch, "-" for no title.'])
     if title_in is None:
         title_in = ''
     elif title_in == '':
@@ -2241,25 +2227,33 @@ def to_temp_file_content(url, title_in, tags_in, desc):
     strings.append(title_in)
 
     # TAGS
-    strings.extend([
-        '# TAGS (comma-separated) go below this line (single line).'
-    ])
-    strings.append(tags_in)
+    strings.extend(['# Add comma-separated TAGS in next line (single line).'])
+    strings.append(tags_in.strip(DELIM) if not None else '')
 
     # DESC
-    strings.append('# COMMENTS go below this line (multiple lines).')
+    strings.append('# Add COMMENTS in next line(s).')
     if desc is not None and desc != '':
         strings.append(desc)
     else:
         strings.append('\n')
     return '\n'.join(strings)
 
+
 def parse_temp_file_content(content):
+    '''Parse and return temporary file content
+
+    :param content: string of content
+    :return: tuple
+             url: URL to open
+             title: string title to add manually
+             tags: string of comma-separated tags to add manually
+             comments: string description
+    '''
+
     content = content.split('\n')
-    # remove all comments
-    content = [ c for c in content if len(c) == 0 or c[0] != '#' ]
+    content = [c for c in content if len(c) == 0 or c[0] != '#']
     if len(content) == 0 or content[0].strip() == '':
-        print('Operation aborted')
+        print('Edit aborted')
         return None
 
     url = content[0]
@@ -2274,23 +2268,63 @@ def parse_temp_file_content(content):
 
     tags = ','
     if len(content) > 2:
-        tags = content[2]
+        tags = parse_tags([content[2]])
 
     comments = []
     if len(content) > 3:
-        comments = [ c for c in content[3:] ]
+        comments = [c for c in content[3:]]
         # need to remove all empty line that are at the end
         # and not those in the middle of the text
-        for i in range(len(comments)-1, -1, -1):
+        for i in range(len(comments) - 1, -1, -1):
             if comments[i].strip() != '':
                 break
+
         if i == -1:
             comments = []
         else:
             comments = comments[0:i+1]
-    comments = '\n'.join(comments)
 
+    comments = '\n'.join(comments)
     return url, title, tags, comments
+
+
+def edit_rec(editor, url, title_in, tags_in, desc):
+    '''Edit a bookmark record
+
+    :param editor: editor to open
+    :param url: URL to open
+    :param title_in: string title to add manually
+    :param tags_in: string of comma-separated tags to add manually
+    :param desc: string description
+    :return: parsed content
+    '''
+
+    import tempfile
+    import subprocess
+
+    temp_file_content = to_temp_file_content(url, title_in, tags_in, desc)
+
+    fd, tmpfile = tempfile.mkstemp(prefix='buku-edit-')
+    os.close(fd)
+
+    try:
+        with open(tmpfile, 'w+', encoding='utf-8') as fp:
+            fp.write(temp_file_content)
+            fp.flush()
+            logdbg('Edited content written to %s', tmpfile)
+
+        p = subprocess.call([editor, tmpfile])
+
+        with open(tmpfile, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        os.remove(tmpfile)
+    except FileNotFoundError:
+        logerr('Error opening editor or tempfile')
+        return None
+
+    parsed_content = parse_temp_file_content(content)
+    return parsed_content
 
 
 # Handle piped input
@@ -2380,8 +2414,8 @@ POSITIONAL ARGUMENTS:
                          -a: do not set title, -u: clear title
     -c, --comment [...]  description of the bookmark, works with
                          -a, -u; clears comment, if no arguments
-    -w, --write [editor] open editor to write. works with -a -u
-                         use $EDITOR in env var if [editor] is not present.
+    -w, --write [editor] open editor to edit a single bookmark
+                         works with -a (default), -u
     --immutable N        disable title fetch from web on update
                          works with -a, -u
                          N=0: mutable (default), N=1: immutable''')
@@ -2390,7 +2424,7 @@ POSITIONAL ARGUMENTS:
     addarg('--tag', nargs='*', help=HIDE)
     addarg('-t', '--title', nargs='*', help=HIDE)
     addarg('-c', '--comment', nargs='*', help=HIDE)
-    addarg('-w', '--write', nargs='?', const=['no_args'], help=HIDE)
+    addarg('-w', '--write', nargs='?', const=get_system_editor(), help=HIDE)
     addarg('--immutable', type=int, default=-1, choices={0, 1}, help=HIDE)
 
     # --------------------
@@ -2524,19 +2558,19 @@ POSITIONAL ARGUMENTS:
     if args.unlock is not None:
         BukuCrypt.decrypt_file(args.unlock)
 
-    # Set up tags
-    if args.tag is not None:
-        if args.tag:
-            tags_in = args.tag
-        else:
-            tags_in = [DELIM, ]
-
     # Set up title
     if args.title is not None:
         if args.title:
             title_in = ' '.join(args.title)
         else:
             title_in = ''
+
+    # Set up tags
+    if args.tag is not None:
+        if args.tag:
+            tags_in = args.tag
+        else:
+            tags_in = [DELIM, ]
 
     # Set up comment
     if args.comment is not None:
@@ -2545,23 +2579,31 @@ POSITIONAL ARGUMENTS:
         else:
             desc_in = ''
 
-    editor, is_editor_mode = parse_editor_args(args.write)
-    if is_editor_mode and editor is None:
-        logerr('editor args not provided and $EDITOR env var is not set.')
-        logerr('Operation aborted.')
-        sys.exit(1)
-
     # Initialize the database and get handles, set verbose by default
     bdb = BukuDb(args.json, args.format, not args.tacit,
                  colorize=not args.nocolor)
 
     # Editor mode without add and update
-    if args.update is None and args.add is None and is_editor_mode:
-        result = open_editor(editor, "", "", "", "")
-        if result is None:
-            bdb.close_quit(1)
-        url, title_in, tags, desc_in = result
-        bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
+    if args.write == '0':
+        logerr('EDITOR is not set')
+        bdb.close_quit(1)
+
+    if args.write is not None and args.update is None and args.add is None:
+        # Parse tags into a comma-separated string
+        if tags_in:
+            if tags_in[0] == '+':
+                tags = '+%s' % parse_tags(tags_in[1:])
+            elif tags_in[0] == '-':
+                tags = '-%s' % parse_tags(tags_in[1:])
+            else:
+                tags = parse_tags(tags_in)
+        else:
+            tags = DELIM
+
+        result = edit_rec(args.write, '', title_in, tags, desc_in)
+        if result is not None:
+            url, title_in, tags, desc_in = result
+            bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
     # Add record
     if args.add is not None:
@@ -2583,11 +2625,11 @@ POSITIONAL ARGUMENTS:
             tags = parse_tags(keywords[1:])
 
         url = args.add[0]
-        if is_editor_mode:
-            result = open_editor(editor, url, title_in, tags, desc_in)
-            if result is None:
-                bdb.close_quit(1)
-            url, title_in, tags, desc_in = result
+
+        if args.write:
+            result = edit_rec(args.write, url, title_in, tags, desc_in)
+            if result is not None:
+                url, title_in, tags, desc_in = result
 
         bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
@@ -2659,6 +2701,7 @@ POSITIONAL ARGUMENTS:
         else:
             tags = None
 
+        # No arguments to --update, update all
         if not args.update:
             # Update all records only if search was not opted
             if not search_opted:
@@ -2666,7 +2709,7 @@ POSITIONAL ARGUMENTS:
                                args.immutable, args.threads)
             elif update_search_results and search_results is not None:
                 if not args.tacit:
-                    print("Updated results:\n")
+                    print('Updated results:\n')
 
                 pos = len(search_results) - 1
                 while pos >= 0:
@@ -2680,31 +2723,27 @@ POSITIONAL ARGUMENTS:
 
                     pos -= 1
         else:
-            if is_editor_mode:
-                # currently allow only editing of one url
+            if args.write:
+                # Allow single bookmark edits only
                 if len(args.update) != 1 or not is_int(args.update[0]):
-                    print('--write cannot be used to modify multiple bookmarks')
+                    print('Cannot edit multiple bookmarks at once')
                     bdb.close_quit(1)
 
                 idx = int(args.update[0])
                 rec = bdb.get_rec_by_id(idx)
-                if rec is None:
-                    logerr('Bookmark at index %d not found', idx)
+                if not rec:
+                    logerr('No matching index %d', idx)
                     bdb.close_quit(1)
-                else:
-                    result = open_editor(editor, rec[1], rec[2], rec[3], rec[4])
-                    if result is None:
-                        bdb.close_quit(1)
 
+                result = edit_rec(args.write, rec[1], rec[2], rec[3], rec[4])
+                if result is not None:
                     url, title, tags, desc = result
-                    # no need to check since update_rec is checking
                     bdb.update_rec(idx, url, title, tags, desc)
-
             else:
                 for idx in args.update:
                     if is_int(idx):
-                        bdb.update_rec(int(idx), url_in, title_in, tags, desc_in,
-                                       args.immutable, args.threads)
+                        bdb.update_rec(int(idx), url_in, title_in, tags,
+                                       desc_in, args.immutable, args.threads)
                     elif '-' in idx and is_int(idx.split('-')[0]) \
                             and is_int(idx.split('-')[1]):
                         lower = int(idx.split('-')[0])

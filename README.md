@@ -53,6 +53,7 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 ## Features
 
 - Fast, clean interface with distinct symbols
+- Edit, update bookmark fields in text editor
 - Fetch page title from the web, add tags and comments
 - Multiple search modes, including `deep` and `regex`
 - Continuous search at prompt with on the fly mode switch
@@ -166,7 +167,8 @@ EDIT OPTIONS:
                            -a: do not set title, -u: clear title
       -c, --comment [...]  description of the bookmark, works with
                            -a, -u; clears comment, if no arguments
-      --write              open editor to edit instead of args
+      -w, --write [editor] open editor to edit a single bookmark
+                           works with -a (default), -u
       --immutable N        disable title fetch from web on update
                            works with -a, -u
                            N=0: mutable (default), N=1: immutable
@@ -257,6 +259,9 @@ SYMBOLS:
   - --stag : search bookmarks by a tag, or list all tags alphabetically with usage count (if no arguments).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using `buku` and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
+- **Editor** support:
+  - A single bookmark can be edited to add or update. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes preference.
+  - All lines beginning with "#" will be striped. Then line 1 will be treated as the URL, line 2 will be the title, line 3 will be comma separated tags, and the rest of the lines will be parsed as descriptions.
 - **Proxy** support: environment variable *https_proxy*, if defined, is used to tunnel data for both http and https connections. The supported format is:
 
         http[s]://[username:password@]proxyhost:proxyport/
@@ -291,7 +296,7 @@ The following steps explore the procedure on Linux with Ubuntu as the reference 
 
 #### Test drive
 
-Select a URL anywhere or copy a link and press the keyboard shortcut to add it to the `buku` database. The addition might take a few seconds to reflect depending on your internet speed and the time `buku` needs to fetch the title from the URL. To avoid title fetch from the web, add the `-t` option to the script.
+Copy or select a URL with mouse and press the keyboard shortcut to add it to the `buku` database. The addition might take a few seconds to reflect depending on your internet speed and the time `buku` needs to fetch the title from the URL. To avoid title fetch from the web, add the `-t` option to the script.
 
 To verify that the bookmark has indeed been added, run:
 
@@ -367,124 +372,112 @@ Note that URL must precede tags.
 3. **Add** a bookmark **without a title** (works for update too):
 
         $ buku -a https://ddg.gg search engine, privacy -t
-4. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
+4. Edit a bookmark in **editor and add**:
+
+        $ buku -w
+        $ buku -w vim -a https://ddg.gg search engine, privacy
+The second command will open vim with the URL and tags populated.
+5. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
         $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Alternative search engine
-5. **Fetch and update only title** for bookmark at 15012014:
+6. **Fetch and update only title** for bookmark at 15012014:
 
         $ buku -u 15012014
-6. **Update only comment** for bookmark at 15012014:
+7. **Update only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c this is a new comment
 Applies to --url, --title and --tag too.
-7. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML and markdown:
+8. Edit a bookmark in **editor and update**:
+
+        $ buku -w -u 15012014
+This will open the existing bookmark's details in the editor for modifications.
+9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML and markdown:
 
         $ buku -e bookmarks.html --tag tag 1, tag 2
         $ buku -e bookmarks.md --markdown --tag tag 1, tag 2
 All bookmarks are exported if --tag is not specified.
-8. **Import** bookmarks from HTML and markdown:
+10. **Import** bookmarks from HTML and markdown:
 
         $ buku -i bookmarks.html
         $ buku -i bookmarks.md --markdown
-9. **Delete only comment** for bookmark at 15012014:
+11. **Delete only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c
 Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
-10. **Update** or refresh **full DB** with page titles from the web:
+12. **Update** or refresh **full DB** with page titles from the web:
 
         $ buku -u
         $ buku -u --tacit (show only failures and exceptions)
 This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
-11. **Delete** bookmark at index 15012014:
+13. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
         Index 15012020 moved to 15012014
 The last index is moved to the deleted index to keep the DB compact.
-12. **Delete all** bookmarks:
+14. **Delete all** bookmarks:
 
         $ buku -d
-13. **Delete** a **range or list** of bookmarks:
+15. **Delete** a **range or list** of bookmarks:
 
         $ buku -d 100-200
         $ buku -d 100 15 200
-14. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
+16. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -s kernel debugging
-15. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
+17. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -S kernel debugging
-16. **Search** bookmarks **tagged** `general kernel concepts`:
+18. **Search** bookmarks **tagged** `general kernel concepts`:
 
         $ buku --stag general kernel concepts
-17. List **all unique tags** alphabetically:
+19. List **all unique tags** alphabetically:
 
         $ buku --stag
-18. Run a **search and update** the results:
+20. Run a **search and update** the results:
 
         $ buku -s kernel debugging -u --tag + newtag
-19. Run a **search and delete** the results:
+21. Run a **search and delete** the results:
 
         $ buku -s kernel debugging -d
-20. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+22. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
-21. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
+23. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
 
         $ buku -p 20-30 15012014 40-50
-22. **Show all** bookmarks with real index from database:
+24. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-23. **Replace tag** 'old tag' with 'new tag':
+25. **Replace tag** 'old tag' with 'new tag':
 
         $ buku -r 'old tag' new tag
-24. **Delete tag** 'old tag' from DB:
+26. **Delete tag** 'old tag' from DB:
 
         $ buku -r 'old tag'
-25. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
+27. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
         $ buku -u 15012014 --tag - tag 1, tag 2
-26. **Open URL** at index 15012014 in browser:
+28. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-27. List bookmarks with **no title or tags** for bookkeeping:
+29. List bookmarks with **no title or tags** for bookkeeping:
 
         $ buku -S blank
-28. List bookmarks with **immutable title**:
+30. List bookmarks with **immutable title**:
 
         $ buku -S immutable
-29. **Shorten URL** www.google.com and the URL at index 20:
+31. **Shorten URL** www.google.com and the URL at index 20:
 
         $ buku --shorten www.google.com
         $ buku --shorten 20
-30. **Open In editor**
-
-        $ buku --write -a https://ddg.gg search engine, privacy
-This will open an editor with the link, and tags populated. See below for the editor mode file format.
-31. More **help**:
+32. More **help**:
 
         $ buku -h
         $ man buku
-
-
-## Editor mode file format.
-
-`$ buku --write -a https://ddg.gg search engine, privacy`
-```
-https://ddg.gg
-# insert LINK **above** this line. (single line)
-
-# insert TITLE **above** this line, (single line) (empty line to auto fetch, "-" for empty title)
-,search engine,privacy,
-# insert the TAGS **above** this line, comma separated. (single line)
-
-# insert all COMMENTS **above** this line. (multiple lines)
-```
-
-All lines beginning with "#" will be stripped.
 
 ## Contributions
 

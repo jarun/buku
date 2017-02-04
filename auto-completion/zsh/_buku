@@ -42,6 +42,7 @@ args=(
     '(--upstream)--upstream[check latest upstream release]'
     '(--url)--url[set url]:url'
     '(-v --version)'{-v,--version}'[show program version]'
+    '(-w --write)'{-w,--write}'[open editor]'
     '(-z --debug)'{-z,--debug}'[enable debugging mode]'
 )
 _arguments -S -s $args

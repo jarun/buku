@@ -29,7 +29,7 @@ This is more important than your design or code! Users check this first.
 - *Single quote, single quote, single all the way!*
 - A single line should be less than 80 chars in length.
 - No trailing whitespaces.
-- Add reasonable comments.
+- Add new API documentation, reasonable code comments.
 - If possible, add test cases for your new API under `tests/`. We are Travis integrated.
 - If possible, squash everything to a single commit.
 

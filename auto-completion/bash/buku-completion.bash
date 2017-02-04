@@ -44,6 +44,7 @@ _buku () {
         --upstream
         --url
         -v --version
+        -w --write
         -z --debug
     )
     opts_with_arg=(
@@ -61,7 +62,6 @@ _buku () {
         --sreg
         --threads
         --url
-        -w --write
     )
 
     # Do not complete non option names
