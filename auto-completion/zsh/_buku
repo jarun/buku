@@ -27,6 +27,7 @@ args=(
     '(--nocolor)--nocolor[disable color output]'
     '(--noprompt)--noprompt[noninteractive mode]'
     '(-o --open)'{-o,--open}'[open bookmarks in browser]'
+    '(--oa)--oa[browse all search results immediately]'
     '(-p --print)'{-p,--print}'[show bookmark details]'
     '(-r --replace)'{-r,--replace}'[replace a tag]:tag to replace'
     '(-s --sany)'{-s,--sany}'[match any keyword]:keyword(s)'
@@ -42,6 +43,7 @@ args=(
     '(--upstream)--upstream[check latest upstream release]'
     '(--url)--url[set url]:url'
     '(-v --version)'{-v,--version}'[show program version]'
+    '(-w --write)'{-w,--write}'[open editor]'
     '(-z --debug)'{-z,--debug}'[enable debugging mode]'
 )
 _arguments -S -s $args
