@@ -2431,13 +2431,16 @@ POSITIONAL ARGUMENTS:
     --deep               match substrings ('pen' matches 'opens')
     --sreg               run a regex search
     --stag               search bookmarks by a tag
-                         list all tags, if no search keywords''')
+                         list all tags, if no search keywords
+    --openall            immediately opens all search results 
+                         in browser, works best with --noprompt''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', action='store_true', help=HIDE)
     addarg('-S', '--sall', action='store_true', help=HIDE)
     addarg('--sreg', action='store_true', help=HIDE)
     addarg('--deep', action='store_true', help=HIDE)
     addarg('--stag', action='store_true', help=HIDE)
+    addarg('--openall', action='store_true', help=HIDE)
 
     # ------------------------
     # ENCRYPTION OPTIONS GROUP
@@ -2651,6 +2654,16 @@ POSITIONAL ARGUMENTS:
     if search_results:
         oneshot = args.noprompt
         to_delete = False
+
+        # Open all results in browser right away,
+        # has priority over delete/update, i.e. URLs
+        # can be opened and deleted/updated after     
+        if args.openall:   
+            for row in search_results:
+                try:
+                    open_in_browser(row[1])
+                except Exception as e:
+                    logerr('main() 1: %s', e)
 
         # In case of search and delete/update,
         # prompt should be non-interactive
