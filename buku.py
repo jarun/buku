@@ -2480,6 +2480,7 @@ POSITIONAL ARGUMENTS:
     -o, --open [...]     open bookmarks in browser by DB index
                          accepts indices and ranges
                          open a random index, if no arguments
+    --oa                 open all search results immediately
     --shorten N/URL      fetch shortened url from tny.im service
                          accepts either a DB index or a URL
     --expand N/URL       expand a tny.im shortened url
@@ -2500,6 +2501,7 @@ POSITIONAL ARGUMENTS:
     addarg('--nocolor', action='store_true', help=HIDE)
     addarg('--noprompt', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
+    addarg('--oa', action='store_true', help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
     addarg('--expand', nargs=1, help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
@@ -2651,6 +2653,13 @@ POSITIONAL ARGUMENTS:
     if search_results:
         oneshot = args.noprompt
         to_delete = False
+
+        # Open all results in browser right away if args.oa
+        # is specified. The has priority over delete/update.
+        # URLs are opened first and updated/deleted later.
+        if args.oa:
+            for row in search_results:
+                open_in_browser(row[1])
 
         # In case of search and delete/update,
         # prompt should be non-interactive

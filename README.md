@@ -213,6 +213,7 @@ POWER TOYS:
       -o, --open [...]     open bookmarks in browser by DB index
                            accepts indices and ranges
                            open a random index, if no arguments
+      --oa                 open all search results immediately
       --shorten N/URL      fetch shortened url from tny.im service
                            accepts either a DB index or a URL
       --expand N/URL       expand a tny.im shortened url

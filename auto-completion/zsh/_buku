@@ -27,6 +27,7 @@ args=(
     '(--nocolor)--nocolor[disable color output]'
     '(--noprompt)--noprompt[noninteractive mode]'
     '(-o --open)'{-o,--open}'[open bookmarks in browser]'
+    '(--oa)--oa[browse all search results immediately]'
     '(-p --print)'{-p,--print}'[show bookmark details]'
     '(-r --replace)'{-r,--replace}'[replace a tag]:tag to replace'
     '(-s --sany)'{-s,--sany}'[match any keyword]:keyword(s)'

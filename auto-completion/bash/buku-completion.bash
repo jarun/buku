@@ -29,6 +29,7 @@ _buku () {
         --nocolor
         --noprompt
         -o --open
+        --oa
         -p --print
         -r --replace
         -s --sany
