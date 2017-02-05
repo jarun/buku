@@ -376,8 +376,8 @@ Note that URL must precede tags.
 4. Edit a bookmark in **editor and add**:
 
         $ buku -w
-        $ buku -w vim -a https://ddg.gg search engine, privacy
-The second command will open vim with the URL and tags populated.
+        $ buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
+The second command will open macvim with option -f and the URL and tags populated.
 5. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
         $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Alternative search engine

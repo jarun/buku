@@ -2302,14 +2302,20 @@ def edit_rec(editor, url, title_in, tags_in, desc):
             fp.flush()
             logdbg('Edited content written to %s', tmpfile)
 
-        subprocess.call([editor, tmpfile])
+        cmd = editor.split(' ')
+        cmd.append(tmpfile)
+        subprocess.call(cmd)
 
         with open(tmpfile, 'r', encoding='utf-8') as f:
             content = f.read()
 
         os.remove(tmpfile)
     except FileNotFoundError:
-        logerr('Error opening editor or tempfile')
+        if os.path.exists(tmpfile):
+            os.remove(tmpfile)
+            logerr('Cannot open editor')
+        else:
+            logerr('Cannot open tempfile')
         return None
 
     parsed_content = parse_temp_file_content(content)
