@@ -67,6 +67,16 @@ logger = logging.getLogger()
 logdbg = logger.debug
 logerr = logger.error
 
+def read_input(msg):
+    disable_sigint_handler()
+    message = None
+    try:
+        message = input(msg)
+    except KeyboardInterrupt:
+        print('Interrupted.')
+
+    enable_sigint_handler()
+    return message
 
 class BukuHTMLParser(HTMLParser.HTMLParser):
     '''Class to parse and fetch the title
@@ -557,7 +567,7 @@ class BukuDb:
         '''
 
         if index == 0:
-            resp = input('Append specified tags to ALL bookmarks? (y/n): ')
+            resp = read_input('Append specified tags to ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
@@ -591,7 +601,7 @@ class BukuDb:
         tags_to_delete = tags_in.strip(DELIM).split(DELIM)
 
         if index == 0:
-            resp = input('Delete specified tag(s) from ALL bookmarks? (y/n): ')
+            resp = read_input('Delete specified tag(s) from ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
@@ -743,7 +753,7 @@ class BukuDb:
             return ret
 
         if index == 0:  # Update all records
-            resp = input('Update ALL bookmarks? (y/n): ')
+            resp = read_input('Update ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
@@ -1073,7 +1083,7 @@ class BukuDb:
         :return: True on success, False on failure
         '''
 
-        resp = input('Delete the search results? (y/n): ')
+        resp = read_input('Delete the search results? (y/n): ')
         if resp != 'y':
             return False
 
@@ -1097,7 +1107,7 @@ class BukuDb:
         :return: True on success, False on failure
         '''
 
-        resp = input('Remove ALL bookmarks? (y/n): ')
+        resp = read_input('Remove ALL bookmarks? (y/n): ')
         if resp != 'y':
             print('No bookmarks deleted')
             return False
@@ -1303,7 +1313,7 @@ class BukuDb:
             return False
 
         if os.path.exists(filepath):
-            resp = input('%s exists. Overwrite? (y/n): ' % filepath)
+            resp = read_input('%s exists. Overwrite? (y/n): ' % filepath)
             if resp != 'y':
                 return False
 
@@ -1844,9 +1854,9 @@ def taglist_subprompt(obj, msg, noninteractive=False):
                 return
 
         try:
-            nav = input(msg)
+            nav = read_input(msg)
             if not nav:
-                nav = input(msg)
+                nav = read_input(msg)
                 if not nav:
                     # Quit on double enter
                     return 'q'
@@ -1910,9 +1920,9 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                     return
 
             try:
-                nav = input(msg)
+                nav = read_input(msg)
                 if not nav:
-                    nav = input(msg)
+                    nav = read_input(msg)
                     if not nav:
                         # Quit on double enter
                         break
@@ -2175,8 +2185,13 @@ def sigint_handler(signum, frame):
     # Do a hard exit from here
     os._exit(1)
 
-signal.signal(signal.SIGINT, sigint_handler)
 
+DEFAULT_HANDLER = signal.signal(signal.SIGINT, sigint_handler)
+def disable_sigint_handler():
+    signal.signal(signal.SIGINT, DEFAULT_HANDLER)
+
+def enable_sigint_handler():
+    signal.signal(signal.SIGINT, sigint_handler)
 
 # ---------------------
 # Editor mode functions
