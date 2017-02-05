@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/9l6s2ppivpo661nu5slwk2t6y"><img src="https://asciinema.org/a/9l6s2ppivpo661nu5slwk2t6y.png" alt="Asciicast" width="734"/></a>
+<a href="https://asciinema.org/a/8h26q3ezkm15h1ql8m7onuuzx"><img src="https://asciinema.org/a/9l6s2ppivpo661nu5slwk2t6y.png" alt="Asciicast" width="734"/></a>
 </p>
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
@@ -355,32 +355,33 @@ NOTE: This flexibility is not exposed in the program.
 
 ## Examples
 
-1. **Add** a bookmark with **tags** `search engine` and `privacy`, **comment** `Alternative search engine with perks`, **fetch page title** from the web:
 
-        $ buku -a https://ddg.gg search engine, privacy -c Alternative search engine with perks
+1. **Edit and add** a bookmark from editor:
+
+        $ buku -w
+        $ buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
+The first command picks editor from the environment variable `EDITOR`. The second command will open macvim with option -f and the URL and tags populated in template.
+2. **Add** a bookmark with **tags** `search engine` and `privacy`, **comment** `Search engine with perks`, **fetch page title** from the web:
+
+        $ buku -a https://ddg.gg search engine, privacy -c Search engine with perks
         336. https://ddg.gg
         > DuckDuckGo
         + Alternative search engine with perks
         # privacy,search engine
 where, >: title, +: comment, #: tags
-2. **Add** a bookmark with tags `search engine` & `privacy` and **immutable custom title** `DDG`:
+3. **Add** a bookmark with tags `search engine` & `privacy` and **immutable custom title** `DDG`:
 
         $ buku -a https://ddg.gg search engine, privacy -t 'DDG' --immutable 1
         336. https://ddg.gg (L)
         > DDG
         # privacy,search engine
 Note that URL must precede tags.
-3. **Add** a bookmark **without a title** (works for update too):
+4. **Add** a bookmark **without a title** (works for update too):
 
         $ buku -a https://ddg.gg search engine, privacy -t
-4. Edit a bookmark in **editor and add**:
-
-        $ buku -w
-        $ buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
-The second command will open macvim with option -f and the URL and tags populated.
 5. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
-        $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Alternative search engine
+        $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Private search engine
 6. **Fetch and update only title** for bookmark at 15012014:
 
         $ buku -u 15012014
@@ -388,7 +389,7 @@ The second command will open macvim with option -f and the URL and tags populate
 
         $ buku -u 15012014 -c this is a new comment
 Applies to --url, --title and --tag too.
-8. Edit a bookmark in **editor and update**:
+8. **Edit and update** a bookmark from editor:
 
         $ buku -w -u 15012014
 This will open the existing bookmark's details in the editor for modifications.

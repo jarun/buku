@@ -285,17 +285,29 @@ can be integrated in a GUI environment with simple tweaks. Refer to:
 .SH EXAMPLES
 .PP
 .IP 1. 4
-\fBAdd\fR a bookmark with \fBtags\fR 'search engine' and 'privacy', \fBcomment\fR 'Alternative search engine with perks', \fBfetch page title\fR from the web:
+\fBEdit and add\fR a bookmark from editor:
 .PP
 .EX
 .IP
-.B buku -a https://ddg.gg search engine, privacy -c Alternative search engine with perks
+.B buku -w
+.B buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
+.EE
+.PP
+.IP "" 4
+The first command picks editor from the environment variable \fIEDITOR\fR. The second command will open macvim with option -f and the URL and tags populated in template.
+.PP
+.IP 2. 4
+\fBAdd\fR a bookmark with \fBtags\fR 'search engine' and 'privacy', \fBcomment\fR 'Search engine with perks', \fBfetch page title\fR from the web:
+.PP
+.EX
+.IP
+.B buku -a https://ddg.gg search engine, privacy -c Search engine with perks
 .EE
 .PP
 .IP "" 4
 In the output, >: title, +: comment, #: tags.
 .PP
-.IP 2. 4
+.IP 3. 4
 \fBAdd\fR a bookmark with tags 'search engine' & 'privacy' and \fBimmutable custom title\fR 'DDG':
 .PP
 .EX
@@ -306,7 +318,7 @@ In the output, >: title, +: comment, #: tags.
 .IP "" 4
 Note that URL must precede tags.
 .PP
-.IP 3. 4
+.IP 4. 4
 \fBAdd\fR a bookmark \fBwithout a title\fR (works for update too):
 .PP
 .EX
@@ -314,23 +326,12 @@ Note that URL must precede tags.
 .B buku -a https://ddg.gg search engine, privacy -t
 .EE
 .PP
-.IP 4. 4
-Edit a bookmark in \fBeditor and add\R:
-.PP
-.EX
-.IP
-.B buku -w
-.B buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
-.EE
-.PP
-.IP "" 4
-The second command will open macvim with option -f and the URL and tags populated.
 .IP 5. 4
 \fBUpdate\fR existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 .PP
 .EX
 .IP
-.B buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Alternative search engine
+.B buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Private search engine
 .EE
 .PP
 .IP 6. 4
@@ -353,7 +354,7 @@ The second command will open macvim with option -f and the URL and tags populate
 Applies to --url, --title and --tag too.
 .PP
 .IP 8. 4
-Edit a bookmark in **editor and \fBupdate\fR:
+\fBEdit and update\fR a bookmark from editor:
 .PP
 .EX
 .IP
