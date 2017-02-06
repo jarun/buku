@@ -67,6 +67,17 @@ logger = logging.getLogger()
 logdbg = logger.debug
 logerr = logger.error
 
+_input = input
+def input(msg):
+    disable_sigint_handler()
+    try:
+        message = _input(msg)
+        enable_sigint_handler()
+        return message
+    except KeyboardInterrupt:
+        print('Interrupted.')
+        enable_sigint_handler()
+        return None
 
 class BukuHTMLParser(HTMLParser.HTMLParser):
     '''Class to parse and fetch the title
@@ -2175,8 +2186,13 @@ def sigint_handler(signum, frame):
     # Do a hard exit from here
     os._exit(1)
 
-signal.signal(signal.SIGINT, sigint_handler)
 
+DEFAULT_HANDLER = signal.signal(signal.SIGINT, sigint_handler)
+def disable_sigint_handler():
+    signal.signal(signal.SIGINT, DEFAULT_HANDLER)
+
+def enable_sigint_handler():
+    signal.signal(signal.SIGINT, sigint_handler)
 
 # ---------------------
 # Editor mode functions
