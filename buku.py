@@ -67,7 +67,7 @@ logger = logging.getLogger()
 logdbg = logger.debug
 logerr = logger.error
 
-def read_input(msg):
+def read_in(msg):
     disable_sigint_handler()
     message = None
     try:
@@ -567,7 +567,7 @@ class BukuDb:
         '''
 
         if index == 0:
-            resp = read_input('Append specified tags to ALL bookmarks? (y/n): ')
+            resp = read_in('Append specified tags to ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
@@ -601,7 +601,7 @@ class BukuDb:
         tags_to_delete = tags_in.strip(DELIM).split(DELIM)
 
         if index == 0:
-            resp = read_input('Delete specified tag(s) from ALL bookmarks? (y/n): ')
+            resp = read_in('Delete specified tag(s) from ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
@@ -753,7 +753,7 @@ class BukuDb:
             return ret
 
         if index == 0:  # Update all records
-            resp = read_input('Update ALL bookmarks? (y/n): ')
+            resp = read_in('Update ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
@@ -1083,7 +1083,7 @@ class BukuDb:
         :return: True on success, False on failure
         '''
 
-        resp = read_input('Delete the search results? (y/n): ')
+        resp = read_in('Delete the search results? (y/n): ')
         if resp != 'y':
             return False
 
@@ -1107,7 +1107,7 @@ class BukuDb:
         :return: True on success, False on failure
         '''
 
-        resp = read_input('Remove ALL bookmarks? (y/n): ')
+        resp = read_in('Remove ALL bookmarks? (y/n): ')
         if resp != 'y':
             print('No bookmarks deleted')
             return False
@@ -1313,7 +1313,7 @@ class BukuDb:
             return False
 
         if os.path.exists(filepath):
-            resp = read_input('%s exists. Overwrite? (y/n): ' % filepath)
+            resp = read_in('%s exists. Overwrite? (y/n): ' % filepath)
             if resp != 'y':
                 return False
 
@@ -1854,9 +1854,9 @@ def taglist_subprompt(obj, msg, noninteractive=False):
                 return
 
         try:
-            nav = read_input(msg)
+            nav = read_in(msg)
             if not nav:
-                nav = read_input(msg)
+                nav = read_in(msg)
                 if not nav:
                     # Quit on double enter
                     return 'q'
@@ -1920,9 +1920,9 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                     return
 
             try:
-                nav = read_input(msg)
+                nav = read_in(msg)
                 if not nav:
-                    nav = read_input(msg)
+                    nav = read_in(msg)
                     if not nav:
                         # Quit on double enter
                         break
