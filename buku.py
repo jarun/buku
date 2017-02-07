@@ -567,7 +567,7 @@ class BukuDb:
         '''
 
         if index == 0:
-            resp = read_in('Append specified tags to ALL bookmarks? (y/n): ')
+            resp = read_in('Append the tags to ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
@@ -601,7 +601,7 @@ class BukuDb:
         tags_to_delete = tags_in.strip(DELIM).split(DELIM)
 
         if index == 0:
-            resp = read_in('Delete specified tag(s) from ALL bookmarks? (y/n): ')
+            resp = read_in('Delete the tag(s) from ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
