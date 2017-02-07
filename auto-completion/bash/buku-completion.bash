@@ -64,6 +64,11 @@ _buku () {
         --url
     )
 
+    if [ "$prev" == "--stag" ]; then
+        COMPREPLY=( $(compgen -W "$(buku --completion tags)" -- "$cur") )
+        return 0
+    fi
+
     # Do not complete non option names
     [[ $cur == -* ]] || return 1
 
