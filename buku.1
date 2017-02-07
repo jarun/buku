@@ -73,8 +73,9 @@ Bookmarks with immutable titles are listed with bold '(L)' after the URL.
 .PP
 .IP 10. 4
 \fBEditor\fR support:
-  - A single bookmark can be edited to add or update. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes precedence.
-  - All lines beginning with "#" will be striped. Then line 1 will be treated as the URL, line 2 will be the title, line 3 will be comma separated tags, and the rest of the lines will be parsed as descriptions.
+  - A single bookmark can be edited before adding. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes precedence. If -a is used along with -w, the details are populated in the editor template.
+  - In case of edit and update (a single bookmark), the existing record details are fetched from DB and populated in the editor template. The environment variable EDITOR must be set. Note that -u works independently of -w.
+  - All lines beginning with "#" will be stripped. Then line 1 will be treated as the URL, line 2 will be the title, line 3 will be comma separated tags, and the rest of the lines will be parsed as descriptions.
 .PP
 .IP 11. 4
 \fBProxy\fR support: please refer to the \fBENVIRONMENT\fR section.
@@ -110,8 +111,8 @@ Manually specify the title, works with --add, --update. Omits or clears the titl
 .BI \-c " " \--comment " [...]"
 Add comment or description on the bookmark, works with --add, --update. Clears the comment, if no arguments passed.
 .TP
-.BI \-w " " \--write " [editor]"
-Open editor and edit a bookmark before adding or updating it. The edited bookmark is added if either --add or --update is not specified.
+.BI \-w " " \--write " [editor|index]"
+Open editor and edit a bookmark before adding or updating it.
 .TP
 .BI \--immutable " N"
 Set the title of a bookmark immutable during updates. Works with --add, --update. N=1 sets the immutable flag, N=0 removes it. If omitted, bookmarks are added with N=0.
@@ -327,6 +328,17 @@ Note that URL must precede tags.
 .EE
 .PP
 .IP 5. 4
+\fBEdit and update\fR a bookmark from editor:
+.PP
+.EX
+.IP
+.B buku -w 15012014
+.EE
+.PP
+.IP "" 4
+This will open the existing bookmark's details in the editor for modifications. Environment variable \fIEDITOR\fR must be set.
+.PP
+.IP 6. 4
 \fBUpdate\fR existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 .PP
 .EX
@@ -334,7 +346,7 @@ Note that URL must precede tags.
 .B buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Private search engine
 .EE
 .PP
-.IP 6. 4
+.IP 7. 4
 \fBFetch and update only title\fR for bookmark at 15012014:
 .PP
 .EX
@@ -342,7 +354,7 @@ Note that URL must precede tags.
 .B buku -u 15012014
 .EE
 .PP
-.IP 7. 4
+.IP 8. 4
 \fBUpdate only comment\fR for bookmark at 15012014:
 .PP
 .EX
@@ -352,17 +364,6 @@ Note that URL must precede tags.
 .PP
 .IP "" 4
 Applies to --url, --title and --tag too.
-.PP
-.IP 8. 4
-\fBEdit and update\fR a bookmark from editor:
-.PP
-.EX
-.IP
-.B buku -w -u 15012014
-.EE
-.PP
-.IP "" 4
-This will open the existing bookmark's details in the editor for modifications.
 .PP
 .IP 9. 4
 \fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML and markdown:

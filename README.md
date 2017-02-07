@@ -11,12 +11,12 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/8h26q3ezkm15h1ql8m7onuuzx"><img src="https://asciinema.org/a/9l6s2ppivpo661nu5slwk2t6y.png" alt="Asciicast" width="734"/></a>
+<a href="https://asciinema.org/a/0ya8tyzm94cgi6mv4dhxnnem6"><img src="https://asciinema.org/a/9l6s2ppivpo661nu5slwk2t6y.png" alt="Asciicast" width="734"/></a>
 </p>
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
 
-`buku` fetches the title of a bookmarked web page and stores it along with any additional comments and tags. With multiple options to search bookmarks, including regex and a deep scan mode (particularly for URLs), finding a bookmark is very easy. Multiple search results can be opened in the browser at once.
+`buku` fetches the title of a bookmarked web page and stores it along with any additional comments and tags. You can use your favourite editor to compose and update bookmarks. With multiple options to search bookmarks, including regex and a deep scan mode (particularly for URLs), finding a bookmark is very easy. Multiple search results can be opened in the browser at once.
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
@@ -167,8 +167,10 @@ EDIT OPTIONS:
                            -a: do not set title, -u: clear title
       -c, --comment [...]  description of the bookmark, works with
                            -a, -u; clears comment, if no arguments
-      -w, --write [editor] open editor to edit a single bookmark
-                           works with -a (default), -u
+      -w, --write [editor|index]
+                           open editor to edit a single bookmark
+                           works with -a; if an index is passed to
+                           edit and update, EDITOR must be set
       --immutable N        disable title fetch from web on update
                            works with -a, -u
                            N=0: mutable (default), N=1: immutable
@@ -261,8 +263,9 @@ SYMBOLS:
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using `buku` and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 - **Editor** support:
-  - A single bookmark can be edited to add or update. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes preference.
-  - All lines beginning with "#" will be striped. Then line 1 will be treated as the URL, line 2 will be the title, line 3 will be comma separated tags, and the rest of the lines will be parsed as descriptions.
+  - A single bookmark can be edited before adding. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes preference. If -a is used along with -w, the details are populated in the editor template.
+  - In case of edit and update (a single bookmark), the existing record details are fetched from DB and populated in the editor template. The environment variable EDITOR must be set Note that -u works independently of -w.
+  - All lines beginning with "#" will be stripped. Then line 1 will be treated as the URL, line 2 will be the title, line 3 will be comma separated tags, and the rest of the lines will be parsed as descriptions.
 - **Proxy** support: environment variable *https_proxy*, if defined, is used to tunnel data for both http and https connections. The supported format is:
 
         http[s]://[username:password@]proxyhost:proxyport/
@@ -379,20 +382,20 @@ Note that URL must precede tags.
 4. **Add** a bookmark **without a title** (works for update too):
 
         $ buku -a https://ddg.gg search engine, privacy -t
-5. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
+5. **Edit and update** a bookmark from editor:
+
+        $ buku -w 15012014
+This will open the existing bookmark's details in the editor for modifications. Environment variable `EDITOR` must be set.
+6. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
         $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Private search engine
-6. **Fetch and update only title** for bookmark at 15012014:
+7. **Fetch and update only title** for bookmark at 15012014:
 
         $ buku -u 15012014
-7. **Update only comment** for bookmark at 15012014:
+8. **Update only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c this is a new comment
 Applies to --url, --title and --tag too.
-8. **Edit and update** a bookmark from editor:
-
-        $ buku -w -u 15012014
-This will open the existing bookmark's details in the editor for modifications.
 9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML and markdown:
 
         $ buku -e bookmarks.html --tag tag 1, tag 2

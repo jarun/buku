@@ -67,16 +67,6 @@ logger = logging.getLogger()
 logdbg = logger.debug
 logerr = logger.error
 
-def read_in(msg):
-    disable_sigint_handler()
-    message = None
-    try:
-        message = input(msg)
-    except KeyboardInterrupt:
-        print('Interrupted.')
-
-    enable_sigint_handler()
-    return message
 
 class BukuHTMLParser(HTMLParser.HTMLParser):
     '''Class to parse and fetch the title
@@ -2174,6 +2164,18 @@ def regexp(expr, item):
     return re.search(expr, item, re.IGNORECASE) is not None
 
 
+def read_in(msg):
+    disable_sigint_handler()
+    message = None
+    try:
+        message = input(msg)
+    except KeyboardInterrupt:
+        print('Interrupted.')
+
+    enable_sigint_handler()
+    return message
+
+
 def sigint_handler(signum, frame):
     '''Custom SIGINT handler'''
 
@@ -2185,10 +2187,12 @@ def sigint_handler(signum, frame):
     # Do a hard exit from here
     os._exit(1)
 
-
 DEFAULT_HANDLER = signal.signal(signal.SIGINT, sigint_handler)
+
+
 def disable_sigint_handler():
     signal.signal(signal.SIGINT, DEFAULT_HANDLER)
+
 
 def enable_sigint_handler():
     signal.signal(signal.SIGINT, sigint_handler)
@@ -2197,10 +2201,11 @@ def enable_sigint_handler():
 # Editor mode functions
 # ---------------------
 
+
 def get_system_editor():
     '''Returns default system editor is $EDITOR is set'''
 
-    return os.environ.get('EDITOR', '0')
+    return os.environ.get('EDITOR', 'none')
 
 
 def to_temp_file_content(url, title_in, tags_in, desc):
@@ -2424,8 +2429,10 @@ POSITIONAL ARGUMENTS:
                          -a: do not set title, -u: clear title
     -c, --comment [...]  description of the bookmark, works with
                          -a, -u; clears comment, if no arguments
-    -w, --write [editor] open editor to edit a single bookmark
-                         works with -a (default), -u
+    -w, --write [editor|index]
+                         open editor to edit a single bookmark
+                         works with -a; if an index is passed to
+                         edit and update, EDITOR must be set
     --immutable N        disable title fetch from web on update
                          works with -a, -u
                          N=0: mutable (default), N=1: immutable''')
@@ -2595,27 +2602,48 @@ POSITIONAL ARGUMENTS:
     bdb = BukuDb(args.json, args.format, not args.tacit,
                  colorize=not args.nocolor)
 
-    # Editor mode without add and update
-    if args.write == '0':
-        logerr('EDITOR is not set')
-        bdb.close_quit(1)
+    # Editor mode
+    if args.write is not None:
+        if args.write == 'none':
+            logerr('EDITOR is not set')
+            bdb.close_quit(1)
+        elif args.write == '0':
+            logerr('Cannot edit index 0')
+            bdb.close_quit(1)
 
-    if args.write is not None and args.update is None and args.add is None:
-        # Parse tags into a comma-separated string
-        if tags_in:
-            if tags_in[0] == '+':
-                tags = '+%s' % parse_tags(tags_in[1:])
-            elif tags_in[0] == '-':
-                tags = '-%s' % parse_tags(tags_in[1:])
+        if is_int(args.write):
+            editor = get_system_editor()
+            if editor == 'none':
+                logerr('EDITOR must be set to use index with -w')
+                bdb.close_quit()
+
+            idx = int(args.write)
+            rec = bdb.get_rec_by_id(idx)
+            if not rec:
+                logerr('No matching index %d', idx)
+                bdb.close_quit(1)
+
+            result = edit_rec(editor, rec[1], rec[2], rec[3], rec[4])
+            if result is not None:
+                url, title, tags, desc = result
+                bdb.update_rec(idx, url, title, tags, desc)
+        elif args.add is None:
+            # Edit and add a new bookmark
+            # Parse tags into a comma-separated string
+            if tags_in:
+                if tags_in[0] == '+':
+                    tags = '+%s' % parse_tags(tags_in[1:])
+                elif tags_in[0] == '-':
+                    tags = '-%s' % parse_tags(tags_in[1:])
+                else:
+                    tags = parse_tags(tags_in)
             else:
-                tags = parse_tags(tags_in)
-        else:
-            tags = DELIM
+                tags = DELIM
 
-        result = edit_rec(args.write, '', title_in, tags, desc_in)
-        if result is not None:
-            url, title_in, tags, desc_in = result
-            bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
+            result = edit_rec(args.write, '', title_in, tags, desc_in)
+            if result is not None:
+                url, title_in, tags, desc_in = result
+                bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
     # Add record
     if args.add is not None:
@@ -2638,7 +2666,7 @@ POSITIONAL ARGUMENTS:
 
         url = args.add[0]
 
-        if args.write:
+        if args.write and not is_int(arg.write):
             result = edit_rec(args.write, url, title_in, tags, desc_in)
             if result is not None:
                 url, title_in, tags, desc_in = result
@@ -2742,48 +2770,31 @@ POSITIONAL ARGUMENTS:
 
                     pos -= 1
         else:
-            if args.write:
-                # Allow single bookmark edits only
-                if len(args.update) != 1 or not is_int(args.update[0]):
-                    print('Cannot edit multiple bookmarks at once')
-                    bdb.close_quit(1)
+            for idx in args.update:
+                if is_int(idx):
+                    bdb.update_rec(int(idx), url_in, title_in, tags,
+                                   desc_in, args.immutable, args.threads)
+                elif '-' in idx and is_int(idx.split('-')[0]) \
+                        and is_int(idx.split('-')[1]):
+                    lower = int(idx.split('-')[0])
+                    upper = int(idx.split('-')[1])
+                    if lower > upper:
+                        lower, upper = upper, lower
 
-                idx = int(args.update[0])
-                rec = bdb.get_rec_by_id(idx)
-                if not rec:
-                    logerr('No matching index %d', idx)
-                    bdb.close_quit(1)
+                    # Update only once if range starts from 0 (all)
+                    if lower == 0:
+                        bdb.update_rec(0, url_in, title_in, tags, desc_in,
+                                       args.immutable, args.threads)
+                    else:
+                        for _id in range(lower, upper + 1):
+                            bdb.update_rec(_id, url_in, title_in, tags,
+                                           desc_in, args.immutable,
+                                           args.threads)
+                            if interrupted:
+                                break
 
-                result = edit_rec(args.write, rec[1], rec[2], rec[3], rec[4])
-                if result is not None:
-                    url, title, tags, desc = result
-                    bdb.update_rec(idx, url, title, tags, desc)
-            else:
-                for idx in args.update:
-                    if is_int(idx):
-                        bdb.update_rec(int(idx), url_in, title_in, tags,
-                                       desc_in, args.immutable, args.threads)
-                    elif '-' in idx and is_int(idx.split('-')[0]) \
-                            and is_int(idx.split('-')[1]):
-                        lower = int(idx.split('-')[0])
-                        upper = int(idx.split('-')[1])
-                        if lower > upper:
-                            lower, upper = upper, lower
-
-                        # Update only once if range starts from 0 (all)
-                        if lower == 0:
-                            bdb.update_rec(0, url_in, title_in, tags, desc_in,
-                                           args.immutable, args.threads)
-                        else:
-                            for _id in range(lower, upper + 1):
-                                bdb.update_rec(_id, url_in, title_in, tags,
-                                               desc_in, args.immutable,
-                                               args.threads)
-                                if interrupted:
-                                    break
-
-                    if interrupted:
-                        break
+                if interrupted:
+                    break
 
     # Delete record
     if args.delete is not None:
