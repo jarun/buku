@@ -18,7 +18,7 @@ complete -c buku -s j -l json       --description 'show Json output for print an
 complete -c buku -s k -l unlock     --description 'decrypt database'
 complete -c buku -s l -l lock       --description 'encrypt database'
 complete -c buku -s m -l merge   -r --description 'merge another buku database'
-complete -c buku -l markdown        --description 'markdown mode'
+complete -c buku -l md              --description 'markdown mode for import or export'
 complete -c buku -l nc              --description 'disable color output'
 complete -c buku -l np              --description 'non-interactive mode'
 complete -c buku -s o -l open       --description 'open bookmarks in browser'

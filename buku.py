@@ -2491,7 +2491,7 @@ POSITIONAL ARGUMENTS:
                          use --tag to export only specific tags
     -i, --import file    import bookmarks from html file
                          FF and Google Chrome formats supported
-    --markdown           use markdown with -e and -i
+    --md                 use markdown with -e and -i
                          format: [title](url), 1 per line
     -m, --merge file     add bookmarks from another buku DB file
     -p, --print [...]    show details of bookmark by DB index
@@ -2520,7 +2520,7 @@ POSITIONAL ARGUMENTS:
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
-    addarg('--markdown', action='store_true', help=HIDE)
+    addarg('--md', action='store_true', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3}, help=HIDE)
@@ -2859,15 +2859,15 @@ POSITIONAL ARGUMENTS:
     # Export bookmarks
     if args.export is not None:
         if args.tag is None:
-            bdb.exportdb(args.export[0], args.markdown)
+            bdb.exportdb(args.export[0], args.md)
         elif not args.tag:
             logerr('Missing tag')
         else:
-            bdb.exportdb(args.export[0], args.markdown, args.tag)
+            bdb.exportdb(args.export[0], args.md, args.tag)
 
     # Import bookmarks
     if args.importfile is not None:
-        bdb.importdb(args.importfile[0], args.markdown)
+        bdb.importdb(args.importfile[0], args.md)
 
     # Merge a database file and exit
     if args.merge is not None:

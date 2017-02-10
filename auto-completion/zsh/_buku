@@ -23,7 +23,7 @@ args=(
     '(-k --unlock)'{-k,--unlock}'[decrypt database]'
     '(-l --lock)'{-l,--lock}'[encrypt database]'
     '(-m --merge)'{-m,--merge}'[merge another buku database]:buku db file'
-    '(--markdown)--markdown[markdown mode]'
+    '(--md)--md[markdown mode for import or export]'
     '(--nc)--nc[disable color output]'
     '(--np)--np[noninteractive mode]'
     '(-o --open)'{-o,--open}'[open bookmarks in browser]'

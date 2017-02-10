@@ -161,7 +161,7 @@ Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export
 .BI \-i " " \--import " file"
 Import bookmarks exported from Firefox or Google Chrome in HTML format.
 .TP
-.BI \--markdown
+.BI \--md
 Use markdown for --export and --import. Supported format is '[title](url)', one entry per line.
 .TP
 .BI \-m " " \--merge " file"
@@ -371,7 +371,7 @@ Applies to --url, --title and --tag too.
 .EX
 .IP
 .B buku -e bookmarks.html --tag tag 1, tag 2
-.B buku -e bookmarks.md --markdown --tag tag 1, tag 2
+.B buku -e bookmarks.md --md --tag tag 1, tag 2
 .EE
 .PP
 .IP "" 4
@@ -383,7 +383,7 @@ All bookmarks are exported if --tag is not specified.
 .EX
 .IP
 .B buku -i bookmarks.html
-.B buku -i bookmarks.md --markdown
+.B buku -i bookmarks.md --md
 .EE
 .PP
 .IP 11. 4
