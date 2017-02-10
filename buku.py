@@ -2503,7 +2503,7 @@ POSITIONAL ARGUMENTS:
                          replace oldtag with newtag everywhere
                          delete oldtag, if no newtag
     -j, --json           Json formatted output for -p and search
-    --nocolor            disable color output
+    --nc                 disable color output
     --noprompt           do not show the prompt, run and exit
     -o, --open [...]     open bookmarks in browser by DB index
                          accepts indices and ranges
@@ -2526,7 +2526,7 @@ POSITIONAL ARGUMENTS:
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3}, help=HIDE)
     addarg('-r', '--replace', nargs='+', help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
-    addarg('--nocolor', action='store_true', help=HIDE)
+    addarg('--nc', action='store_true', help=HIDE)
     addarg('--noprompt', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--oa', action='store_true', help=HIDE)
@@ -2561,7 +2561,7 @@ POSITIONAL ARGUMENTS:
         urllib3.disable_warnings()
 
     # Handle color output preference
-    if args.nocolor:
+    if args.nc:
         colorize = False
         ID_str = '%d. %s [%s]\n'
         ID_DB_str = '%d. %s'
@@ -2600,7 +2600,7 @@ POSITIONAL ARGUMENTS:
 
     # Initialize the database and get handles, set verbose by default
     bdb = BukuDb(args.json, args.format, not args.tacit,
-                 colorize=not args.nocolor)
+                 colorize=not args.nc)
 
     # Editor mode
     if args.write is not None:

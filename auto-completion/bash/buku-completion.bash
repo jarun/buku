@@ -26,7 +26,7 @@ _buku () {
         -l --lock
         -m --merge
         --markdown
-        --nocolor
+        --nc
         --noprompt
         -o --open
         --oa
