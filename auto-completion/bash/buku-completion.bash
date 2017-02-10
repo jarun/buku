@@ -25,7 +25,6 @@ _buku () {
         -k --unlock
         -l --lock
         -m --merge
-        --md
         --nc
         --np
         -o --open

@@ -195,11 +195,13 @@ ENCRYPTION OPTIONS:
 
 POWER TOYS:
       -e, --export file    export bookmarks to Firefox format html
+                           export markdown, if file ends with '.md'
+                           format: [title](url), 1 entry per line
                            use --tag to export only specific tags
       -i, --import file    import bookmarks from html file
                            FF and Google Chrome formats supported
-      --md                 use markdown with -e and -i
-                           format: [title](url), 1 per line
+                           import markdown, if file ends with '.md'
+                           format: [title](url), 1 entry per line
       -m, --merge file     add bookmarks from another buku DB file
       -p, --print [...]    show details of bookmark by DB index
                            accepts indices and ranges
@@ -399,12 +401,12 @@ Applies to --url, --title and --tag too.
 9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML and markdown:
 
         $ buku -e bookmarks.html --tag tag 1, tag 2
-        $ buku -e bookmarks.md --md --tag tag 1, tag 2
+        $ buku -e bookmarks.md --tag tag 1, tag 2
 All bookmarks are exported if --tag is not specified.
 10. **Import** bookmarks from HTML and markdown:
 
         $ buku -i bookmarks.html
-        $ buku -i bookmarks.md --md
+        $ buku -i bookmarks.md
 11. **Delete only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c

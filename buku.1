@@ -156,13 +156,14 @@ Decrypt (unlock) the DB file with
 .SH POWER OPTIONS
 .TP
 .BI \-e " " \--export " file"
-Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags.
+Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags. Markdown is used if destination file has extension '.md'.
+.br
+Markdown format: [title](url), 1 entry per line.
 .TP
 .BI \-i " " \--import " file"
-Import bookmarks exported from Firefox or Google Chrome in HTML format.
-.TP
-.BI \--md
-Use markdown for --export and --import. Supported format is '[title](url)', one entry per line.
+Import bookmarks exported from Firefox or Google Chrome in HTML format. Markdown is used if source file has extension '.md'.
+.br
+Markdown format: [title](url), 1 entry per line.
 .TP
 .BI \-m " " \--merge " file"
 Add bookmarks from another Buku database file.
@@ -371,7 +372,7 @@ Applies to --url, --title and --tag too.
 .EX
 .IP
 .B buku -e bookmarks.html --tag tag 1, tag 2
-.B buku -e bookmarks.md --md --tag tag 1, tag 2
+.B buku -e bookmarks.md --tag tag 1, tag 2
 .EE
 .PP
 .IP "" 4
@@ -383,7 +384,7 @@ All bookmarks are exported if --tag is not specified.
 .EX
 .IP
 .B buku -i bookmarks.html
-.B buku -i bookmarks.md --md
+.B buku -i bookmarks.md
 .EE
 .PP
 .IP 11. 4

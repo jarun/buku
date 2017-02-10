@@ -1256,12 +1256,12 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath, markdown=False, taglist=None):
-        '''Export bookmarks to a Firefox bookmarks formatted
-           html or markdown file.
+    def exportdb(self, filepath, taglist=None):
+        '''Export bookmarks to a Firefox bookmarks
+        formatted html or a markdown file, if
+        destination file name ends with '.md'.
 
         :param filepath: path to file to export to
-        :param markdown: use markdown syntax
         :param taglist: list of specific tags to export
         :return: True on success, False on failure
         '''
@@ -1313,7 +1313,16 @@ class BukuDb:
             logerr(e)
             return False
 
-        if not markdown:
+        if filepath.endswith('.md'):
+            outfp.write('List of buku bookmarks:\n\n')
+            for row in resultset:
+                if row[2] == '':
+                    out = '- [Untitled](%s)\n' % (row[1])
+                else:
+                    out = '- [%s](%s)\n' % (row[2], row[1])
+                outfp.write(out)
+                count += 1
+        else:
             outfp.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
@@ -1339,30 +1348,43 @@ Buku bookmarks</H3>
                 count += 1
 
             outfp.write('    </DL><p>\n</DL><p>')
-        else:
-            outfp.write('List of buku bookmarks:\n\n')
-            for row in resultset:
-                if row[2] == '':
-                    out = '- [Untitled](%s)\n' % (row[1])
-                else:
-                    out = '- [%s](%s)\n' % (row[2], row[1])
-                outfp.write(out)
-                count += 1
 
         outfp.close()
         print('%s exported' % count)
         return True
 
-    def importdb(self, filepath, markdown=False):
-        '''Import bookmarks from a html or markdown file.
-        Supports Firefox, Google Chrome and IE exported html
+    def importdb(self, filepath):
+        '''Import bookmarks from a html or a markdown
+        file (with extension '.md').  Supports Firefox,
+        Google Chrome and IE exported html
 
         :param filepath: path to file to import
-        :param markdown: use markdown syntax
         :return: True on success, False on failure
         '''
 
-        if not markdown:
+        if filepath.endswith('.md'):
+            with open(filepath, mode='r', encoding='utf-8') as infp:
+                for line in infp:
+                    # Supported markdown format: [title](url)
+                    # Find position of title end, url start delimiter combo
+                    index = line.find('](')
+                    if index != -1:
+                        # Find title start delimiter
+                        title_start_delim = line[:index].find('[')
+                        # Reverse find the url end delimiter
+                        url_end_delim = line[index + 2:].rfind(')')
+
+                        if title_start_delim != -1 and url_end_delim > 0:
+                            # Parse title
+                            title = line[title_start_delim + 1:index]
+                            # Parse url
+                            url = line[index + 2:index + 2 + url_end_delim]
+
+                            self.add_rec(url, title, None, None, 0, True)
+
+            self.conn.commit()
+            infp.close()
+        else:
             try:
                 import bs4
                 with open(filepath, mode='r', encoding='utf-8') as infp:
@@ -1386,28 +1408,6 @@ Buku bookmarks</H3>
                              (DELIM, tag['tags'], DELIM))
                              if tag.has_attr('tags') else None,
                              desc, 0, True)
-
-            self.conn.commit()
-            infp.close()
-        else:
-            with open(filepath, mode='r', encoding='utf-8') as infp:
-                for line in infp:
-                    # Supported markdown format: [title](url)
-                    # Find position of title end, url start delimiter combo
-                    index = line.find('](')
-                    if index != -1:
-                        # Find title start delimiter
-                        title_start_delim = line[:index].find('[')
-                        # Reverse find the url end delimiter
-                        url_end_delim = line[index + 2:].rfind(')')
-
-                        if title_start_delim != -1 and url_end_delim > 0:
-                            # Parse title
-                            title = line[title_start_delim + 1:index]
-                            # Parse url
-                            url = line[index + 2:index + 2 + url_end_delim]
-
-                            self.add_rec(url, title, None, None, 0, True)
 
             self.conn.commit()
             infp.close()
@@ -2488,11 +2488,13 @@ POSITIONAL ARGUMENTS:
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
         description='''    -e, --export file    export bookmarks to Firefox format html
+                         export markdown, if file ends with '.md'
+                         format: [title](url), 1 entry per line
                          use --tag to export only specific tags
     -i, --import file    import bookmarks from html file
                          FF and Google Chrome formats supported
-    --md                 use markdown with -e and -i
-                         format: [title](url), 1 per line
+                         import markdown, if file ends with '.md'
+                         format: [title](url), 1 entry per line
     -m, --merge file     add bookmarks from another buku DB file
     -p, --print [...]    show details of bookmark by DB index
                          accepts indices and ranges
@@ -2520,7 +2522,6 @@ POSITIONAL ARGUMENTS:
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
-    addarg('--md', action='store_true', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3}, help=HIDE)
@@ -2859,15 +2860,15 @@ POSITIONAL ARGUMENTS:
     # Export bookmarks
     if args.export is not None:
         if args.tag is None:
-            bdb.exportdb(args.export[0], args.md)
+            bdb.exportdb(args.export[0])
         elif not args.tag:
             logerr('Missing tag')
         else:
-            bdb.exportdb(args.export[0], args.md, args.tag)
+            bdb.exportdb(args.export[0], args.tag)
 
     # Import bookmarks
     if args.importfile is not None:
-        bdb.importdb(args.importfile[0], args.md)
+        bdb.importdb(args.importfile[0])
 
     # Merge a database file and exit
     if args.merge is not None:
