@@ -222,7 +222,7 @@ POWER TOYS:
       --tacit              reduce verbosity
       --threads N          max network connections in full refresh
                            default N=4, min N=1, max N=10
-      --upstream           check latest upstream version available
+      -V                   check latest upstream version available
       -z, --debug          show debug information and verbose logs
 
 SYMBOLS:

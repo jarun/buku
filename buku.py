@@ -2515,7 +2515,7 @@ POSITIONAL ARGUMENTS:
     --tacit              reduce verbosity
     --threads N          max network connections in full refresh
                          default N=4, min N=1, max N=10
-    --upstream           check latest upstream version available
+    -V                   check latest upstream version available
     -z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
@@ -2534,7 +2534,7 @@ POSITIONAL ARGUMENTS:
     addarg('--expand', nargs=1, help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=HIDE)
-    addarg('--upstream', action='store_true', help=HIDE)
+    addarg('-V', dest='upstream', action='store_true', help=HIDE)
     addarg('-z', '--debug', action='store_true', help=HIDE)
     # Undocumented API
     addarg('--fixtags', action='store_true', help=HIDE)

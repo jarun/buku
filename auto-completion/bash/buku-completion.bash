@@ -42,8 +42,8 @@ _buku () {
         --tag
         --threads
         -u --update
-        --upstream
         --url
+        -V
         -v --version
         -w --write
         -z --debug
