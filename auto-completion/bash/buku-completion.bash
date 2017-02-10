@@ -27,7 +27,7 @@ _buku () {
         -m --merge
         --markdown
         --nc
-        --noprompt
+        --np
         -o --open
         --oa
         -p --print

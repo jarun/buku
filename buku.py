@@ -2504,7 +2504,7 @@ POSITIONAL ARGUMENTS:
                          delete oldtag, if no newtag
     -j, --json           Json formatted output for -p and search
     --nc                 disable color output
-    --noprompt           do not show the prompt, run and exit
+    --np                 do not show the prompt, run and exit
     -o, --open [...]     open bookmarks in browser by DB index
                          accepts indices and ranges
                          open a random index, if no arguments
@@ -2527,7 +2527,7 @@ POSITIONAL ARGUMENTS:
     addarg('-r', '--replace', nargs='+', help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
-    addarg('--noprompt', action='store_true', help=HIDE)
+    addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--oa', action='store_true', help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
@@ -2693,14 +2693,14 @@ POSITIONAL ARGUMENTS:
             search_results = bdb.search_by_tag(' '.join(args.keywords))
         else:
             # Use sub prompt to list all tags
-            prompt(bdb, None, args.noprompt, subprompt=True)
+            prompt(bdb, None, args.np, subprompt=True)
     elif args.keywords:
         search_results = bdb.searchdb(args.keywords, False, args.deep)
     else:
         search_opted = False
 
     if search_results:
-        oneshot = args.noprompt
+        oneshot = args.np
         to_delete = False
 
         # Open all results in browser right away if args.oa

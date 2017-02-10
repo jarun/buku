@@ -211,7 +211,7 @@ POWER TOYS:
                            delete oldtag, if no newtag
       -j, --json           Json formatted output for -p and search
       --nc                 disable color output
-      --noprompt           do not show the prompt, run and exit
+      --np                 do not show the prompt, run and exit
       -o, --open [...]     open bookmarks in browser by DB index
                            accepts indices and ranges
                            open a random index, if no arguments
