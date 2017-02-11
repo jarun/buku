@@ -2390,27 +2390,29 @@ POSITIONAL ARGUMENTS:
         title='GENERAL OPTIONS',
         description='''    -a, --add URL [tag, ...]
                          bookmark URL with comma-separated tags
-    -u, --update [...]   update fields of bookmark at DB indices
+    -u, --update [...]   update fields of an existing bookmark
                          accepts indices and ranges
-                         refresh all titles, if no arguments
-                         refresh titles of bookmarks at indices,
-                         if no edit options are specified
-                         update search results when used with
-                         search options, if no arguments
-    -d, --delete [...]   delete bookmarks. Valid inputs: either
-                         a hyphenated single range (100-200),
-                         OR space-separated indices (100 15 200)
-                         delete all bookmarks, if no arguments
-                         delete search results when used with
-                         search options, if no arguments
-    -v, --version        show program version and exit
-    -h, --help           show this information and exit''')
+                         refresh the title, if no edit options
+                         if no arguments:
+                         - update results when used with search
+                         - otherwise refresh all titles
+    -w, --write [editor|index]
+                         open editor to edit a fresh bookmark
+                         to update by index, EDITOR must be set
+    -d, --delete [...]   remove bookmarks from DB
+                         accepts indices or a single range
+                         if no arguments:
+                         - delete results when used with search
+                         - otherwise delete all bookmarks
+    -h, --help           show this information and exit
+    -v, --version        show the program version and exit''')
     addarg = general_grp.add_argument
     addarg('-a', '--add', nargs='+', help=HIDE)
     addarg('-u', '--update', nargs='*', help=HIDE)
+    addarg('-w', '--write', nargs='?', const=get_system_editor(), help=HIDE)
     addarg('-d', '--delete', nargs='*', help=HIDE)
-    addarg('-v', '--version', action='version', version=__version__, help=HIDE)
     addarg('-h', '--help', action='store_true', help=HIDE)
+    addarg('-v', '--version', action='version', version=__version__, help=HIDE)
 
     # ------------------
     # EDIT OPTIONS GROUP
@@ -2418,30 +2420,21 @@ POSITIONAL ARGUMENTS:
 
     edit_grp = argparser.add_argument_group(
         title='EDIT OPTIONS',
-        description='''    --url keyword        specify url, works only with -u option
-    --tag [+|-] [...]    set comma-separated tags with -a and -u
-                         clear tags, if no arguments
-                         works with -a, -u
-                         append to tags, if preceded by '+'
-                         remove from tags, if preceded by '-'
-    -t, --title [...]    manually set title, works with -a, -u
-                         if no arguments:
+        description='''    --url keyword        bookmark link
+    --tag [+|-] [...]    comma-separated tags
+                         clear bookmark tagset, if no arguments
+                         '+' appends to, '-' removes from tagset
+    -t, --title [...]    bookmark title; if no arguments:
                          -a: do not set title, -u: clear title
-    -c, --comment [...]  description of the bookmark, works with
-                         -a, -u; clears comment, if no arguments
-    -w, --write [editor|index]
-                         open editor to edit a single bookmark
-                         works with -a; if an index is passed to
-                         edit and update, EDITOR must be set
+    -c, --comment [...]  description of the bookmark
+                         clears description, if no arguments
     --immutable N        disable title fetch from web on update
-                         works with -a, -u
                          N=0: mutable (default), N=1: immutable''')
     addarg = edit_grp.add_argument
     addarg('--url', nargs=1, help=HIDE)
     addarg('--tag', nargs='*', help=HIDE)
     addarg('-t', '--title', nargs='*', help=HIDE)
     addarg('-c', '--comment', nargs='*', help=HIDE)
-    addarg('-w', '--write', nargs='?', const=get_system_editor(), help=HIDE)
     addarg('--immutable', type=int, default=-1, choices={0, 1}, help=HIDE)
 
     # --------------------
@@ -2487,33 +2480,28 @@ POSITIONAL ARGUMENTS:
 
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
-        description='''    -e, --export file    export bookmarks to Firefox format html
+        description='''    -e, --export file    export bookmarks in Firefox format html
                          export markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
                          use --tag to export only specific tags
-    -i, --import file    import bookmarks from html file
-                         FF and Google Chrome formats supported
+    -i, --import file    import Firefox or Chrome bookmarks html
                          import markdown, if file ends with '.md'
-                         format: [title](url), 1 entry per line
     -m, --merge file     add bookmarks from another buku DB file
-    -p, --print [...]    show details of bookmark by DB index
-                         accepts indices and ranges
-                         show all bookmarks, if no arguments
+    -p, --print [...]    show record details by indices, ranges
+                         print all bookmarks, if no arguments
     -f, --format N       limit fields in -p or Json search output
                          N=1: URL, N=2: URL and tag, N=3: title
     -r, --replace oldtag [newtag ...]
                          replace oldtag with newtag everywhere
-                         delete oldtag, if no newtag
+                         delete oldtag, if newtag not specified
     -j, --json           Json formatted output for -p and search
     --nc                 disable color output
     --np                 do not show the prompt, run and exit
-    -o, --open [...]     open bookmarks in browser by DB index
-                         accepts indices and ranges
-                         open a random index, if no arguments
-    --oa                 open all search results immediately
-    --shorten N/URL      fetch shortened url from tny.im service
-                         accepts either a DB index or a URL
-    --expand N/URL       expand a tny.im shortened url
+    -o, --open [...]     browse bookmarks by indices and ranges
+                         open a random bookmark, if no arguments
+    --oa                 browse all search results immediately
+    --shorten index|URL  fetch shortened url from tny.im service
+    --expand index|URL   expand a tny.im shortened url
     --tacit              reduce verbosity
     --threads N          max network connections in full refresh
                          default N=4, min N=1, max N=10
@@ -2648,6 +2636,10 @@ POSITIONAL ARGUMENTS:
 
     # Add record
     if args.add is not None:
+        if args.url is not None and args.update is None:
+            logerr('Bookmark a single URL at a time')
+            bdb.close_quit(1)
+
         # Parse tags into a comma-separated string
         tags = DELIM
         keywords = args.add

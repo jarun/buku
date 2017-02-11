@@ -89,6 +89,13 @@ along with comma-separated tags. A tag can have multiple words.
 .BI \-u " " \--update " [...]"
 Update fields of the bookmarks at specified indices in DB. If no arguments are specified, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only indices are passed without any edit options, titles are fetched and updated (if not empty). Accepts hyphenated ranges and space-separated indices. Updates search results when used with search options, if no arguments.
 .TP
+.BI \-w " " \--write " [editor|index]"
+Edit a bookmark in
+.I editor
+before adding it. To edit and update an existing bookmark, the
+.I index
+should be passed. However, in this case the environment variable EDITOR must be set.
+.TP
 .BI \-d " " \--delete " [...]"
 Delete bookmarks. Accepts space-separated list of indices (e.g. 5 6 23 4 110 45) or a single hyphenated range (e.g. 100-200). Note that range and list don't work together. Deletes search results when combined with search options, if no arguments.
 .TP
@@ -110,9 +117,6 @@ Manually specify the title, works with --add, --update. Omits or clears the titl
 .TP
 .BI \-c " " \--comment " [...]"
 Add comment or description on the bookmark, works with --add, --update. Clears the comment, if no arguments passed.
-.TP
-.BI \-w " " \--write " [editor|index]"
-Open editor and edit a bookmark before adding or updating it.
 .TP
 .BI \--immutable " N"
 Set the title of a bookmark immutable during updates. Works with --add, --update. N=1 sets the immutable flag, N=0 removes it. If omitted, bookmarks are added with N=0.
@@ -156,14 +160,16 @@ Decrypt (unlock) the DB file with
 .SH POWER OPTIONS
 .TP
 .BI \-e " " \--export " file"
-Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags. Markdown is used if destination file has extension '.md'.
+Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags. Markdown is used if
+.I file
+has extension '.md'.
 .br
 Markdown format: [title](url), 1 entry per line.
 .TP
 .BI \-i " " \--import " file"
-Import bookmarks exported from Firefox or Google Chrome in HTML format. Markdown is used if source file has extension '.md'.
-.br
-Markdown format: [title](url), 1 entry per line.
+Import bookmarks exported from Firefox or Google Chrome as HTML.
+.I file
+is considered Markdown (compliant with --export format) if it has '.md' extension.
 .TP
 .BI \-m " " \--merge " file"
 Add bookmarks from another Buku database file.
@@ -209,16 +215,16 @@ Open bookmarks by DB indices or ranges in browser. Open a random index if argume
 .BI \--oa
 Open all search results immediately in the browser. Works best with --np. When used along with --update or --delete, URLs are opened in the browser first and then modified or deleted.
 .TP
-.BI \--shorten " N/URL"
-Shorten the URL at DB index
-.I N
+.BI \--shorten " index|URL"
+Shorten the URL at DB
+.I index
 or an independent
 .I URL
 using the tny.im URL shortener service.
 .TP
-.BI \--expand
-Expand the URL at DB index
-.I N
+.BI \--expand " index|URL"
+Expand the URL at DB
+.I index
 or an independent
 .I URL
 shortened using tny.im.
