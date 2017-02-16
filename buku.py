@@ -2562,8 +2562,7 @@ POSITIONAL ARGUMENTS:
     # Handle encrypt/decrypt options at top priority
     if args.lock is not None:
         BukuCrypt.encrypt_file(args.lock)
-
-    if args.unlock is not None:
+    elif args.unlock is not None:
         BukuCrypt.decrypt_file(args.unlock)
 
     # Set up title
@@ -2659,7 +2658,7 @@ POSITIONAL ARGUMENTS:
 
         url = args.add[0]
 
-        if args.write and not is_int(arg.write):
+        if args.write and not is_int(args.write):
             result = edit_rec(args.write, url, title_in, tags, desc_in)
             if result is not None:
                 url, title_in, tags, desc_in = result
