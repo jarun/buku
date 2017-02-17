@@ -451,7 +451,7 @@ class BukuDb:
 
         return (conn, cur)
 
-    def get_rec_all(self):
+    def get_all_rec(self):
         ''' Get all the bookmarks in the database
 
         :return: a list of tuples each of which is a bookmark along with its parameters
