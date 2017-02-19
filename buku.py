@@ -451,6 +451,15 @@ class BukuDb:
 
         return (conn, cur)
 
+    def get_all_rec(self):
+        ''' Get all the bookmarks in the database
+
+        :return: a list of tuples each of which is a bookmark along with its parameters
+        '''
+
+        self.cur.execute('SELECT * FROM bookmarks')
+        return self.cur.fetchall()
+
     def get_rec_by_id(self, index):
         '''Get a bookmark from database by its ID.
 
@@ -1090,6 +1099,21 @@ class BukuDb:
             pos -= 1
 
         return True
+
+    def delete_all_rec(self, delay_commit=False):
+        '''Removes all records in the Bookmarks table
+
+        :param delay_commit: do not commit to DB, caller responsibility
+        :return: True on success, False on failure
+        '''
+        try:
+            self.cur.execute('DELETE FROM bookmarks')
+            if not delay_commit:
+                self.conn.commit()
+            return True
+        except Exception as e:
+            logerr('delete_rec_all(): %s', e)
+            return False
 
     def cleardb(self):
         '''Drops the bookmark table if it exists
