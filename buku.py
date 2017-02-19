@@ -56,8 +56,8 @@ DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
 TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
 
 # Disguise as Firefox on Ubuntu
-USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 \
-Firefox/50.0'
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) Gecko/20100101 \
+Firefox/51.0'
 myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
 
@@ -451,10 +451,10 @@ class BukuDb:
 
         return (conn, cur)
 
-    def get_all_rec(self):
+    def get_rec_all(self):
         ''' Get all the bookmarks in the database
 
-        :return: a list of tuples each of which is a bookmark along with its parameters
+        :return: a list of tuples as bookmark records
         '''
 
         self.cur.execute('SELECT * FROM bookmarks')
@@ -1100,12 +1100,13 @@ class BukuDb:
 
         return True
 
-    def delete_all_rec(self, delay_commit=False):
+    def delete_rec_all(self, delay_commit=False):
         '''Removes all records in the Bookmarks table
 
         :param delay_commit: do not commit to DB, caller responsibility
         :return: True on success, False on failure
         '''
+
         try:
             self.cur.execute('DELETE FROM bookmarks')
             if not delay_commit:
@@ -1182,7 +1183,7 @@ class BukuDb:
             else:
                 print(format_json(resultset, field_filter=self.field_filter))
 
-    def get_all_tags(self):
+    def get_tag_all(self):
         '''Get list of tags in DB
 
         :return: tuple (list of unique tags sorted alphabetically,
@@ -1272,7 +1273,7 @@ class BukuDb:
         query = 'SELECT URL FROM bookmarks WHERE id = ? LIMIT 1'
         try:
             for row in self.cur.execute(query, (index,)):
-                open_in_browser(row[0])
+                browse(row[0])
                 return True
             logerr('No matching index %d', index)
         except IndexError:
@@ -1574,7 +1575,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
 
     # Print program info
     @staticmethod
-    def print_program_info(file=sys.stdout):
+    def program_info(file=sys.stdout):
         if sys.platform == 'win32' and file == sys.stdout:
             file = sys.stderr
 
@@ -1592,7 +1593,7 @@ Webpage: https://github.com/jarun/Buku
 
     # Print prompt help
     @staticmethod
-    def print_prompt_help(file=sys.stdout):
+    def prompt_help(file=sys.stdout):
         file.write('''
 keys:
   1-N                  browse search result indices and/or ranges
@@ -1611,7 +1612,7 @@ keys:
     # Help
     def print_help(self, file=sys.stdout):
         super(ExtendedArgumentParser, self).print_help(file)
-        self.print_program_info(file)
+        self.program_info(file)
 
 
 # ----------------
@@ -1849,7 +1850,7 @@ def taglist_subprompt(obj, msg, noninteractive=False):
     :return: new command string
     '''
 
-    unique_tags, dic = obj.get_all_tags()
+    unique_tags, dic = obj.get_tag_all()
     new_results = True
 
     while True:
@@ -1994,7 +1995,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
 
         # Show help with '?'
         if nav == '?':
-            ExtendedArgumentParser.print_prompt_help(sys.stdout)
+            ExtendedArgumentParser.prompt_help(sys.stdout)
             new_results = False
             continue
 
@@ -2008,7 +2009,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
         # open all results and re-prompt with 'a'
         if nav == 'a':
             for index in range(0, count):
-                open_in_browser(results[index][1])
+                browse(results[index][1])
             continue
 
         # iterate over white-space separated indices
@@ -2018,7 +2019,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                 if index < 0 or index >= count:
                     print('No matching index %s' % nav)
                     continue
-                open_in_browser(results[index][1])
+                browse(results[index][1])
             elif '-' in nav and is_int(nav.split('-')[0]) \
                     and is_int(nav.split('-')[1]):
                 lower = int(nav.split('-')[0])
@@ -2027,7 +2028,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                     lower, upper = upper, lower
                 for index in range(lower-1, upper):
                     if 0 <= index < count:
-                        open_in_browser(results[index][1])
+                        browse(results[index][1])
                     else:
                         print('No matching index %d' % (index + 1))
             else:
@@ -2124,7 +2125,7 @@ def is_int(string):
         return False
 
 
-def open_in_browser(url):
+def browse(url):
     '''Duplicate stdin, stdout (to suppress showing errors
     on the terminal) and open URL in default browser
 
@@ -2149,7 +2150,7 @@ def open_in_browser(url):
     try:
         webbrowser.open(url)
     except Exception as e:
-        logerr('open_in_browser(): %s', e)
+        logerr('browse(): %s', e)
     finally:
         os.close(fd)
         os.dup2(_stderr, 2)
@@ -2724,7 +2725,7 @@ POSITIONAL ARGUMENTS:
         # URLs are opened first and updated/deleted later.
         if args.oa:
             for row in search_results:
-                open_in_browser(row[1])
+                browse(row[1])
 
         # In case of search and delete/update,
         # prompt should be non-interactive
