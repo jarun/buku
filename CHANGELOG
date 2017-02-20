@@ -1,3 +1,19 @@
+Buku 2.9
+2017-02-20
+
+Modifications
+- New option `-write` to compose and edit bookmarks in text editor
+- Support positional arguments as search keywords
+- New option `--oa` to search and open results directly in browser
+- Autodetect Markdown mode by file extension during export, import
+- Shortened options:
+    - `--nc` replaces `--nocolor`
+    - `--np` replaces `--noprompt`
+    - `-V` replaces `--upstream`
+- Option `--markdown` removed as the mode is autodetected now
+
+-------------------------------------------------------------------------------
+
 Buku 2.8
 2017-01-11
 

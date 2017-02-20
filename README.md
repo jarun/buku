@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/0ya8tyzm94cgi6mv4dhxnnem6"><img src="https://asciinema.org/a/9l6s2ppivpo661nu5slwk2t6y.png" alt="Asciicast" width="734"/></a>
+<a href="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv"><img src="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv.png" alt="Asciicast" width="734"/></a>
 </p>
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
@@ -418,6 +418,7 @@ The last index is moved to the deleted index to keep the DB compact.
         $ buku -d 100 15 200
 16. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
 
+        $ buku kernel debugging
         $ buku -s kernel debugging
 17. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
