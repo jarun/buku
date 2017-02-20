@@ -53,7 +53,7 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 ## Features
 
 - Fast, clean interface with distinct symbols
-- Edit, update bookmark fields in text editor
+- Text editor integration to compose and edit
 - Fetch page title from the web, add tags and comments
 - Multiple search modes, including `deep` and `regex`
 - Continuous search at prompt with on the fly mode switch
