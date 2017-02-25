@@ -500,19 +500,19 @@ class BukuDb:
         :param desc: string description
         :param immutable: disable title fetch from web
         :param delay_commit: do not commit to DB, caller responsibility
-        :return: True on success, False on failure
+        :return: index of new bookmark on success, -1 on failure
         '''
 
         # Return error for empty URL
         if not url or url == '':
             logerr('Invalid URL')
-            return False
+            return -1
 
         # Ensure that the URL does not exist in DB already
         id = self.get_rec_id(url)
         if id != -1:
             logerr('URL [%s] already exists at index %d', url, id)
-            return False
+            return -1
 
         # Process title
         if title_in is not None:
@@ -552,10 +552,10 @@ class BukuDb:
                 self.conn.commit()
             if self.chatty:
                 self.print_rec(self.cur.lastrowid)
-            return True
+            return self.cur.lastrowid
         except Exception as e:
             logerr('add_rec(): %s', e)
-            return False
+            return -1
 
     def append_tag_at_index(self, index, tags_in):
         '''Append tags for bookmark at index
