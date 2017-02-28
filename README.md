@@ -20,6 +20,8 @@
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
+There are several [projects](#related-projects) based on `buku`, including a browser plug-in.
+
 *Buku* is too busy to track you - no history, obsolete records, usage analytics or homing.
 
 <p align="center">
@@ -336,8 +338,9 @@ NOTE: This flexibility is not exposed in the program.
 
 ## Related projects
 
-- [buku_run](https://github.com/carnager/buku_run), a rofi frontend
-- [oil](https://github.com/AndreiUlmeyda/oil), a search-as-you-type cli frontend
+- [bukubrow](https://github.com/SamHH/bukubrow), WebExtension for browser integration
+- [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli frontend
+- [buku_run](https://github.com/carnager/buku_run), rofi frontend
 
 ## Mentions
 
