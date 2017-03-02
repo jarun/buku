@@ -2166,8 +2166,8 @@ def check_upstream_release():
 
     try:
         r = requests.get(
-                    'https://api.github.com/repos/jarun/buku/tags?per_page=1',
-                    proxies=proxies
+                'https://api.github.com/repos/jarun/buku/releases?per_page=1',
+                proxies=proxies
                         )
     except Exception as e:
         logerr(e)
@@ -2176,7 +2176,7 @@ def check_upstream_release():
     if r.status_code != 200:
         logerr('[%s] %s', r.status_code, r.reason)
     else:
-        latest = r.json()[0]['name']
+        latest = r.json()[0]['tag_name']
         if latest == 'v' + __version__:
             print('This is the latest release')
         else:
