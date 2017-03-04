@@ -439,20 +439,20 @@ def test_print_rec(capsys, caplog, setup):
     # printing first bookmark
     bdb.print_rec(1)
     out, err = capsys.readouterr()
-    assert out == "\x1b[1m\x1b[93m1. \x1b[0m\x1b[92mhttp://full-bookmark.com\x1b[0m\n   \x1b[91m>\x1b[0m full\n   \x1b[91m+\x1b[0m full bookmark\n   \x1b[91m#\x1b[0m bookmark,full\n\n"
+    assert out == "\x1b[93;1m1. \x1b[0;92mhttp://full-bookmark.com\x1b[0m\n   \x1b[91m>\x1b[0m full\n   \x1b[91m+\x1b[0m full bookmark\n   \x1b[91m#\x1b[0m bookmark,full\n\n"
     assert err == ''
 
     # printing all bookmarks
     bdb.print_rec(0)
     out, err = capsys.readouterr()
-    assert out == "\x1b[1m\x1b[93m1. \x1b[0m\x1b[92mhttp://full-bookmark.com\x1b[0m\n   \x1b[91m>\x1b[0m full\n   \x1b[91m+\x1b[0m full bookmark\n   \x1b[91m#\x1b[0m bookmark,full\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m4. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
+    assert out == "\x1b[93;1m1. \x1b[0;92mhttp://full-bookmark.com\x1b[0m\n   \x1b[91m>\x1b[0m full\n   \x1b[91m+\x1b[0m full bookmark\n   \x1b[91m#\x1b[0m bookmark,full\n\n\x1b[93;1m2. \x1b[0;92mhttp://blank-title.com\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[93;1m3. \x1b[0;92mhttp://empty-tags.com\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[93;1m4. \x1b[0;92mhttp://all-empty.com\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
     assert err == ''
 
     # printing all bookmarks with empty fields
     results = bdb.searchdb(['blank'], True)
     prompt(bdb, results, True)
     out, err = capsys.readouterr()
-    assert out == "\x1b[1m\x1b[93m1. \x1b[0m\x1b[92mhttp://blank-title.com\x1b[0m \x1b[1m[2]\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[1m\x1b[93m2. \x1b[0m\x1b[92mhttp://empty-tags.com\x1b[0m \x1b[1m[3]\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[1m\x1b[93m3. \x1b[0m\x1b[92mhttp://all-empty.com\x1b[0m \x1b[1m[4]\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
+    assert out == "\x1b[93;1m1. \x1b[0;92mhttp://blank-title.com\x1b[0;1m [2]\x1b[0m\n   \x1b[91m+\x1b[0m blank title\n   \x1b[91m#\x1b[0m blank,title\n\n\x1b[93;1m2. \x1b[0;92mhttp://empty-tags.com\x1b[0;1m [3]\x1b[0m\n   \x1b[91m>\x1b[0m empty tags\n   \x1b[91m+\x1b[0m empty tags\n\n\x1b[93;1m3. \x1b[0;92mhttp://all-empty.com\x1b[0;1m [4]\x1b[0m\n   \x1b[91m+\x1b[0m all empty\n\n"
     assert err == ''
 
 

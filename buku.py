@@ -48,8 +48,8 @@ SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
 # Default colour to print records
-ID_str = '\x1b[1m\x1b[93m%d. \x1b[0m\x1b[92m%s\x1b[0m \x1b[1m[%s]\x1b[0m\n'
-ID_DB_str = '\x1b[1m\x1b[93m%d. \x1b[0m\x1b[92m%s\x1b[0m'
+ID_str = '\x1b[93;1m%d. \x1b[0;92m%s\x1b[0;1m [%s]\x1b[0m\n'
+ID_DB_str = '\x1b[93;1m%d. \x1b[0;92m%s\x1b[0m'
 MUTE_str = '%s \x1b[1m(L)\x1b[0m\n'
 TITLE_str = '%s   \x1b[91m>\x1b[0m %s\n'
 DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
@@ -62,7 +62,6 @@ myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
 
 # Set up logging
-logging.basicConfig(format='[%(levelname)s] %(message)s')
 logger = logging.getLogger()
 logdbg = logger.debug
 logerr = logger.error
@@ -2134,7 +2133,7 @@ def browse(url):
     '''
 
     if not parse_url(url).scheme:
-        # Prefix with 'http://' is no scheme
+        # Prefix with 'http://' if no scheme
         # Otherwise, opening in browser fails anyway
         # We expect http to https redirection
         # will happen for https-only websites
@@ -2368,6 +2367,40 @@ def edit_rec(editor, url, title_in, tags_in, desc):
     return parsed_content
 
 
+def setup_logger(logger):
+    '''Setup logger with color
+
+    :param logger: looger to colorize
+    '''
+
+    def decorate_emit(fn):
+        def new(*args):
+            levelno = args[0].levelno
+
+            if levelno == logging.DEBUG:
+                color = '\x1b[35m'
+            elif levelno == logging.ERROR:
+                color = '\x1b[31m'
+            elif levelno == logging.WARNING:
+                color = '\x1b[33m'
+            elif levelno == logging.INFO:
+                color = '\x1b[32m'
+            elif levelno == logging.CRITICAL:
+                color = '\x1b[31m'
+            else:
+                color = '\x1b[0m'
+
+            args[0].msg = '{0}[{1}]\x1b[0m {2}'.format(color,
+                                                       args[0].levelname,
+                                                       args[0].msg)
+            return fn(*args)
+        return new
+
+    sh = logging.StreamHandler()
+    sh.emit = decorate_emit(sh.emit)
+    logger.addHandler(sh)
+
+
 # Handle piped input
 def piped_input(argv, pipeargs=None):
     if not sys.stdin.isatty():
@@ -2584,6 +2617,10 @@ POSITIONAL ARGUMENTS:
         TITLE_str = '%s   > %s\n'
         DESC_str = '%s   + %s\n'
         TAG_str = '%s   # %s\n'
+        logging.basicConfig(format='[%(levelname)s] %(message)s')
+    else:
+        # Enable color in logs
+        setup_logger(logger)
 
     # Handle encrypt/decrypt options at top priority
     if args.lock is not None:
