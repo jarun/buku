@@ -1734,16 +1734,15 @@ def network_handler(url, http_head=False):
     :return: (title, recognized mime, bad url) tuple
     '''
 
-    http_handler = None
     page_title = None
-    resp = None
-    method = 'GET'
 
     if is_bad_url(url):
         return ('', 0, 1)
 
     if is_ignored_mime(url) or http_head:
         method = 'HEAD'
+    else:
+        method = 'GET'
 
     if not myheaders:
         gen_headers()
