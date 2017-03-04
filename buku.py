@@ -522,7 +522,7 @@ class BukuDb:
             if bad:
                 print('Malformed URL\n')
             elif mime:
-                logdbg('Mime HEAD requested')
+                logdbg('HTTP HEAD requested')
             elif meta == '':
                 print('No title\n')
             else:
@@ -732,7 +732,7 @@ class BukuDb:
             if bad:
                 print('Malformed URL\n')
             elif mime:
-                logdbg('Mime HEAD requested')
+                logdbg('HTTP HEAD requested')
             elif title_to_insert == '':
                 print('No title\n')
             else:
@@ -788,11 +788,11 @@ class BukuDb:
         '''
 
         if index == 0:
-            self.cur.execute('SELECT id, url FROM bookmarks WHERE \
-                             flags & 1 != 1 ORDER BY id ASC')
+            self.cur.execute('SELECT id, url, flags FROM bookmarks \
+                             ORDER BY id ASC')
         else:
-            self.cur.execute('SELECT id, url FROM bookmarks WHERE id = ? AND \
-                             flags & 1 != 1 LIMIT 1', (index,))
+            self.cur.execute('SELECT id, url, flags FROM bookmarks WHERE \
+                             id = ? LIMIT 1', (index,))
 
         resultset = self.cur.fetchall()
         recs = len(resultset)
@@ -803,12 +803,12 @@ class BukuDb:
         # Set up strings to be printed
         if self.colorize:
             bad_url_str = '\x1b[1mIndex %d: Malformed URL\x1b[0m\n'
-            mime_str = '\x1b[1mIndex %d: Mime HEAD requested\x1b[0m\n'
+            mime_str = '\x1b[1mIndex %d: HTTP HEAD requested\x1b[0m\n'
             blank_title_str = '\x1b[1mIndex %d: No title\x1b[0m\n'
             success_str = 'Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
         else:
             bad_url_str = 'Index %d: Malformed URL\n'
-            mime_str = 'Index %d: Mime HEAD requested\n'
+            mime_str = 'Index %d: HTTP HEAD requested\n'
             blank_title_str = 'Index %d: No title\n'
             success_str = 'Title: [%s]\nIndex %d: updated\n'
 
@@ -845,7 +845,7 @@ class BukuDb:
                     break
                 cond.release()
 
-                title, mime, bad = network_handler(row[1])
+                title, mime, bad = network_handler(row[1], row[2] & 1)
                 count += 1
 
                 cond.acquire()
@@ -1658,6 +1658,7 @@ def is_ignored_mime(url):
 
     for mime in SKIP_MIMES:
         if url.lower().endswith(mime):
+            logdbg('matched MIME: %s', mime)
             return True
 
     return False
@@ -1725,10 +1726,11 @@ def get_PoolManager():
     return urllib3.PoolManager(num_pools=1, headers=myheaders)
 
 
-def network_handler(url):
+def network_handler(url, http_head=False):
     '''Handle server connection and redirections
 
     :param url: URL to fetch
+    :param http_head: send only HTTP HEAD request
     :return: (title, recognized mime, bad url) tuple
     '''
 
@@ -1740,7 +1742,7 @@ def network_handler(url):
     if is_bad_url(url):
         return ('', 0, 1)
 
-    if is_ignored_mime(url):
+    if is_ignored_mime(url) or http_head:
         method = 'HEAD'
 
     if not myheaders:
