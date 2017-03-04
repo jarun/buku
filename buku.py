@@ -2639,7 +2639,9 @@ POSITIONAL ARGUMENTS:
             result = edit_rec(editor, rec[1], rec[2], rec[3], rec[4])
             if result is not None:
                 url, title, tags, desc = result
-                bdb.update_rec(idx, url, title, tags, desc)
+                bdb.update_rec(idx, url, title, tags, desc, args.immutable)
+            elif args.immutable != -1:
+                bdb.update_rec(idx, immutable=args.immutable)
         elif args.add is None:
             # Edit and add a new bookmark
             # Parse tags into a comma-separated string
