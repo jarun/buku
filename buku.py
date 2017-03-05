@@ -472,6 +472,19 @@ class BukuDb:
 
         return -1
 
+    def get_max_id(self):
+        '''Fetch the ID of the last record
+
+        :return: ID if any record exists, else -1
+        '''
+
+        self.cur.execute('SELECT MAX(id) from bookmarks')
+        resultset = self.cur.fetchall()
+        if resultset[0][0] is None:
+            return -1
+
+        return resultset[0][0]
+
     def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0,
                 delay_commit=False):
         '''Add a new bookmark
@@ -989,10 +1002,9 @@ class BukuDb:
         :param delay_commit: do not commit to DB, caller's responsibility
         '''
 
-        self.cur.execute('SELECT MAX(id) from bookmarks')
-        results = self.cur.fetchall()
         # Return if the last index left in DB was just deleted
-        if results[0][0] is None:
+        max_id = self.get_max_id()
+        if max_id == -1:
             return
 
         query1 = ('SELECT id, URL, metadata, tags, desc FROM bookmarks '
@@ -1001,18 +1013,17 @@ class BukuDb:
         query3 = ('INSERT INTO bookmarks(id, URL, metadata, tags, desc) '
                   'VALUES (?, ?, ?, ?, ?)')
 
-        for row in results:
-            if row[0] > index:
-                self.cur.execute(query1, (row[0],))
-                results = self.cur.fetchall()
-                for row in results:
-                    self.cur.execute(query2, (row[0],))
-                    self.cur.execute(query3,
-                                     (index, row[1], row[2], row[3], row[4],))
-                    if not delay_commit:
-                        self.conn.commit()
-                    if self.chatty:
-                        print('Index %d moved to %d' % (row[0], index))
+        if max_id > index:
+            self.cur.execute(query1, (max_id,))
+            results = self.cur.fetchall()
+            for row in results:
+                self.cur.execute(query2, (row[0],))
+                self.cur.execute(query3,
+                                 (index, row[1], row[2], row[3], row[4],))
+                if not delay_commit:
+                    self.conn.commit()
+                if self.chatty:
+                    print('Index %d moved to %d' % (row[0], index))
 
     def delete_rec(self, index, low=0, high=0, is_range=False,
                    delay_commit=False):
@@ -1137,6 +1148,13 @@ class BukuDb:
         '''
 
         if index != 0:  # Show record at index
+            # Show the last record if -1 is passed
+            if index == -1:
+                index = self.get_max_id()
+                if index == -1:
+                    logerr('Empty database')
+                    return
+
             try:
                 query = 'SELECT * FROM bookmarks WHERE id = ? LIMIT 1'
                 self.cur.execute(query, (index,))
@@ -2553,6 +2571,7 @@ POSITIONAL ARGUMENTS:
     -m, --merge file     add bookmarks from another buku DB file
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
+                         -1 shows the bookmark with highest index
     -f, --format N       limit fields in -p or Json search output
                          N=1: URL, N=2: URL and tag, N=3: title
     -r, --replace oldtag [newtag ...]
@@ -2907,6 +2926,8 @@ POSITIONAL ARGUMENTS:
                         lower, upper = upper, lower
                     for _id in range(lower, upper + 1):
                         bdb.print_rec(_id)
+                elif idx == '-1':
+                    bdb.print_rec(idx)
                 else:
                     logerr('Invalid index or range to print')
                     bdb.close_quit(1)

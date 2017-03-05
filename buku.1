@@ -175,7 +175,7 @@ is considered Markdown (compliant with --export format) if it has '.md' extensio
 Add bookmarks from another Buku database file.
 .TP
 .BI \-p " " \--print " [...]"
-Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices.
+Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. Special index -1 (introduced for convenience) shows the details of the bookmark with the highest index.
 .TP
 .BI \-f " " \--format " N"
 Show selective monochrome output with specific fields. Works with --print. Search results honour the option when used along with --json. Useful for creating batch scripts.

@@ -198,6 +198,7 @@ POWER TOYS:
       -m, --merge file     add bookmarks from another buku DB file
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
+                           -1 shows the bookmark with highest index
       -f, --format N       limit fields in -p or Json search output
                            N=1: URL, N=2: URL and tag, N=3: title
       -r, --replace oldtag [newtag ...]
