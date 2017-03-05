@@ -2244,33 +2244,32 @@ def to_temp_file_content(url, title_in, tags_in, desc):
     :return: lines as newline separated string
     '''
 
-    strings = []
+    strings = [('# Lines beginning with "#" will be stripped.\n'
+                '# Add URL in next line (single line).'), ]
 
     # URL
-    strings.extend(['# Lines beginning with "#" will be stripped.\n\
-# Add URL in next line (single line).', ])
     if url is not None:
-        strings.append(url)
+        strings += (url,)
 
     # TITLE
-    strings.extend(['# Add TITLE in next line (single line). \
-Leave blank to web fetch, "-" for no title.'])
+    strings += (('# Add TITLE in next line (single line). '
+                 'Leave blank to web fetch, "-" for no title.'),)
     if title_in is None:
         title_in = ''
     elif title_in == '':
         title_in = '-'
-    strings.append(title_in)
+    strings += (title_in,)
 
     # TAGS
-    strings.extend(['# Add comma-separated TAGS in next line (single line).'])
-    strings.append(tags_in.strip(DELIM) if not None else '')
+    strings += ('# Add comma-separated TAGS in next line (single line).',)
+    strings += (tags_in.strip(DELIM),) if not None else ''
 
     # DESC
-    strings.append('# Add COMMENTS in next line(s).')
+    strings += ('# Add COMMENTS in next line(s).',)
     if desc is not None and desc != '':
-        strings.append(desc)
+        strings += (desc,)
     else:
-        strings.append('\n')
+        strings += ('\n',)
     return '\n'.join(strings)
 
 
@@ -2349,7 +2348,7 @@ def edit_rec(editor, url, title_in, tags_in, desc):
             logdbg('Edited content written to %s', tmpfile)
 
         cmd = editor.split(' ')
-        cmd.append(tmpfile)
+        cmd += (tmpfile,)
         subprocess.call(cmd)
 
         with open(tmpfile, 'r', encoding='utf-8') as f:
@@ -2404,9 +2403,9 @@ def setup_logger(logger):
 # Handle piped input
 def piped_input(argv, pipeargs=None):
     if not sys.stdin.isatty():
-        pipeargs.extend(argv)
+        pipeargs += argv
         for s in sys.stdin.readlines():
-            pipeargs.extend(s.split())
+            pipeargs += s.split()
 
 
 # main starts here
