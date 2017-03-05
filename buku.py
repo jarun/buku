@@ -56,8 +56,8 @@ DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
 TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
 
 # Disguise as Firefox on Ubuntu
-USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) Gecko/20100101 \
-Firefox/51.0'
+USER_AGENT = ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) '
+              'Gecko/20100101 Firefox/51.0')
 myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
 
@@ -420,10 +420,13 @@ class BukuDb:
             # flags: designed to be extended in future using bitwise masks
             # Masks:
             #     0b00000001: set title immutable
-            cur.execute('CREATE TABLE if not exists bookmarks \
-                        (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, \
-                        metadata text default \'\', tags text default \',\', \
-                        desc text default \'\', flags integer default 0)')
+            cur.execute('CREATE TABLE if not exists bookmarks ('
+                        'id integer PRIMARY KEY, '
+                        'URL text NOT NULL UNIQUE, '
+                        'metadata text default \'\', '
+                        'tags text default \',\', '
+                        'desc text default \'\', '
+                        'flags integer default 0)')
             conn.commit()
         except Exception as e:
             logerr('initdb(): %s', e)
@@ -525,9 +528,9 @@ class BukuDb:
             if immutable == 1:
                 flagset |= immutable
 
-            query = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) \
-                    VALUES (?, ?, ?, ?, ?)'
-            self.cur.execute(query, (url, meta, tags_in, desc, flagset))
+            qry = ('INSERT INTO bookmarks(URL, metadata, tags, desc, flags) '
+                   'VALUES (?, ?, ?, ?, ?)')
+            self.cur.execute(qry, (url, meta, tags_in, desc, flagset))
             if not delay_commit:
                 self.conn.commit()
             if self.chatty:
@@ -552,8 +555,8 @@ class BukuDb:
 
             self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
         else:
-            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ? \
-                             LIMIT 1', (index,))
+            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ? '
+                             'LIMIT 1', (index,))
 
         resultset = self.cur.fetchall()
         if resultset:
@@ -588,8 +591,8 @@ class BukuDb:
             match = "'%' || ? || '%'"
             for tag in tags_to_delete:
                 tag = delim_wrap(tag)
-                q = "UPDATE bookmarks SET tags = replace(tags, '%s', '%s')\
-                     WHERE tags LIKE %s" % (tag, DELIM, match)
+                q = ("UPDATE bookmarks SET tags = replace(tags, '%s', '%s') "
+                     'WHERE tags LIKE %s' % (tag, DELIM, match))
                 self.cur.execute(q, (tag,))
                 count += self.cur.rowcount
 
@@ -779,11 +782,11 @@ class BukuDb:
         '''
 
         if index == 0:
-            self.cur.execute('SELECT id, url, flags FROM bookmarks \
-                             ORDER BY id ASC')
+            self.cur.execute('SELECT id, url, flags FROM bookmarks '
+                             'ORDER BY id ASC')
         else:
-            self.cur.execute('SELECT id, url, flags FROM bookmarks WHERE \
-                             id = ? LIMIT 1', (index,))
+            self.cur.execute('SELECT id, url, flags FROM bookmarks WHERE '
+                             'id = ? LIMIT 1', (index,))
 
         resultset = self.cur.fetchall()
         recs = len(resultset)
@@ -906,11 +909,15 @@ class BukuDb:
 
         q0 = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE '
         # Deep query string
-        q1 = "(tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%') OR \
-             metadata LIKE ('%' || ? || '%') OR desc LIKE ('%' || ? || '%')) "
+        q1 = ("(tags LIKE ('%' || ? || '%') OR "
+              "URL LIKE ('%' || ? || '%') OR "
+              "metadata LIKE ('%' || ? || '%') OR "
+              "desc LIKE ('%' || ? || '%')) ")
         # Non-deep query string
-        q2 = '(tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc \
-             REGEXP ?) '
+        q2 = ('(tags REGEXP ? OR '
+              'URL REGEXP ? OR '
+              'metadata REGEXP ? OR '
+              'desc REGEXP ?) ')
         qargs = []
 
         if regex:
@@ -967,8 +974,8 @@ class BukuDb:
         '''
 
         tag = delim_wrap(tag.strip(DELIM))
-        query = "SELECT id, url, metadata, tags, desc FROM bookmarks \
-                WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC"
+        query = ('SELECT id, url, metadata, tags, desc FROM bookmarks '
+                 "WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC")
         logdbg('query: "%s", args: %s', query, tag)
 
         self.cur.execute(query, (tag,))
@@ -988,11 +995,11 @@ class BukuDb:
         if results[0][0] is None:
             return
 
-        query1 = 'SELECT id, URL, metadata, tags, \
-                 desc FROM bookmarks WHERE id = ? LIMIT 1'
+        query1 = ('SELECT id, URL, metadata, tags, desc FROM bookmarks '
+                  'WHERE id = ? LIMIT 1')
         query2 = 'DELETE FROM bookmarks WHERE id = ?'
-        query3 = 'INSERT INTO bookmarks(id, URL, metadata, \
-                 tags, desc) VALUES (?, ?, ?, ?, ?)'
+        query3 = ('INSERT INTO bookmarks(id, URL, metadata, tags, desc) '
+                  'VALUES (?, ?, ?, ?, ?)')
 
         for row in results:
             if row[0] > index:
@@ -1286,7 +1293,7 @@ class BukuDb:
         import time
 
         count = 0
-        timestamp = int(time.time())
+        timestamp = str(int(time.time()))
         arguments = []
         query = 'SELECT * FROM bookmarks'
         is_tag_valid = False
@@ -1340,17 +1347,16 @@ class BukuDb:
                 outfp.write(out)
                 count += 1
         else:
-            outfp.write('''<!DOCTYPE NETSCAPE-Bookmark-file-1>
-
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
-<TITLE>Bookmarks</TITLE>
-<H1>Bookmarks</H1>
-
-<DL><p>
-    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" PERSONAL_TOOLBAR_FOLDER="true">\
-Buku bookmarks</H3>
-    <DL><p>
-''' % (timestamp, timestamp))
+            outfp.write('<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
+                        '<META HTTP-EQUIV="Content-Type" '
+                        'CONTENT="text/html; charset=UTF-8">\n'
+                        '<TITLE>Bookmarks</TITLE>\n'
+                        '<H1>Bookmarks</H1>\n\n'
+                        '<DL><p>\n'
+                        '    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" '
+                        'PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
+                        '    <DL><p>\n'
+                        % (timestamp, timestamp))
 
             for row in resultset:
                 out = ('        <DT><A HREF="%s" ADD_DATE="%s" '
@@ -1668,8 +1674,8 @@ def get_page_title(resp):
         parser.feed(resp.data.decode(errors='replace'))
     except Exception as e:
         # Suppress Exception due to intentional self.reset() in BHTMLParser
-        if logger.isEnabledFor(logging.DEBUG) \
-                and str(e) != 'we should not get here!':
+        if (logger.isEnabledFor(logging.DEBUG) and
+                str(e) != 'we should not get here!'):
             logerr('get_page_title(): %s', e)
     finally:
         return parser.parsed_title
@@ -2013,8 +2019,8 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                     print('No matching index %s' % nav)
                     continue
                 browse(results[index][1])
-            elif '-' in nav and is_int(nav.split('-')[0]) \
-                    and is_int(nav.split('-')[1]):
+            elif ('-' in nav and is_int(nav.split('-')[0]) and
+                    is_int(nav.split('-')[1])):
                 lower = int(nav.split('-')[0])
                 upper = int(nav.split('-')[1])
                 if lower > upper:
@@ -2045,7 +2051,7 @@ def print_record(row, idx=0):
         if row[5] & 1:
             pr = MUTE_str % (pr)
         else:
-            pr = pr + '\n'
+            pr += '\n'
 
     # Append title
     if row[2] != '':
@@ -2830,8 +2836,8 @@ POSITIONAL ARGUMENTS:
                 if is_int(idx):
                     bdb.update_rec(int(idx), url_in, title_in, tags,
                                    desc_in, args.immutable, args.threads)
-                elif '-' in idx and is_int(idx.split('-')[0]) \
-                        and is_int(idx.split('-')[1]):
+                elif ('-' in idx and is_int(idx.split('-')[0]) and
+                        is_int(idx.split('-')[1])):
                     lower = int(idx.split('-')[0])
                     upper = int(idx.split('-')[1])
                     if lower > upper:
@@ -2893,8 +2899,8 @@ POSITIONAL ARGUMENTS:
             for idx in args.print:
                 if is_int(idx):
                     bdb.print_rec(int(idx))
-                elif '-' in idx and is_int(idx.split('-')[0]) \
-                        and is_int(idx.split('-')[1]):
+                elif ('-' in idx and is_int(idx.split('-')[0]) and
+                        is_int(idx.split('-')[1])):
                     lower = int(idx.split('-')[0])
                     upper = int(idx.split('-')[1])
                     if lower > upper:
@@ -2937,8 +2943,8 @@ POSITIONAL ARGUMENTS:
             for idx in args.open:
                 if is_int(idx):
                     bdb.browse_by_index(int(idx))
-                elif '-' in idx and is_int(idx.split('-')[0]) \
-                        and is_int(idx.split('-')[1]):
+                elif ('-' in idx and is_int(idx.split('-')[0]) and
+                        is_int(idx.split('-')[1])):
                     lower = int(idx.split('-')[0])
                     upper = int(idx.split('-')[1])
                     if lower > upper:
