@@ -94,7 +94,7 @@ class BukuHTMLParser(HTMLParser.HTMLParser):
 
     def handle_data(self, data):
         if self.prev_tag == 'title' and self.in_title_tag:
-            self.data = '%s%s' % (self.data, data)
+            self.data += data
 
     def error(self, message):
         pass
@@ -159,7 +159,7 @@ class BukuCrypt:
 
         if not dbfile:
             dbfile = os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
-        encfile = '%s.enc' % dbfile
+        encfile = dbfile + '.enc'
 
         db_exists = os.path.exists(dbfile)
         enc_exists = os.path.exists(encfile)
@@ -260,7 +260,7 @@ class BukuCrypt:
             dbfile = os.path.abspath(dbfile)
             dbpath, filename = os.path.split(dbfile)
 
-        encfile = '%s.enc' % dbfile
+        encfile = dbfile + '.enc'
 
         enc_exists = os.path.exists(encfile)
         db_exists = os.path.exists(dbfile)
@@ -387,8 +387,6 @@ class BukuDb:
             dbfile = os.path.abspath(dbfile)
             dbpath, filename = os.path.split(dbfile)
 
-        encfile = dbfile + '.enc'
-
         try:
             if not os.path.exists(dbpath):
                 os.makedirs(dbpath)
@@ -397,7 +395,7 @@ class BukuDb:
             os.exit(1)
 
         db_exists = os.path.exists(dbfile)
-        enc_exists = os.path.exists(encfile)
+        enc_exists = os.path.exists(dbfile + '.enc')
 
         if db_exists and not enc_exists:
             pass
@@ -419,6 +417,9 @@ class BukuDb:
             cur = conn.cursor()
 
             # Create table if it doesn't exist
+            # flags: designed to be extended in future using bitwise masks
+            # Masks:
+            #     0b00000001: set title immutable
             cur.execute('CREATE TABLE if not exists bookmarks \
                         (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, \
                         metadata text default \'\', tags text default \',\', \
@@ -427,26 +428,6 @@ class BukuDb:
         except Exception as e:
             logerr('initdb(): %s', e)
             sys.exit(1)
-
-        # Add description column in existing DB (from version 2.1)
-        try:
-            query = 'ALTER TABLE bookmarks ADD COLUMN desc text default \'\''
-            cur.execute(query)
-            conn.commit()
-        except Exception:
-            pass
-
-        '''Add flags column in existing DB
-        Introduced in v2.7 to handle immutable title
-        Designed to be extended in future using bitwise masks
-        Masks:
-        0b00000001: set title immutable'''
-        try:
-            query = 'ALTER TABLE bookmarks ADD COLUMN flags integer default 0'
-            cur.execute(query)
-            conn.commit()
-        except Exception:
-            pass
 
         return (conn, cur)
 
@@ -531,9 +512,9 @@ class BukuDb:
         if tags_in is None or tags_in == '':
             tags_in = DELIM
         elif tags_in[0] != DELIM:
-            tags_in = '%s%s' % (DELIM, tags_in)
+            tags_in = DELIM + tags_in
         elif tags_in[-1] != DELIM:
-            tags_in = '%s%s' % (tags_in, DELIM)
+            tags_in = tags_in + DELIM
 
         # Process description
         if desc is None:
@@ -557,7 +538,7 @@ class BukuDb:
             return -1
 
     def append_tag_at_index(self, index, tags_in):
-        '''Append tags for bookmark at index
+        '''Append tags to bookmark tagset at index
 
         :param index: int position of record, 0 for all
         :param tags_in: string of comma-separated tags to add manually
@@ -578,7 +559,7 @@ class BukuDb:
         if resultset:
             query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
             for row in resultset:
-                tags = '%s%s' % (row[1], tags_in[1:])
+                tags = row[1] + tags_in[1:]
                 tags = parse_tags([tags])
                 self.cur.execute(query, (tags, row[0],))
                 if self.chatty:
@@ -589,7 +570,7 @@ class BukuDb:
         return True
 
     def delete_tag_at_index(self, index, tags_in):
-        '''Delete tags for bookmark at index
+        '''Delete tags from bookmark tagset at index
 
         :param index: int position of record, 0 for all
         :param tags_in: string of comma-separated tags to delete manually
@@ -606,19 +587,21 @@ class BukuDb:
             count = 0
             match = "'%' || ? || '%'"
             for tag in tags_to_delete:
-                q = "UPDATE bookmarks SET tags = replace(tags, '%s%s%s', '%s')\
-                     WHERE tags LIKE %s" % (DELIM, tag, DELIM, DELIM, match)
-                self.cur.execute(q, (DELIM + tag + DELIM,))
+                tag = delim_wrap(tag)
+                q = "UPDATE bookmarks SET tags = replace(tags, '%s', '%s')\
+                     WHERE tags LIKE %s" % (tag, DELIM, match)
+                self.cur.execute(q, (tag,))
                 count += self.cur.rowcount
 
             if count:
                 self.conn.commit()
                 if self.chatty:
-                    print('%d records updated' % count)
+                    print('%d record(s) updated' % count)
 
             return True
 
         # Process a single index
+        # Use SELECT and UPDATE to handle multiple tags at once
         query = 'SELECT id, tags FROM bookmarks WHERE id = ? LIMIT 1'
         self.cur.execute(query, (index,))
         resultset = self.cur.fetchall()
@@ -628,7 +611,7 @@ class BukuDb:
                 tags = row[1]
 
                 for tag in tags_to_delete:
-                    tags = tags.replace('%s%s%s' % (DELIM, tag, DELIM,), DELIM)
+                    tags = tags.replace(delim_wrap(tag), DELIM)
 
                 self.cur.execute(query, (parse_tags([tags]), row[0],))
                 if self.chatty:
@@ -668,7 +651,7 @@ class BukuDb:
             if index == 0:
                 logerr('All URLs cannot be same')
                 return False
-            query = '%s URL = ?,' % query
+            query += ' URL = ?,'
             arguments += (url,)
             to_update = True
 
@@ -679,27 +662,33 @@ class BukuDb:
                 return False
 
             if tags_in.startswith('+,'):
+                chatty = self.chatty
+                self.chatty = False
                 ret = self.append_tag_at_index(index, tags_in[1:])
+                self.chatty = chatty
                 tag_modified = True
             elif tags_in.startswith('-,'):
+                chatty = self.chatty
+                self.chatty = False
                 ret = self.delete_tag_at_index(index, tags_in[1:])
+                self.chatty = chatty
                 tag_modified = True
             else:
                 # Fix up tags, if broken
                 if tags_in is None or tags_in == '':
                     tags_in = DELIM
                 elif tags_in[0] != DELIM:
-                    tags_in = '%s%s' % (DELIM, tags_in)
+                    tags_in = DELIM + tags_in
                 elif tags_in[-1] != DELIM:
-                    tags_in = '%s%s' % (tags_in, DELIM)
+                    tags_in = tags_in + DELIM
 
-                query = '%s tags = ?,' % query
+                query += ' tags = ?,'
                 arguments += (tags_in,)
                 to_update = True
 
         # Update description if passed as an argument
         if desc is not None:
-            query = '%s desc = ?,' % query
+            query += ' desc = ?,'
             arguments += (desc,)
             to_update = True
 
@@ -707,9 +696,9 @@ class BukuDb:
         if immutable != -1:
             flagset = 1
             if immutable == 1:
-                query = '%s flags = flags | ?,' % query
+                query += ' flags = flags | ?,'
             elif immutable == 0:
-                query = '%s flags = flags & ?,' % query
+                query += ' flags = flags & ?,'
                 flagset = ~flagset
 
             arguments += (flagset,)
@@ -743,11 +732,14 @@ class BukuDb:
             return ret
 
         if title_to_insert is not None:
-            query = '%s metadata = ?,' % query
+            query += ' metadata = ?,'
             arguments += (title_to_insert,)
             to_update = True
 
         if not to_update:       # Nothing to update
+            # Show bookmark if tags were appended to deleted
+            if tag_modified and self.chatty:
+                self.print_rec(index)
             return ret
 
         if index == 0:  # Update all records
@@ -757,7 +749,7 @@ class BukuDb:
 
             query = query[:-1]
         else:
-            query = '%s WHERE id = ?' % query[:-1]
+            query = query[:-1] + ' WHERE id = ?'
             arguments += (index,)
 
         logdbg('query: "%s", args: %s', query, arguments)
@@ -912,56 +904,55 @@ class BukuDb:
         if not keywords:
             return None
 
-        qry = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE'
+        q0 = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE '
         # Deep query string
         q1 = "(tags LIKE ('%' || ? || '%') OR URL LIKE ('%' || ? || '%') OR \
-             metadata LIKE ('%' || ? || '%') OR desc LIKE ('%' || ? || '%'))"
+             metadata LIKE ('%' || ? || '%') OR desc LIKE ('%' || ? || '%')) "
         # Non-deep query string
         q2 = '(tags REGEXP ? OR URL REGEXP ? OR metadata REGEXP ? OR desc \
-             REGEXP ?)'
+             REGEXP ?) '
         qargs = []
 
         if regex:
             for token in keywords:
-                qry = '%s %s OR' % (qry, q2)
-
+                q0 += q2 + 'OR '
                 qargs += (token, token, token, token,)
-            qry = qry[:-3]
+            q0 = q0[:-3]
         elif all_keywords:
             if len(keywords) == 1 and keywords[0] == 'blank':
-                qry = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ?"
+                q0 = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ? "
                 qargs += (DELIM,)
             elif len(keywords) == 1 and keywords[0] == 'immutable':
-                qry = 'SELECT * FROM bookmarks WHERE flags & 1 == 1'
+                q0 = 'SELECT * FROM bookmarks WHERE flags & 1 == 1 '
             else:
                 for token in keywords:
                     if deep:
-                        qry = '%s %s AND' % (qry, q1)
+                        q0 += q1 + 'AND '
                     else:
                         token = '\\b' + token.rstrip('/') + '\\b'
-                        qry = '%s %s AND' % (qry, q2)
+                        q0 += q2 + 'AND '
 
                     qargs += (token, token, token, token,)
-                qry = qry[:-4]
+                q0 = q0[:-4]
         elif not all_keywords:
             for token in keywords:
                 if deep:
-                    qry = '%s %s OR' % (qry, q1)
+                    q0 += q1 + 'OR '
                 else:
                     token = '\\b' + token.rstrip('/') + '\\b'
-                    qry = '%s %s OR' % (qry, q2)
+                    q0 += q2 + 'OR '
 
                 qargs += (token, token, token, token,)
-            qry = qry[:-3]
+            q0 = q0[:-3]
         else:
             logerr('Invalid search option')
             return None
 
-        qry = '%s ORDER BY id ASC' % qry
-        logdbg('query: "%s", args: %s', qry, qargs)
+        q0 += 'ORDER BY id ASC'
+        logdbg('query: "%s", args: %s', q0, qargs)
 
         try:
-            self.cur.execute(qry, qargs)
+            self.cur.execute(q0, qargs)
         except sqlite3.OperationalError as e:
             logerr(e)
             return None
@@ -975,7 +966,7 @@ class BukuDb:
         :return: search results, or None, if no matches
         '''
 
-        tag = '%s%s%s' % (DELIM, tag.strip(DELIM), DELIM)
+        tag = delim_wrap(tag.strip(DELIM))
         query = "SELECT id, url, metadata, tags, desc FROM bookmarks \
                 WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC"
         logdbg('query: "%s", args: %s', query, tag)
@@ -1223,7 +1214,7 @@ class BukuDb:
 
         newtags = DELIM
 
-        orig = '%s%s%s' % (DELIM, orig, DELIM)
+        orig = delim_wrap(orig)
         if new is not None:
             newtags = parse_tags(new)
 
@@ -1231,9 +1222,11 @@ class BukuDb:
             print('Tags are same.')
             return False
 
+        # Remove original tag from DB if new tagset reduces to delimiter
         if newtags == DELIM:
             return self.delete_tag_at_index(0, orig)
 
+        # Update bookmarks with original tag
         query = 'SELECT id, tags FROM bookmarks WHERE tags LIKE ?'
         self.cur.execute(query, ('%' + orig + '%',))
         results = self.cur.fetchall()
@@ -1306,12 +1299,12 @@ class BukuDb:
                 return False
 
             tags = tagstr.split(DELIM)
-            query = '%s WHERE' % query
+            query += ' WHERE'
             for tag in tags:
                 if tag != '':
                     is_tag_valid = True
                     query += " tags LIKE '%' || ? || '%' OR"
-                    tag = '%s%s%s' % (DELIM, tag, DELIM)
+                    tag = delim_wrap(tag)
                     arguments += (tag,)
 
             if is_tag_valid:
@@ -1327,7 +1320,7 @@ class BukuDb:
             return False
 
         if os.path.exists(filepath):
-            resp = read_in('%s exists. Overwrite? (y/n): ' % filepath)
+            resp = read_in(filepath + ' exists. Overwrite? (y/n): ')
             if resp != 'y':
                 return False
 
@@ -1341,9 +1334,9 @@ class BukuDb:
             outfp.write('List of buku bookmarks:\n\n')
             for row in resultset:
                 if row[2] == '':
-                    out = '- [Untitled](%s)\n' % (row[1])
+                    out = '- [Untitled](' + row[1] + ')\n'
                 else:
-                    out = '- [%s](%s)\n' % (row[2], row[1])
+                    out = '- [' + row[2] + '](' + row[1] + ')\n'
                 outfp.write(out)
                 count += 1
         else:
@@ -1360,13 +1353,14 @@ Buku bookmarks</H3>
 ''' % (timestamp, timestamp))
 
             for row in resultset:
-                out = '%s<DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' \
-                        % ('        ', row[1], timestamp, timestamp)
+                out = ('        <DT><A HREF="%s" ADD_DATE="%s" '
+                       'LAST_MODIFIED="%s"') \
+                        % (row[1], timestamp, timestamp)
                 if row[3] != DELIM:
-                    out = '%s TAGS="%s"' % (out, row[3][1:-1])
-                out = '%s>%s</A>\n' % (out, row[2])
+                    out += ' TAGS="' + row[3][1:-1] + '"'
+                out += '>' + row[2] + '</A>\n'
                 if row[4] != '':
-                    out = '%s        <DD>%s\n' % (out, row[4])
+                    out += '        <DD>' + row[4] + '\n'
 
                 outfp.write(out)
                 count += 1
@@ -1428,10 +1422,8 @@ Buku bookmarks</H3>
                 if comment_tag:
                     desc = comment_tag.text[0:comment_tag.text.find('\n')]
 
-                self.add_rec(tag['href'], tag.string, ('%s%s%s' %
-                             (DELIM, tag['tags'], DELIM))
-                             if tag.has_attr('tags') else None,
-                             desc, 0, True)
+                self.add_rec(tag['href'], tag.string, delim_wrap(tag['tags'])
+                             if tag.has_attr('tags') else None, desc, 0, True)
 
             self.conn.commit()
             infp.close()
@@ -1500,13 +1492,13 @@ Buku bookmarks</H3>
             'https': os.environ.get('https_proxy'),
         }
 
+        from urllib.parse import quote_plus as qp
+
         urlbase = 'https://tny.im/yourls-api.php?action='
         if shorten:
-            from urllib.parse import quote_plus as qp
-
-            _u = '%s%s%s' % (urlbase, 'shorturl&format=simple&url=', qp(url))
+            _u = urlbase + 'shorturl&format=simple&url=' + qp(url)
         else:
-            _u = '%s%s%s' % (urlbase, 'expand&format=simple&shorturl=', url)
+            _u = urlbase + 'expand&format=simple&shorturl=' + qp(url)
 
         try:
             r = requests.post(_u,
@@ -1801,8 +1793,6 @@ def parse_tags(keywords=[]):
         return DELIM
 
     tags = DELIM
-    orig_tags = []
-    unique_tags = []
 
     # Cleanse and get the tags
     tagstr = ' '.join(keywords)
@@ -1816,11 +1806,11 @@ def parse_tags(keywords=[]):
         if token == '':
             continue
 
-        tags = '%s%s%s' % (tags, token, DELIM)
+        tags += token + DELIM
 
     tagstr = tagstr.strip()
     if tagstr != '':
-        tags = '%s%s%s' % (tags, tagstr, DELIM)
+        tags += tagstr + DELIM
 
     logdbg('keywords: %s', keywords)
     logdbg('parsed tags: [%s]', tags)
@@ -1828,17 +1818,20 @@ def parse_tags(keywords=[]):
     if tags == DELIM:
         return tags
 
-    orig_tags += tags.strip(DELIM).split(DELIM)
+    orig_tags = tags.strip(DELIM).split(DELIM)
+
+    # Add unique tags in lower case
+    unique_tags = []
     for tag in orig_tags:
-        if tag.lower() not in unique_tags:
-            # Add unique tags in lower case
-            unique_tags += (tag.lower(), )
+        tag = tag.lower()
+        if tag not in unique_tags:
+            unique_tags += (tag, )
 
     # Sort the tags
     sorted_tags = sorted(unique_tags)
 
     # Wrap with delimiter
-    return '%s%s%s' % (DELIM, DELIM.join(sorted_tags), DELIM)
+    return delim_wrap(DELIM.join(sorted_tags))
 
 
 def taglist_subprompt(obj, msg, noninteractive=False):
@@ -2052,7 +2045,7 @@ def print_record(row, idx=0):
         if row[5] & 1:
             pr = MUTE_str % (pr)
         else:
-            pr = '%s\n' % (pr)
+            pr = pr + '\n'
 
     # Append title
     if row[2] != '':
@@ -2138,7 +2131,7 @@ def browse(url):
         # We expect http to https redirection
         # will happen for https-only websites
         logerr('scheme missing in URI, trying http')
-        url = '%s%s' % ('http://', url)
+        url = 'http://' + url
 
     _stderr = os.dup(2)
     os.close(2)
@@ -2189,7 +2182,15 @@ def regexp(expr, item):
     return re.search(expr, item, re.IGNORECASE) is not None
 
 
+def delim_wrap(token):
+    '''Wrap a string with delimiters and return'''
+
+    return DELIM + token + DELIM
+
+
 def read_in(msg):
+    '''A wrapper to handle input() with interrupts disabled'''
+
     disable_sigint_handler()
     message = None
     try:
@@ -2390,9 +2391,8 @@ def setup_logger(logger):
             else:
                 color = '\x1b[0m'
 
-            args[0].msg = '{0}[{1}]\x1b[0m {2}'.format(color,
-                                                       args[0].levelname,
-                                                       args[0].msg)
+            args[0].msg = '{}[{}]\x1b[0m {}'.format(color, args[0].levelname,
+                                                    args[0].msg)
             return fn(*args)
         return new
 
@@ -2685,9 +2685,9 @@ POSITIONAL ARGUMENTS:
             # Parse tags into a comma-separated string
             if tags_in:
                 if tags_in[0] == '+':
-                    tags = '+%s' % parse_tags(tags_in[1:])
+                    tags = '+' + parse_tags(tags_in[1:])
                 elif tags_in[0] == '-':
-                    tags = '-%s' % parse_tags(tags_in[1:])
+                    tags = '-' + parse_tags(tags_in[1:])
                 else:
                     tags = parse_tags(tags_in)
             else:
@@ -2797,9 +2797,9 @@ POSITIONAL ARGUMENTS:
         # Parse tags into a comma-separated string
         if tags_in:
             if tags_in[0] == '+':
-                tags = '+%s' % parse_tags(tags_in[1:])
+                tags = '+' + parse_tags(tags_in[1:])
             elif tags_in[0] == '-':
-                tags = '-%s' % parse_tags(tags_in[1:])
+                tags = '-' + parse_tags(tags_in[1:])
             else:
                 tags = parse_tags(tags_in)
         else:
