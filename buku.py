@@ -452,10 +452,7 @@ class BukuDb:
         self.cur.execute('SELECT * FROM bookmarks WHERE id = ? LIMIT 1',
                          (index,))
         resultset = self.cur.fetchall()
-        if resultset:
-            return resultset[0]
-
-        return None
+        return resultset[0] if resultset else None
 
     def get_rec_id(self, url):
         '''Check if URL already exists in DB
@@ -467,10 +464,7 @@ class BukuDb:
         self.cur.execute('SELECT id FROM bookmarks WHERE URL = ? LIMIT 1',
                          (url,))
         resultset = self.cur.fetchall()
-        if resultset:
-            return resultset[0][0]
-
-        return -1
+        return resultset[0][0] if resultset else -1
 
     def get_max_id(self):
         '''Fetch the ID of the last record
