@@ -1,5 +1,7 @@
 from buku import BukuDb
 from flask import Flask, jsonify, request
+import response
+from flask.ext.api import status
 
 
 bukudb = BukuDb()
@@ -19,11 +21,11 @@ def get_tags():
 @app.route('/api/bookmarks', methods=['GET', 'POST'])
 def bookmarks():
     if request.method == 'GET':
-        bookmarks = bukudb.get_rec_all()
+        all_bookmarks = bukudb.get_rec_all()
         result = {
             'bookmarks': []
         }
-        for bookmark in bookmarks:
+        for bookmark in all_bookmarks:
             result_bookmark = {
                 'url': bookmark[1],
                 'title': bookmark[2],
@@ -36,16 +38,20 @@ def bookmarks():
         result_flag = bukudb.add_rec(request.form['url'], request.form['title'],
                                      request.form['tags'], request.form['description'])
         if result_flag:
-            return jsonify({'status': 0, 'message': 'success'}), 200, {'ContentType': 'application/json'}
+            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
+                   {'ContentType': 'application/json'}
         else:
-            return jsonify({'status': 1, 'message': 'failure'}), 400, {'ContentType': 'application/json'}
+            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
+                   {'ContentType': 'application/json'}
+
 
 @app.route('/api/bookmarks/<id>', methods=['GET', 'PUT', 'DELETE'])
 def bookmark_api(id):
     try:
         id = int(id)
     except ValueError:
-        return jsonify({'status': 1, 'message': 'failure'}), 400, {'ContentType': 'application/json'}
+        return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
+               {'ContentType': 'application/json'}
     if request.method == 'GET':
         bookmark = bukudb.get_rec_by_id(id)
         if bookmark is not None:
@@ -57,20 +63,26 @@ def bookmark_api(id):
             }
             return jsonify(result)
         else:
-            return jsonify({'status': 1, 'message': 'failure'}), 400, {'ContentType': 'application/json'}
+            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
+                   {'ContentType': 'application/json'}
     elif request.method == 'PUT':
         result_flag = bukudb.update_rec(id, request.form['url'], request.form.get('title'),
                                         request.form['tags'], request.form['description'])
         if result_flag:
-            return jsonify({'status': 0, 'message': 'success'}), 200, {'ContentType': 'application/json'}
+            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
+                   {'ContentType': 'application/json'}
         else:
-            return jsonify({'status': 1, 'message': 'failure'}), 400, {'ContentType': 'application/json'}
+            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
+                   {'ContentType': 'application/json'}
     else:
         result_flag = bukudb.delete_rec(id)
         if result_flag:
-            return jsonify({'status': 0, 'message': 'success'}), 200, {'ContentType': 'application/json'}
+            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
+                   {'ContentType': 'application/json'}
         else:
-            return jsonify({'status': 1, 'message': 'failure'}), 400, {'ContentType': 'application/json'}
+            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
+                   {'ContentType': 'application/json'}
+
 
 def run():
     app.run(debug=True)
