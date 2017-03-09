@@ -18,7 +18,7 @@ def get_tags():
     return jsonify(result)
 
 
-@app.route('/api/bookmarks', methods=['GET', 'POST'])
+@app.route('/api/bookmarks', methods=['GET', 'POST', 'DELETE'])
 def bookmarks():
     if request.method == 'GET':
         all_bookmarks = bukudb.get_rec_all()
@@ -37,6 +37,26 @@ def bookmarks():
     elif request.method == 'POST':
         result_flag = bukudb.add_rec(request.form['url'], request.form['title'],
                                      request.form['tags'], request.form['description'])
+        if result_flag:
+            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
+                   {'ContentType': 'application/json'}
+        else:
+            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
+                   {'ContentType': 'application/json'}
+    elif request.method == 'DELETE':
+        result_flag = bukudb.cleardb()
+        if result_flag:
+            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
+                   {'ContentType': 'application/json'}
+        else:
+            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
+                   {'ContentType': 'application/json'}
+
+
+@app.route('/api/bookmarks/refresh', method=['POST'])
+def refresh_bookmarks():
+    if request.method == 'POST':
+        result_flag = bukudb.refreshdb()
         if result_flag:
             return jsonify(response.response_template['success']), status.HTTP_200_OK, \
                    {'ContentType': 'application/json'}
