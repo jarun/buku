@@ -1,7 +1,7 @@
 from buku import BukuDb
 from flask import Flask, jsonify, request
 import response
-from flask.ext.api import status
+from flask_api import status
 
 
 bukudb = BukuDb()
@@ -53,7 +53,7 @@ def bookmarks():
                    {'ContentType': 'application/json'}
 
 
-@app.route('/api/bookmarks/refresh', method=['POST'])
+@app.route('/api/bookmarks/refresh', methods=['POST'])
 def refresh_bookmarks():
     if request.method == 'POST':
         result_flag = bukudb.refreshdb()
