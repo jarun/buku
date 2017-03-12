@@ -452,10 +452,7 @@ class BukuDb:
         self.cur.execute('SELECT * FROM bookmarks WHERE id = ? LIMIT 1',
                          (index,))
         resultset = self.cur.fetchall()
-        if resultset:
-            return resultset[0]
-
-        return None
+        return resultset[0] if resultset else None
 
     def get_rec_id(self, url):
         '''Check if URL already exists in DB
@@ -467,10 +464,7 @@ class BukuDb:
         self.cur.execute('SELECT id FROM bookmarks WHERE URL = ? LIMIT 1',
                          (url,))
         resultset = self.cur.fetchall()
-        if resultset:
-            return resultset[0][0]
-
-        return -1
+        return resultset[0][0] if resultset else -1
 
     def get_max_id(self):
         '''Fetch the ID of the last record
@@ -480,10 +474,7 @@ class BukuDb:
 
         self.cur.execute('SELECT MAX(id) from bookmarks')
         resultset = self.cur.fetchall()
-        if resultset[0][0] is None:
-            return -1
-
-        return resultset[0][0]
+        return -1 if resultset[0][0] is None else resultset[0][0]
 
     def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0,
                 delay_commit=False):
@@ -905,6 +896,33 @@ class BukuDb:
         cond.release()
         self.conn.commit()
         return True
+
+    def edit_update_rec(self, index, immutable=-1):
+        '''Edit in editor and update a record
+
+        :param index: DB index of the record
+        :return: True if updated, else False
+        '''
+
+        editor = get_system_editor()
+        if editor == 'none':
+            logerr('EDITOR must be set to use index with -w')
+            return False
+
+        rec = self.get_rec_by_id(index)
+        if not rec:
+            logerr('No matching index %d', index)
+            return False
+
+        result = edit_rec(editor, rec[1], rec[2], rec[3], rec[4])
+        if result is not None:
+            url, title, tags, desc = result
+            return self.update_rec(index, url, title, tags, desc, immutable)
+
+        if immutable != -1:
+            return self.update_rec(index, immutable)
+
+        return False
 
     def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
         '''Search the database for an entries with tags or URL
@@ -2258,6 +2276,24 @@ def get_system_editor():
     return os.environ.get('EDITOR', 'none')
 
 
+def is_editor_valid(editor):
+    '''Check if the editor string is valid
+
+    :param editor: editor string
+    :return: True if string is valid, else False
+    '''
+
+    if editor == 'none':
+        logerr('EDITOR is not set')
+        return False
+
+    if editor == '0':
+        logerr('Cannot edit index 0')
+        return False
+
+    return True
+
+
 def to_temp_file_content(url, title_in, tags_in, desc):
     '''Generate temporary file content string
 
@@ -2679,31 +2715,12 @@ POSITIONAL ARGUMENTS:
 
     # Editor mode
     if args.write is not None:
-        if args.write == 'none':
-            logerr('EDITOR is not set')
-            bdb.close_quit(1)
-        elif args.write == '0':
-            logerr('Cannot edit index 0')
+        if not is_editor_valid(args.write):
             bdb.close_quit(1)
 
         if is_int(args.write):
-            editor = get_system_editor()
-            if editor == 'none':
-                logerr('EDITOR must be set to use index with -w')
-                bdb.close_quit()
-
-            idx = int(args.write)
-            rec = bdb.get_rec_by_id(idx)
-            if not rec:
-                logerr('No matching index %d', idx)
+            if not bdb.edit_update_rec(int(args.write), args.immutable):
                 bdb.close_quit(1)
-
-            result = edit_rec(editor, rec[1], rec[2], rec[3], rec[4])
-            if result is not None:
-                url, title, tags, desc = result
-                bdb.update_rec(idx, url, title, tags, desc, args.immutable)
-            elif args.immutable != -1:
-                bdb.update_rec(idx, immutable=args.immutable)
         elif args.add is None:
             # Edit and add a new bookmark
             # Parse tags into a comma-separated string
