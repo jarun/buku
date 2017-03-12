@@ -1636,6 +1636,7 @@ keys:
   d                    match substrings ('pen' matches 'opened')
   r expression         run a regex search
   t [...]              search bookmarks by a tag or show tag list
+  w [index|editor]     edit and add or update a bookmark
                        (tag list index fetches bookmarks by tag)
   ?                    show this help
   q, ^D, double Enter  exit buku
@@ -1876,6 +1877,28 @@ def parse_tags(keywords=[]):
     return delim_wrap(DELIM.join(sorted_tags))
 
 
+def edit_at_prompt(obj, nav):
+    '''Edit and add or update a bookmark
+
+    :param obj: a valid instance of BukuDb class
+    '''
+
+    if nav == 'w':
+        editor = get_system_editor()
+        if not is_editor_valid(editor):
+            return
+    elif is_int(nav[2:]):
+        obj.edit_update_rec(int(nav[2:]))
+        return
+    else:
+        editor = nav[2:]
+
+    result = edit_rec(editor, '', None, DELIM, None)
+    if result is not None:
+        url, title, tags, desc = result
+        obj.add_rec(url, title, tags, desc)
+
+
 def taglist_subprompt(obj, msg, noninteractive=False):
     '''Additional prompt to show unique tag list
 
@@ -1919,16 +1942,15 @@ def taglist_subprompt(obj, msg, noninteractive=False):
         elif is_int(nav):
             print('No matching index %s' % nav)
             new_results = False
-        elif is_int(nav[0]):
-            print('Invalid input')
-            new_results = False
         elif nav == 't':
             new_results = True
-            continue
         elif (nav == 'q' or nav == 'd' or nav == '?' or
               nav.startswith('s ') or nav.startswith('S ') or
               nav.startswith('r ') or nav.startswith('t ')):
             return nav
+        elif nav == 'w' or nav.startswith('w '):
+            edit_at_prompt(obj, nav)
+            new_results = False
         else:
             print('Invalid input')
             new_results = False
@@ -2017,6 +2039,9 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
         if nav == 'q':
             return
 
+        # No new results fetched beyond this point
+        new_results = False
+
         # toggle deep search with 'd'
         if nav == 'd':
             deep = not deep
@@ -2025,16 +2050,17 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
             else:
                 print('deep search off')
 
-            new_results = False
             continue
 
         # Show help with '?'
         if nav == '?':
             ExtendedArgumentParser.prompt_help(sys.stdout)
-            new_results = False
             continue
 
-        new_results = False
+        # Edit and add or update
+        if nav == 'w' or nav.startswith('w '):
+            edit_at_prompt(obj, nav)
+            continue
 
         # Nothing to browse if there are no results
         if not results:
