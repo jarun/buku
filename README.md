@@ -1,11 +1,12 @@
 <h1 align="center">Buku</h1>
 
 <p align="center">
-<a href="https://github.com/jarun/Buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg" alt="Latest release" /></a>
-<a href="https://aur.archlinux.org/packages/buku"><img src="https://img.shields.io/aur/version/buku.svg" alt="AUR" /></a>
-<a href="http://braumeister.org/formula/buku"><img src="https://img.shields.io/homebrew/v/buku.svg" alt="Homebrew" /></a>
-<a href="https://packages.debian.org/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/debian-stretch+-blue.svg?maxAge=2592000" alt="Debian Strech+" /></a>
-<a href="http://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/ubuntu-zesty+-blue.svg?maxAge=2592000" alt="Ubuntu Zesty+" /></a>
+<a href="https://github.com/jarun/Buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg?maxAge=600" alt="Latest release" /></a>
+<a href="https://aur.archlinux.org/packages/buku"><img src="https://img.shields.io/aur/version/buku.svg?maxAge=600" alt="AUR" /></a>
+<a href="http://braumeister.org/formula/buku"><img src="https://img.shields.io/homebrew/v/buku.svg?maxAge=600" alt="Homebrew" /></a>
+<a href="https://pypi.python.org/pypi/buku"><img src="https://img.shields.io/pypi/v/buku.svg?maxAge=600" alt="PyPI" /></a>
+<a href="https://packages.debian.org/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/debian-9+-blue.svg?maxAge=2592000" alt="Debian Strech+" /></a>
+<a href="http://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/ubuntu-17.04+-blue.svg?maxAge=2592000" alt="Ubuntu Zesty+" /></a>
 <a href="https://github.com/jarun/buku/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-yellow.svg?maxAge=2592000" alt="License" /></a>
 <a href="https://travis-ci.org/jarun/Buku"><img src="https://travis-ci.org/jarun/Buku.svg?branch=master" alt="Build Status" /></a>
 </p>
@@ -14,22 +15,9 @@
 <a href="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv"><img src="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv.png" alt="Asciicast" width="734"/></a>
 </p>
 
-`buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
-
-`buku` fetches the title of a bookmarked web page and stores it along with any additional comments and tags. You can use your favourite editor to compose and update bookmarks. With multiple options to search bookmarks, including regex and a deep scan mode (particularly for URLs), finding a bookmark is very easy. Multiple search results can be opened in the browser at once.
-
-Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the shell completion scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
-
-There are several [projects](#related-projects) based on `buku`, including a browser plug-in.
-
-*Buku* is too busy to track you - no history, obsolete records, usage analytics or homing.
-
-<p align="center">
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://tuxtricks.files.wordpress.com/2016/12/donate.png" alt="Donate via PayPal!" title="Donate via PayPal!" /></a>
-</p>
-
 ## Table of Contents
 
+- [Introduction](#introduction)
 - [Features](#features)
 - [Installation](#installation)
   - [Dependencies](#dependencies)
@@ -52,27 +40,48 @@ There are several [projects](#related-projects) based on `buku`, including a bro
 - [Contributions](#contributions)
 - [Copyright](#copyright)
 
+## Introduction
+
+`buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
+
+`buku` fetches the title of a bookmarked web page and stores it along with any additional comments and tags. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once.
+
+Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the [shell completion](#shell-completion) scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
+
+There are several [projects](#related-projects) based on `buku`, including a browser plug-in.
+
+*Buku* is too busy to track you - no history, obsolete records, usage analytics or homing.
+
+<p align="right">
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://tuxtricks.files.wordpress.com/2016/12/donate.png" alt="Donate via PayPal!" title="Donate via PayPal!" /></a>
+</p>
+
 ## Features
 
-- Fast, clean interface with distinct symbols
-- Text editor integration to compose and edit
-- Fetch page title from the web, add tags and comments
-- Multiple search modes, including `deep` and `regex`
-- Continuous search at prompt with on the fly mode switch
+- Lightweight, clean interface
+- Text editor integration
+- Fetch page title, add tags and comments
+- Multiple search modes (e.g. `deep`, `regex`)
+- Continuous search at prompt, on the fly mode switch
 - Open bookmarks and search results in browser
 - Import/export in HTML (FF, Chrome compatible) or Markdown
 - Shorten and expand URLs
-- Manual password protection using AES256 encryption
+- Password protection (manual)
 - Portable, merge-able database to sync between systems
-- Additional options for power users (see help or man page)
-- Completion scripts (Bash, Fish, Zsh), man page with examples
-- Minimal dependencies
+- Multithreaded full DB refresh
+- Shell completion scripts, man page with examples
 
 ## Installation
 
 ### Dependencies
 
-`buku` requires Python 3.3 or later.
+| Feature | Dependency |
+| --- | --- |
+| Scripting language | Python 3.3+ |
+| HTTP(S) | urllib3 |
+| Encryption | cryptography |
+| Import browser exported html | beautifulsoup4 |
+| Shorten URL, check latest release | requests |
 
 To install package dependencies, run:
 
@@ -86,7 +95,7 @@ or on Ubuntu:
 If you have git installed, run:
 
     $ git clone https://github.com/jarun/Buku/
-or download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip).
+or download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip) (*risky*).
 
 Install to default location (`/usr/local`):
 
@@ -229,7 +238,7 @@ SYMBOLS:
 - The database file is stored in:
   - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
   - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
-  - the **current directory**.
+  - **$PWD**
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes (`'`/`"`).
 - URLs are unique in DB. The same URL cannot be added twice.
 - Bookmarks with immutable titles are listed with bold `(L)` after the URL.
