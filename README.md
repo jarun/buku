@@ -187,8 +187,8 @@ SEARCH OPTIONS:
                            "blank": entries with empty title/tag
                            "immutable": entries with locked title
       --deep               match substrings ('pen' matches 'opens')
-      --sreg               run a regex search
-      --stag               search bookmarks by a tag
+      -r, --sreg           run a regex search
+      -t, --stag           search bookmarks by a tag
                            list all tags, if no search keywords
 
 ENCRYPTION OPTIONS:

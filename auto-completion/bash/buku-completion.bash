@@ -30,12 +30,12 @@ _buku () {
         -o --open
         --oa
         -p --print
+        -r --sreg
         --replace
         -s --sany
         -S --sall
         --shorten
-        --sreg
-        --stag
+        -t --stag
         --tacit
         --tag
         --threads
@@ -55,11 +55,11 @@ _buku () {
         -i --import
         --immutable
         -m --merge
+        -r --sreg
         --replace
         -s --sany
         -S --sall
         --shorten
-        --sreg
         --threads
         --url
     )

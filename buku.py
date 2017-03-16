@@ -2594,15 +2594,15 @@ POSITIONAL ARGUMENTS:
                          "blank": entries with empty title/tag
                          "immutable": entries with locked title
     --deep               match substrings ('pen' matches 'opens')
-    --sreg               run a regex search
-    --stag               search bookmarks by a tag
+    -r, --sreg           run a regex search
+    -t, --stag           search bookmarks by a tag
                          list all tags, if no search keywords''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', action='store_true', help=HIDE)
     addarg('-S', '--sall', action='store_true', help=HIDE)
-    addarg('--sreg', action='store_true', help=HIDE)
+    addarg('-r', '--sreg', action='store_true', help=HIDE)
     addarg('--deep', action='store_true', help=HIDE)
-    addarg('--stag', action='store_true', help=HIDE)
+    addarg('-t', '--stag', action='store_true', help=HIDE)
 
     # ------------------------
     # ENCRYPTION OPTIONS GROUP
