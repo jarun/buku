@@ -2636,7 +2636,7 @@ POSITIONAL ARGUMENTS:
                          -1 shows the bookmark with highest index
     -f, --format N       limit fields in -p or Json search output
                          N=1: URL, N=2: URL and tag, N=3: title
-    -r, --replace oldtag [newtag ...]
+    --replace oldtag [newtag ...]
                          replace oldtag with newtag everywhere
                          delete oldtag, if newtag not specified
     -j, --json           Json formatted output for -p and search
@@ -2658,7 +2658,7 @@ POSITIONAL ARGUMENTS:
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3}, help=HIDE)
-    addarg('-r', '--replace', nargs='+', help=HIDE)
+    addarg('--replace', nargs='+', help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)

@@ -28,7 +28,7 @@ args=(
     '(-o --open)'{-o,--open}'[open bookmarks in browser]'
     '(--oa)--oa[browse all search results immediately]'
     '(-p --print)'{-p,--print}'[show bookmark details]'
-    '(-r --replace)'{-r,--replace}'[replace a tag]:tag to replace'
+    '(--replace)--replace[replace a tag]:tag to replace'
     '(-s --sany)'{-s,--sany}'[match any keyword]:keyword(s)'
     '(-s --sall)'{-s,--sall}'[match all keywords]:keyword(s)'
     '(--shorten)--shorten[shorten a URL using tny.im]:index/url'

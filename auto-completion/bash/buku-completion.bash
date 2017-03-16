@@ -30,7 +30,7 @@ _buku () {
         -o --open
         --oa
         -p --print
-        -r --replace
+        --replace
         -s --sany
         -S --sall
         --shorten
@@ -55,7 +55,7 @@ _buku () {
         -i --import
         --immutable
         -m --merge
-        -r --replace
+        --replace
         -s --sany
         -S --sall
         --shorten

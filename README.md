@@ -210,7 +210,7 @@ POWER TOYS:
                            -1 shows the bookmark with highest index
       -f, --format N       limit fields in -p or Json search output
                            N=1: URL, N=2: URL and tag, N=3: title
-      -r, --replace oldtag [newtag ...]
+      --replace oldtag [newtag ...]
                            replace oldtag with newtag everywhere
                            delete oldtag, if newtag not specified
       -j, --json           Json formatted output for -p and search
@@ -462,10 +462,10 @@ The same number of iterations must be specified for one lock & unlock instance. 
         $ buku -p | more
 25. **Replace tag** 'old tag' with 'new tag':
 
-        $ buku -r 'old tag' new tag
+        $ buku --replace 'old tag' new tag
 26. **Delete tag** 'old tag' from DB:
 
-        $ buku -r 'old tag'
+        $ buku --replace 'old tag'
 27. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
