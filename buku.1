@@ -111,7 +111,7 @@ Specify the URL, works with --update only. Fetches and updates title if --title 
 .BI \--tag " [+|-] [...]"
 Specify comma separated tags, works with --add, --update. Clears the tags, if no arguments passed. Appends or deletes tags, if list of tags is preceded by '+' or '-' respectively.
 .TP
-.BI \-t " " \--title " [...]"
+.BI \--title " [...]"
 Manually specify the title, works with --add, --update. Omits or clears the title, if no arguments passed.
 .TP
 .BI \-c " " \--comment " [...]"
@@ -327,7 +327,7 @@ In the output, >: title, +: comment, #: tags.
 .PP
 .EX
 .IP
-.B buku -a https://ddg.gg search engine, privacy -t 'DDG' --immutable 1
+.B buku -a https://ddg.gg search engine, privacy --title 'DDG' --immutable 1
 .EE
 .PP
 .IP "" 4
@@ -338,7 +338,7 @@ Note that URL must precede tags.
 .PP
 .EX
 .IP
-.B buku -a https://ddg.gg search engine, privacy -t
+.B buku -a https://ddg.gg search engine, privacy --title
 .EE
 .PP
 .IP 5. 4

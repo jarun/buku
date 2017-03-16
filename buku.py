@@ -713,9 +713,9 @@ class BukuDb:
 
         # Update title
         #
-        # 1. if -t has no arguments, delete existing title
-        # 2. if -t has arguments, update existing title
-        # 3. if -t option is omitted at cmdline:
+        # 1. if --title has no arguments, delete existing title
+        # 2. if --title has arguments, update existing title
+        # 3. if --title option is omitted at cmdline:
         #    if URL is passed, update the title from web using the URL
         # 4. if no other argument (url, tag, comment, immutable) passed,
         #    update title from web using DB URL (if title is mutable)
@@ -2568,7 +2568,7 @@ POSITIONAL ARGUMENTS:
     --tag [+|-] [...]    comma-separated tags
                          clear bookmark tagset, if no arguments
                          '+' appends to, '-' removes from tagset
-    -t, --title [...]    bookmark title; if no arguments:
+    --title [...]        bookmark title; if no arguments:
                          -a: do not set title, -u: clear title
     -c, --comment [...]  description of the bookmark
                          clears description, if no arguments
@@ -2577,7 +2577,7 @@ POSITIONAL ARGUMENTS:
     addarg = edit_grp.add_argument
     addarg('--url', nargs=1, help=HIDE)
     addarg('--tag', nargs='*', help=HIDE)
-    addarg('-t', '--title', nargs='*', help=HIDE)
+    addarg('--title', nargs='*', help=HIDE)
     addarg('-c', '--comment', nargs='*', help=HIDE)
     addarg('--immutable', type=int, default=-1, choices={0, 1}, help=HIDE)
 

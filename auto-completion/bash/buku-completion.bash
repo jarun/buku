@@ -36,10 +36,10 @@ _buku () {
         --shorten
         --sreg
         --stag
-        -t --title
         --tacit
         --tag
         --threads
+        --title
         -u --update
         --url
         -V

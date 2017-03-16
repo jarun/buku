@@ -172,7 +172,7 @@ EDIT OPTIONS:
       --tag [+|-] [...]    comma-separated tags
                            clear bookmark tagset, if no arguments
                            '+' appends to, '-' removes from tagset
-      -t, --title [...]    bookmark title; if no arguments:
+      --title [...]        bookmark title; if no arguments:
                            -a: do not set title, -u: clear title
       -c, --comment [...]  description of the bookmark
                            clears description, if no arguments
@@ -302,7 +302,7 @@ The following steps explore the procedure on Linux with Ubuntu as the reference 
 
 #### Test drive
 
-Copy or select a URL with mouse and press the keyboard shortcut to add it to the `buku` database. The addition might take a few seconds to reflect depending on your internet speed and the time `buku` needs to fetch the title from the URL. To avoid title fetch from the web, add the `-t` option to the script.
+Copy or select a URL with mouse and press the keyboard shortcut to add it to the `buku` database. The addition might take a few seconds to reflect depending on your internet speed and the time `buku` needs to fetch the title from the URL. To avoid title fetch from the web, add the `--title` option to the script.
 
 To verify that the bookmark has indeed been added, run:
 
@@ -377,14 +377,14 @@ The first command picks editor from the environment variable `EDITOR`. The secon
 where, >: title, +: comment, #: tags
 3. **Add** a bookmark with tags `search engine` & `privacy` and **immutable custom title** `DDG`:
 
-        $ buku -a https://ddg.gg search engine, privacy -t 'DDG' --immutable 1
+        $ buku -a https://ddg.gg search engine, privacy --title 'DDG' --immutable 1
         336. https://ddg.gg (L)
         > DDG
         # privacy,search engine
 Note that URL must precede tags.
 4. **Add** a bookmark **without a title** (works for update too):
 
-        $ buku -a https://ddg.gg search engine, privacy -t
+        $ buku -a https://ddg.gg search engine, privacy --title
 5. **Edit and update** a bookmark from editor:
 
         $ buku -w 15012014
