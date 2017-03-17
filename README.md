@@ -21,10 +21,10 @@
 - [Features](#features)
 - [Installation](#installation)
   - [Dependencies](#dependencies)
+  - [Installing with a package manager](#installing-with-a-package-manager)
   - [Installing from this repository](#installing-from-this-repository)
     - [Running as a standalone utility](#running-as-a-standalone-utility)
     - [Debian package](#debian-package)
-  - [Installing with a package manager](#installing-with-a-package-manager)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
@@ -83,19 +83,26 @@ There are several [projects](#related-projects) based on `buku`, including a bro
 | Import browser exported html | beautifulsoup4 |
 | Shorten URL, check latest release | requests |
 
-To install package dependencies, run:
+To install package dependencies using pip3, run:
 
     $ sudo pip3 install urllib3 cryptography beautifulsoup4 requests
 or on Ubuntu:
 
     $ sudo apt-get install python3-urllib3 python3-cryptography python3-bs4 python3-requests
 
+### Installing with a package manager
+
+- [PyPi](https://pypi.python.org/pypi/buku/) (`$ pip3 install buku`)
+- [AUR](https://aur.archlinux.org/packages/buku/)
+- [Homebrew](http://braumeister.org/formula/buku)
+- [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1)
+- [Ubuntu](http://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
+- [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
+- [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`$ sudo xbps-install -S buku`)
+
 ### Installing from this repository
 
-If you have git installed, run:
-
-    $ git clone https://github.com/jarun/Buku/
-or download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip) (*risky*).
+If you have git installed, clone this repository. Otherwise download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip) (*risky*).
 
 Install to default location (`/usr/local`):
 
@@ -120,16 +127,6 @@ If you are on a Debian (including Ubuntu) based system visit [the latest stable 
     $ sudo dpkg -i buku-$version-all.deb
 
 Please substitute `$version` with the appropriate package version.
-
-### Installing with a package manager
-
-- [PyPi](https://pypi.python.org/pypi/buku/) (`$ pip install buku`)
-- [AUR](https://aur.archlinux.org/packages/buku/)
-- [Homebrew](http://braumeister.org/formula/buku)
-- [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1)
-- [Ubuntu](http://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
-- [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
-- [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`$ sudo xbps-install -S buku`)
 
 ## Shell completion
 
@@ -174,7 +171,7 @@ EDIT OPTIONS:
                            '+' appends to, '-' removes from tagset
       --title [...]        bookmark title; if no arguments:
                            -a: do not set title, -u: clear title
-      -c, --comment [...]  description of the bookmark
+      -c, --comment [...]  notes or description of the bookmark
                            clears description, if no arguments
       --immutable N        disable title fetch from web on update
                            N=0: mutable (default), N=1: immutable
@@ -210,15 +207,14 @@ POWER TOYS:
                            -1 shows the bookmark with highest index
       -f, --format N       limit fields in -p or Json search output
                            N=1: URL, N=2: URL and tag, N=3: title
-      --replace oldtag [newtag ...]
-                           replace oldtag with newtag everywhere
-                           delete oldtag, if newtag not specified
       -j, --json           Json formatted output for -p and search
       --nc                 disable color output
       --np                 do not show the prompt, run and exit
       -o, --open [...]     browse bookmarks by indices and ranges
                            open a random bookmark, if no arguments
       --oa                 browse all search results immediately
+      --replace old new    replace old tag with new tag everywhere
+                           delete old tag, if new tag not specified
       --shorten index|URL  fetch shortened url from tny.im service
       --expand index|URL   expand a tny.im shortened url
       --tacit              reduce verbosity
@@ -270,7 +266,7 @@ SYMBOLS:
   - All lines beginning with "#" will be stripped. Then line 1 will be treated as the URL, line 2 will be the title, line 3 will be comma separated tags, and the rest of the lines will be parsed as descriptions.
 - **Proxy** support: environment variable *https_proxy*, if defined, is used to tunnel data for both http and https connections. The supported format is:
 
-        http[s]://[username:password@]proxyhost:proxyport/
+      http[s]://[username:password@]proxyhost:proxyport/
 
 ## GUI integration
 
@@ -293,7 +289,7 @@ The following steps explore the procedure on Linux with Ubuntu as the reference 
 
         xsel | buku -a
 
-  `-a` is the option to add a bookmark.
+      `-a` is the option to add a bookmark.
 3. Make the script executable:
 
         $ chmod +x bukuadd
@@ -319,7 +315,7 @@ and check the entry.
 - If you want to tag these bookmarks, look them up later using:
 
         $ buku -S blank
-Use option `-u` to tag these bookmarks.
+  Use option `-u` to tag these bookmarks.
 
 ### Import bookmarks to browser
 
@@ -361,12 +357,11 @@ NOTE: This flexibility is not exposed in the program.
 
 ## Examples
 
-
 1. **Edit and add** a bookmark from editor:
 
         $ buku -w
         $ buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
-The first command picks editor from the environment variable `EDITOR`. The second command will open macvim with option -f and the URL and tags populated in template.
+    The first command picks editor from the environment variable `EDITOR`. The second command will open macvim with option -f and the URL and tags populated in template.
 2. **Add** a bookmark with **tags** `search engine` and `privacy`, **comment** `Search engine with perks`, **fetch page title** from the web:
 
         $ buku -a https://ddg.gg search engine, privacy -c Search engine with perks
@@ -374,21 +369,21 @@ The first command picks editor from the environment variable `EDITOR`. The secon
         > DuckDuckGo
         + Alternative search engine with perks
         # privacy,search engine
-where, >: title, +: comment, #: tags
+    where, >: title, +: comment, #: tags
 3. **Add** a bookmark with tags `search engine` & `privacy` and **immutable custom title** `DDG`:
 
         $ buku -a https://ddg.gg search engine, privacy --title 'DDG' --immutable 1
         336. https://ddg.gg (L)
         > DDG
         # privacy,search engine
-Note that URL must precede tags.
+    Note that URL must precede tags.
 4. **Add** a bookmark **without a title** (works for update too):
 
         $ buku -a https://ddg.gg search engine, privacy --title
 5. **Edit and update** a bookmark from editor:
 
         $ buku -w 15012014
-This will open the existing bookmark's details in the editor for modifications. Environment variable `EDITOR` must be set.
+    This will open the existing bookmark's details in the editor for modifications. Environment variable `EDITOR` must be set.
 6. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
         $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Private search engine
@@ -398,12 +393,12 @@ This will open the existing bookmark's details in the editor for modifications. 
 8. **Update only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c this is a new comment
-Applies to --url, --title and --tag too.
+    Applies to --url, --title and --tag too.
 9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML and markdown:
 
         $ buku -e bookmarks.html --tag tag 1, tag 2
         $ buku -e bookmarks.md --tag tag 1, tag 2
-All bookmarks are exported if --tag is not specified.
+    All bookmarks are exported if --tag is not specified.
 10. **Import** bookmarks from HTML and markdown:
 
         $ buku -i bookmarks.html
@@ -411,17 +406,17 @@ All bookmarks are exported if --tag is not specified.
 11. **Delete only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c
-Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
+    Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
 12. **Update** or refresh **full DB** with page titles from the web:
 
         $ buku -u
         $ buku -u --tacit (show only failures and exceptions)
-This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
+    This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
 13. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
         Index 15012020 moved to 15012014
-The last index is moved to the deleted index to keep the DB compact.
+    The last index is moved to the deleted index to keep the DB compact.
 14. **Delete all** bookmarks:
 
         $ buku -d
@@ -444,7 +439,7 @@ The last index is moved to the deleted index to keep the DB compact.
         $ buku --stag
 20. Run a **search and update** the results:
 
-        $ buku -s kernel debugging -u --tag + newtag
+        $ buku -s kernel debugging -u --tag + linux kernel
 21. Run a **search and delete** the results:
 
         $ buku -s kernel debugging -d
@@ -452,7 +447,7 @@ The last index is moved to the deleted index to keep the DB compact.
 
         $ buku -l 15
         $ buku -k 15
-The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
+    The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
 23. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
 
         $ buku -p 20-30 15012014 40-50
@@ -462,7 +457,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
         $ buku -p | more
 25. **Replace tag** 'old tag' with 'new tag':
 
-        $ buku --replace 'old tag' new tag
+        $ buku --replace 'old tag' 'new tag'
 26. **Delete tag** 'old tag' from DB:
 
         $ buku --replace 'old tag'

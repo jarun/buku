@@ -115,7 +115,7 @@ Specify comma separated tags, works with --add, --update. Clears the tags, if no
 Manually specify the title, works with --add, --update. Omits or clears the title, if no arguments passed.
 .TP
 .BI \-c " " \--comment " [...]"
-Add comment or description on the bookmark, works with --add, --update. Clears the comment, if no arguments passed.
+Add notes or description of the bookmark, works with --add, --update. Clears the comment, if no arguments passed.
 .TP
 .BI \--immutable " N"
 Set the title of a bookmark immutable during updates. Works with --add, --update. N=1 sets the immutable flag, N=0 removes it. If omitted, bookmarks are added with N=0.
@@ -188,17 +188,6 @@ Show selective monochrome output with specific fields. Works with --print. Searc
 .I N
 = 3, show only title.
 .TP
-.BI \--replace " oldtag [newtag ...]"
-Replace
-.I oldtag
-with
-.I newtag
-if both are passed; delete
-.I oldtag
-if
-.I newtag
-is omitted.
-.TP
 .BI \-j " " \--json
 Output data formatted as json, works with --print output and search results.
 .TP
@@ -213,6 +202,17 @@ Open bookmarks by DB indices or ranges in browser. Open a random index if argume
 .TP
 .BI \--oa
 Open all search results immediately in the browser. Works best with --np. When used along with --update or --delete, URLs are opened in the browser first and then modified or deleted.
+.TP
+.BI \--replace " old new"
+Replace
+.I old
+tag with
+.I new
+tag if both are passed; delete
+.I old
+tag if
+.I new
+tag is not specified.
 .TP
 .BI \--shorten " index|URL"
 Shorten the URL at DB
@@ -264,7 +264,7 @@ Run a regular expression search.
 .BI "t" " [...]"
 Search bookmarks by a tag. List all tags alphabetically, if no arguments. The index of a tag from the tag list can be used to search all bookmarks having the tag. Note that multiple indices and/or ranges do not work in this case.
 .TP
-.BI "w" " [index|editor]"
+.BI "w" " [editor|index]"
 Edit and add or update a bookmark.
 .TP
 .BI "?"
@@ -489,7 +489,7 @@ Run a \fBsearch and update\fR the results:
 .PP
 .EX
 .IP
-.B buku -s kernel debugging -u --tag + newtag
+.B buku -s kernel debugging -u --tag + linux kernel
 .EE
 .PP
 .IP 21. 4
@@ -535,7 +535,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .PP
 .EX
 .IP
-.B buku --replace 'old tag' new tag
+.B buku --replace 'old tag' 'new tag'
 .EE
 .PP
 .IP 26. 4

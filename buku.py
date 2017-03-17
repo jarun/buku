@@ -1636,7 +1636,7 @@ keys:
   d                    match substrings ('pen' matches 'opened')
   r expression         run a regex search
   t [...]              search bookmarks by a tag or show tag list
-  w [index|editor]     edit and add or update a bookmark
+  w [editor|index]     edit and add or update a bookmark
                        (tag list index fetches bookmarks by tag)
   ?                    show this help
   q, ^D, double Enter  exit buku
@@ -2570,7 +2570,7 @@ POSITIONAL ARGUMENTS:
                          '+' appends to, '-' removes from tagset
     --title [...]        bookmark title; if no arguments:
                          -a: do not set title, -u: clear title
-    -c, --comment [...]  description of the bookmark
+    -c, --comment [...]  notes or description of the bookmark
                          clears description, if no arguments
     --immutable N        disable title fetch from web on update
                          N=0: mutable (default), N=1: immutable''')
@@ -2636,15 +2636,14 @@ POSITIONAL ARGUMENTS:
                          -1 shows the bookmark with highest index
     -f, --format N       limit fields in -p or Json search output
                          N=1: URL, N=2: URL and tag, N=3: title
-    --replace oldtag [newtag ...]
-                         replace oldtag with newtag everywhere
-                         delete oldtag, if newtag not specified
     -j, --json           Json formatted output for -p and search
     --nc                 disable color output
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges
                          open a random bookmark, if no arguments
     --oa                 browse all search results immediately
+    --replace old new    replace old tag with new tag everywhere
+                         delete old tag, if new tag not specified
     --shorten index|URL  fetch shortened url from tny.im service
     --expand index|URL   expand a tny.im shortened url
     --tacit              reduce verbosity
@@ -2658,12 +2657,12 @@ POSITIONAL ARGUMENTS:
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3}, help=HIDE)
-    addarg('--replace', nargs='+', help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--oa', action='store_true', help=HIDE)
+    addarg('--replace', nargs='+', help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
     addarg('--expand', nargs=1, help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
