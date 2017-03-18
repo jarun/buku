@@ -1,8 +1,11 @@
 """test module."""
 from itertools import product
 from unittest import mock
+import sys
 
 import pytest
+
+only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires python3.5")
 
 
 @pytest.mark.parametrize(
@@ -125,6 +128,7 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
             obj.add_rec(*edit_rec_retval)
 
 
+@only_python_3_5
 @pytest.mark.parametrize(
     'idx, row0, row1, row2, row3, row4, row5',
     product(
@@ -224,6 +228,7 @@ def test_browse(url, opened_url):
         m_webbrowser.open.assert_called_once_with(opened_url)
 
 
+@only_python_3_5
 @pytest.mark.parametrize(
     'status_code, latest_release',
     product([200, 404], [True, False])
@@ -273,6 +278,7 @@ def test_delim_wrap(token, exp_res):
     assert res == exp_res
 
 
+@only_python_3_5
 def test_read_in():
     """test func."""
     message = mock.Mock()
@@ -389,6 +395,7 @@ def test_parse_temp_file_content(content, exp_res):
     assert res == exp_res
 
 
+@only_python_3_5
 @pytest.mark.skip(reason="can't patch subprocess")
 def test_edit_rec():
     """test func."""
