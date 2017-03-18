@@ -28,7 +28,7 @@ def test_encrypt_decrypt(tmpdir):
     """test method."""
     dbfile = os.path.join(tmpdir.strpath, 'test_encrypt_decrypt_dbfile')
     touch(dbfile)
-    with mock.patch('buku.getpass', return_value='password'):
+    with mock.patch('getpass.getpass', return_value='password'):
         from buku import BukuCrypt
         with pytest.raises(SystemExit):
             BukuCrypt.encrypt_file(1, dbfile=dbfile)
