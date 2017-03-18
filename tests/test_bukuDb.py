@@ -424,7 +424,7 @@ def test_print_rec(capsys, caplog, setup):
     bdb.print_rec(1)
     out, err = capsys.readouterr()
 
-    for record in caplog.records():
+    for record in caplog.records:
         assert record.levelname == "ERROR"
         assert record.getMessage() == "No matching index 1"
     assert (out, err) == ('', '')
