@@ -204,7 +204,7 @@ POWER TOYS:
       -m, --merge file     add bookmarks from another buku DB file
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
-                           -1 shows the bookmark with highest index
+                           -n shows the last n results (like tail)
       -f, --format N       limit fields in -p or Json search output
                            N=1: URL, N=2: URL and tag, N=3: title
       -j, --json           Json formatted output for -p and search
@@ -451,34 +451,37 @@ NOTE: This flexibility is not exposed in the program.
 23. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
 
         $ buku -p 20-30 15012014 40-50
-24. **Show all** bookmarks with real index from database:
+24. Show details of the **last 10 bookmarks**:
+
+        $ buku -p -10
+25. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-25. **Replace tag** 'old tag' with 'new tag':
+26. **Replace tag** 'old tag' with 'new tag':
 
         $ buku --replace 'old tag' 'new tag'
-26. **Delete tag** 'old tag' from DB:
+27. **Delete tag** 'old tag' from DB:
 
         $ buku --replace 'old tag'
-27. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
+28. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
         $ buku -u 15012014 --tag - tag 1, tag 2
-28. **Open URL** at index 15012014 in browser:
+29. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-29. List bookmarks with **no title or tags** for bookkeeping:
+30. List bookmarks with **no title or tags** for bookkeeping:
 
         $ buku -S blank
-30. List bookmarks with **immutable title**:
+31. List bookmarks with **immutable title**:
 
         $ buku -S immutable
-31. **Shorten URL** www.google.com and the URL at index 20:
+32. **Shorten URL** www.google.com and the URL at index 20:
 
         $ buku --shorten www.google.com
         $ buku --shorten 20
-32. More **help**:
+33. More **help**:
 
         $ buku -h
         $ man buku

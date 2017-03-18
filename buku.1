@@ -171,10 +171,10 @@ Import bookmarks exported from Firefox or Google Chrome as HTML.
 is considered Markdown (compliant with --export format) if it has '.md' extension.
 .TP
 .BI \-m " " \--merge " file"
-Add bookmarks from another Buku database file.
+Add bookmarks from another buku database file.
 .TP
 .BI \-p " " \--print " [...]"
-Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. Special index -1 (introduced for convenience) shows the details of the bookmark with the highest index.
+Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. A negative value (introduced for convenience) behaves like the tail utility, e.g., -n shows the details of the last n bookmarks.
 .TP
 .BI \-f " " \--format " N"
 Show selective monochrome output with specific fields. Works with --print. Search results honour the option when used along with --json. Useful for creating batch scripts.
@@ -522,6 +522,14 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .EE
 .PP
 .IP 24. 4
+Show details of the \fBlast 10 bookmarks\fR:
+.PP
+.EX
+.IP
+.B buku -p -10
+.EE
+.PP
+.IP 25. 4
 \fBShow all\fR bookmarks with real index from database:
 .PP
 .EX
@@ -530,7 +538,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -p | more
 .EE
 .PP
-.IP 25. 4
+.IP 26. 4
 \fBReplace tag\fR 'old tag' with 'new tag':
 .PP
 .EX
@@ -538,7 +546,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku --replace 'old tag' 'new tag'
 .EE
 .PP
-.IP 26. 4
+.IP 27. 4
 \fBDelete tag\fR 'old tag' from DB:
 .PP
 .EX
@@ -546,7 +554,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku --replace 'old tag'
 .EE
 .PP
-.IP 27. 4
+.IP 28. 4
 \fBAppend (or delete) tags\fR 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 .PP
 .EX
@@ -555,7 +563,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -u 15012014 --tag - tag 1, tag 2
 .EE
 .PP
-.IP 28. 4
+.IP 29. 4
 \fBOpen URL\fR at index 15012014 in browser:
 .PP
 .EX
@@ -563,7 +571,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -o 15012014
 .EE
 .PP
-.IP 29. 4
+.IP 30. 4
 List bookmarks with \fBno title or tags\fR for bookkeeping:
 .PP
 .EX
@@ -571,7 +579,7 @@ List bookmarks with \fBno title or tags\fR for bookkeeping:
 .B buku -S blank
 .EE
 .PP
-.IP 30. 4
+.IP 31. 4
 List bookmarks with \fBimmutable title\fR:
 .PP
 .EX
@@ -579,7 +587,7 @@ List bookmarks with \fBimmutable title\fR:
 .B buku -S immutable
 .EE
 .PP
-.IP 31. 4
+.IP 32. 4
 \fBShorten\fR the URL www.google.com and the URL at index 20:
 .PP
 .EX
