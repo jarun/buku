@@ -6,6 +6,7 @@ import os
 import re
 import sqlite3
 from genericpath import exists
+from itertools import product
 from tempfile import TemporaryDirectory
 
 import pytest
@@ -487,6 +488,125 @@ def test_compactdb(setup):
     assert bdb.get_rec_by_id(1) == (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter", 0)
     assert bdb.get_rec_by_id(2) == (2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
     assert bdb.get_rec_by_id(3) is None
+
+
+@pytest.mark.parametrize(
+    'index, low, high, is_range, delay_commit, empty_database, input_retval',
+    product(
+        [-1000000, -1, 0, 1, 3, 4, 1000000],
+        [-1000000, -1, 0, 1, 3, 4, 1000000],
+        [-1000000, -1, 0, 1, 3, 4, 1000000],
+        [False, True],
+        [False, True],
+        [False, True],
+        ['y', 'n'],
+    )
+)
+def test_delete_rec(setup, index, low, high, is_range, delay_commit, empty_database, input_retval):
+    """test method."""
+    def teardown():
+        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
+    def unexpected_test_args():
+        """function to run when args not meet any scenario."""
+        assert 0, ('\n'.join([
+            'Unexpected test args:',
+            'index:{}'.format(index),
+            'low:{}'.format(low),
+            'high:{}'.format(high),
+            'is_range:{}'.format(is_range),
+            'delay_commit:{}'.format(delay_commit),
+            'empty_database:{}'.format(empty_database),
+            'input_retval:{}'.format(input_retval),
+        ]))
+    # setup
+    bdb = BukuDb()
+    db_len = 0
+    if not empty_database:
+        for bookmark in TEST_BOOKMARKS:
+            bdb.add_rec(*bookmark)
+        db_len = len(TEST_BOOKMARKS)
+
+    # TESTCASE index, low or high is less than 0
+    if index < 0 or low < 0 or high < 0:
+        with pytest.raises(AssertionError):
+            bdb.delete_rec(index, low, high, is_range, delay_commit)
+        recs = bdb.get_rec_all()
+        assert db_len == len(recs)
+
+        teardown()
+        return
+
+    # TESTCASE scenario when meet cleardb function
+    if (is_range and low == 0) or not (is_range and index == 0):
+        with mock.patch('builtins.input', return_value=input_retval):
+            res = bdb.delete_rec(index, low, high, is_range, delay_commit)
+        if input_retval != 'y':
+            assert not res
+            assert len(bdb.get_rec_all()) == db_len
+        else:
+            assert res
+            assert len(bdb.get_rec_all()) == 0
+
+        teardown()
+        return
+
+    # TESTCASE when is_range
+    if is_range:
+        # use normalized high and low variable
+        if low > high:
+            n_low, n_high = high, low
+        else:
+            n_low, n_high = low, high
+
+        if n_high > db_len + 1:
+            with pytest.raises(IndexError):
+                bdb.delete_rec(index, low, high, is_range, delay_commit)
+            teardown()
+            return
+
+        if n_low > db_len:
+            with pytest.raises(IndexError):
+                bdb.delete_rec(index, low, high, is_range, delay_commit)
+            teardown()
+            return
+
+        if n_low == n_high or delay_commit:
+            res = bdb.delete_rec(index, low, high, is_range, delay_commit)
+            assert res
+            assert len(bdb.get_rec_all()) == db_len
+            teardown()
+            return
+
+        res = bdb.delete_rec(index, low, high, is_range, delay_commit)
+        range_diff = n_high - n_low
+        assert res
+        assert len(bdb.get_rec_all()) == db_len - range_diff
+        teardown()
+        return
+
+    # TESTCASE when not is_range and index only
+    if not is_range:
+        res = bdb.delete_rec(index, low, high, is_range, delay_commit)
+        if index > db_len:
+            assert not res
+            assert len(bdb.get_rec_all()) == db_len
+        elif index <= db_len:
+            assert res
+            if not delay_commit:
+                assert len(bdb.get_rec_all()) == db_len - 1
+            else:
+                assert len(bdb.get_rec_all()) == db_len
+        else:
+            teardown()
+            unexpected_test_args()
+            return
+
+        teardown()
+        return
+
+    teardown()
+    unexpected_test_args()
 
 # Helper functions for testcases
 
