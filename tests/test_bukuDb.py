@@ -226,6 +226,7 @@ class TestBukuDb(unittest.TestCase):
             self.assertNotIn(to_delete, from_db)
 
     # @unittest.skip('skipping')
+    @pytest.mark.slowtest
     def test_refreshdb(self):
         self.bdb.add_rec("https://www.google.com/ncr", "?")
         self.bdb.refreshdb(1, 1)
