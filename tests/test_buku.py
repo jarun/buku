@@ -146,13 +146,13 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
         [0, 1],
     )
 )
-def test_print_record(idx, row0, row1, row2, row3, row4, row5):
+def test_print_single_rec(idx, row0, row1, row2, row3, row4, row5):
     """test func."""
     row = [row0, row1, row2, row3, row4, row5]
     pr = None
     with mock.patch('buku.print') as m_print:
         import buku
-        buku.print_record(row, idx)
+        buku.print_single_rec(row, idx)
 
         if idx != 0:
             pr = buku.ID_str % (idx, row1, row0)

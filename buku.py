@@ -1051,11 +1051,15 @@ class BukuDb:
         :param low: actual lower index of range
         :param high: actual higher index of range
         :param is_range: a range is passed using low and high arguments
+                         index is ignored if is_range is True (use dummy index)
         :param delay_commit: do not commit to DB, caller's responsibility
         :return: True on success, False on failure
         '''
 
         if is_range:  # Delete a range of indices
+            if low > high:
+                low, high = high, low
+
             # If range starts from 0, delete all records
             if low == 0:
                 return self.cleardb()
@@ -1158,7 +1162,7 @@ class BukuDb:
         print('All bookmarks deleted')
         return True
 
-    def print_rec(self, index, low=0, high=0, is_range=False):
+    def print_rec(self, index=0, low=0, high=0, is_range=False):
         '''Print bookmark details at index or all bookmarks if index is 0
         Note: URL is printed on top because title may be blank
 
@@ -1166,12 +1170,21 @@ class BukuDb:
         :param low: actual lower index of range
         :param high: actual higher index of range
         :param is_range: a range is passed using low and high arguments
+                         index is ignored if is_range is True
         '''
 
         if is_range:
+            if low > high:
+                low, high = high, low
+
             try:
-                query = 'SELECT * from bookmarks where id BETWEEN ? AND ?'
-                resultset = self.cur.execute(query, (low, high))
+                # If range starts from 0 print all records
+                if low == 0:
+                    query = 'SELECT * from bookmarks'
+                    resultset = self.cur.execute(query)
+                else:
+                    query = 'SELECT * from bookmarks where id BETWEEN ? AND ?'
+                    resultset = self.cur.execute(query, (low, high))
             except IndexError:
                 logerr('Index out of range')
                 return
@@ -1190,7 +1203,7 @@ class BukuDb:
             if not self.json:
                 for row in results:
                     if self.field_filter == 0:
-                        print_record(row)
+                        print_single_rec(row)
                     elif self.field_filter == 1:
                         print('%s\t%s' % (row[0], row[1]))
                     elif self.field_filter == 2:
@@ -1212,7 +1225,7 @@ class BukuDb:
         if not self.json:
             if self.field_filter == 0:
                 for row in resultset:
-                    print_record(row)
+                    print_single_rec(row)
             elif self.field_filter == 1:
                 for row in resultset:
                     print('%s\t%s' % (row[0], row[1]))
@@ -1993,7 +2006,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
 
                     for row in results:
                         count += 1
-                        print_record(row, count)
+                        print_single_rec(row, count)
                 else:
                     print('0 results')
 
@@ -2106,7 +2119,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                 break
 
 
-def print_record(row, idx=0):
+def print_single_rec(row, idx=0):
     '''Print a single DB record
     Handles both search result and individual record
 
@@ -2937,12 +2950,7 @@ POSITIONAL ARGUMENTS:
         elif len(args.delete) == 1 and '-' in args.delete[0]:
             vals = str(args.delete[0]).split('-')
             if len(vals) == 2 and is_int(vals[0]) and is_int(vals[1]):
-                if int(vals[0]) == int(vals[1]):
-                    bdb.delete_rec(int(vals[0]))
-                elif int(vals[0]) < int(vals[1]):
-                    bdb.delete_rec(0, int(vals[0]), int(vals[1]), True)
-                else:
-                    bdb.delete_rec(0, int(vals[1]), int(vals[0]), True)
+                bdb.delete_rec(0, int(vals[0]), int(vals[1]), True)
             else:
                 logerr('Invalid index or range')
                 bdb.close_quit(1)
@@ -2979,14 +2987,10 @@ POSITIONAL ARGUMENTS:
                             bdb.close_quit(1)
                         bdb.print_rec(0, 1 if _id <= -id else _id + id + 1,
                                       _id, True)
-                elif ('-' in idx and is_int(idx.split('-')[0]) and
-                        is_int(idx.split('-')[1])):
-                    lower = int(idx.split('-')[0])
-                    upper = int(idx.split('-')[1])
-                    if lower > upper:
-                        lower, upper = upper, lower
-
-                    bdb.print_rec(0, lower, upper, True)
+                elif '-' in idx:
+                    vals = idx.split('-')
+                    if len(vals) == 2 and is_int(vals[0]) and is_int(vals[1]):
+                        bdb.print_rec(0, int(vals[0]), int(vals[1]), True)
                 else:
                     logerr('Invalid index or range to print')
                     bdb.close_quit(1)
