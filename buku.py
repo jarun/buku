@@ -1057,6 +1057,10 @@ class BukuDb:
         '''
 
         if is_range:  # Delete a range of indices
+            if low < 0 or high < 0:
+                logerr('Negative range boundary')
+                return False
+
             if low > high:
                 low, high = high, low
 
@@ -1174,6 +1178,10 @@ class BukuDb:
         '''
 
         if is_range:
+            if low < 0 or high < 0:
+                logerr('Negative range boundary')
+                return False
+
             if low > high:
                 low, high = high, low
 
@@ -2919,24 +2927,26 @@ POSITIONAL ARGUMENTS:
                 if is_int(idx):
                     bdb.update_rec(int(idx), url_in, title_in, tags,
                                    desc_in, args.immutable, args.threads)
-                elif ('-' in idx and is_int(idx.split('-')[0]) and
-                        is_int(idx.split('-')[1])):
-                    lower = int(idx.split('-')[0])
-                    upper = int(idx.split('-')[1])
-                    if lower > upper:
-                        lower, upper = upper, lower
+                elif '-' in idx:
+                    try:
+                        vals = [int(x) for x in idx.split('-')]
+                        if vals[0] > vals[1]:
+                            vals[0], vals[1] = vals[1], vals[0]
 
-                    # Update only once if range starts from 0 (all)
-                    if lower == 0:
-                        bdb.update_rec(0, url_in, title_in, tags, desc_in,
-                                       args.immutable, args.threads)
-                    else:
-                        for _id in range(lower, upper + 1):
-                            bdb.update_rec(_id, url_in, title_in, tags,
-                                           desc_in, args.immutable,
-                                           args.threads)
-                            if interrupted:
-                                break
+                        # Update only once if range starts from 0 (all)
+                        if vals[0] == 0:
+                            bdb.update_rec(0, url_in, title_in, tags, desc_in,
+                                           args.immutable, args.threads)
+                        else:
+                            for _id in range(vals[0], vals[1] + 1):
+                                bdb.update_rec(_id, url_in, title_in, tags,
+                                               desc_in, args.immutable,
+                                               args.threads)
+                                if interrupted:
+                                    break
+                    except ValueError:
+                        logerr('Invalid index or range to update')
+                        bdb.close_quit(1)
 
                 if interrupted:
                     break
@@ -2948,11 +2958,12 @@ POSITIONAL ARGUMENTS:
             if not search_opted:
                 bdb.cleardb()
         elif len(args.delete) == 1 and '-' in args.delete[0]:
-            vals = str(args.delete[0]).split('-')
-            if len(vals) == 2 and is_int(vals[0]) and is_int(vals[1]):
-                bdb.delete_rec(0, int(vals[0]), int(vals[1]), True)
-            else:
-                logerr('Invalid index or range')
+            try:
+                vals = [int(x) for x in args.delete[0].split('-')]
+                if len(vals) == 2:
+                    bdb.delete_rec(0, vals[0], vals[1], True)
+            except ValueError:
+                logerr('Invalid index or range to delete')
                 bdb.close_quit(1)
         else:
             ids = []
@@ -2967,33 +2978,35 @@ POSITIONAL ARGUMENTS:
                 for idx in ids:
                     bdb.delete_rec(int(idx))
             except ValueError:
-                logerr('Invalid index or range')
+                logerr('Invalid index or range or combination')
+                bdb.close_quit(1)
 
     # Print record
     if args.print is not None:
         if not args.print:
             bdb.print_rec(0)
         else:
-            for idx in args.print:
-                if is_int(idx):
-                    id = int(idx)
-                    if id >= 0:
-                        bdb.print_rec(id)
-                    else:
-                        # Show the last n records
-                        _id = bdb.get_max_id()
-                        if _id == -1:
-                            logerr('Empty database')
-                            bdb.close_quit(1)
-                        bdb.print_rec(0, 1 if _id <= -id else _id + id + 1,
-                                      _id, True)
-                elif '-' in idx:
-                    vals = idx.split('-')
-                    if len(vals) == 2 and is_int(vals[0]) and is_int(vals[1]):
-                        bdb.print_rec(0, int(vals[0]), int(vals[1]), True)
-                else:
-                    logerr('Invalid index or range to print')
-                    bdb.close_quit(1)
+            try:
+                for idx in args.print:
+                    if is_int(idx):
+                        id = int(idx)
+                        if id >= 0:
+                            bdb.print_rec(id)
+                        else:
+                            # Show the last n records
+                            _id = bdb.get_max_id()
+                            if _id == -1:
+                                logerr('Empty database')
+                                bdb.close_quit(1)
+
+                            bdb.print_rec(0, 1 if _id <= -id else _id + id + 1,
+                                          _id, True)
+                    elif '-' in idx:
+                        vals = [int(x) for x in idx.split('-')]
+                        bdb.print_rec(0, vals[0], vals[-1], True)
+            except ValueError:
+                logerr('Invalid index or range to print')
+                bdb.close_quit(1)
 
     # Replace a tag in DB
     if args.replace is not None:
@@ -3024,20 +3037,20 @@ POSITIONAL ARGUMENTS:
         if not args.open:
             bdb.browse_by_index(0)
         else:
-            for idx in args.open:
-                if is_int(idx):
-                    bdb.browse_by_index(int(idx))
-                elif ('-' in idx and is_int(idx.split('-')[0]) and
-                        is_int(idx.split('-')[1])):
-                    lower = int(idx.split('-')[0])
-                    upper = int(idx.split('-')[1])
-                    if lower > upper:
-                        lower, upper = upper, lower
-                    for _id in range(lower, upper + 1):
-                        bdb.browse_by_index(_id)
-                else:
-                    logerr('Invalid index or range to open')
-                    bdb.close_quit(1)
+            try:
+                for idx in args.open:
+                    if is_int(idx):
+                        bdb.browse_by_index(int(idx))
+                    elif '-' in idx:
+                        vals = [int(x) for x in idx.split('-')]
+                        if vals[0] > vals[-1]:
+                            vals[0], vals[-1] = vals[-1], vals[0]
+
+                        for _id in range(vals[0], vals[-1] + 1):
+                            bdb.browse_by_index(_id)
+            except ValueError:
+                logerr('Invalid index or range to open')
+                bdb.close_quit(1)
 
     # Shorten URL
     if args.shorten:
