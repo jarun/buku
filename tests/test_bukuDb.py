@@ -656,21 +656,18 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
     'index, is_range, low, high, delay_comit',
     [
         # range on non zero index
-        (0, True, 1, 1, True),
-        (0, True, 1, 1, False),
+        (0, True, 1, 1),
         # range on zero index
-        (0, True, 0, 0, True),
-        (0, True, 0, 0, False),
+        (0, True, 0, 0),
         # zero index only
-        (0, False, 0, 0, True),
-        (0, False, 0, 0, False),
+        (0, False, 0, 0),
     ]
 )
-def test_get_delete_rec_on_empty_database(setup, index, is_range, low, high, delay_comit):
+def test_get_delete_rec_on_empty_database(setup, index, is_range, low, high):
     """test delete rec, on empty database."""
     bdb = BukuDb()
     with mock.patch('builtins.input', return_value='y'):
-        res = bdb.delete_rec(index, is_range, low, high, delay_comit)
+        res = bdb.delete_rec(index, is_range, low, high)
 
     if (is_range and any([low == 0, high == 0])) or (not is_range and index == 0):
         assert res
