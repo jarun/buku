@@ -648,6 +648,38 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 
+@pytest.mark.parametrize(
+    'index, is_range, low, high, delay_comit',
+    [
+        # range on non zero index
+        (0, True, 1, 1, True),
+        (0, True, 1, 1, False),
+        # range on zero index
+        (0, True, 0, 0, True),
+        (0, True, 0, 0, False),
+        # zero index only
+        (0, False, 0, 0, True),
+        (0, False, 0, 0, False),
+    ]
+)
+def test_get_delete_rec_on_empty_database(setup, index, is_range, low, high, delay_comit):
+    """test delete rec, on empty database."""
+    bdb = BukuDb()
+    with mock.patch('builtins.input', return_value='y'):
+        res = bdb.delete_rec(index, is_range, low, high, delay_comit)
+
+    if (is_range and any([low == 0, high == 0])) or (not is_range and index == 0):
+        assert res
+        # teardown
+        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+        return
+
+    if is_range and low > 1 and high > 1:
+        assert not res
+
+    # teardown
+    os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
 # Helper functions for testcases
 
 
