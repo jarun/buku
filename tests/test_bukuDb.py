@@ -608,7 +608,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
     res = bdb.delete_rec(
         index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
     assert res == exp_res
-    assert len(BukuDb.get_rec_all()) == exp_db_len
+    assert len(bdb.get_rec_all()) == exp_db_len
     if delay_commit:
         assert len(bdb_dc.get_rec_all()) == db_len
     else:
