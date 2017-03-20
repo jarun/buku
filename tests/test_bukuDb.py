@@ -466,6 +466,57 @@ def test_print_rec(capsys, caplog, setup):
     assert err == ''
 
 
+@given(
+    index=st.integers(max_value=10),
+    low=st.integers(min_value=-10, max_value=10),
+    high=st.integers(min_value=-10, max_value=10),
+    is_range=st.booleans(),
+)
+def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
+    """test when index, low or high is less than 0."""
+    bdb = BukuDb()
+    if high < low:
+        n_high, n_low = low, high
+    else:
+        n_high, n_low = high, low
+
+    bdb.add_rec("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
+    db_len = 1
+
+    bdb.print_rec(index=index, low=low, high=high, is_range=is_range)
+
+    check_print = False
+    err_msg = ['Actual log:']
+    err_msg.extend(['{}:{}'.format(x.levelname, x.getMessage()) for x in caplog.records])
+
+    # negative index/range
+    if (is_range and any([low < 0, high < 0])) or (not is_range and index < 0):
+        for record in caplog.records:
+            assert any(x.levelname == "ERROR" for x in caplog.records)
+            assert any([x.getMessage() == "Negative range boundary" for x in caplog.records])
+    # is_range
+    elif is_range:
+        check_print = True
+    # is_range == False
+    elif not is_range:
+        check_print = True
+    # no matching index
+    else:
+        assert any([x.levelname == "ERROR" for x in caplog.records]), \
+            '\n'.join(err_msg)
+        assert any([x.getMessage().startswith("No matching index") for x in caplog.records]), \
+            '\n'.join(err_msg)
+
+    if check_print:
+        assert not any([x.levelname == "ERROR" for x in caplog.records]), \
+            '\n'.join(err_msg)
+
+    # teardown
+    bdb.delete_rec(index=1)
+    caplog.handler.records.clear()
+    caplog.records.clear()
+
+
 def test_list_tags(capsys, setup):
     bdb = BukuDb()
 
