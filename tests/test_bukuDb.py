@@ -518,7 +518,8 @@ def test_delete_rec_negative(setup, index, low, high, is_range):
         assert db_len == len(bdb.get_rec_all())
     else:
         assert res
-        assert len(bdb.get_rec_all()) == 0
+        with pytest.raises(sqlite3.OperationalError):
+            assert len(bdb.get_rec_all()) == 0
 
     # teardown
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
@@ -578,6 +579,7 @@ def test_delete_rec_cleardb(setup, is_range, input_retval, high, low):
 def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
+    index = 0
     is_range = True
 
     # Fill bookmark
@@ -602,7 +604,8 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
     else:
         exp_db_len = db_len - (n_high - n_low)
 
-    res = bdb.delete_rec(low=low, high=high, is_range=is_range, delay_commit=delay_commit)
+    res = bdb.delete_rec(
+        index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
     assert res == exp_res
     if delay_commit:
         assert len(bdb.get_rec_all()) == db_len
