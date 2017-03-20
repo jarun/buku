@@ -653,7 +653,7 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
 
 
 @pytest.mark.parametrize(
-    'index, is_range, low, high, delay_comit',
+    'index, is_range, low, high',
     [
         # range on non zero index
         (0, True, 1, 1),
