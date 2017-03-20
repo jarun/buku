@@ -579,6 +579,7 @@ def test_delete_rec_cleardb(setup, is_range, input_retval, high, low):
 def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
+    bdb_dc = BukuDb()  # instance for delay_commit check.
     index = 0
     is_range = True
 
@@ -607,10 +608,11 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
     res = bdb.delete_rec(
         index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
     assert res == exp_res
+    assert len(BukuDb.get_rec_all()) == exp_db_len
     if delay_commit:
-        assert len(bdb.get_rec_all()) == db_len
+        assert len(bdb_dc.get_rec_all()) == db_len
     else:
-        assert len(bdb.get_rec_all()) == exp_db_len
+        assert len(bdb_dc.get_rec_all()) == exp_db_len
 
     # teardown
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
@@ -626,6 +628,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
 def test_delete_rec_index_and_delay_commit(index, delay_commit):
     """test delete rec, index and delay commit."""
     bdb = BukuDb()
+    bdb_dc = BukuDb()  # instance for delay_commit check.
 
     # Fill bookmark
     for bookmark in TEST_BOOKMARKS:
@@ -637,12 +640,13 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
     if index > db_len:
         assert not res
         assert len(bdb.get_rec_all()) == db_len
-    elif delay_commit:
-        assert res
-        assert len(bdb.get_rec_all()) == db_len
-    elif not delay_commit:
+    else:
         assert res
         assert len(bdb.get_rec_all()) == db_len - 1
+        if delay_commit:
+            assert len(bdb_dc.get_rec_all()) == db_len
+        else:
+            assert len(bdb_dc.get_rec_all()) == db_len - 1
 
     # teardown
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
