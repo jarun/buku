@@ -6,6 +6,7 @@ import os
 import re
 import sqlite3
 from genericpath import exists
+from itertools import product
 from tempfile import TemporaryDirectory
 
 import pytest
@@ -487,6 +488,198 @@ def test_compactdb(setup):
     assert bdb.get_rec_by_id(1) == (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter", 0)
     assert bdb.get_rec_by_id(2) == (2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
     assert bdb.get_rec_by_id(3) is None
+
+
+@pytest.mark.parametrize(
+    'index, low, high, is_range',
+    product(
+        [-1, 0],
+        [-1, 0],
+        [-1, 0],
+        [True, False]
+    )
+)
+def test_delete_rec_negative(setup, index, low, high, is_range):
+    """test when index, low or high is less than 0."""
+    bdb = BukuDb()
+
+    # Fill bookmark
+    for bookmark in TEST_BOOKMARKS:
+        bdb.add_rec(*bookmark)
+    db_len = len(TEST_BOOKMARKS)
+
+    with mock.patch('builtins.input', return_value='y'):
+        res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
+    if is_range and any([low < 0, high < 0]):
+        assert not res
+        assert db_len == len(bdb.get_rec_all())
+    elif not is_range and index < 0:
+        assert not res
+        assert db_len == len(bdb.get_rec_all())
+    else:
+        assert res
+        with pytest.raises(sqlite3.OperationalError):
+            assert len(bdb.get_rec_all()) == 0
+
+    # teardown
+    os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
+
+@pytest.mark.parametrize(
+    'is_range, input_retval, high, low',
+    product(
+        [True, False],
+        ['y', 'n'],
+        [0, 1],
+        [0, 1],
+    )
+)
+def test_delete_rec_cleardb(setup, is_range, input_retval, high, low):
+    """test scenario when meet cleardb function."""
+    bdb = BukuDb()
+    index = 0
+
+    # Fill bookmark
+    for bookmark in TEST_BOOKMARKS:
+        bdb.add_rec(*bookmark)
+    db_len = len(TEST_BOOKMARKS)
+
+    with mock.patch('builtins.input', return_value=input_retval):
+        res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
+    if is_range and high == 1 and low == 1:
+        assert res
+        assert len(bdb.get_rec_all()) == db_len - 1
+    elif is_range and input_retval != 'y':
+        assert not res
+        assert len(bdb.get_rec_all()) == db_len
+    elif is_range:
+        assert res
+        with pytest.raises(sqlite3.OperationalError):
+            bdb.get_rec_all()
+    elif input_retval != 'y':
+        assert not res
+        assert len(bdb.get_rec_all()) == db_len
+    else:
+        assert res
+        with pytest.raises(sqlite3.OperationalError):
+            bdb.get_rec_all()
+
+    # teardown
+    os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
+
+@pytest.mark.parametrize(
+    'low, high, delay_commit',
+    product(
+        [1, 1000],
+        [1, 1000],
+        [True, False],
+    )
+)
+def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
+    """test delete rec, range and delay commit."""
+    bdb = BukuDb()
+    bdb_dc = BukuDb()  # instance for delay_commit check.
+    index = 0
+    is_range = True
+
+    # Fill bookmark
+    for bookmark in TEST_BOOKMARKS:
+        bdb.add_rec(*bookmark)
+    db_len = len(TEST_BOOKMARKS)
+
+    # use normalized high and low variable
+    if low > high:
+        n_low, n_high = high, low
+    else:
+        n_low, n_high = low, high
+
+    exp_res = True
+    if n_high > db_len and n_low <= db_len:
+        exp_db_len = db_len - (db_len + 1 - n_low)
+    elif n_high == n_low and n_low > db_len:
+        exp_db_len = db_len
+        exp_res = False
+    elif n_high == n_low and n_low <= db_len:
+        exp_db_len = db_len - 1
+    else:
+        exp_db_len = db_len - (n_high - n_low)
+
+    res = bdb.delete_rec(
+        index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
+    assert res == exp_res
+    assert len(bdb.get_rec_all()) == exp_db_len
+    if delay_commit:
+        assert len(bdb_dc.get_rec_all()) == db_len
+    else:
+        assert len(bdb_dc.get_rec_all()) == exp_db_len
+
+    # teardown
+    os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
+
+@pytest.mark.parametrize(
+    'index, delay_commit',
+    product(
+        [1, 1000],
+        [True, False],
+    )
+)
+def test_delete_rec_index_and_delay_commit(index, delay_commit):
+    """test delete rec, index and delay commit."""
+    bdb = BukuDb()
+    bdb_dc = BukuDb()  # instance for delay_commit check.
+
+    # Fill bookmark
+    for bookmark in TEST_BOOKMARKS:
+        bdb.add_rec(*bookmark)
+    db_len = len(TEST_BOOKMARKS)
+
+    res = bdb.delete_rec(index=index, delay_commit=delay_commit)
+
+    if index > db_len:
+        assert not res
+        assert len(bdb.get_rec_all()) == db_len
+    else:
+        assert res
+        assert len(bdb.get_rec_all()) == db_len - 1
+        if delay_commit:
+            assert len(bdb_dc.get_rec_all()) == db_len
+        else:
+            assert len(bdb_dc.get_rec_all()) == db_len - 1
+
+    # teardown
+    os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
+
+@pytest.mark.parametrize(
+    'index, is_range, low, high',
+    [
+        # range on non zero index
+        (0, True, 1, 1),
+        # range on zero index
+        (0, True, 0, 0),
+        # zero index only
+        (0, False, 0, 0),
+    ]
+)
+def test_get_delete_rec_on_empty_database(setup, index, is_range, low, high):
+    """test delete rec, on empty database."""
+    bdb = BukuDb()
+    with mock.patch('builtins.input', return_value='y'):
+        res = bdb.delete_rec(index, is_range, low, high)
+
+    if (is_range and any([low == 0, high == 0])) or (not is_range and index == 0):
+        assert res
+        # teardown
+        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+        return
+
+    if is_range and low > 1 and high > 1:
+        assert not res
+
+    # teardown
+    os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 # Helper functions for testcases
 
