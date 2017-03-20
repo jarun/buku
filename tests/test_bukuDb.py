@@ -596,7 +596,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
 
     exp_res = True
     if n_high > db_len and n_low <= db_len:
-        exp_db_len = db_len + 1 - n_low
+        exp_db_len = db_len - (db_len + 1 - n_low)
     elif n_high == n_low and n_low > db_len:
         exp_db_len = db_len
         exp_res = False
