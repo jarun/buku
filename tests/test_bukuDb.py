@@ -493,9 +493,9 @@ def test_compactdb(setup):
 @pytest.mark.parametrize(
     'index, low, high, is_range',
     product(
-        [-1, 0],
-        [-1, 0],
-        [-1, 0],
+        [-1, 0, 'max'],
+        [-1, 0, 'max'],
+        [-1, 0, 'max'],
         [True, False]
     )
 )
@@ -508,15 +508,28 @@ def test_delete_rec_negative(setup, index, low, high, is_range):
         bdb.add_rec(*bookmark)
     db_len = len(TEST_BOOKMARKS)
 
+    # normalize vars
+    n_index, n_high, n_low = normalize_index_and_range(
+        db_len=db_len, index=index, low=low, high=high)
+
     with mock.patch('builtins.input', return_value='y'):
         res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
-    if is_range and any([low < 0, high < 0]):
+    if is_range and any([n_low < 0, n_high < 0]):
         assert not res
         assert db_len == len(bdb.get_rec_all())
-    elif not is_range and index < 0:
+    elif not is_range and n_index < 0:
         assert not res
         assert db_len == len(bdb.get_rec_all())
-    else:
+    elif is_range and n_low != 0 and n_low == n_high:
+        assert res
+        assert db_len - 1 == len(bdb.get_rec_all)
+    elif is_range and n_low != 0:
+        assert res
+        assert db_len - (n_high - n_low) == len(bdb.get_rec_all)
+    elif not is_range and n_index != 0:
+        assert res
+        assert db_len - 1 == len(bdb.get_rec_all)
+    else:  # (index == 0 and not is_range)  or (low == 0 and is_range)
         assert res
         with pytest.raises(sqlite3.OperationalError):
             assert len(bdb.get_rec_all()) == 0
@@ -530,12 +543,16 @@ def test_delete_rec_negative(setup, index, low, high, is_range):
     product(
         [True, False],
         ['y', 'n'],
-        [0, 1],
-        [0, 1],
+        [0, 1, 'max'],
+        [0, 1, "max"],
     )
 )
 def test_delete_rec_cleardb(setup, is_range, input_retval, high, low):
     """test scenario when meet cleardb function."""
+    # skip (non-zero, max) pair for is_range
+    if is_range and ((low != 0 and high == 'max') or (low == 0 and high != 'max')):
+        return
+
     bdb = BukuDb()
     index = 0
 
@@ -544,9 +561,11 @@ def test_delete_rec_cleardb(setup, is_range, input_retval, high, low):
         bdb.add_rec(*bookmark)
     db_len = len(TEST_BOOKMARKS)
 
+    _, n_low, n_high = normalize_index_and_range(db_len=db_len, low=low, high=high)
+
     with mock.patch('builtins.input', return_value=input_retval):
         res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
-    if is_range and high == 1 and low == 1:
+    if is_range and n_high == 1 and n_low == 1:
         assert res
         assert len(bdb.get_rec_all()) == db_len - 1
     elif is_range and input_retval != 'y':
@@ -621,7 +640,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
 @pytest.mark.parametrize(
     'index, delay_commit',
     product(
-        [1, 1000],
+        [1, 1000, "max"],
         [True, False],
     )
 )
@@ -634,6 +653,8 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
     for bookmark in TEST_BOOKMARKS:
         bdb.add_rec(*bookmark)
     db_len = len(TEST_BOOKMARKS)
+
+    n_index, _, _ = normalize_index_and_range(db_len=db_len, index=index)
 
     res = bdb.delete_rec(index=index, delay_commit=delay_commit)
 
@@ -692,6 +713,40 @@ def split_and_test_membership(a, b):
 
 def inclusive_range(start, end):
     return range(start, end + 1)
+
+
+def normalize_index_and_range(db_len, index=0, low=0, high=0):
+    """normalize index and range.
+
+    Args:
+        db_len (int): database length.
+        index (int): index.
+        low (int): low limit.
+        high (int): high limit.
+
+    Returns:
+        Tuple contain following normalized variables (index, low, high)
+    """
+    if index == 'max':
+        n_index = db_len
+    if low == 'max' and high == 'max':
+        n_low = db_len
+        n_high = db_len + 1
+    elif low == 'max' and high != 'max':
+        n_low = high
+        n_high = db_len + 1
+    elif low != 'max' and high == 'max':
+        n_low = low
+        n_high = db_len + 1
+    else:
+        n_low = low
+        n_high = high
+
+    if n_high < n_low:
+        n_high, n_low = n_low, n_high
+
+    return (n_index, n_low, n_high)
+
 
 if __name__ == "__main__":
     unittest.main()
