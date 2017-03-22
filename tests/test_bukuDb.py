@@ -702,6 +702,40 @@ def test_get_delete_rec_on_empty_database(setup, index, is_range, low, high):
     # teardown
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
+
+@pytest.mark.parametrize(
+    'index, low, high, is_range',
+    product(
+        ['a', "max"],
+        ['a', "max"],
+        ['a', "max"],
+        [True, False],
+    )
+)
+def test_delete_rec_on_non_interger(index, low, high, is_range):
+    """test delete rec on non integer arg."""
+    bdb = BukuDb()
+
+    def is_non_integer_and_not_max(arg):
+        return not isinstance(arg, int) and arg != 'max'
+
+    for bookmark in TEST_BOOKMARKS:
+        bdb.add_rec(*bookmark)
+    db_len = len(TEST_BOOKMARKS)
+
+    res = bdb.delete_rec(index, is_range, low, high)
+
+    if is_range and any([is_non_integer_and_not_max(low), is_non_integer_and_not_max(high)]):
+        assert not res
+        assert len(bdb.get_rec_all()) == db_len
+    elif not is_range and is_non_integer_and_not_max(index):
+        assert not res
+        assert len(bdb.get_rec_all()) == db_len
+    else:
+        assert res
+        assert len(bdb.get_rec_all()) == db_len - 1
+
+
 # Helper functions for testcases
 
 
@@ -727,6 +761,17 @@ def normalize_index_and_range(db_len, index=0, low=0, high=0):
     Returns:
         Tuple contain following normalized variables (index, low, high)
     """
+    range_require_comparison = True
+    # don't deal with non instance of the variable.
+    if not isinstance(index, int) and index != 'max':
+        n_index = index
+    if not isinstance(low, int) and low != 'max':
+        n_low = low
+        range_require_comparison = False
+    if not isinstance(high, int) and high != 'max':
+        n_high = high
+        range_require_comparison = False
+
     if index == 'max':
         n_index = db_len
     if low == 'max' and high == 'max':
@@ -742,8 +787,9 @@ def normalize_index_and_range(db_len, index=0, low=0, high=0):
         n_low = low
         n_high = high
 
-    if n_high < n_low:
-        n_high, n_low = n_low, n_high
+    if range_require_comparison:
+        if n_high < n_low:
+            n_high, n_low = n_low, n_high
 
     return (n_index, n_low, n_high)
 
