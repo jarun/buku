@@ -684,7 +684,7 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
         (0, False, 0, 0),
     ]
 )
-def test_get_delete_rec_on_empty_database(setup, index, is_range, low, high):
+def test_delete_rec_on_empty_database(setup, index, is_range, low, high):
     """test delete rec, on empty database."""
     bdb = BukuDb()
     with mock.patch('builtins.input', return_value='y'):
