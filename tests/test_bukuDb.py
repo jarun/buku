@@ -509,8 +509,8 @@ def test_delete_rec_negative(setup, index, low, high, is_range):
     db_len = len(TEST_BOOKMARKS)
 
     # normalize vars
-    n_index, n_high, n_low = normalize_index_and_range(
-        db_len=db_len, index=index, low=low, high=high)
+    n_index = normalize_index(db_len, index)
+    n_low, n_high = normalize_range(db_len=db_len, low=low, high=high)
 
     with mock.patch('builtins.input', return_value='y'):
         res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
@@ -561,7 +561,7 @@ def test_delete_rec_cleardb(setup, is_range, input_retval, high, low):
         bdb.add_rec(*bookmark)
     db_len = len(TEST_BOOKMARKS)
 
-    _, n_low, n_high = normalize_index_and_range(db_len=db_len, low=low, high=high)
+    n_low, n_high = normalize_range(db_len=db_len, low=low, high=high)
 
     with mock.patch('builtins.input', return_value=input_retval):
         res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
@@ -608,10 +608,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
     db_len = len(TEST_BOOKMARKS)
 
     # use normalized high and low variable
-    if low > high:
-        n_low, n_high = high, low
-    else:
-        n_low, n_high = low, high
+    n_low, n_high = normalize_range(db_len=db_len, low=low, high=high)
 
     exp_res = True
     if n_high > db_len and n_low <= db_len:
@@ -654,7 +651,7 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
         bdb.add_rec(*bookmark)
     db_len = len(TEST_BOOKMARKS)
 
-    n_index, _, _ = normalize_index_and_range(db_len=db_len, index=index)
+    n_index = normalize_index(db_len=db_len, index=index)
 
     res = bdb.delete_rec(index=index, delay_commit=delay_commit)
 
@@ -749,49 +746,63 @@ def inclusive_range(start, end):
     return range(start, end + 1)
 
 
-def normalize_index_and_range(db_len, index=0, low=0, high=0):
-    """normalize index and range.
+def normalize_index(db_len, index):
+    """normalize index.
 
     Args:
         db_len (int): database length.
         index (int): index.
+
+    Returns:
+        Normalized index.
+    """
+    if not isinstance(index, int) and index != 'max':
+        n_index = index
+        return n_index
+    if index == 'max':
+        return db_len
+    return index
+
+
+def normalize_range(db_len, low, high):
+    """normalize index and range.
+
+    Args:
+        db_len (int): database length.
         low (int): low limit.
         high (int): high limit.
 
     Returns:
-        Tuple contain following normalized variables (index, low, high)
+        Tuple contain following normalized variables (low, high)
     """
-    range_require_comparison = True
+    require_comparison = True
     # don't deal with non instance of the variable.
-    if not isinstance(index, int) and index != 'max':
-        n_index = index
     if not isinstance(low, int) and low != 'max':
         n_low = low
-        range_require_comparison = False
+        require_comparison = False
     if not isinstance(high, int) and high != 'max':
         n_high = high
-        range_require_comparison = False
+        require_comparison = False
 
-    if index == 'max':
-        n_index = db_len
+    max_value = db_len + 1
     if low == 'max' and high == 'max':
         n_low = db_len
-        n_high = db_len + 1
+        n_high = max_value
     elif low == 'max' and high != 'max':
         n_low = high
-        n_high = db_len + 1
+        n_high = max_value
     elif low != 'max' and high == 'max':
         n_low = low
-        n_high = db_len + 1
+        n_high = max_value
     else:
         n_low = low
         n_high = high
 
-    if range_require_comparison:
+    if require_comparison:
         if n_high < n_low:
             n_high, n_low = n_low, n_high
 
-    return (n_index, n_low, n_high)
+    return (n_low, n_high)
 
 
 if __name__ == "__main__":
