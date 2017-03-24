@@ -655,7 +655,7 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
 
     res = bdb.delete_rec(index=index, delay_commit=delay_commit)
 
-    if index > db_len:
+    if n_index > db_len:
         assert not res
         assert len(bdb.get_rec_all()) == db_len
     else:
