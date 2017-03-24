@@ -784,7 +784,7 @@ def normalize_range(db_len, low, high):
         n_high = high
         require_comparison = False
 
-    max_value = db_len + 1
+    max_value = db_len
     if low == 'max' and high == 'max':
         n_low = db_len
         n_high = max_value
