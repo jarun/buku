@@ -509,7 +509,7 @@ def test_delete_rec_negative(setup, index, low, high, is_range):
     db_len = len(TEST_BOOKMARKS)
 
     # normalize vars
-    n_index = normalize_index(db_len, index)
+    n_index = index
     n_low, n_high = normalize_range(db_len=db_len, low=low, high=high)
 
     with mock.patch('builtins.input', return_value='y'):
@@ -651,7 +651,7 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
         bdb.add_rec(*bookmark)
     db_len = len(TEST_BOOKMARKS)
 
-    n_index = normalize_index(db_len=db_len, index=index)
+    n_index = index
 
     res = bdb.delete_rec(index=index, delay_commit=delay_commit)
 
@@ -746,24 +746,6 @@ def inclusive_range(start, end):
     return range(start, end + 1)
 
 
-def normalize_index(db_len, index):
-    """normalize index.
-
-    Args:
-        db_len (int): database length.
-        index (int): index.
-
-    Returns:
-        Normalized index.
-    """
-    if not isinstance(index, int) and index != 'max':
-        n_index = index
-        return n_index
-    if index == 'max':
-        return db_len
-    return index
-
-
 def normalize_range(db_len, low, high):
     """normalize index and range.
 
@@ -777,10 +759,10 @@ def normalize_range(db_len, low, high):
     """
     require_comparison = True
     # don't deal with non instance of the variable.
-    if not isinstance(low, int) and low != 'max':
+    if not isinstance(low, int):
         n_low = low
         require_comparison = False
-    if not isinstance(high, int) and high != 'max':
+    if not isinstance(high, int):
         n_high = high
         require_comparison = False
 
