@@ -5,12 +5,11 @@
 import os
 import re
 import sqlite3
-import sys
 from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
 
-from hypothesis import given
+from hypothesis import given, example, settings, Verbosity
 from hypothesis import strategies as st
 from unittest import mock as mock
 import pytest
@@ -590,15 +589,15 @@ def test_delete_rec_cleardb(setup, is_range, input_retval, high, low):
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 
-@pytest.mark.parametrize(
-    'low, high, delay_commit',
-    product(
-        [1, 1000],
-        [1, 1000],
-        [True, False],
-    )
+@given(
+    low=st.integers(),
+    high=st.integers(),
+    delay_commit=st.booleans(),
+    input_retval=st.characters()
 )
-def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
+@example(low=0, high=0, delay_commit=False, input_retval='y')
+@settings(verbosity=Verbosity.verbose)
+def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
     bdb_dc = BukuDb()  # instance for delay_commit check.
@@ -624,8 +623,35 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
     else:
         exp_db_len = db_len - (n_high - n_low)
 
-    res = bdb.delete_rec(
-        index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
+    with mock.patch('builtins.input', return_value=input_retval):
+        res = bdb.delete_rec(
+            index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
+
+    if (low == 0 or high == 0) and input_retval != 'y':
+        assert not res
+        assert len(bdb_dc.get_rec_all()) == db_len
+        # teardown
+        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+        return
+    elif (low == 0 or high == 0) and input_retval == 'y':
+        assert res == exp_res
+        with pytest.raises(sqlite3.OperationalError):
+            bdb.get_rec_all()
+        # teardown
+        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+        return
+    elif n_low > db_len and n_low > 0:
+        assert not res
+        assert len(bdb_dc.get_rec_all()) == db_len
+        # teardown
+        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+        return
+    elif n_low < 0:
+        assert not res
+        assert len(bdb_dc.get_rec_all()) == db_len
+        # teardown
+        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+        return
     assert res == exp_res
     assert len(bdb.get_rec_all()) == exp_db_len
     if delay_commit:
