@@ -2,15 +2,15 @@
 #
 # Unit test cases for buku
 #
-import sys
 import os
 import re
 import sqlite3
+import math
 from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
 
-from hypothesis import given, example, settings, Verbosity
+from hypothesis import given, example
 from hypothesis import strategies as st
 from unittest import mock as mock
 import pytest
@@ -22,6 +22,7 @@ TEST_TEMP_DIR_OBJ = TemporaryDirectory(prefix='bukutest_')
 TEST_TEMP_DIR_PATH = TEST_TEMP_DIR_OBJ.name
 TEST_TEMP_DBDIR_PATH = os.path.join(TEST_TEMP_DIR_PATH, 'buku')
 TEST_TEMP_DBFILE_PATH = os.path.join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
+MAX_SQLITE_INT = math.pow(2, 47)
 
 TEST_BOOKMARKS = [
     ['http://slashdot.org',
@@ -37,8 +38,6 @@ TEST_BOOKMARKS = [
      parse_tags(['test,tes,est,es']),
      "a case for replace_tag test"],
 ]
-
-only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires python3.5")
 
 
 @pytest.fixture()
@@ -568,12 +567,11 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 
-@only_python_3_5
 @pytest.mark.parametrize(
     'low, high',
     product(
-        [1, sys.maxsize],
-        [1, sys.maxsize],
+        [1, int(MAX_SQLITE_INT + 1)],
+        [1, int(MAX_SQLITE_INT + 1)],
     )
 )
 def test_delete_rec_range_and_big_int(setup, low, high):
@@ -585,9 +583,11 @@ def test_delete_rec_range_and_big_int(setup, low, high):
     # Fill bookmark
     for bookmark in TEST_BOOKMARKS:
         bdb.add_rec(*bookmark)
-    # db_len = len(TEST_BOOKMARKS)
-
+    db_len = len(TEST_BOOKMARKS)
     res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
+    if high > db_len and low > db_len:
+        assert not res
+        return
     assert res
 
 
