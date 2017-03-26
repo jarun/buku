@@ -500,7 +500,6 @@ def test_compactdb(setup):
     input_retval=st.characters()
 )
 @example(low=0, high=0, delay_commit=False, input_retval='y')
-@settings(verbosity=Verbosity.verbose)
 def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
@@ -525,7 +524,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
     elif n_high == n_low and n_low <= db_len:
         exp_db_len = db_len - 1
     else:
-        exp_db_len = db_len - (n_high - n_low)
+        exp_db_len = db_len - (n_high + 1 - n_low)
 
     with mock.patch('builtins.input', return_value=input_retval):
         res = bdb.delete_rec(
