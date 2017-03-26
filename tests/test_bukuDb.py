@@ -640,9 +640,9 @@ def test_delete_rec_on_empty_database(setup, index, is_range, low, high):
 @pytest.mark.parametrize(
     'index, low, high, is_range',
     product(
-        ['a', "max"],
-        ['a', "max"],
-        ['a', "max"],
+        ['a', 1],
+        ['a', 1],
+        ['a', 1],
         [True, False],
     )
 )
@@ -650,24 +650,20 @@ def test_delete_rec_on_non_interger(index, low, high, is_range):
     """test delete rec on non integer arg."""
     bdb = BukuDb()
 
-    def is_non_integer_and_not_max(arg):
-        return not isinstance(arg, int) and arg != 'max'
-
     for bookmark in TEST_BOOKMARKS:
         bdb.add_rec(*bookmark)
     db_len = len(TEST_BOOKMARKS)
 
-    res = bdb.delete_rec(index, is_range, low, high)
-
-    if is_range and any([is_non_integer_and_not_max(low), is_non_integer_and_not_max(high)]):
-        assert not res
-        assert len(bdb.get_rec_all()) == db_len
-    elif not is_range and is_non_integer_and_not_max(index):
+    if is_range and not (isinstance(low, int) and isinstance(high, int)):
+        with pytest.raises(TypeError):
+            bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
+        return
+    elif not is_range and not isinstance(index, int):
+        res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
         assert not res
         assert len(bdb.get_rec_all()) == db_len
     else:
-        assert res
-        assert len(bdb.get_rec_all()) == db_len - 1
+        assert bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
 
 
 # Helper functions for testcases
