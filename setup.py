@@ -36,7 +36,7 @@ setup(
         'REQUESTS': ['requests']
     },
     test_suite='tests',
-    tests_require=['pytest-cov', 'pytest-catchlog'],
+    tests_require=['pytest-cov', 'pytest-catchlog', 'hypothesis==3.7.0'],
     keywords='cli bookmarks tag utility',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
