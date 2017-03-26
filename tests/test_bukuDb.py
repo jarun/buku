@@ -590,8 +590,8 @@ def test_delete_rec_cleardb(setup, is_range, input_retval, high, low):
 
 
 @given(
-    low=st.integers(),
-    high=st.integers(),
+    low=st.integers(min_value=-10, max_value=10),
+    high=st.integers(min_value=-10, max_value=10),
     delay_commit=st.booleans(),
     input_retval=st.characters()
 )
