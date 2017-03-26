@@ -2,6 +2,7 @@
 #
 # Unit test cases for buku
 #
+import sys
 import os
 import re
 import sqlite3
@@ -564,6 +565,29 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
 
     # teardown
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
+
+@pytest.mark.skip(reason='Test freeze')
+@pytest.mark.parametrize(
+    'low, high',
+    product(
+        [1, sys.maxsize],
+        [1, sys.maxsize],
+    )
+)
+def test_delete_rec_range_and_big_int(setup, low, high):
+    """test delete rec, range and big integer."""
+    bdb = BukuDb()
+    index = 0
+    is_range = True
+
+    # Fill bookmark
+    for bookmark in TEST_BOOKMARKS:
+        bdb.add_rec(*bookmark)
+    # db_len = len(TEST_BOOKMARKS)
+
+    res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
+    assert res
 
 
 @given(index=st.integers(), delay_commit=st.booleans(), input_retval=st.booleans())
