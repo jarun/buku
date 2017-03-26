@@ -4,7 +4,7 @@ python:
   - "3.4"
   - "3.5"
 before_install:
-  - python setup.py develop
+  - "pip install -e . [tests]"
 install: "pip install -r requirements.txt"
 addons:
   apt:
