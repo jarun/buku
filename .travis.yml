@@ -4,7 +4,7 @@ python:
   - "3.4"
   - "3.5"
 before_install:
-  - pip install pytest pytest-cov pytest-catchlog
+  - pip install pytest pytest-cov pytest-catchlog hypothesis
 install: "pip install -r requirements.txt"
 addons:
   apt:
