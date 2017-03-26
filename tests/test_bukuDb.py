@@ -5,13 +5,16 @@
 import os
 import re
 import sqlite3
+import sys
 from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
 
+from hypothesis import given
+from hypothesis import strategies as st
+from unittest import mock as mock
 import pytest
 import unittest
-from unittest import mock as mock
 
 from buku import BukuDb, parse_tags, prompt
 
@@ -634,14 +637,8 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit):
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 
-@pytest.mark.parametrize(
-    'index, delay_commit',
-    product(
-        [1, 1000, "max"],
-        [True, False],
-    )
-)
-def test_delete_rec_index_and_delay_commit(index, delay_commit):
+@given(index=st.integers(), delay_commit=st.booleans(), input_retval=st.booleans())
+def test_delete_rec_index_and_delay_commit(index, delay_commit, input_retval):
     """test delete rec, index and delay commit."""
     bdb = BukuDb()
     bdb_dc = BukuDb()  # instance for delay_commit check.
@@ -653,9 +650,20 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit):
 
     n_index = index
 
-    res = bdb.delete_rec(index=index, delay_commit=delay_commit)
+    if index.bit_length() > 63:
+        with pytest.raises(OverflowError):
+            bdb.delete_rec(index=index, delay_commit=delay_commit)
+        return
 
-    if n_index > db_len:
+    with mock.patch('builtins.input', return_value=input_retval):
+        res = bdb.delete_rec(index=index, delay_commit=delay_commit)
+
+    if n_index < 0:
+        assert not res
+    elif n_index > db_len:
+        assert not res
+        assert len(bdb.get_rec_all()) == db_len
+    elif index == 0 and input_retval != 'y':
         assert not res
         assert len(bdb.get_rec_all()) == db_len
     else:
