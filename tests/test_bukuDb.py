@@ -669,12 +669,11 @@ def test_delete_rec_on_empty_database(setup, index, is_range, low, high):
 
 @pytest.mark.parametrize(
     'index, low, high, is_range',
-    product(
-        ['a', 1],
-        ['a', 1],
-        ['a', 1],
-        [True, False],
-    )
+    [
+        ['a', 'a', 1, True],
+        ['a', 'a', 1, False],
+        ['a', 1, 'a', True],
+    ]
 )
 def test_delete_rec_on_non_interger(index, low, high, is_range):
     """test delete rec on non integer arg."""
