@@ -571,6 +571,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
 
 
 @only_python_3_5
+@pytest.mark.skip(reason='Impossible case.')
 @pytest.mark.parametrize(
     'low, high',
     product(
