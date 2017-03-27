@@ -22,7 +22,7 @@ TEST_TEMP_DIR_OBJ = TemporaryDirectory(prefix='bukutest_')
 TEST_TEMP_DIR_PATH = TEST_TEMP_DIR_OBJ.name
 TEST_TEMP_DBDIR_PATH = os.path.join(TEST_TEMP_DIR_PATH, 'buku')
 TEST_TEMP_DBFILE_PATH = os.path.join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
-MAX_SQLITE_INT = math.pow(2, 47)
+MAX_SQLITE_INT = int(math.pow(2, 63) - 1)
 
 TEST_BOOKMARKS = [
     ['http://slashdot.org',
@@ -570,8 +570,8 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
 @pytest.mark.parametrize(
     'low, high',
     product(
-        [1, int(MAX_SQLITE_INT + 1)],
-        [1, int(MAX_SQLITE_INT + 1)],
+        [1, MAX_SQLITE_INT + 1],
+        [1, MAX_SQLITE_INT + 1],
     )
 )
 def test_delete_rec_range_and_big_int(setup, low, high):
