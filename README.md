@@ -488,7 +488,7 @@ NOTE: This flexibility is not exposed in the program.
 
 ## Contributions
 
-Pull requests are welcome. Please visit [#103](https://github.com/jarun/Buku/issues/103) for a list of TODOs.
+Pull requests are welcome. Please visit [#135](https://github.com/jarun/Buku/issues/135) for a list of TODOs.
 <br>
 <p><a href="https://gitter.im/jarun/Buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a></p>
 
