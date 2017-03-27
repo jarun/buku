@@ -39,6 +39,8 @@ TEST_BOOKMARKS = [
      "a case for replace_tag test"],
 ]
 
+only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires python3.5")
+
 
 @pytest.fixture()
 def setup():
@@ -567,6 +569,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 
+@only_python_3_5
 @pytest.mark.parametrize(
     'low, high',
     product(
