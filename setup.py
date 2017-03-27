@@ -15,6 +15,8 @@ with open('buku.py', encoding='utf-8') as f:
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
+tests_require = ['pytest-cov', 'pytest-catchlog', 'hypothesis==3.7.0'],
+
 setup(
     name='buku',
     version=version,
@@ -33,10 +35,11 @@ setup(
         'HTTP': ['urllib3'],
         'CRYPTO': ['cryptography'],
         'HTML': ['beautifulsoup4'],
-        'REQUESTS': ['requests']
+        'REQUESTS': ['requests'],
+        'tests': tests_require,
     },
     test_suite='tests',
-    tests_require=['pytest-cov', 'pytest-catchlog'],
+    tests_require=tests_require,
     keywords='cli bookmarks tag utility',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
