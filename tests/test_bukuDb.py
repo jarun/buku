@@ -2,10 +2,11 @@
 #
 # Unit test cases for buku
 #
+import math
 import os
 import re
 import sqlite3
-import math
+import sys
 from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
