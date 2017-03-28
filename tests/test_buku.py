@@ -135,6 +135,7 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
             obj.add_rec(*edit_rec_retval)
 
 
+@only_python_3_5
 @given(
     idx=st.integers(),
     row0=st.integers(),
