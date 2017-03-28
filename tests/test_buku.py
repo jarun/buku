@@ -9,6 +9,8 @@ import unittest
 import pytest
 
 from buku import is_int, parse_tags
+from hypothesis import given
+from hypothesis import strategies as st
 
 only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires python3.5")
 
@@ -134,17 +136,15 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
 
 
 @only_python_3_5
-@pytest.mark.parametrize(
-    'idx, row0, row1, row2, row3, row4, row5',
-    product(
-        [0, 1],
-        [0],
-        ['', 'row1'],
-        ['', 'row2'],
-        [',', 'row3'],
-        ['', 'row4'],
-        [0, 1],
-    )
+@given(
+    idx=st.integers(),
+    row0=st.integers(),
+    row1=st.text(),
+    row2=st.text(),
+    row3=st.text(),
+    row4=st.text(),
+    row5=st.integers(),
+
 )
 def test_print_single_rec(idx, row0, row1, row2, row3, row4, row5):
     """test func."""
