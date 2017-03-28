@@ -68,6 +68,7 @@ class TestBukuDb(unittest.TestCase):
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
     # @unittest.skip('skipping')
+    @pytest.mark.non_tox
     def test_get_default_dbdir(self):
         dbdir_expected = TEST_TEMP_DBDIR_PATH
         dbdir_local_expected = os.path.join(os.path.expanduser('~'), '.local', 'share', 'buku')
@@ -226,6 +227,7 @@ class TestBukuDb(unittest.TestCase):
             self.assertNotIn(to_delete, from_db)
 
     # @unittest.skip('skipping')
+    @pytest.mark.slowtest
     def test_refreshdb(self):
         self.bdb.add_rec("https://www.google.com/ncr", "?")
         self.bdb.refreshdb(1, 1)
