@@ -467,7 +467,7 @@ def test_print_rec(capsys, caplog, setup):
 
 
 @given(
-    index=st.integers(max_value=10),
+    index=st.integers(min_value=-10, max_value=10),
     low=st.integers(min_value=-10, max_value=10),
     high=st.integers(min_value=-10, max_value=10),
     is_range=st.booleans(),
@@ -490,15 +490,15 @@ def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
     err_msg.extend(['{}:{}'.format(x.levelname, x.getMessage()) for x in caplog.records])
 
     # negative index/range
-    if (is_range and any([low < 0, high < 0])) or (not is_range and index < 0):
-        for record in caplog.records:
-            assert any(x.levelname == "ERROR" for x in caplog.records)
-            assert any([x.getMessage() == "Negative range boundary" for x in caplog.records])
+    if (is_range and any([low < 0, high < 0])):
+        assert any(x.levelname == "ERROR" for x in caplog.records)
+        assert any([x.getMessage() == "Negative range boundary" for x in caplog.records]), \
+            '\n'.join(err_msg)
     # is_range
     elif is_range:
         check_print = True
     # is_range == False
-    elif not is_range:
+    elif not is_range and 0 <= index <= db_len:
         check_print = True
     # no matching index
     else:
