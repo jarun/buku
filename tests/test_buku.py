@@ -8,7 +8,7 @@ import unittest
 
 import pytest
 
-from buku import is_int, parse_tags
+from buku import is_int, parse_tags, is_bad_url
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -18,13 +18,17 @@ only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires
 @pytest.mark.parametrize(
     'url, exp_res',
     [
-        ('http://example.com', False),
+        ['http://example.com', False],
+        ['ftp://ftp.somedomain.org', False],
+        ['http://examplecom.', True],
+        ['http://.example.com', True],
+        ['http://example.com.', True],
     ]
 )
 def test_is_bad_url(url, exp_res):
     """test func."""
-    import buku
-    assert exp_res == buku.is_bad_url(url)
+    res = is_bad_url(url)
+    assert res == exp_res
 
 
 @pytest.mark.parametrize(
