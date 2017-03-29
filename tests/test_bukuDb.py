@@ -748,6 +748,14 @@ def test_delete_rec_on_non_interger(index, low, high, is_range):
         assert bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
 
 
+def test_add_rec_add_empyt_url(caplog, ):
+    """test method."""
+    bdb = BukuDb()
+    res = bdb.add_rec(url='')
+    assert res == -1
+    caplog.records[0].levelname == 'ERROR'
+    caplog.records[0].getMessage() == 'Invalid URL'
+
 # Helper functions for testcases
 
 
