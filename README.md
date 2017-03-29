@@ -15,7 +15,7 @@
 <a href="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv"><img src="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv.png" alt="Asciicast" width="734"/></a>
 </p>
 
-## Table of Contents
+### Table of Contents
 
 - [Introduction](#introduction)
 - [Features](#features)
@@ -37,10 +37,9 @@
 - [Related projects](#related-projects)
 - [Mentions](#mentions)
 - [Examples](#examples)
-- [Contributions](#contributions)
-- [Copyright](#copyright)
+- [Collaborators](#collaborators)
 
-## Introduction
+### Introduction
 
 `buku` is a powerful bookmark management utility written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `buku` (after my son's nickname).
 
@@ -48,15 +47,17 @@
 
 Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the [shell completion](#shell-completion) scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
+*Buku* is too busy to track you - no history, obsolete records, usage analytics or homing.
+
 There are several [projects](#related-projects) based on `buku`, including a browser plug-in.
 
-*Buku* is too busy to track you - no history, obsolete records, usage analytics or homing.
+PRs are welcome. Please visit [#135](https://github.com/jarun/Buku/issues/135) for a list of TODOs.
 
 <p align="right">
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://tuxtricks.files.wordpress.com/2016/12/donate.png" alt="Donate via PayPal!" title="Donate via PayPal!" /></a>
 </p>
 
-## Features
+### Features
 
 - Lightweight, clean interface
 - Text editor integration
@@ -71,9 +72,9 @@ There are several [projects](#related-projects) based on `buku`, including a bro
 - Multithreaded full DB refresh
 - Shell completion scripts, man page with examples
 
-## Installation
+### Installation
 
-### Dependencies
+#### Dependencies
 
 | Feature | Dependency |
 | --- | --- |
@@ -90,7 +91,7 @@ or on Ubuntu:
 
     $ sudo apt-get install python3-urllib3 python3-cryptography python3-bs4 python3-requests
 
-### Installing with a package manager
+#### Installing with a package manager
 
 - [PyPi](https://pypi.python.org/pypi/buku/) (`$ pip3 install buku`)
 - [AUR](https://aur.archlinux.org/packages/buku/)
@@ -100,7 +101,7 @@ or on Ubuntu:
 - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
 - [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`$ sudo xbps-install -S buku`)
 
-### Installing from this repository
+#### Installing from this repository
 
 If you have git installed, clone this repository. Otherwise download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip) (*risky*).
 
@@ -113,14 +114,14 @@ To remove, run:
     $ sudo make uninstall
 `PREFIX` is supported. You may need to use `sudo` with `PREFIX` depending on your permissions on destination directory.
 
-#### Running as a standalone utility
+##### Running as a standalone utility
 
 `buku` is a standalone utility. From the containing directory, run:
 
     $ chmod +x buku.py
     $ ./buku.py
 
-#### Debian package
+##### Debian package
 
 If you are on a Debian (including Ubuntu) based system visit [the latest stable release](https://github.com/jarun/Buku/releases/latest) and download the `.deb` package. To install, run:
 
@@ -128,13 +129,13 @@ If you are on a Debian (including Ubuntu) based system visit [the latest stable 
 
 Please substitute `$version` with the appropriate package version.
 
-## Shell completion
+### Shell completion
 
 Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/Buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
 
-## Usage
+### Usage
 
-### Cmdline options
+#### Cmdline options
 
 ```
 usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
@@ -229,7 +230,7 @@ SYMBOLS:
       #                    tags
 ```
 
-### Operational notes
+#### Operational notes
 
 - The database file is stored in:
   - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
@@ -268,13 +269,13 @@ SYMBOLS:
 
       http[s]://[username:password@]proxyhost:proxyport/
 
-## GUI integration
+### GUI integration
 
 ![buku](http://i.imgur.com/8Y6PTPw.png)
 
 `buku` can be integrated in a GUI environment with simple tweaks.
 
-### Add bookmarks from anywhere
+#### Add bookmarks from anywhere
 
 With support for piped input, it's possible to add bookmarks to `buku` using keyboard shortcuts on Linux and OS X. CLIPBOARD (plus PRIMARY on Linux) text selections can be added directly this way. The additional utility required is `xsel` (on Linux) or `pbpaste` (on OS X).
 
@@ -296,7 +297,7 @@ The following steps explore the procedure on Linux with Ubuntu as the reference 
 4. Copy it somewhere in your `PATH`.
 5. Add a new keyboard shortcut to run the script. I use `<Alt-b>`.
 
-#### Test drive
+##### Test drive
 
 Copy or select a URL with mouse and press the keyboard shortcut to add it to the `buku` database. The addition might take a few seconds to reflect depending on your internet speed and the time `buku` needs to fetch the title from the URL. To avoid title fetch from the web, add the `--title` option to the script.
 
@@ -305,7 +306,7 @@ To verify that the bookmark has indeed been added, run:
     $ buku -p | tail -3
 and check the entry.
 
-#### Tips
+##### Tips
 
 - To add the last visited URL in Firefox to `buku`, use the following script:
 
@@ -317,7 +318,7 @@ and check the entry.
         $ buku -S blank
   Use option `-u` to tag these bookmarks.
 
-### Import bookmarks to browser
+#### Import bookmarks to browser
 
 `buku` can export (or import) bookmarks in HTML format recognized by Firefox, Google Chrome and Internet Explorer.
 
@@ -329,11 +330,11 @@ To export specific tags, run:
     $ buku --export path_to_bookmarks.html --tag tag 1, tag 2
 Once exported, import the html file in your browser.
 
-## Sync database across systems
+### Sync database across systems
 
 `buku` has the capability to import records from another `buku` database file. However, users with a cloud service client installed on multiple systems can keep the database synced across these systems automatically. To achieve this store the actual database file in a synced directory and create a symbolic link to it in the location where the database file would exist otherwise. For example, `$HOME/.local/share/buku/bookmarks.db` can be a symbolic link to `~/synced_dir/bookmarks.db`.
 
-## As a library
+### As a library
 
 `buku` can be used as a powerful bookmark management library. All functionality are available through carefully designed APIs. `main()` is a good usage example. It's also possible to use a custom database file in multi-user scenarios. Check out the documentation for the following APIs which accept an optional argument as database file:
 
@@ -342,20 +343,20 @@ Once exported, import the html file in your browser.
     BukuCrypt.decrypt_file(iterations, dbfile=None)
 NOTE: This flexibility is not exposed in the program.
 
-## Related projects
+### Related projects
 
 - [bukubrow](https://github.com/SamHH/bukubrow), WebExtension for browser integration
 - [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli frontend
 - [buku_run](https://github.com/carnager/buku_run), rofi frontend
 
-## Mentions
+### Mentions
 
 - [One Thing Well](http://onethingwell.org/post/144952807044/buku)
 - [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
 - [Make Tech Easier](https://www.maketecheasier.com/manage-browser-bookmarks-ubuntu-command-line/)
 - [LinuxUser Magazine 01/2017 Issue](http://www.linux-community.de/LU/2017/01/Das-Beste-aus-zwei-Welten)
 
-## Examples
+### Examples
 
 1. **Edit and add** a bookmark from editor:
 
@@ -486,12 +487,12 @@ NOTE: This flexibility is not exposed in the program.
         $ buku -h
         $ man buku
 
-## Contributions
+### Collaborators
 
-Pull requests are welcome. Please visit [#135](https://github.com/jarun/Buku/issues/135) for a list of TODOs.
-<br>
-<p><a href="https://gitter.im/jarun/Buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a></p>
-
-## Copyright
+- [Arun Prakash Jana](https://github.com/jarun)
+- [Rachmadani Haryono](https://github.com/rachmadaniHaryono)
+- [Kishore Narendran](https://github.com/kishore-narendran)
 
 Copyright © 2015-2017 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
+<br>
+<p><a href="https://gitter.im/jarun/Buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a></p>
