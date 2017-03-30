@@ -8,7 +8,7 @@ import unittest
 
 import pytest
 
-from buku import is_int, parse_tags, is_bad_url
+from buku import is_int, parse_tags
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -27,7 +27,8 @@ only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires
 )
 def test_is_bad_url(url, exp_res):
     """test func."""
-    res = is_bad_url(url)
+    import buku
+    res = buku.is_bad_url(url)
     assert res == exp_res
 
 
