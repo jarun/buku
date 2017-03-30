@@ -18,13 +18,18 @@ only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires
 @pytest.mark.parametrize(
     'url, exp_res',
     [
-        ('http://example.com', False),
+        ['http://example.com', False],
+        ['ftp://ftp.somedomain.org', False],
+        ['http://examplecom.', True],
+        ['http://.example.com', True],
+        ['http://example.com.', True],
     ]
 )
 def test_is_bad_url(url, exp_res):
     """test func."""
     import buku
-    assert exp_res == buku.is_bad_url(url)
+    res = buku.is_bad_url(url)
+    assert res == exp_res
 
 
 @pytest.mark.parametrize(
@@ -479,3 +484,21 @@ def test_sigint_handler(capsys):
         # assert proper error message
         assert out == ''
         assert err == "\nInterrupted.\n"
+
+
+@pytest.mark.parametrize(
+    'url, exp_res',
+    [
+        ['http://example.com.', ('', 0, 1)],
+        ['http://example.com', ('Example Domain', 0, 0)],
+        ['http://example.com/page1.txt', (('', 1, 0))],
+    ]
+)
+def test_network_handler_with_url(url, exp_res):
+    """test func."""
+    import buku
+    import urllib3
+    buku.urllib3 = urllib3
+    buku.myproxy = None
+    res = buku.network_handler(url)
+    assert res == exp_res

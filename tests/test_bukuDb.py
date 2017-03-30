@@ -748,6 +748,62 @@ def test_delete_rec_on_non_interger(index, low, high, is_range):
         assert bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
 
 
+@pytest.mark.parametrize('url', ['', False, None, 0])
+def test_add_rec_add_invalid_url(caplog, url):
+    """test method."""
+    bdb = BukuDb()
+    res = bdb.add_rec(url=url)
+    assert res == -1
+    caplog.records[0].levelname == 'ERROR'
+    caplog.records[0].getMessage() == 'Invalid URL'
+
+
+@pytest.mark.parametrize(
+    "kwargs, exp_arg",
+    [
+        [
+            {'url': 'example.com'},
+            ('example.com', 'Example Domain', ',', '', 0)
+        ],
+        [
+            {'url': 'http://example.com'},
+            ('http://example.com', 'Example Domain', ',', '', 0)
+        ],
+        [
+            {'url': 'http://example.com', 'immutable': 1},
+            ('http://example.com', 'Example Domain', ',', '', 1)
+        ],
+        [
+            {'url': 'http://example.com', 'desc': 'randomdesc'},
+            ('http://example.com', 'Example Domain', ',', 'randomdesc', 0)
+        ],
+        [
+            {'url': 'http://example.com', 'title_in': 'randomtitle'},
+            ('http://example.com', 'randomtitle', ',', '', 0)
+        ],
+        [
+            {'url': 'http://example.com', 'tags_in': 'tag1'},
+            ('http://example.com', 'Example Domain', ',tag1', '', 0),
+        ],
+        [
+            {'url': 'http://example.com', 'tags_in': ',tag1'},
+            ('http://example.com', 'Example Domain', ',tag1,', '', 0),
+        ],
+        [
+            {'url': 'http://example.com', 'tags_in': ',tag1,'},
+            ('http://example.com', 'Example Domain', ',tag1,', '', 0),
+        ],
+    ]
+)
+def test_add_rec_exec_arg(kwargs, exp_arg):
+    """test func."""
+    bdb = BukuDb()
+    bdb.cur = mock.Mock()
+    bdb.get_rec_id = mock.Mock(return_value=-1)
+    bdb.add_rec(**kwargs)
+    assert bdb.cur.execute.call_args[0][1] == exp_arg
+
+
 # Helper functions for testcases
 
 
