@@ -756,6 +756,45 @@ def test_add_rec_add_empyt_url(caplog, ):
     caplog.records[0].levelname == 'ERROR'
     caplog.records[0].getMessage() == 'Invalid URL'
 
+
+@pytest.mark.parametrize(
+    "kwargs, exp_arg",
+    [
+        [
+            {'url': 'example.com'},
+            ('example.com', 'Example Domain', ',', '', 0)
+        ],
+        [
+            {'url': 'http://example.com'},
+            ('http://example.com', 'Example Domain', ',', '', 0)
+        ],
+        [
+            {'url': 'http://example.com', 'title_in': 'randomtitle'},
+            ('http://example.com', 'randomtitle', ',', '', 0)
+        ],
+        [
+            {'url': 'http://example.com', 'tags_in': 'tag1'},
+            ('http://example.com', 'Example Domain', ',tag1', '', 0),
+        ],
+        [
+            {'url': 'http://example.com', 'tags_in': ',tag1'},
+            ('http://example.com', 'Example Domain', ',tag1,', '', 0),
+        ],
+        [
+            {'url': 'http://example.com', 'tags_in': ',tag1,'},
+            ('http://example.com', 'Example Domain', ',tag1,', '', 0),
+        ],
+    ]
+)
+def test_add_rec_exec_arg(kwargs, exp_arg):
+    """test func."""
+    bdb = BukuDb()
+    bdb.cur = mock.Mock()
+    bdb.get_rec_id = mock.Mock(return_value=-1)
+    bdb.add_rec(**kwargs)
+    assert bdb.cur.execute.call_args[0][1] == exp_arg
+
+
 # Helper functions for testcases
 
 
