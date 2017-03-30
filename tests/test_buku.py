@@ -8,7 +8,7 @@ import unittest
 
 import pytest
 
-from buku import is_int, parse_tags, is_bad_url, network_handler
+from buku import is_int, parse_tags, is_bad_url
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -495,5 +495,9 @@ def test_sigint_handler(capsys):
 )
 def test_network_handler_with_url(url, exp_res):
     """test func."""
-    res = network_handler(url)
+    import buku
+    import urllib3
+    buku.urllib3 = urllib3
+    buku.myproxy = None
+    res = buku.network_handler(url)
     assert res == exp_res
