@@ -890,6 +890,18 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
     assert caplog.records[0].levelname == 'ERROR'
 
 
+def test_update_rec_update_all_bookmark(caplog):
+    """test method."""
+    with mock.patch('buku.read_in', return_value='y'):
+        import buku
+        bdb = buku.BukuDb()
+        res = bdb.update_rec(index=0, tags_in='tags1')
+        assert res
+        assert caplog.records[0].getMessage() == \
+            'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
+        assert caplog.records[0].levelname == 'DEBUG'
+
+
 # Helper functions for testcases
 
 
