@@ -864,7 +864,7 @@ def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_arguments):
     assert caplog.records[-1].levelname == 'DEBUG'
 
 
-def test_update_rec_only_index(caplog):
+def test_update_rec_only_index():
     """test method."""
     bdb = BukuDb()
     res = bdb.update_rec(index=1)
@@ -872,7 +872,7 @@ def test_update_rec_only_index(caplog):
 
 
 @pytest.mark.parametrize('url', [None, ''])
-def test_update_rec_invalid_url(caplog, url):
+def test_update_rec_invalid_url(url):
     """test method."""
     bdb = BukuDb()
     res = bdb.update_rec(index=1, url=url)
