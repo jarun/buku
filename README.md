@@ -37,6 +37,7 @@
 - [Related projects](#related-projects)
 - [Mentions](#mentions)
 - [Examples](#examples)
+- [Known issues](#known-issues)
 - [Collaborators](#collaborators)
 
 ### Introduction
@@ -486,6 +487,12 @@ NOTE: This flexibility is not exposed in the program.
 
         $ buku -h
         $ man buku
+
+### Known issues
+
+1. `buku` waits until its input is closed when not started in a tty. For example, the following hangs:
+
+        $ cat | buku
 
 ### Collaborators
 

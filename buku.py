@@ -2520,6 +2520,7 @@ def setup_logger(logger):
 def piped_input(argv, pipeargs=None):
     if not sys.stdin.isatty():
         pipeargs += argv
+        print('waiting for input')
         for s in sys.stdin.readlines():
             pipeargs += s.split()
 
