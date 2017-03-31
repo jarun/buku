@@ -890,12 +890,16 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
     assert caplog.records[0].levelname == 'ERROR'
 
 
-def test_update_rec_update_all_bookmark(caplog):
+@pytest.mark.parametrize('read_in_retval', ['y', 'n', ''])
+def test_update_rec_update_all_bookmark(caplog, read_in_retval):
     """test method."""
-    with mock.patch('buku.read_in', return_value='y'):
+    with mock.patch('buku.read_in', return_value=read_in_retval):
         import buku
         bdb = buku.BukuDb()
         res = bdb.update_rec(index=0, tags_in='tags1')
+        if read_in_retval != 'y':
+            assert not res
+            return
         assert res
         assert caplog.records[0].getMessage() == \
             'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
