@@ -804,6 +804,108 @@ def test_add_rec_exec_arg(kwargs, exp_arg):
     assert bdb.cur.execute.call_args[0][1] == exp_arg
 
 
+def test_update_rec_index_0(caplog):
+    """test method."""
+    bdb = BukuDb()
+    res = bdb.update_rec(index=0, url='http://example.com')
+    assert not res
+    assert caplog.records[0].getMessage() == 'All URLs cannot be same'
+    assert caplog.records[0].levelname == 'ERROR'
+
+
+@pytest.mark.parametrize(
+    'kwargs, exp_query, exp_arguments',
+    [
+        [
+            {'index': 1, 'url': 'http://example.com'},
+            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'Example Domain', 1]
+
+        ],
+        [
+            {'index': 1, 'url': 'http://example.com', 'title_in': 'randomtitle'},
+            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'randomtitle', 1]
+
+        ],
+        [
+            {'index': 1, 'url': 'http://example.com', 'tags_in': 'tag1'},
+            'UPDATE bookmarks SET URL = ?, tags = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', ',tag1', 'Example Domain', 1]
+
+        ],
+        [
+            {'index': 1, 'url': 'http://example.com', 'tags_in': '+,tag1'},
+            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'Example Domain', 1]
+
+        ],
+        [
+            {'index': 1, 'url': 'http://example.com', 'tags_in': '-,tag1'},
+            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'Example Domain', 1]
+
+        ],
+        [
+            {'index': 1, 'url': 'http://example.com', 'desc': 'randomdesc'},
+            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'randomdesc', 'Example Domain', 1]
+
+        ],
+    ]
+)
+def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_arguments):
+    """test method."""
+    bdb = BukuDb()
+    res = bdb.update_rec(**kwargs)
+    assert res
+    exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
+    assert caplog.records[-1].getMessage() == exp_log
+    assert caplog.records[-1].levelname == 'DEBUG'
+
+
+def test_update_rec_only_index():
+    """test method."""
+    bdb = BukuDb()
+    res = bdb.update_rec(index=1)
+    assert res
+
+
+@pytest.mark.parametrize('url', [None, ''])
+def test_update_rec_invalid_url(url):
+    """test method."""
+    bdb = BukuDb()
+    res = bdb.update_rec(index=1, url=url)
+    assert res
+
+
+@pytest.mark.parametrize('invalid_tag', ['+,', '-,'])
+def test_update_rec_invalid_tag(caplog, invalid_tag):
+    """test method."""
+    url = 'http://example.com'
+    bdb = BukuDb()
+    res = bdb.update_rec(index=1, url=url, tags_in=invalid_tag)
+    assert not res
+    assert caplog.records[0].getMessage() == 'Please specify a tag'
+    assert caplog.records[0].levelname == 'ERROR'
+
+
+@pytest.mark.parametrize('read_in_retval', ['y', 'n', ''])
+def test_update_rec_update_all_bookmark(caplog, read_in_retval):
+    """test method."""
+    with mock.patch('buku.read_in', return_value=read_in_retval):
+        import buku
+        bdb = buku.BukuDb()
+        res = bdb.update_rec(index=0, tags_in='tags1')
+        if read_in_retval != 'y':
+            assert not res
+            return
+        assert res
+        assert caplog.records[0].getMessage() == \
+            'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
+        assert caplog.records[0].levelname == 'DEBUG'
+
+
 # Helper functions for testcases
 
 
