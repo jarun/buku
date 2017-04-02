@@ -235,7 +235,7 @@ def test_browse(url, opened_url):
     with mock.patch('buku.webbrowser') as m_webbrowser:
         import buku
         buku.browse(url)
-        m_webbrowser.open.assert_called_once_with(opened_url)
+        m_webbrowser.open.assert_called_once_with(opened_url, new=2)
 
 
 @only_python_3_5

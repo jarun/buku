@@ -2239,7 +2239,7 @@ def browse(url):
     os.dup2(fd, 2)
     os.dup2(fd, 1)
     try:
-        webbrowser.open(url)
+        webbrowser.open(url, new=2)
     except Exception as e:
         logerr('browse(): %s', e)
     finally:
