@@ -352,20 +352,26 @@ class BukuDb:
     @staticmethod
     def get_default_dbdir():
         '''Determine the directory path where dbfile will be stored:
-        if $XDG_DATA_HOME is defined, use it
+        if the platform is Windows, use %USERPROFILE%
+        else if $XDG_DATA_HOME is defined, use it
         else if $HOME exists, use it
         else use the current directory
 
         :return: path to database file
         '''
 
-        data_home = os.environ.get('XDG_DATA_HOME')
-        if data_home is None:
-            if os.environ.get('HOME') is None:
+        if sys.platform == 'win32':
+            data_home = os.environ.get('USERPROFILE')
+            if data_home is None:
                 return os.path.abspath('.')
-            else:
-                data_home = os.path.join(os.environ.get('HOME'),
-                                         '.local', 'share')
+        else:
+            data_home = os.environ.get('XDG_DATA_HOME')
+            if data_home is None:
+                if os.environ.get('HOME') is None:
+                    return os.path.abspath('.')
+                else:
+                    data_home = os.path.join(os.environ.get('HOME'),
+                                                 '.local', 'share')
 
         return os.path.join(data_home, 'buku')
 

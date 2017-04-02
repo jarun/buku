@@ -234,6 +234,7 @@ SYMBOLS:
 #### Operational notes
 
 - The database file is stored in:
+  - **%USERPROFILE%\buku\bookmarks.db**, if you are on Windows; else:
   - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
   - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
   - **$PWD**
