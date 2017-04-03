@@ -2245,7 +2245,14 @@ def browse(url):
     os.dup2(fd, 2)
     os.dup2(fd, 1)
     try:
-        webbrowser.open(url, new=2)
+        if sys.platform != 'win32':
+            webbrowser.open(url, new=2)
+        else:
+            # On Windows, the webbrowser module does not fork.
+            # Use threads instead.
+            browserthread = lambda: webbrowser.open(url, new=2)
+            t = threading.Thread(target=browserthread)
+            t.start()
     except Exception as e:
         logerr('browse(): %s', e)
     finally:
