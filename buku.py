@@ -1793,6 +1793,7 @@ keys:
   r expression           run a regex search
   t [...]                search bookmarks by a tag or show tag list
   g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
+  p [...]                print bookmarks by indices and/or ranges
   w [editor|index]       edit and add or update a bookmark
                          (tag list index fetches bookmarks by tag)
   ?                      show this help
@@ -2104,7 +2105,7 @@ def taglist_subprompt(obj, msg, noninteractive=False):
         elif (nav == 'q' or nav == 'd' or nav == '?' or
               nav.startswith('s ') or nav.startswith('S ') or
               nav.startswith('r ') or nav.startswith('t ') or
-              nav.startswith('g ')):
+              nav.startswith('g ') or nav.startswith('p ')):
             return nav
         elif nav == 'w' or nav.startswith('w '):
             edit_at_prompt(obj, nav)
@@ -2220,7 +2221,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
             edit_at_prompt(obj, nav)
             continue
 
-        # append or overwrite tags
+        # Append or overwrite tags
         if nav.startswith('g '):
             unique_tags, dic = obj.get_tag_all()
             _count = obj.set_tag(nav[2:], unique_tags)
@@ -2228,6 +2229,26 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                 print('Invalid input')
             else:
                 print('%d updated' % _count)
+            continue
+
+        # Print bookmarks by DB index
+        if nav.startswith('p '):
+            id_list = nav[2:].split()
+            try:
+                for id in id_list:
+                    if is_int(id) and int(id) > 0:
+                        obj.print_rec(int(id))
+                    elif '-' in id:
+                        vals = [int(x) for x in id.split('-')]
+                        if vals[0] > vals[-1]:
+                            vals[0], vals[-1] = vals[-1], vals[0]
+
+                        for _id in range(vals[0], vals[-1] + 1):
+                            obj.print_rec(_id)
+                    else:
+                        print('Invalid input')
+            except ValueError:
+                print('Invalid input')
             continue
 
         # Nothing to browse if there are no results
