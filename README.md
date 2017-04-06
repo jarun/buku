@@ -243,6 +243,7 @@ SYMBOLS:
 - Bookmarks with immutable titles are listed with bold `(L)` after the URL.
 - **Tags**:
   - Comma (`,`) is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
+  - Folder names are converted to all-lowercase tags during bookmarks html import.
   - Releases prior to [v2.7](https://github.com/jarun/Buku/releases/tag/v2.7) support both capital and lower cases in tags. From v2.7 all tags are stored in lowercase. An undocumented option `--fixtags` is introduced to modify the older tags. It also fixes another issue where the same tag appears multiple times in the tagset of a record. Run `buku --fixtags` once.
 - **Update** operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.

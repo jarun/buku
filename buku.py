@@ -371,7 +371,7 @@ class BukuDb:
                     return os.path.abspath('.')
                 else:
                     data_home = os.path.join(os.environ.get('HOME'),
-                                                 '.local', 'share')
+                                             '.local', 'share')
 
         return os.path.join(data_home, 'buku')
 
@@ -1491,21 +1491,23 @@ class BukuDb:
             except Exception as e:
                 logerr(e)
                 return False
-				
+
             html_tags = soup.findAll('a')
 
-
             resp = input('Add imported folders names as tags? (y/n): ')
-            if resp == 'y' :
-                for tag in html_tags :     
-                    possible_folder = tag.find_previous('h3') # could be its folder or not    
-                    tag_list = tag.parent.parent.find_parent('dl') # get list of tags within that folder        
-                    
-                    if (possible_folder) and possible_folder.parent in list(tag_list.parents):
+            if resp == 'y':
+                for tag in html_tags:
+                    # could be its folder or not
+                    possible_folder = tag.find_previous('h3')
+                    # get list of tags within that folder
+                    tag_list = tag.parent.parent.find_parent('dl')
+
+                    if ((possible_folder) and
+                            possible_folder.parent in list(tag_list.parents)):
                         # then it's the folder of this bookmark
-                        if tag.has_attr('tags') : 
-                            tag['tags'] += (DELIMITER + possible_folder.text)
-                        else : 
+                        if tag.has_attr('tags'):
+                            tag['tags'] += (DELIM + possible_folder.text)
+                        else:
                             tag['tags'] = possible_folder.text
 
             for tag in html_tags:
@@ -1515,7 +1517,7 @@ class BukuDb:
                 if comment_tag:
                     desc = comment_tag.text[0:comment_tag.text.find('\n')]
 
-                self.add_rec(tag['href'], tag.string, delim_wrap(tag['tags'])
+                self.add_rec(tag['href'], tag.string, parse_tags([tag['tags']])
                              if tag.has_attr('tags') else None, desc, 0, True)
 
             self.conn.commit()
