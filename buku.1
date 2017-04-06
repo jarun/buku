@@ -266,6 +266,9 @@ Run a regular expression search.
 .BI "t" " [...]"
 Search bookmarks by a tag. List all tags alphabetically, if no arguments. The index of a tag from the tag list can be used to search all bookmarks having the tag. Note that multiple indices and/or ranges do not work in this case.
 .TP
+.BI "g" " [...][>>|>|<<][...]"
+Append, remove tags to/from indices and/or ranges.
+.TP
 .BI "w" " [editor|index]"
 Edit and add or update a bookmark.
 .TP
@@ -596,6 +599,21 @@ List bookmarks with \fBimmutable title\fR:
 .IP
 .B buku --shorten www.google.com
 .B buku --shorten 20
+.EE
+.PP
+.IP 33. 4
+\fBAppend, remove tags at prompt\fR (taglist index to the left, bookmark index to the right):
+.PP
+.EX
+.IP
+// append tags at taglist indices 4 and 6-9 to existing tags in bookmarks at indices 5 and 2-3
+.B buku (? for help) g 4 9-6 >> 5 3-2
+// set tags at taglist indices 4 and 6-9 as tags in bookmarks at indices 5 and 2-3
+.B buku (? for help) g 4 9-6 > 5 3-2
+// remove all tags from bookmarks at indices 5 and 2-3
+.B buku (? for help) g > 5 3-2
+// remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
+.B buku (? for help) g 4 9-6 << 5 3-2
 .EE
 .SH AUTHOR
 Arun Prakash Jana <engineerarun@gmail.com>.

@@ -550,11 +550,12 @@ class BukuDb:
             logerr('add_rec(): %s', e)
             return -1
 
-    def append_tag_at_index(self, index, tags_in):
+    def append_tag_at_index(self, index, tags_in, delay_commit=False):
         '''Append tags to bookmark tagset at index
 
         :param index: int position of record, 0 for all
         :param tags_in: string of comma-separated tags to add manually
+        :param delay_commit: do not commit to DB, caller's responsibility
         :return: True on success, False on failure
         '''
 
@@ -575,18 +576,22 @@ class BukuDb:
                 tags = row[1] + tags_in[1:]
                 tags = parse_tags([tags])
                 self.cur.execute(query, (tags, row[0],))
-                if self.chatty:
+                if self.chatty and not delay_commit:
                     self.print_rec(row[0])
+        else:
+            return False
 
+        if not delay_commit:
             self.conn.commit()
 
         return True
 
-    def delete_tag_at_index(self, index, tags_in):
+    def delete_tag_at_index(self, index, tags_in, delay_commit=False):
         '''Delete tags from bookmark tagset at index
 
         :param index: int position of record, 0 for all
         :param tags_in: string of comma-separated tags to delete manually
+        :param delay_commit: do not commit to DB, caller's responsibility
         :return: True on success, False on failure
         '''
 
@@ -606,7 +611,7 @@ class BukuDb:
                 self.cur.execute(q, (tag,))
                 count += self.cur.rowcount
 
-            if count:
+            if count and not delay_commit:
                 self.conn.commit()
                 if self.chatty:
                     print('%d record(s) updated' % count)
@@ -627,10 +632,13 @@ class BukuDb:
                     tags = tags.replace(delim_wrap(tag), DELIM)
 
                 self.cur.execute(query, (parse_tags([tags]), row[0],))
-                if self.chatty:
+                if self.chatty and not delay_commit:
                     self.print_rec(row[0])
 
-                self.conn.commit()
+                if not delay_commit:
+                    self.conn.commit()
+        else:
+            return False
 
         return True
 
@@ -1321,6 +1329,101 @@ class BukuDb:
 
         return True
 
+    def set_tag(self, cmdstr, taglist):
+        '''Append, overwrite, remove tags using the symbols
+        >>, > and << respectively.
+
+        :param cmdstr: command pattern
+        :param taglist: a list of tags
+        :return: number of indices updated on success, -1 on failure
+        '''
+
+        if not len(cmdstr) or not len(taglist):
+            return -1
+
+        flag = 0  # 0: invalid, 1: append, 2: overwrite, 3: remove
+        index = cmdstr.find('>>')
+        if index == -1:
+            index = cmdstr.find('>')
+            if index != -1:
+                flag = 2
+            else:
+                index = cmdstr.find('<<')
+                if index != -1:
+                    flag = 3
+        else:
+            flag = 1
+
+        if not flag:
+            return -1
+
+        tags = DELIM
+        id_list = cmdstr[:index].split()
+        try:
+            for id in id_list:
+                if is_int(id) and int(id) > 0:
+                    tags += taglist[int(id) - 1] + DELIM
+                elif '-' in id:
+                    vals = [int(x) for x in id.split('-')]
+                    if vals[0] > vals[-1]:
+                        vals[0], vals[-1] = vals[-1], vals[0]
+
+                    for _id in range(vals[0], vals[-1] + 1):
+                        tags += taglist[_id - 1] + DELIM
+                else:
+                    return -1
+        except ValueError:
+            return -1
+
+        if flag != 2:
+            index += 1
+
+        update_count = 0
+        query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
+        try:
+            db_id_list = cmdstr[index + 1:].split()
+            for id in db_id_list:
+                if is_int(id) and int(id) > 0:
+                    if flag == 1:
+                        if self.append_tag_at_index(id, tags, True):
+                            update_count += 1
+                    elif flag == 2:
+                        tags = parse_tags([tags])
+                        self.cur.execute(query, (tags, id,))
+                        update_count += self.cur.rowcount
+                    else:
+                        self.delete_tag_at_index(id, tags, True)
+                        update_count += 1
+                elif '-' in id:
+                    vals = [int(x) for x in id.split('-')]
+                    if vals[0] > vals[-1]:
+                        vals[0], vals[-1] = vals[-1], vals[0]
+
+                    for _id in range(vals[0], vals[-1] + 1):
+                        if flag == 1:
+                            if self.append_tag_at_index(_id, tags, True):
+                                update_count += 1
+                        elif flag == 2:
+                            tags = parse_tags([tags])
+                            self.cur.execute(query, (tags, _id,))
+                            update_count += self.cur.rowcount
+                        else:
+                            if self.delete_tag_at_index(_id, tags, True):
+                                update_count += 1
+                else:
+                    return -1
+        except ValueError:
+            return -1
+        except sqlite3.IntegrityError:
+            return -1
+
+        try:
+            self.conn.commit()
+        except:
+            return -1
+
+        return update_count
+
     def browse_by_index(self, index):
         '''Open URL at index in browser
 
@@ -1682,17 +1785,18 @@ Webpage: https://github.com/jarun/Buku
     def prompt_help(file=sys.stdout):
         file.write('''
 keys:
-  1-N                  browse search result indices and/or ranges
-  a                    open all results in browser
-  s keyword [...]      search for records with ANY keyword
-  S keyword [...]      search for records with ALL keywords
-  d                    match substrings ('pen' matches 'opened')
-  r expression         run a regex search
-  t [...]              search bookmarks by a tag or show tag list
-  w [editor|index]     edit and add or update a bookmark
-                       (tag list index fetches bookmarks by tag)
-  ?                    show this help
-  q, ^D, double Enter  exit buku
+  1-N                    browse search result indices and/or ranges
+  a                      open all results in browser
+  s keyword [...]        search for records with ANY keyword
+  S keyword [...]        search for records with ALL keywords
+  d                      match substrings ('pen' matches 'opened')
+  r expression           run a regex search
+  t [...]                search bookmarks by a tag or show tag list
+  g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
+  w [editor|index]       edit and add or update a bookmark
+                         (tag list index fetches bookmarks by tag)
+  ?                      show this help
+  q, ^D, double Enter    exit buku
 
 ''')
 
@@ -1999,7 +2103,8 @@ def taglist_subprompt(obj, msg, noninteractive=False):
             new_results = True
         elif (nav == 'q' or nav == 'd' or nav == '?' or
               nav.startswith('s ') or nav.startswith('S ') or
-              nav.startswith('r ') or nav.startswith('t ')):
+              nav.startswith('r ') or nav.startswith('t ') or
+              nav.startswith('g ')):
             return nav
         elif nav == 'w' or nav.startswith('w '):
             edit_at_prompt(obj, nav)
@@ -2113,6 +2218,16 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
         # Edit and add or update
         if nav == 'w' or nav.startswith('w '):
             edit_at_prompt(obj, nav)
+            continue
+
+        # append or overwrite tags
+        if nav.startswith('g '):
+            unique_tags, dic = obj.get_tag_all()
+            _count = obj.set_tag(nav[2:], unique_tags)
+            if _count == -1:
+                print('Invalid input')
+            else:
+                print('%d updated' % _count)
             continue
 
         # Nothing to browse if there are no results

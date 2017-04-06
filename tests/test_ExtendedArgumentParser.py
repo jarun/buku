@@ -39,17 +39,18 @@ def test_prompt_help():
     buku.ExtendedArgumentParser.prompt_help(file)
     file.write.assert_called_once_with('''
 keys:
-  1-N                  browse search result indices and/or ranges
-  a                    open all results in browser
-  s keyword [...]      search for records with ANY keyword
-  S keyword [...]      search for records with ALL keywords
-  d                    match substrings ('pen' matches 'opened')
-  r expression         run a regex search
-  t [...]              search bookmarks by a tag or show tag list
-  w [editor|index]     edit and add or update a bookmark
-                       (tag list index fetches bookmarks by tag)
-  ?                    show this help
-  q, ^D, double Enter  exit buku
+  1-N                    browse search result indices and/or ranges
+  a                      open all results in browser
+  s keyword [...]        search for records with ANY keyword
+  S keyword [...]        search for records with ALL keywords
+  d                      match substrings ('pen' matches 'opened')
+  r expression           run a regex search
+  t [...]                search bookmarks by a tag or show tag list
+  g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
+  w [editor|index]       edit and add or update a bookmark
+                         (tag list index fetches bookmarks by tag)
+  ?                      show this help
+  q, ^D, double Enter    exit buku
 
 ''')
 

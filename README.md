@@ -485,7 +485,17 @@ NOTE: This flexibility is not exposed in the program.
 
         $ buku --shorten www.google.com
         $ buku --shorten 20
-33. More **help**:
+33. **Append, remove tags at prompt** (taglist index to the left, bookmark index to the right):
+
+        // append tags at taglist indices 4 and 6-9 to existing tags in bookmarks at indices 5 and 2-3
+        buku (? for help) g 4 9-6 >> 5 3-2
+        // set tags at taglist indices 4 and 6-9 as tags in bookmarks at indices 5 and 2-3
+        buku (? for help) g 4 9-6 > 5 3-2
+        // remove all tags from bookmarks at indices 5 and 2-3
+        buku (? for help) g > 5 3-2
+        // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
+        buku (? for help) g 4 9-6 << 5 3-2
+34. More **help**:
 
         $ buku -h
         $ man buku
