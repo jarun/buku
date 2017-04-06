@@ -2267,7 +2267,9 @@ def browse(url):
         else:
             # On Windows, the webbrowser module does not fork.
             # Use threads instead.
-            browserthread = lambda: webbrowser.open(url, new=2)
+            def browserthread():
+                webbrowser.open(url, new=2)
+
             t = threading.Thread(target=browserthread)
             t.start()
     except Exception as e:
