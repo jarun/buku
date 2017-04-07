@@ -757,7 +757,7 @@ class BukuDb:
             arguments += (title_to_insert,)
             to_update = True
 
-        if not to_update:       # Nothing to update
+        if not to_update:  # Nothing to update
             # Show bookmark if tags were appended to deleted
             if tag_modified and self.chatty:
                 self.print_rec(index)
@@ -1730,7 +1730,7 @@ class BukuDb:
         query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
         for row in resultset:
             oldtags = row[1]
-            if oldtags == ',':
+            if oldtags == DELIM:
                 continue
 
             tags = parse_tags([oldtags])
@@ -2584,7 +2584,7 @@ def parse_temp_file_content(content):
     elif title == '-':
         title = ''
 
-    tags = ','
+    tags = DELIM
     if len(content) > 2:
         tags = parse_tags([content[2]])
 
