@@ -68,6 +68,7 @@ PRs are welcome. Please visit [#135](https://github.com/jarun/Buku/issues/135) f
 - Open bookmarks and search results in browser
 - Import/export in HTML (FF, Chrome compatible) or Markdown
 - Shorten and expand URLs
+- Smart tag editing with >>, > or << symbols at prompt
 - Password protection (manual)
 - Portable, merge-able database to sync between systems
 - Multithreaded full DB refresh
@@ -245,6 +246,7 @@ SYMBOLS:
   - Comma (`,`) is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
   - Folder names are converted to all-lowercase tags during bookmarks html import.
   - Releases prior to [v2.7](https://github.com/jarun/Buku/releases/tag/v2.7) support both capital and lower cases in tags. From v2.7 all tags are stored in lowercase. An undocumented option `--fixtags` is introduced to modify the older tags. It also fixes another issue where the same tag appears multiple times in the tagset of a record. Run `buku --fixtags` once.
+  - Tags can be edited from the prompt very easily using `>>` (append), `>` (overwrite) and `<<` (remove) symbols. The LHS of the operands denotes the indices and ranges of tags to apply (as listed by --tag or key `t` at prompt) and the RHS denotes the actual DB indices and ranges of the bookmarks to apply the change to.
 - **Update** operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
   - If --url is passed (and --title is omitted), update the title from web using the URL.

@@ -17,6 +17,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Open bookmarks and search results in browser
   * Import/export in HTML (FF, Chrome compatible) or Markdown
   * Shorten and expand URLs
+  * Smart tag editing with >>, > or << symbols at prompt
   * Password protection (manual)
   * Portable, merge-able database to sync between systems
   * Multithreaded full DB refresh
@@ -44,6 +45,7 @@ Bookmarks with immutable titles are listed with bold '(L)' after the URL.
   - Comma (',') is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
   - Folder names are converted to all-lowercase tags during bookmarks html import.
   - Releases prior to v2.7 support both capital and lower cases in tags. From v2.7 all tags are stored in lowercase. An undocumented option --\fIfixtags\fR is introduced to modify the older tags. It also fixes another issue where the same tag appears multiple times in the tagset of a record. Run \fBbuku --fixtags\fR once.
+  - Tags can be edited from the prompt very easily using '>>' (append), '>' (overwrite) and '<<' (remove) symbols. The LHS of the operands denotes the indices and ranges of tags to apply (as listed by --tag or key 't' at prompt) and the RHS denotes the actual DB indices and ranges of the bookmarks to apply the change to.
 .PP
 .IP 6. 4
 \fBUpdate\fR operation:
