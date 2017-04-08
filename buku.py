@@ -1339,7 +1339,7 @@ class BukuDb:
         :return: number of indices updated on success, -1 on failure
         '''
 
-        if not len(cmdstr) or not len(taglist):
+        if not cmdstr or not taglist:
             return -1
 
         flag = 0  # 0: invalid, 1: append, 2: overwrite, 3: remove
@@ -2573,8 +2573,8 @@ def parse_temp_file_content(content):
     '''
 
     content = content.split('\n')
-    content = [c for c in content if len(c) == 0 or c[0] != '#']
-    if len(content) == 0 or content[0].strip() == '':
+    content = [c for c in content if not c or c[0] != '#']
+    if not content or content[0].strip() == '':
         print('Edit aborted')
         return None
 
