@@ -12,7 +12,7 @@ def test_program_info(platform, file):
         import buku
         prog_info_text = '''
 SYMBOLS:
-      >                    title
+      >                    url
       +                    comment
       #                    tags
 

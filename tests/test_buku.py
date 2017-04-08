@@ -151,31 +151,6 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
     row5=st.integers(),
 
 )
-def test_print_single_rec(idx, row0, row1, row2, row3, row4, row5):
-    """test func."""
-    row = [row0, row1, row2, row3, row4, row5]
-    pr = None
-    with mock.patch('buku.print') as m_print:
-        import buku
-        buku.print_single_rec(row, idx)
-
-        if idx != 0:
-            pr = buku.ID_str % (idx, row1, row0)
-        else:
-            pr = buku.ID_DB_str % (row0, row1)
-            if row5 & 1:
-                pr = buku.MUTE_str % (pr)
-            else:
-                pr += '\n'
-
-        if row2 != '':
-            pr = buku.TITLE_str % (pr, row2)
-        if row4 != '':
-            pr = buku.DESC_str % (pr, row4)
-        if row3 != buku.DELIM:
-            pr = buku.TAG_str % (pr, row3[1:-1])
-
-        m_print.assert_called_once_with(pr)
 
 
 @pytest.mark.parametrize(

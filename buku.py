@@ -48,10 +48,10 @@ SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
 # Default colour to print records
-ID_str = '\x1b[96;1m%d. \x1b[0;2m%s\x1b[0;2m [%s]\x1b[0m\n'
-ID_DB_str = '\x1b[96;1m%d. \x1b[0;2m%s\x1b[0m'
+ID_str = '\x1b[96;1m%d. \x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
+ID_DB_str = '\x1b[96;1m%d. \x1b[1;92m%s\x1b[0m'
 MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
-TITLE_str = '%s   \x1b[91m>\x1b[0m \x1b[1;92m%s\x1b[0m\n'
+URL_str = '%s   \x1b[91m>\x1b[0m \x1b[2m%s\x1b[0m\n'
 DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
 TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
 
@@ -817,12 +817,12 @@ class BukuDb:
         if self.colorize:
             bad_url_str = '\x1b[1mIndex %d: Malformed URL\x1b[0m\n'
             mime_str = '\x1b[1mIndex %d: HTTP HEAD requested\x1b[0m\n'
-            blank_title_str = '\x1b[1mIndex %d: No title\x1b[0m\n'
+            blank_URL_str = '\x1b[1mIndex %d: No title\x1b[0m\n'
             success_str = 'Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
         else:
             bad_url_str = 'Index %d: Malformed URL\n'
             mime_str = 'Index %d: HTTP HEAD requested\n'
-            blank_title_str = 'Index %d: No title\n'
+            blank_URL_str = 'Index %d: No title\n'
             success_str = 'Title: [%s]\nIndex %d: updated\n'
 
         query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
@@ -871,7 +871,7 @@ class BukuDb:
                     cond.release()
                     continue
                 elif title == '':
-                    print(blank_title_str % row[0])
+                    print(blank_URL_str % row[0])
                     cond.release()
                     continue
 
@@ -1771,7 +1771,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
 
         file.write('''
 SYMBOLS:
-      >                    title
+      >                    url
       +                    comment
       #                    tags
 
@@ -2297,23 +2297,22 @@ def print_single_rec(row, idx=0):
     :param idx: search result index. If 0, print with DB index
     '''
 
-    # Start with index and URL
+    # Start with index and title
     if idx != 0:
-        pr = ID_str % (idx, row[1], row[0])
+        pr = ID_str % (idx, row[2] if row[2] else 'Untitled', row[0])
     else:
-        pr = ID_DB_str % (row[0], row[1])
+        pr = ID_DB_str % (row[0], row[2] if row[2] else 'Untitled')
         # Indicate if record is immutable
         if row[5] & 1:
             pr = MUTE_str % (pr)
         else:
             pr += '\n'
 
-    # Append title
-    if row[2] != '':
-        pr = TITLE_str % (pr, row[2])
+    # Append URL
+    pr = URL_str % (pr, row[1])
 
     # Append description
-    if row[4] != '':
+    if row[4]:
         pr = DESC_str % (pr, row[4])
 
     # Append tags IF not default (delimiter)
@@ -2699,7 +2698,7 @@ def piped_input(argv, pipeargs=None):
 
 # main starts here
 def main():
-    global colorize, ID_str, ID_DB_str, MUTE_str, TITLE_str, DESC_str, TAG_str
+    global colorize, ID_str, ID_DB_str, MUTE_str, URL_str, DESC_str, TAG_str
 
     title_in = None
     tags_in = None
@@ -2902,7 +2901,7 @@ POSITIONAL ARGUMENTS:
         ID_str = '%d. %s [%s]\n'
         ID_DB_str = '%d. %s'
         MUTE_str = '%s (L)\n'
-        TITLE_str = '%s   > %s\n'
+        URL_str = '%s   > %s\n'
         DESC_str = '%s   + %s\n'
         TAG_str = '%s   # %s\n'
         logging.basicConfig(format='[%(levelname)s] %(message)s')
