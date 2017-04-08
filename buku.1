@@ -38,7 +38,7 @@ If the URL contains characters like ';', '&' or brackets they may be interpreted
 URLs are unique in DB. The same URL cannot be added twice.
 .PP
 .IP 4. 4
-Bookmarks with immutable titles are listed with bold '(L)' after the URL.
+Bookmarks with immutable titles are listed with '(L)' after the URL.
 .PP
 .IP 5. 4
 \fBTags\fR:
@@ -69,7 +69,7 @@ Bookmarks with immutable titles are listed with bold '(L)' after the URL.
   - --deep : match \fBsubstrings\fR (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
   - --stag : search bookmarks by a tag, or list all tags alphabetically with usage count (if no arguments).
-  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within '[]' after the URL.
+  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within '[]' after the URL.
 .PP
 .IP 9. 4
 \fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
@@ -126,7 +126,7 @@ Set the title of a bookmark immutable during updates. Works with --add, --update
 .SH SEARCH OPTIONS
 .TP
 .BI \-s " " \--sany " keyword [...]"
-Search bookmarks with ANY of the keyword(s) in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential result index is not the DB index. The DB index is shown in bold within '[]' after the URL.
+Search bookmarks with ANY of the keyword(s) in URL, title or tags and show the results. Prompts to enter result number to open in browser. Note that the sequential result index is not the DB index. The DB index is shown within '[]' after the URL.
 .br
 This is the default search option for positional arguments if no other search option is specified.
 .TP

@@ -48,10 +48,10 @@ SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
 # Default colour to print records
-ID_str = '\x1b[93;1m%d. \x1b[0;92m%s\x1b[0;1m [%s]\x1b[0m\n'
-ID_DB_str = '\x1b[93;1m%d. \x1b[0;92m%s\x1b[0m'
-MUTE_str = '%s \x1b[1m(L)\x1b[0m\n'
-TITLE_str = '%s   \x1b[91m>\x1b[0m \x1b[1m%s\x1b[0m\n'
+ID_str = '\x1b[96;1m%d. \x1b[0;2m%s\x1b[0;2m [%s]\x1b[0m\n'
+ID_DB_str = '\x1b[96;1m%d. \x1b[0;2m%s\x1b[0m'
+MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
+TITLE_str = '%s   \x1b[91m>\x1b[0m \x1b[1;92m%s\x1b[0m\n'
 DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
 TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
 

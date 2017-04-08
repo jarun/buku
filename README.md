@@ -241,7 +241,7 @@ SYMBOLS:
   - **$PWD** on both Windows and non-Windows systems.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes (`'`/`"`).
 - URLs are unique in DB. The same URL cannot be added twice.
-- Bookmarks with immutable titles are listed with bold `(L)` after the URL.
+- Bookmarks with immutable titles are listed with `(L)` after the URL.
 - **Tags**:
   - Comma (`,`) is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
   - Folder names are converted to all-lowercase tags during bookmarks html import.
@@ -264,7 +264,7 @@ SYMBOLS:
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
   - --stag : search bookmarks by a tag, or list all tags alphabetically with usage count (if no arguments).
-  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown in bold within `[]` after the URL.
+  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the URL.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using `buku` and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 - **Editor** support:
   - A single bookmark can be edited before adding. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes preference. If -a is used along with -w, the details are populated in the editor template.
