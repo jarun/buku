@@ -796,6 +796,7 @@ class BukuDb:
         the record if title is empty.
         This API doesn't change DB index, URL or tags of a bookmark.
         This API is verbose.
+
         :param index: index of record to update, or 0 for all records
         '''
 
@@ -2270,17 +2271,20 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                     print('No matching index %s' % nav)
                     continue
                 browse(results[index][1])
-            elif ('-' in nav and is_int(nav.split('-')[0]) and
-                    is_int(nav.split('-')[1])):
-                lower = int(nav.split('-')[0])
-                upper = int(nav.split('-')[1])
-                if lower > upper:
-                    lower, upper = upper, lower
-                for index in range(lower-1, upper):
-                    if 0 <= index < count:
-                        browse(results[index][1])
-                    else:
-                        print('No matching index %d' % (index + 1))
+            elif '-' in nav:
+                try:
+                    vals = [int(x) for x in nav.split('-')]
+                    if vals[0] > vals[-1]:
+                        vals[0], vals[-1] = vals[-1], vals[0]
+
+                    for _id in range(vals[0]-1, vals[-1]):
+                        if 0 <= _id < count:
+                            browse(results[_id][1])
+                        else:
+                            print('No matching index %d' % (_id + 1))
+                except ValueError:
+                    print('Invalid input')
+                    break
             else:
                 print('Invalid input')
                 break
