@@ -548,7 +548,13 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
         res = bdb.delete_rec(
             index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
 
-    if (low == 0 or high == 0) and input_retval != 'y':
+    if n_low < 0:
+        assert not res
+        assert len(bdb_dc.get_rec_all()) == db_len
+        # teardown
+        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+        return
+    elif (low == 0 or high == 0) and input_retval != 'y':
         assert not res
         assert len(bdb_dc.get_rec_all()) == db_len
         # teardown
@@ -562,12 +568,6 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
         return
     elif n_low > db_len and n_low > 0:
-        assert not res
-        assert len(bdb_dc.get_rec_all()) == db_len
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    elif n_low < 0:
         assert not res
         assert len(bdb_dc.get_rec_all()) == db_len
         # teardown
