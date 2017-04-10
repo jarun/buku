@@ -2290,7 +2290,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                 break
 
 
-def print_single_rec(row, idx=0):
+def print_single_rec(row, idx=0):  # NOQA
     '''Print a single DB record
     Handles both search result and individual record
 
