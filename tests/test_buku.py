@@ -184,15 +184,18 @@ def test_is_int(string, exp_res):
 
 
 @pytest.mark.parametrize(
-    'url, opened_url',
+    'url, opened_url, platform',
     [
-        ['http://example.com', 'http://example.com', ],
-        ['example.com', 'http://example.com', ],
+        ['http://example.com', 'http://example.com', 'linux'],
+        ['example.com', 'http://example.com', 'linux'],
+        ['http://example.com', 'http://example.com', 'win32'],
     ]
 )
-def test_browse(url, opened_url):
+def test_browse(url, opened_url, platform):
     """test func."""
-    with mock.patch('buku.webbrowser') as m_webbrowser:
+    with mock.patch('buku.webbrowser') as m_webbrowser, \
+            mock.patch('buku.sys') as m_sys:
+        m_sys.platform = platform
         import buku
         buku.browse(url)
         m_webbrowser.open.assert_called_once_with(opened_url, new=2)
