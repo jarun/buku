@@ -9,8 +9,6 @@ import unittest
 import pytest
 
 from buku import is_int, parse_tags
-from hypothesis import given
-from hypothesis import strategies as st
 
 only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires python3.5")
 
@@ -138,19 +136,6 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
         m_edit_rec.assert_called_once_with(editor, '', None, buku.DELIM, None)
         if edit_rec_retval is not None:
             obj.add_rec(*edit_rec_retval)
-
-
-@only_python_3_5
-@given(
-    idx=st.integers(),
-    row0=st.integers(),
-    row1=st.text(),
-    row2=st.text(),
-    row3=st.text(),
-    row4=st.text(),
-    row5=st.integers(),
-
-)
 
 
 @pytest.mark.parametrize(
