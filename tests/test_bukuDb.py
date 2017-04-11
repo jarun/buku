@@ -867,6 +867,21 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
         assert caplog.records[0].levelname == 'DEBUG'
 
 
+@pytest.mark.parametrize(
+    'get_system_editor_retval, index, exp_res',
+    [
+        ['none', 0, False],
+        ['nano', -1, False],
+    ]
+)
+def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp_res):
+    """test method."""
+    with mock.patch('buku.get_system_editor', return_value=get_system_editor_retval):
+        import buku
+        bdb = buku.BukuDb()
+        res = bdb.edit_update_rec(index=index)
+        assert res == exp_res
+
 # Helper functions for testcases
 
 
