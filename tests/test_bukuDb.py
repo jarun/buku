@@ -548,7 +548,13 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
         res = bdb.delete_rec(
             index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
 
-    if (low == 0 or high == 0) and input_retval != 'y':
+    if n_low < 0:
+        assert not res
+        assert len(bdb_dc.get_rec_all()) == db_len
+        # teardown
+        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+        return
+    elif (low == 0 or high == 0) and input_retval != 'y':
         assert not res
         assert len(bdb_dc.get_rec_all()) == db_len
         # teardown
@@ -562,12 +568,6 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
         return
     elif n_low > db_len and n_low > 0:
-        assert not res
-        assert len(bdb_dc.get_rec_all()) == db_len
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    elif n_low < 0:
         assert not res
         assert len(bdb_dc.get_rec_all()) == db_len
         # teardown
@@ -866,6 +866,21 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
             'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
         assert caplog.records[0].levelname == 'DEBUG'
 
+
+@pytest.mark.parametrize(
+    'get_system_editor_retval, index, exp_res',
+    [
+        ['none', 0, False],
+        ['nano', -1, False],
+    ]
+)
+def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp_res):
+    """test method."""
+    with mock.patch('buku.get_system_editor', return_value=get_system_editor_retval):
+        import buku
+        bdb = buku.BukuDb()
+        res = bdb.edit_update_rec(index=index)
+        assert res == exp_res
 
 # Helper functions for testcases
 

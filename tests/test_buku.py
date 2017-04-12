@@ -9,8 +9,6 @@ import unittest
 import pytest
 
 from buku import is_int, parse_tags
-from hypothesis import given
-from hypothesis import strategies as st
 
 only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires python3.5")
 
@@ -140,19 +138,6 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
             obj.add_rec(*edit_rec_retval)
 
 
-@only_python_3_5
-@given(
-    idx=st.integers(),
-    row0=st.integers(),
-    row1=st.text(),
-    row2=st.text(),
-    row3=st.text(),
-    row4=st.text(),
-    row5=st.integers(),
-
-)
-
-
 @pytest.mark.parametrize(
     'field_filter, single_record',
     product(range(4), [True, False])
@@ -199,15 +184,18 @@ def test_is_int(string, exp_res):
 
 
 @pytest.mark.parametrize(
-    'url, opened_url',
+    'url, opened_url, platform',
     [
-        ['http://example.com', 'http://example.com', ],
-        ['example.com', 'http://example.com', ],
+        ['http://example.com', 'http://example.com', 'linux'],
+        ['example.com', 'http://example.com', 'linux'],
+        ['http://example.com', 'http://example.com', 'win32'],
     ]
 )
-def test_browse(url, opened_url):
+def test_browse(url, opened_url, platform):
     """test func."""
-    with mock.patch('buku.webbrowser') as m_webbrowser:
+    with mock.patch('buku.webbrowser') as m_webbrowser, \
+            mock.patch('buku.sys') as m_sys:
+        m_sys.platform = platform
         import buku
         buku.browse(url)
         m_webbrowser.open.assert_called_once_with(opened_url, new=2)
