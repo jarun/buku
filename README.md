@@ -360,6 +360,7 @@ NOTE: This flexibility is not exposed in the program.
 - [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
 - [Make Tech Easier](https://www.maketecheasier.com/manage-browser-bookmarks-ubuntu-command-line/)
 - [LinuxUser Magazine 01/2017 Issue](http://www.linux-community.de/LU/2017/01/Das-Beste-aus-zwei-Welten)
+- [2daygeek](http://www.2daygeek.com/buku-command-line-bookmark-manager-linux/)
 
 ### Examples
 
