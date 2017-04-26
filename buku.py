@@ -3212,7 +3212,10 @@ POSITIONAL ARGUMENTS:
             try:
                 for idx in args.open:
                     if is_int(idx):
-                        bdb.browse_by_index(int(idx))
+                        if int(idx) >= 0:
+                            bdb.browse_by_index(int(idx))
+                        else:
+                            raise ValueError
                     elif '-' in idx:
                         vals = [int(x) for x in idx.split('-')]
                         if vals[0] > vals[-1]:
