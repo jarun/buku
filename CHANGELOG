@@ -1,3 +1,25 @@
+Buku 3.0
+2017-04-26
+
+What's in?
+- Edit bookmarks in EDITOR at prompt
+- Import folder names as tags from browser html (thanks @mohammadKhalifa)
+- Append, overwrite, delete tags at prompt using >>, >, << (familiar, eh? ;))
+- Negative indices with `--print` (like `tail`)
+- Update in EDITOR along with `--immutable`
+- Request HTTP HEAD for immutable records
+- Interface revamp (title on top in bold, colour changes...)
+- Per-level colourful logs in colour mode
+- Changes in program OPTIONS
+  - `-t` stands for tag search (earlier `--title`)
+  - `-r` stands for regex search (earlier `--replace`)
+- Lots of new automated test cases (thanks @rachmadaniHaryono)
+- REST APIs for server-side apps (thanks @kishore-narendran)
+- Document, notify behaviour when not invoked from tty (thanks @The-Compiler)
+- Fix Firefox tab-opening issues on Windows (thanks @dertuxmalwieder)
+
+-------------------------------------------------------------------------------
+
 Buku 2.9
 2017-02-20
 
