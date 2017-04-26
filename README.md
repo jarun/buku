@@ -95,13 +95,14 @@ or on Ubuntu:
 
 #### Installing with a package manager
 
-- [PyPi](https://pypi.python.org/pypi/buku/) (`$ pip3 install buku`)
+- [PyPi](https://pypi.python.org/pypi/buku/) (`sudo pip3 install buku`)
 - [AUR](https://aur.archlinux.org/packages/buku/)
 - [Homebrew](http://braumeister.org/formula/buku)
 - [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1)
 - [Ubuntu](http://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
 - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
-- [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`$ sudo xbps-install -S buku`)
+- [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`sudo xbps-install -S buku`)
+- [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`sudo nix-env -i buku`)
 
 #### Installing from this repository
 
