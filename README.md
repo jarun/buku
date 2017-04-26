@@ -308,7 +308,7 @@ Copy or select a URL with mouse and press the keyboard shortcut to add it to the
 
 To verify that the bookmark has indeed been added, run:
 
-    $ buku -p | tail -3
+    $ buku -p -1
 and check the entry.
 
 ##### Tips

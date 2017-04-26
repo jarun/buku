@@ -1192,6 +1192,17 @@ class BukuDb:
                          index is ignored if is_range is True
         '''
 
+        if (index < 0):
+            # Show the last n records
+            _id = self.get_max_id()
+            if _id == -1:
+                logerr('Empty database')
+                return False
+
+            low = (1 if _id <= -index else _id + index + 1)
+            high = _id
+            is_range = True
+
         if is_range:
             if low < 0 or high < 0:
                 logerr('Negative range boundary')
@@ -2237,7 +2248,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
             id_list = nav[2:].split()
             try:
                 for id in id_list:
-                    if is_int(id) and int(id) > 0:
+                    if is_int(id):
                         obj.print_rec(int(id))
                     elif '-' in id:
                         vals = [int(x) for x in id.split('-')]
@@ -3161,18 +3172,7 @@ POSITIONAL ARGUMENTS:
             try:
                 for idx in args.print:
                     if is_int(idx):
-                        id = int(idx)
-                        if id >= 0:
-                            bdb.print_rec(id)
-                        else:
-                            # Show the last n records
-                            _id = bdb.get_max_id()
-                            if _id == -1:
-                                logerr('Empty database')
-                                bdb.close_quit(1)
-
-                            bdb.print_rec(0, 1 if _id <= -id else _id + id + 1,
-                                          _id, True)
+                        bdb.print_rec(int(idx))
                     elif '-' in idx:
                         vals = [int(x) for x in idx.split('-')]
                         bdb.print_rec(0, vals[0], vals[-1], True)
