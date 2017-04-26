@@ -352,7 +352,7 @@ class BukuDb:
     @staticmethod
     def get_default_dbdir():
         '''Determine the directory path where dbfile will be stored:
-        if the platform is Windows, use %USERPROFILE%
+        if the platform is Windows, use %APPDATA%
         else if $XDG_DATA_HOME is defined, use it
         else if $HOME exists, use it
         else use the current directory
@@ -361,7 +361,7 @@ class BukuDb:
         '''
 
         if sys.platform == 'win32':
-            data_home = os.environ.get('USERPROFILE')
+            data_home = os.environ.get('APPDATA')
             if data_home is None:
                 return os.path.abspath('.')
         else:
