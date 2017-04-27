@@ -435,33 +435,30 @@ class TestBukuDb(unittest.TestCase):
 )
 def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
     """test when index, low or high is less than 0."""
+    # setup
+    caplog.handler.records.clear()
+    caplog.records.clear()
+
     bdb = BukuDb()
-    if high < low:
-        n_high, n_low = low, high
-    else:
-        n_high, n_low = high, low
-
+    # clear all record first before testing
+    bdb.delete_rec_all()
     bdb.add_rec("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
-    db_len = 1
-
     bdb.print_rec(index=index, low=low, high=high, is_range=is_range)
 
     check_print = False
     err_msg = ['Actual log:']
     err_msg.extend(['{}:{}'.format(x.levelname, x.getMessage()) for x in caplog.records])
 
-    # negative index/range
-    if (is_range and any([low < 0, high < 0])):
-        assert any(x.levelname == "ERROR" for x in caplog.records)
+    if index < 0:
+        check_print = True
+    # negative index/range on is_range
+    elif (is_range and any([low < 0, high < 0])):
+        assert any([x.levelname == "ERROR" for x in caplog.records]), \
+            '\n'.join(err_msg)
         assert any([x.getMessage() == "Negative range boundary" for x in caplog.records]), \
             '\n'.join(err_msg)
-    # is_range
     elif is_range:
         check_print = True
-    # is_range == False
-    elif not is_range and 0 <= index <= db_len:
-        check_print = True
-    # no matching index
     else:
         assert any([x.levelname == "ERROR" for x in caplog.records]), \
             '\n'.join(err_msg)
