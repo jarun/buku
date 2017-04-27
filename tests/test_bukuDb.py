@@ -443,13 +443,14 @@ def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
     # clear all record first before testing
     bdb.delete_rec_all()
     bdb.add_rec("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
+    db_len = 1
     bdb.print_rec(index=index, low=low, high=high, is_range=is_range)
 
     check_print = False
     err_msg = ['Actual log:']
     err_msg.extend(['{}:{}'.format(x.levelname, x.getMessage()) for x in caplog.records])
 
-    if index < 0 or (index >= 0 and not is_range):
+    if index < 0 or (0 <= index <= db_len and not is_range):
         check_print = True
     # negative index/range on is_range
     elif (is_range and any([low < 0, high < 0])):
