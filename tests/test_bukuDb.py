@@ -449,7 +449,7 @@ def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
     err_msg = ['Actual log:']
     err_msg.extend(['{}:{}'.format(x.levelname, x.getMessage()) for x in caplog.records])
 
-    if index < 0:
+    if index < 0 or (index >= 0 and not is_range):
         check_print = True
     # negative index/range on is_range
     elif (is_range and any([low < 0, high < 0])):
