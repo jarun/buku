@@ -2668,7 +2668,7 @@ def edit_rec(editor, url, title_in, tags_in, desc):
 def setup_logger(logger):
     '''Setup logger with color
 
-    :param logger: looger to colorize
+    :param logger: logger to colorize
     '''
 
     def decorate_emit(fn):
