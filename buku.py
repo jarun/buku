@@ -1834,6 +1834,7 @@ keys:
   r expression           run a regex search
   t [...]                search bookmarks by a tag or show tag list
   g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
+  o [...]                browse bookmarks by indices and/or ranges
   p [...]                print bookmarks by indices and/or ranges
   w [editor|index]       edit and add or update a bookmark
                          (tag list index fetches bookmarks by tag)
@@ -2146,7 +2147,8 @@ def taglist_subprompt(obj, msg, noninteractive=False):
         elif (nav == 'q' or nav == 'd' or nav == '?' or
               nav.startswith('s ') or nav.startswith('S ') or
               nav.startswith('r ') or nav.startswith('t ') or
-              nav.startswith('g ') or nav.startswith('p ')):
+              nav.startswith('o ') or nav.startswith('p ') or
+              nav.startswith('g ')):
             return nav
         elif nav == 'w' or nav.startswith('w '):
             edit_at_prompt(obj, nav)
@@ -2281,11 +2283,23 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                         obj.print_rec(int(id))
                     elif '-' in id:
                         vals = [int(x) for x in id.split('-')]
-                        if vals[0] > vals[-1]:
-                            vals[0], vals[-1] = vals[-1], vals[0]
+                        obj.print_rec(0, vals[0], vals[-1], True)
+                    else:
+                        print('Invalid input')
+            except ValueError:
+                print('Invalid input')
+            continue
 
-                        for _id in range(vals[0], vals[-1] + 1):
-                            obj.print_rec(_id)
+        # Browse bookmarks by DB index
+        if nav.startswith('o '):
+            id_list = nav[2:].split()
+            try:
+                for id in id_list:
+                    if is_int(id):
+                        obj.browse_by_index(int(id))
+                    elif '-' in id:
+                        vals = [int(x) for x in id.split('-')]
+                        obj.browse_by_index(0, vals[0], vals[-1], True)
                     else:
                         print('Invalid input')
             except ValueError:

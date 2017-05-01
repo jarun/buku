@@ -47,6 +47,7 @@ keys:
   r expression           run a regex search
   t [...]                search bookmarks by a tag or show tag list
   g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
+  o [...]                browse bookmarks by indices and/or ranges
   p [...]                print bookmarks by indices and/or ranges
   w [editor|index]       edit and add or update a bookmark
                          (tag list index fetches bookmarks by tag)
