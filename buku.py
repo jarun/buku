@@ -1183,7 +1183,7 @@ class BukuDb:
 
     def print_rec(self, index=0, low=0, high=0, is_range=False):
         '''Print bookmark details at index or all bookmarks if index is 0
-        Note: URL is printed on top because title may be blank
+        A negative index behaves like tail, if title is blank show "Untitled"
 
         :param index: index to print, 0 prints all
         :param low: actual lower index of range
@@ -1436,16 +1436,45 @@ class BukuDb:
 
         return update_count
 
-    def browse_by_index(self, index):
-        '''Open URL at index in browser
+    def browse_by_index(self, index=0, low=0, high=0, is_range=False):
+        '''Open URL at index or range of indies in browser
 
-        :param index: DB index
+        :param index: index to browse, 0 opens a random bookmark
+        :param low: actual lower index of range
+        :param high: actual higher index of range
+        :param is_range: a range is passed using low and high arguments
+                         index is ignored if is_range is True
         :return: True on success, False on failure
         '''
 
+        if is_range:
+            if low < 0 or high < 0:
+                logerr('Negative range boundary')
+                return False
+
+            if low > high:
+                low, high = high, low
+
+            try:
+                # If range starts from 0 throw an error
+                if low <= 0:
+                    raise IndexError
+                else:
+                    qry = 'SELECT URL from bookmarks where id BETWEEN ? AND ?'
+                    for row in self.cur.execute(qry, (low, high)):
+                        browse(row[0])
+                    return True
+            except IndexError:
+                logerr('Index out of range')
+                return False
+
+        if index < 0:
+            logerr('Invalid index %d', index)
+            return False
+
         if index == 0:
-            query = 'SELECT id from bookmarks ORDER BY RANDOM() LIMIT 1'
-            self.cur.execute(query)
+            qry = 'SELECT id from bookmarks ORDER BY RANDOM() LIMIT 1'
+            self.cur.execute(qry)
             result = self.cur.fetchone()
 
             # Return if no entries in DB
@@ -1456,9 +1485,9 @@ class BukuDb:
             index = result[0]
             logdbg('Opening random index %d', index)
 
-        query = 'SELECT URL FROM bookmarks WHERE id = ? LIMIT 1'
+        qry = 'SELECT URL FROM bookmarks WHERE id = ? LIMIT 1'
         try:
-            for row in self.cur.execute(query, (index,)):
+            for row in self.cur.execute(qry, (index,)):
                 browse(row[0])
                 return True
             logerr('No matching index %d', index)
@@ -3212,17 +3241,10 @@ POSITIONAL ARGUMENTS:
             try:
                 for idx in args.open:
                     if is_int(idx):
-                        if int(idx) >= 0:
-                            bdb.browse_by_index(int(idx))
-                        else:
-                            raise ValueError
+                        bdb.browse_by_index(int(idx))
                     elif '-' in idx:
                         vals = [int(x) for x in idx.split('-')]
-                        if vals[0] > vals[-1]:
-                            vals[0], vals[-1] = vals[-1], vals[0]
-
-                        for _id in range(vals[0], vals[-1] + 1):
-                            bdb.browse_by_index(_id)
+                        bdb.browse_by_index(0, vals[0], vals[-1], True)
             except ValueError:
                 logerr('Invalid index or range to open')
                 bdb.close_quit(1)
