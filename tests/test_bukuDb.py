@@ -880,6 +880,45 @@ def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp
         res = bdb.edit_update_rec(index=index)
         assert res == exp_res
 
+
+@given(
+    low=st.integers(min_value=-2, max_value=3),
+    high=st.integers(min_value=-2, max_value=3),
+    index=st.integers(min_value=-2, max_value=3),
+    is_range=st.booleans(),
+    empty_database=st.booleans(),
+)
+@example(low=0, high=0, index=0, is_range=False, empty_database=True)
+def test_browse_by_index(low, high, index, is_range, empty_database):
+    """test method."""
+    n_low, n_high = (high, low) if low > high else (low, high)
+    with mock.patch('buku.browse'):
+        import buku
+        bdb = buku.BukuDb()
+        bdb.delete_rec_all()
+        db_len = 0
+        if not empty_database:
+            bdb.add_rec("https://www.google.com/ncr", "?")
+            db_len += 1
+        res = bdb.browse_by_index(index=index, low=low, high=high, is_range=is_range)
+        if is_range and (low < 0 or high < 0):
+            assert not res
+        elif is_range and 0 < n_low and 0 < n_high:
+            assert res
+        elif is_range:
+            assert not res
+        elif not is_range and index < 0:
+            assert not res
+        elif not is_range and index > db_len:
+            assert not res
+        elif not is_range and index >= 0 and empty_database:
+            assert not res
+        elif not is_range and 0 <= index <= db_len and not empty_database:
+            assert res
+        else:
+            raise ValueError
+        bdb.delete_rec_all()
+
 # Helper functions for testcases
 
 
