@@ -13,7 +13,7 @@ addons:
       - devscripts
       - zsh
 script:
-  - ./ci-test-wrapper --watch .travis.yml
+  - python3 -m pytest ./tests/test_*.py --cov buku -vv
   - git fetch --unshallow --tags origin
   - ./tools/makedeb
 deploy:
