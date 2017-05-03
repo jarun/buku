@@ -210,7 +210,8 @@ POWER TOYS:
                            print all bookmarks, if no arguments
                            -n shows the last n results (like tail)
       -f, --format N       limit fields in -p or Json search output
-                           N=1: URL, N=2: URL and tag, N=3: title
+                           N=1: URL, N=2: URL and tag, N=3: title,
+                           N=4: URL, title and tag
       -j, --json           Json formatted output for -p and search
       --nc                 disable color output
       --np                 do not show the prompt, run and exit

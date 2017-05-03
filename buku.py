@@ -1244,6 +1244,8 @@ class BukuDb:
                         print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
                     elif self.field_filter == 3:
                         print('%s\t%s' % (row[0], row[2]))
+                    elif self.field_filter == 4:
+                        print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
             else:
                 print(format_json(results, True, self.field_filter))
 
@@ -1269,6 +1271,9 @@ class BukuDb:
             elif self.field_filter == 3:
                 for row in resultset:
                     print('%s\t%s' % (row[0], row[2]))
+            elif self.field_filter == 4:
+                for row in resultset:
+                    print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
         else:
             print(format_json(resultset, field_filter=self.field_filter))
 
@@ -2394,6 +2399,10 @@ def format_json(resultset, single_record=False, field_filter=0):
                 marks['tags'] = row[3][1:-1]
             elif field_filter == 3:
                 marks['title'] = row[2]
+            elif field_filter == 4:
+                marks['uri'] = row[1]
+                marks['tags'] = row[3][1:-1]
+                marks['title'] = row[2]
             else:
                 marks['index'] = row[0]
                 marks['uri'] = row[1]
@@ -2409,6 +2418,8 @@ def format_json(resultset, single_record=False, field_filter=0):
                 record = {'uri': row[1], 'tags': row[3][1:-1]}
             elif field_filter == 3:
                 record = {'title': row[2]}
+            elif field_filter == 4:
+                record = {'uri': row[1], 'title': row[2], 'tags': row[3][1:-1]}
             else:
                 record = {'index': row[0], 'uri': row[1], 'title': row[2],
                           'description': row[4], 'tags': row[3][1:-1]}
@@ -2891,7 +2902,8 @@ POSITIONAL ARGUMENTS:
                          print all bookmarks, if no arguments
                          -n shows the last n results (like tail)
     -f, --format N       limit fields in -p or Json search output
-                         N=1: URL, N=2: URL and tag, N=3: title
+                         N=1: URL, N=2: URL and tag, N=3: title,
+                         N=4: URL, title and tag
     -j, --json           Json formatted output for -p and search
     --nc                 disable color output
     --np                 do not show the prompt, run and exit
@@ -2912,7 +2924,7 @@ POSITIONAL ARGUMENTS:
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
-    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3}, help=HIDE)
+    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
