@@ -2757,7 +2757,7 @@ def piped_input(argv, pipeargs=None):
     if not sys.stdin.isatty():
         pipeargs += argv
         print('waiting for input')
-        for s in sys.stdin.readlines():
+        for s in sys.stdin:
             pipeargs += s.split()
 
 
