@@ -37,7 +37,7 @@
 - [Related projects](#related-projects)
 - [Mentions](#mentions)
 - [Examples](#examples)
-- [Known issues](#known-issues)
+- [Third-party integration](#third-party-integration)
 - [Collaborators](#collaborators)
 
 ### Introduction
@@ -505,11 +505,16 @@ NOTE: This flexibility is not exposed in the program.
         $ buku -h
         $ man buku
 
-### Known issues
+### Third-party integration
 
 1. `buku` waits until its input is closed when not started in a tty. For example, the following hangs:
 
         $ cat | buku
+   This is the intended behaviour as the primary reason behind supporting piped input is to add bookmarks with a keyboard shortcut. Third-party applications should explicitly close the input stream or use a wrapper script like the following one:
+
+        #!/bin/bash
+
+        echo $1 | buku -a
 
 ### Collaborators
 
