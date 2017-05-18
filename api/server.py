@@ -68,8 +68,8 @@ def bookmarks():
 @app.route('/api/bookmarks/refresh', methods=['POST'])
 def refresh_bookmarks():
     if request.method == 'POST':
-        print((request.form['index']))
-        print((request.form['threads']))
+        print(request.form['index'])
+        print(request.form['threads'])
         result_flag = bukudb.refreshdb(request.form['index'], request.form['threads'])
         if result_flag:
             return jsonify(response.response_template['success']), status.HTTP_200_OK, \
