@@ -92,7 +92,7 @@ class TestBukuDb(unittest.TestCase):
             except KeyError:
                 pass
         self.assertEqual(dbdir_relative_expected, BukuDb.get_default_dbdir())
-        for key, value in list(originals.items()):
+        for key, value in originals.items():
             os.environ[key] = value
 
     # # not sure how to test this in nondestructive manner
@@ -929,7 +929,7 @@ def split_and_test_membership(a, b):
 
 
 def inclusive_range(start, end):
-    return list(range(start, end + 1))
+    return range(start, end + 1)
 
 
 def normalize_range(db_len, low, high):
