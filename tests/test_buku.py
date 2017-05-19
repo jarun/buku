@@ -140,7 +140,7 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
 
 @pytest.mark.parametrize(
     'field_filter, single_record',
-    product(range(4), [True, False])
+    product(list(range(4)), [True, False])
 )
 def test_format_json(field_filter, single_record):
     """test func."""

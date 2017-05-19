@@ -41,7 +41,7 @@ def bookmarks():
             result_bookmark = {
                 'url': bookmark[1],
                 'title': bookmark[2],
-                'tags': list(filter(None, bookmark[3].split(','))),
+                'tags': list([_f for _f in bookmark[3].split(',') if _f]),
                 'description': bookmark[4]
             }
             result['bookmarks'].append(result_bookmark)
@@ -92,7 +92,7 @@ def bookmark_api(id):
             result = {
                 'url': bookmark[1],
                 'title': bookmark[2],
-                'tags': list(filter(None, bookmark[3].split(','))),
+                'tags': list([_f for _f in bookmark[3].split(',') if _f]),
                 'description': bookmark[4]
             }
             return jsonify(result)
@@ -199,7 +199,7 @@ def bookmark_range_operations(starting_id, ending_id):
             bookmarks[i] = {
                 'url': bookmark[1],
                 'title': bookmark[2],
-                'tags': list(filter(None, bookmark[3].split(','))),
+                'tags': list([_f for _f in bookmark[3].split(',') if _f]),
                 'description': bookmark[4]
             }
         return jsonify(result)
@@ -247,7 +247,7 @@ def search_bookmarks():
                     'id': bookmark[0],
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list(filter(None, bookmark[3].split(','))),
+                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
                     'description': bookmark[4]
                 }
                 results['bookmarks'].append(result_bookmark)
