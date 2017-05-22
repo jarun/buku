@@ -2953,14 +2953,6 @@ POSITIONAL ARGUMENTS:
         argparser.print_help(sys.stdout)
         sys.exit(0)
 
-    # Set up debugging
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
-        logdbg('Version %s', __version__)
-    else:
-        logging.disable(logging.WARNING)
-        urllib3.disable_warnings()
-
     # Handle color output preference
     if args.nc:
         colorize = False
@@ -2974,6 +2966,14 @@ POSITIONAL ARGUMENTS:
     else:
         # Enable color in logs
         setup_logger(logger)
+
+    # Set up debugging
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+        logdbg('Version %s', __version__)
+    else:
+        logging.disable(logging.WARNING)
+        urllib3.disable_warnings()
 
     # Handle encrypt/decrypt options at top priority
     if args.lock is not None:
