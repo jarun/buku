@@ -360,18 +360,18 @@ class BukuDb:
         :return: path to database file
         '''
 
-        if sys.platform == 'win32':
-            data_home = os.environ.get('APPDATA')
-            if data_home is None:
-                return os.path.abspath('.')
-        else:
-            data_home = os.environ.get('XDG_DATA_HOME')
-            if data_home is None:
-                if os.environ.get('HOME') is None:
-                    return os.path.abspath('.')
+        data_home = os.environ.get('XDG_DATA_HOME')
+        if data_home is None:
+            if os.environ.get('HOME') is None:
+                if sys.platform == 'win32':
+                    data_home = os.environ.get('APPDATA')
+                    if data_home is None:
+                        return os.path.abspath('.')
                 else:
-                    data_home = os.path.join(os.environ.get('HOME'),
-                                             '.local', 'share')
+                    return os.path.abspath('.')
+            else:
+                data_home = os.path.join(os.environ.get('HOME'),
+                                         '.local', 'share')
 
         return os.path.join(data_home, 'buku')
 

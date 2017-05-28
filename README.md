@@ -241,7 +241,7 @@ SYMBOLS:
   - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
   - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
   - **%APPDATA%\buku\bookmarks.db**, if you are on Windows or
-  - **$PWD** on both Windows and non-Windows systems.
+  - **the current directory**.
 - If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes (`'`/`"`).
 - URLs are unique in DB. The same URL cannot be added twice.
 - Bookmarks with immutable titles are listed with `(L)` after the title.
