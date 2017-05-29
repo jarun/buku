@@ -2825,6 +2825,8 @@ POSITIONAL ARGUMENTS:
     addarg('-h', '--help', action='store_true', help=HIDE)
     addarg('-v', '--version', action='version', version=__version__, help=HIDE)
 
+    addarg('--completion', nargs=1, help=HIDE)
+
     # ------------------
     # EDIT OPTIONS GROUP
     # ------------------
@@ -3005,6 +3007,16 @@ POSITIONAL ARGUMENTS:
     # Initialize the database and get handles, set verbose by default
     bdb = BukuDb(args.json, args.format, not args.tacit,
                  colorize=not args.nc)
+
+    # Provide data to our completion engine
+    if args.completion:
+        completion_type = args.completion[0]
+        if completion_type == 'tags':
+            tags = bdb.get_all_tags()
+            print(" ".join(tags[0]))
+            bdb.close_quit(0)
+
+        bdb.close_quit(1)
 
     # Editor mode
     if args.write is not None:
