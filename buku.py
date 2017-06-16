@@ -3090,6 +3090,13 @@ POSITIONAL ARGUMENTS:
     else:
         search_opted = False
 
+    # Add cmdline search options to readline history
+    if search_opted and args.keywords:
+        try:
+            readline.add_history(' '.join(args.keywords))
+        except Exception:
+            pass
+
     if search_results:
         oneshot = args.np
         to_delete = False
