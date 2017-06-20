@@ -344,15 +344,16 @@ Once exported, import the html file in your browser.
 
 ### As a library
 
-`buku` can be used as a powerful bookmark management library. All functionality are available through carefully designed APIs. `main()` is a good usage example. It's also possible to use a custom database file in multi-user scenarios. Check out the documentation for the following APIs which accept an optional argument as database file:
+`buku` is developed as a powerful python library for bookmark management. All functionality are available through carefully designed APIs. `main()` is a good usage example. It's also possible to use a custom database file in multi-user scenarios. Check out the documentation for the following APIs which accept an optional argument as database file:
 
     BukuDb.initdb(dbfile=None)
     BukuCrypt.encrypt_file(iterations, dbfile=None)
     BukuCrypt.decrypt_file(iterations, dbfile=None)
 NOTE: This flexibility is not exposed in the program.
 
-Here is an example to print the status code of the saved url on buku.
-To run the example you need to install [grequests](https://github.com/kennethreitz/grequests).
+The [api](https://github.com/jarun/Buku/tree/master/api) directory has several example wrapper web APIs, not necessarily updated. Feel free to update if you need them.
+
+An example to print the http status code of urls saved in `buku` goes below. To run, install [grequests](https://github.com/kennethreitz/grequests).
 
 ```python
 import buku
@@ -373,7 +374,7 @@ urls = [x[1] for x in recs]
 rs = (grequests.get(u) for u in urls)
 gr_results = grequests.map(rs)
 for resp, url in zip(gr_results, urls):
-  stat_code = None if resp.status_code is None else resp.status_code  
+  stat_code = None if resp.status_code is None else resp.status_code
   print('{}: {}'.format(stat_code, url))
 # output
 # 200: http://example.com
