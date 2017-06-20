@@ -506,6 +506,40 @@ NOTE: This flexibility is not exposed in the program.
         $ buku -h
         $ man buku
 
+### As a library
+
+Buku can also be used as python library.
+Here is an example to print the status code of the saved url on buku.
+To run the example you need to install [grequests](https://github.com/kennethreitz/grequests).
+
+```python
+import buku
+import grequests
+
+bdb = buku.BukuDb()
+recs = bdb.get_rec_all()
+recs[0]
+# output: (1, 'example.com', 'example', 'tag1,tag2', 'page description', 0)
+# Records have following structure:
+# - id,
+# - url,
+# - metadata,
+# - tags,
+# - description,
+# - flags
+urls = [x[1] for x in recs]
+rs = (grequests.get(u) for u in urls)
+gr_results = grequests.map(rs)
+for resp, url in zip(gr_results, urls):
+  stat_code = None if resp.status_code is None else resp.status_code  
+  print('{}: {}'.format(stat_code, url))
+# output
+# 200: http://example.com
+# None: http://website1.com/
+# 200: http://website2.com/
+# ...
+```
+
 ### Third-party integration
 
 1. `buku` waits until its input is closed when not started in a tty. For example, the following hangs:
