@@ -15,7 +15,7 @@ with open('buku.py', encoding='utf-8') as f:
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
-tests_require = ['pytest-cov', 'pytest-catchlog', 'hypothesis>=3.7.0'],
+tests_require = ['pytest-cov', 'pytest-catchlog', 'hypothesis>=3.7.0', 'pytest>=3.1.2'],
 
 setup(
     name='buku',
