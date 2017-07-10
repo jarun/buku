@@ -1,3 +1,15 @@
+Buku 3.1
+2017-06-30
+
+What's in?
+- Handle negative indices (like tail) with option `-p`
+- Support browsing bookmarks from prompt (key `o`)
+- Add program search keywords to history
+- Support XDG_DATA_HOME and HOME as env vars on all platforms
+- Replace %USERPROFILE% with %APPDATA% as install location on Windows
+
+-------------------------------------------------------------------------------
+
 Buku 3.0
 2017-04-26
 
