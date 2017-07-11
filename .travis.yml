@@ -29,4 +29,4 @@ deploy:
     repo: jarun/Buku
     tags: true
     # Upload from only one job (doesn't matter which one because we're packaging the same thing throughout the matrix)
-    python: "3.5"
+    python: "3.6"
