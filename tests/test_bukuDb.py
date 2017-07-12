@@ -40,7 +40,8 @@ TEST_BOOKMARKS = [
      "a case for replace_tag test"],
 ]
 
-only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires python3.5")
+only_python_3_5 = pytest.mark.skipif(
+    sys.version_info < (3, 5), reason="requires Python 3.5 or later")
 
 
 @pytest.fixture()
