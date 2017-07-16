@@ -1245,7 +1245,8 @@ class BukuDb:
                     elif self.field_filter == 3:
                         print('%s\t%s' % (row[0], row[2]))
                     elif self.field_filter == 4:
-                        print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
+                        print('%s\t%s\t%s\t%s' % (
+                                row[0], row[1], row[2], row[3][1:-1]))
             else:
                 print(format_json(results, True, self.field_filter))
 
@@ -1273,7 +1274,8 @@ class BukuDb:
                     print('%s\t%s' % (row[0], row[2]))
             elif self.field_filter == 4:
                 for row in resultset:
-                    print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
+                    print('%s\t%s\t%s\t%s' % (
+                            row[0], row[1], row[2], row[3][1:-1]))
         else:
             print(format_json(resultset, field_filter=self.field_filter))
 
@@ -2924,7 +2926,8 @@ POSITIONAL ARGUMENTS:
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
-    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
+    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4},
+           help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
@@ -2937,8 +2940,9 @@ POSITIONAL ARGUMENTS:
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=HIDE)
     addarg('-V', dest='upstream', action='store_true', help=HIDE)
     addarg('-z', '--debug', action='store_true', help=HIDE)
-    # Undocumented API
+    # Undocumented APIs
     addarg('--fixtags', action='store_true', help=HIDE)
+    addarg('--db', nargs=1, help=HIDE)
 
     # Show help and exit if no arguments
     if len(sys.argv) == 1:
@@ -3004,6 +3008,7 @@ POSITIONAL ARGUMENTS:
 
     # Initialize the database and get handles, set verbose by default
     bdb = BukuDb(args.json, args.format, not args.tacit,
+                 dbfile=args.db[0] if args.db is not None else None,
                  colorize=not args.nc)
 
     # Editor mode
