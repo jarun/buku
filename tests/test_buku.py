@@ -473,7 +473,7 @@ def test_network_handler_with_url(url, exp_res):
     [
         ('http://example.com', False),
         ('apt:package1,package2,package3', False),
-        ('apt://firefox', True)
+        ('apt://firefox', True),
         ('file:///tmp/vim-markdown-preview.html', True),
     ]
 )
