@@ -475,6 +475,7 @@ def test_network_handler_with_url(url, exp_res):
         ('apt:package1,package2,package3', True),
         ('apt://firefox', True),
         ('file:///tmp/vim-markdown-preview.html', True),
+        ('place:sort=8&maxResults=10', True),
     ]
 )
 def test_is_nongeneric_url(url, exp_res):
