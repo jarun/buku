@@ -1665,10 +1665,14 @@ class BukuDb:
 
             for tag in html_tags:
                 # Extract comment from <dd> tag
+                try:
+                    if (is_nongeneric_url(tag['href'])):
+                        continue
+                except KeyError as e:
+                    continue
+
                 desc = None
                 comment_tag = tag.findNextSibling('dd')
-                if (is_nongeneric_url(tag['href'])):
-                    continue
 
                 if comment_tag:
                     desc = comment_tag.text[0:comment_tag.text.find('\n')]
