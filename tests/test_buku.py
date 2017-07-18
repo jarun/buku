@@ -466,3 +466,19 @@ def test_network_handler_with_url(url, exp_res):
     buku.myproxy = None
     res = buku.network_handler(url)
     assert res == exp_res
+
+
+@pytest.mark.parametrize(
+    'url, exp_res',
+    [
+        ('http://example.com', False),
+        ('apt:package1,package2,package3', True),
+        ('apt://firefox', True),
+        ('file:///tmp/vim-markdown-preview.html', True),
+        ('place:sort=8&maxResults=10', True),
+    ]
+)
+def test_is_nongeneric_url(url, exp_res):
+    import buku
+    res = buku.is_nongeneric_url(url)
+    assert res == exp_res

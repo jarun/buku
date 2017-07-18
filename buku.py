@@ -1897,7 +1897,7 @@ def is_bad_url(url):
 def is_nongeneric_url(url):
     '''Returns true for URLs which are non-http and non-generic'''
 
-    ignored_prefix = ['place:', 'file://', 'apt://']
+    ignored_prefix = ['place:', 'file://', 'apt:']
 
     for prefix in ignored_prefix:
         if url.startswith(prefix):

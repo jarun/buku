@@ -269,7 +269,7 @@ SYMBOLS:
   - --stag : search bookmarks by a tag, or list all tags alphabetically with usage count (if no arguments).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the title.
 - **Import**:
-  - URLs starting with `place:`, `file://` and `apt://` are ignored during import.
+  - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using `buku` and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 - **Editor** support:
   - A single bookmark can be edited before adding. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes preference. If -a is used along with -w, the details are populated in the editor template.
