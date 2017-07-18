@@ -1600,6 +1600,72 @@ class BukuDb:
         print('%s exported' % count)
         return True
 
+    # XXX: POC
+    def import_from_browser(self):
+        '''Import bookmarks from a browser database file.
+        Supports Firefox and Google Chrome.
+
+        :param filepath: path to bookmarks database file
+        :return: True on success, False on failure
+        '''
+        import webbrowser
+
+        # TODO: detect OS
+        # XXX: only Linux for now
+        def browsers_lookup():
+            try:
+                webbrowser.get('google-chrome')
+                # TODO: iterate over profiles
+                bookmarks_database = os.path.expandhome(
+                    '~/.config/google-chrome/Default/Bookmarks')
+                load_chrome_database(bookmarks_database)
+            except Exception:
+                logerr('Could not detect google-chrome browser')
+
+            try:
+                webbrowser.get('firefox')
+                # TODO: get profiles from
+                # ('~/.mozilla/firefox/profiles.ini')
+                bookmarks_database = os.path.expanduser(
+                    '~/.mozzila/firefox/<profile>/places.sqlite')
+                load_firefox_database(bookmarks_database)
+            except Exception:
+                logerr('Could not detect `firefox\' browser')
+
+        def load_chrome_database(path):
+            '''Iterate over Chrome Bookmarks json file
+
+            :param path: path to google-chrome Bookmarks file
+            :return: None
+            '''
+            data = json.load(open('Bookmarks'))
+
+            other = data['roots']['other']
+            bookmark_bar = data['roots']['bookmark_bar']
+            bookmarks = {'children': [bookmark_bar, other]}
+
+            def walk(root):
+                for element in root['children']:
+                    if element['type'] == 'url':
+                        url = element['url']
+                        title = element['name']
+                        self.add_rec(url, title, None, None, 0, True)
+                    else:
+                        walk(element)
+
+            walk(bookmarks)
+
+        def load_firefox_database(path):
+            '''Connect to firefox sqlite database and transfer
+            all bookmarks into Buku database
+
+            :param path: path to firefox bookmarks database
+            :return: None
+            '''
+            raise NotImplementedError, 'To be done..'
+
+        self.conn.commit()
+
     def importdb(self, filepath):
         '''Import bookmarks from a html or a markdown
         file (with extension '.md').  Supports Firefox,
@@ -1626,8 +1692,6 @@ class BukuDb:
                             title = line[title_start_delim + 1:index]
                             # Parse url
                             url = line[index + 2:index + 2 + url_end_delim]
-                            if (is_nongeneric_url(url)):
-                                continue
 
                             self.add_rec(url, title, None, None, 0, True)
 
@@ -1665,17 +1729,10 @@ class BukuDb:
 
             for tag in html_tags:
                 # Extract comment from <dd> tag
-                try:
-                    if (is_nongeneric_url(tag['href'])):
-                        continue
-                except KeyError as e:
-                    continue
-
                 desc = None
                 comment_tag = tag.findNextSibling('dd')
-
                 if comment_tag:
-                    desc = comment_tag.find(text=True, recursive=False)
+                    desc = comment_tag.text[0:comment_tag.text.find('\n')]
 
                 self.add_rec(tag['href'], tag.string, parse_tags([tag['tags']])
                              if tag.has_attr('tags') else None, desc, 0, True)
@@ -1894,18 +1951,6 @@ def is_bad_url(url):
     # netloc should have at least one '.'
     if netloc.rfind('.') < 0:
         return True
-
-    return False
-
-
-def is_nongeneric_url(url):
-    '''Returns true for URLs which are non-http and non-generic'''
-
-    ignored_prefix = ['place:', 'file://', 'apt:']
-
-    for prefix in ignored_prefix:
-        if url.startswith(prefix):
-            return True
 
     return False
 
@@ -3031,6 +3076,10 @@ POSITIONAL ARGUMENTS:
     bdb = BukuDb(args.json, args.format, not args.tacit,
                  dbfile=args.db[0] if args.db is not None else None,
                  colorize=not args.nc)
+
+    # XXX: WIP
+    bdb.import_from_browser()
+    # XXX: WIP
 
     # Editor mode
     if args.write is not None:
