@@ -1675,7 +1675,7 @@ class BukuDb:
                 comment_tag = tag.findNextSibling('dd')
 
                 if comment_tag:
-                    desc = comment_tag.text[0:comment_tag.text.find('\n')]
+                    desc = comment_tag.find(text=True, recursive=False)
 
                 self.add_rec(tag['href'], tag.string, parse_tags([tag['tags']])
                              if tag.has_attr('tags') else None, desc, 0, True)
