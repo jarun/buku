@@ -471,9 +471,9 @@ def test_network_handler_with_url(url, exp_res):
 @pytest.mark.parametrize(
     'url, exp_res',
     [
-        ('http://example.com', False)
-        ('apt:package1,package2,package3', True)
-        ('file:///tmp/vim-markdown-preview.html', True)
+        ('http://example.com', False),
+        ('apt:package1,package2,package3', True),
+        ('file:///tmp/vim-markdown-preview.html', True),
     ]
 )
 def test_is_nongeneric_url(url, exp_res):
