@@ -1626,6 +1626,8 @@ class BukuDb:
                             title = line[title_start_delim + 1:index]
                             # Parse url
                             url = line[index + 2:index + 2 + url_end_delim]
+                            if (is_nongeneric_url(url)):
+                                continue
 
                             self.add_rec(url, title, None, None, 0, True)
 
@@ -1665,6 +1667,9 @@ class BukuDb:
                 # Extract comment from <dd> tag
                 desc = None
                 comment_tag = tag.findNextSibling('dd')
+                if (is_nongeneric_url(tag['href'])):
+                    continue
+
                 if comment_tag:
                     desc = comment_tag.text[0:comment_tag.text.find('\n')]
 
@@ -1885,6 +1890,18 @@ def is_bad_url(url):
     # netloc should have at least one '.'
     if netloc.rfind('.') < 0:
         return True
+
+    return False
+
+
+def is_nongeneric_url(url):
+    '''Returns true for URLs which are non-http and non-generic'''
+
+    ignored_prefix = ['place:', 'file://', 'apt://']
+
+    for prefix in ignored_prefix:
+        if url.startswith(prefix):
+            return True
 
     return False
 

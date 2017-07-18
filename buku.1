@@ -72,15 +72,19 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within '[]' after the title.
 .PP
 .IP 9. 4
-\fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
+\fBImport\fR:
+  - URLs starting with `place:`, `file://` and `apt://` are ignored during import.
 .PP
 .IP 10. 4
+\fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
+.PP
+.IP 11. 4
 \fBEditor\fR support:
   - A single bookmark can be edited before adding. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes precedence. If -a is used along with -w, the details are populated in the editor template.
   - In case of edit and update (a single bookmark), the existing record details are fetched from DB and populated in the editor template. The environment variable EDITOR must be set. Note that -u works independently of -w.
   - All lines beginning with "#" will be stripped. Then line 1 will be treated as the URL, line 2 will be the title, line 3 will be comma separated tags, and the rest of the lines will be parsed as descriptions.
 .PP
-.IP 11. 4
+.IP 12. 4
 \fBProxy\fR support: please refer to the \fBENVIRONMENT\fR section.
 .SH GENERAL OPTIONS
 .TP
