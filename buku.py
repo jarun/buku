@@ -1600,7 +1600,7 @@ class BukuDb:
         print('%s exported' % count)
         return True
 
-    def importdb(self, filepath):
+    def importdb(self, filepath, tacit=False):
         '''Import bookmarks from a html or a markdown
         file (with extension '.md').  Supports Firefox,
         Google Chrome and IE exported html
@@ -1608,6 +1608,11 @@ class BukuDb:
         :param filepath: path to file to import
         :return: True on success, False on failure
         '''
+
+        if not tacit:
+            newtag = input('Specify unique tag for imports (Enter to skip): ')
+        else:
+            newtag = None
 
         if filepath.endswith('.md'):
             with open(filepath, mode='r', encoding='utf-8') as infp:
@@ -1629,7 +1634,8 @@ class BukuDb:
                             if (is_nongeneric_url(url)):
                                 continue
 
-                            self.add_rec(url, title, None, None, 0, True)
+                            self.add_rec(url, title, delim_wrap(newtag)
+                                         if newtag else None, None, 0, True)
 
             self.conn.commit()
             infp.close()
@@ -1645,11 +1651,24 @@ class BukuDb:
                 logerr(e)
                 return False
 
-            html_tags = soup.findAll('a')
-
             resp = input('Add imported folders names as tags? (y/n): ')
-            if resp == 'y':
-                for tag in html_tags:
+
+            for tag in soup.findAll('a'):
+                # Extract comment from <dd> tag
+                try:
+                    if (is_nongeneric_url(tag['href'])):
+                        continue
+                except KeyError as e:
+                    continue
+
+                desc = None
+                comment_tag = tag.findNextSibling('dd')
+
+                if comment_tag:
+                    desc = comment_tag.find(text=True, recursive=False)
+
+                # add parent folder as tag
+                if resp == 'y':
                     # could be its folder or not
                     possible_folder = tag.find_previous('h3')
                     # get list of tags within that folder
@@ -1663,19 +1682,12 @@ class BukuDb:
                         else:
                             tag['tags'] = possible_folder.text
 
-            for tag in html_tags:
-                # Extract comment from <dd> tag
-                try:
-                    if (is_nongeneric_url(tag['href'])):
-                        continue
-                except KeyError as e:
-                    continue
-
-                desc = None
-                comment_tag = tag.findNextSibling('dd')
-
-                if comment_tag:
-                    desc = comment_tag.find(text=True, recursive=False)
+                # add unique tag if opted
+                if newtag:
+                    if tag.has_attr('tags'):
+                        tag['tags'] += (DELIM + newtag)
+                    else:
+                        tag['tags'] = newtag
 
                 self.add_rec(tag['href'], tag.string, parse_tags([tag['tags']])
                              if tag.has_attr('tags') else None, desc, 0, True)
@@ -3286,7 +3298,7 @@ POSITIONAL ARGUMENTS:
 
     # Import bookmarks
     if args.importfile is not None:
-        bdb.importdb(args.importfile[0])
+        bdb.importdb(args.importfile[0], args.tacit)
 
     # Merge a database file and exit
     if args.merge is not None:
