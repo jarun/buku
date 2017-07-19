@@ -52,7 +52,7 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 
 There are several [projects](#related-projects) based on `buku`, including a browser plug-in.
 
-PRs are welcome. Please visit [#135](https://github.com/jarun/Buku/issues/135) for a list of TODOs.
+PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) for a list of TODOs.
 
 <p align="center">
 <a href="https://saythanks.io/to/jarun"><img src="https://img.shields.io/badge/say-thanks!-ff69b4.svg" /></a>
