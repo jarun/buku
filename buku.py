@@ -329,13 +329,13 @@ class BukuCrypt:
             sys.exit(1)
 
 
-def parse_bookmark_markdown(filepath):
+def import_md(fp):
     '''Parse bookmark markdown file
 
     :param filepath: Markdown file
     :return: a tuple containing parsed result
     '''
-    with open(filepath, mode='r', encoding='utf-8') as infp:
+    with open(fp, mode='r', encoding='utf-8') as infp:
         for line in infp:
             # Supported markdown format: [title](url)
             # Find position of title end, url start delimiter combo
@@ -362,7 +362,7 @@ def parse_bookmark_markdown(filepath):
                     )
 
 
-def parse_bookmark_html(html_soup, add_parent_folder_as_tag, newtag):
+def import_html(html_soup, add_parent_folder_as_tag, newtag):
     '''Parse bookmark html
 
     :param html_soup: HTML soup of bookmark html
@@ -1705,7 +1705,7 @@ class BukuDb:
             newtag = None
 
         if filepath.endswith('.md'):
-            for item in parse_bookmark_markdown(filepath=filepath):
+            for item in import_md(fp=filepath):
                 self.add_rec(*item)
 
             self.conn.commit()
@@ -1728,7 +1728,7 @@ class BukuDb:
                 resp = 'y'
 
             add_parent_folder_as_tag = resp == 'y'
-            for item in parse_bookmark_html(
+            for item in import_html(
                     html_soup=soup,
                     add_parent_folder_as_tag=add_parent_folder_as_tag,
                     newtag=newtag):
