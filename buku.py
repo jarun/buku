@@ -1606,6 +1606,8 @@ class BukuDb:
         Google Chrome and IE exported html
 
         :param filepath: path to file to import
+        :param tacit: no questions asked if True
+                      folder names are automatically imported as tags if True
         :return: True on success, False on failure
         '''
 
@@ -1651,7 +1653,10 @@ class BukuDb:
                 logerr(e)
                 return False
 
-            resp = input('Add imported folders names as tags? (y/n): ')
+            if not tacit:
+                resp = input('Add imported folders names as tags? (y/n): ')
+            else:
+                resp = 'y'
 
             for tag in soup.findAll('a'):
                 # Extract comment from <dd> tag
