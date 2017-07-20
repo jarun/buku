@@ -1601,68 +1601,119 @@ class BukuDb:
         return True
 
     # XXX: POC
-    def import_from_browser(self):
+    def walk(self, root):
+        '''Recursively iterate over json
+
+        :param root: base node of the json data
+        :return: None
+        '''
+        for element in root['children']:
+            if element['type'] == 'url':
+                url = element['url']
+                title = element['name']
+                self.add_rec(url, title, None, None, 0, True)
+            else:
+                self.walk(element)
+
+    def load_chrome_database(self, path):
+        '''Open Chrome Bookmarks json file and import data
+
+        :param path: path to google-chrome Bookmarks file
+        :return: None
+        '''
+        # TODO: close file
+        data = json.load(open(path))
+
+        other = data['roots']['other']
+        bookmark_bar = data['roots']['bookmark_bar']
+        bookmarks = {'children': [bookmark_bar, other]}
+
+        self.walk(bookmarks)
+
+    def load_firefox_database(self, path):
+        '''Connect to firefox sqlite database and transfer
+        all bookmarks into Buku database
+
+        :param path: path to firefox bookmarks database
+        :return: None
+        '''
+        raise NotImplementedError
+
+    def detect_file_type(self, file_path):
+        '''Check wether file is SQLite db or JSON db
+
+        :param file_path: path to file to be checked
+        :return: SQLite, JSON or Unknown if file type
+        can not be detected
+        '''
+        SQLite = 'sqlite'
+        JSON = 'json'
+        Unknown = None
+
+        file_type = Unknown
+
+        # I wish I could use `subprocess('file file_path'...)`
+        with open(file_path) as detect:
+            data = detectme.read(20)
+            if data.startswith('SQLite format3'):
+                file_type = SQLite
+            elif data.startswith('{') and data.trim().endswith('}'):
+                file_type = JSON
+
+        return file_type
+        
+    def import_from_browser(self, bookmark_db_path):
         '''Import bookmarks from a browser database file.
         Supports Firefox and Google Chrome.
 
         :param filepath: path to bookmarks database file
         :return: True on success, False on failure
         '''
-        import webbrowser
+        # XXX: In debug purposes only
+        bookmark_db_path = None
+        if bookmark_db_path:
+            # use FF or GC import function?
+            self.detect_file_type(bookmark_db_path)
+            # Done
 
-        # TODO: detect OS
-        # XXX: only Linux for now
-        def browsers_lookup():
-            try:
-                webbrowser.get('google-chrome')
-                # TODO: iterate over profiles
-                bookmarks_database = os.path.expandhome(
-                    '~/.config/google-chrome/Default/Bookmarks')
-                load_chrome_database(bookmarks_database)
-            except Exception:
-                logerr('Could not detect google-chrome browser')
+        if sys.platform.startswith('linux'):
+            CHROME_BOOKMARK_DATABASE_PATH = '~/.config/google-chrome/Default/Bookmarks'
+            FIREFOX_BOOKMARK_DATABASE_PATH = '~/.mozilla/firefox/{profile}.default/places.sqlite'
 
-            try:
-                webbrowser.get('firefox')
-                # TODO: get profiles from
-                # ('~/.mozilla/firefox/profiles.ini')
-                bookmarks_database = os.path.expanduser(
-                    '~/.mozzila/firefox/<profile>/places.sqlite')
-                load_firefox_database(bookmarks_database)
-            except Exception:
-                logerr('Could not detect `firefox\' browser')
+        elif sys.platform == "darwin":
+            pass
 
-        def load_chrome_database(path):
-            '''Iterate over Chrome Bookmarks json file
+        elif sys.platform == "win32":
+            pass
 
-            :param path: path to google-chrome Bookmarks file
-            :return: None
-            '''
-            data = json.load(open('Bookmarks'))
+        try:
+            webbrowser.get('google-chrome')
+            bookmarks_database = os.path.expanduser(CHROME_BOOKMARK_DATABASE_PATH)
+            self.load_chrome_database(bookmarks_database)
 
-            other = data['roots']['other']
-            bookmark_bar = data['roots']['bookmark_bar']
-            bookmarks = {'children': [bookmark_bar, other]}
+        # XXX: improve exception handling
+        except Exception as e:
+            logerr(e)
+            logerr('Could not detect `google-chrome\' browser')
 
-            def walk(root):
-                for element in root['children']:
-                    if element['type'] == 'url':
-                        url = element['url']
-                        title = element['name']
-                        self.add_rec(url, title, None, None, 0, True)
-                    else:
-                        walk(element)
+        try:
+            webbrowser.get('firefox')
+            # XXX: hardcode
+            # File is .ini so would be great to import `configparser' module
+            # with open('~/.mozilla/firefox/profiles.ini', mode='r') as profile_ini:
+            #    data = profile_ini.read()
 
-            walk(bookmarks)
+            # XXX: hardcode
+            bookmarks_database = os.path.expanduser(
+                os.path.expanduser(
+                    FIREFOX_BOOKMARK_DATABASE_PATH.format(
+                        profile='8g5db2ua')))
+            self.load_firefox_database(bookmarks_database)
 
-        def load_firefox_database(path):
-            '''Connect to firefox sqlite database and transfer
-            all bookmarks into Buku database
-
-            :param path: path to firefox bookmarks database
-            :return: None
-            '''
-            raise NotImplementedError, 'To be done..'
+        # XXX: improve exception handling
+        except Exception as e:
+            logerr(e)
+            logerr('Could not detect `firefox\' browser')
 
         self.conn.commit()
 
@@ -2990,6 +3041,7 @@ POSITIONAL ARGUMENTS:
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
+    addarg('--ib', '--import-from-browser', nargs=1, dest='importfrombrowser', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4},
@@ -3076,10 +3128,6 @@ POSITIONAL ARGUMENTS:
     bdb = BukuDb(args.json, args.format, not args.tacit,
                  dbfile=args.db[0] if args.db is not None else None,
                  colorize=not args.nc)
-
-    # XXX: WIP
-    bdb.import_from_browser()
-    # XXX: WIP
 
     # Editor mode
     if args.write is not None:
@@ -3336,6 +3384,10 @@ POSITIONAL ARGUMENTS:
     # Import bookmarks
     if args.importfile is not None:
         bdb.importdb(args.importfile[0])
+
+    # Import bookmarks from browser
+    if args.importfrombrowser is not None:
+        bdb.import_from_browser(args.importfrombrowser[0])
 
     # Merge a database file and exit
     if args.merge is not None:
