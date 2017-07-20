@@ -329,6 +329,39 @@ class BukuCrypt:
             sys.exit(1)
 
 
+def parse_bookmark_markdown(filepath):
+    '''Parse bookmark markdown file
+
+    :param filepath: Markdown file
+    :return: a tuple containing parsed result
+    '''
+    with open(filepath, mode='r', encoding='utf-8') as infp:
+        for line in infp:
+            # Supported markdown format: [title](url)
+            # Find position of title end, url start delimiter combo
+            index = line.find('](')
+            if index != -1:
+                # Find title start delimiter
+                title_start_delim = line[:index].find('[')
+                # Reverse find the url end delimiter
+                url_end_delim = line[index + 2:].rfind(')')
+
+                if title_start_delim != -1 and url_end_delim > 0:
+                    # Parse title
+                    title = line[title_start_delim + 1:index]
+                    # Parse url
+                    url = line[index + 2:index + 2 + url_end_delim]
+                    if (is_nongeneric_url(url)):
+                        continue
+
+                    yield (
+                        url,
+                        title,
+                        delim_wrap(newtag)
+                        if newtag else None, None, 0, True
+                    )
+
+
 def parse_bookmark_html(html_soup, add_parent_folder_as_tag, newtag):
     '''Parse bookmark html
 
@@ -1672,27 +1705,8 @@ class BukuDb:
             newtag = None
 
         if filepath.endswith('.md'):
-            with open(filepath, mode='r', encoding='utf-8') as infp:
-                for line in infp:
-                    # Supported markdown format: [title](url)
-                    # Find position of title end, url start delimiter combo
-                    index = line.find('](')
-                    if index != -1:
-                        # Find title start delimiter
-                        title_start_delim = line[:index].find('[')
-                        # Reverse find the url end delimiter
-                        url_end_delim = line[index + 2:].rfind(')')
-
-                        if title_start_delim != -1 and url_end_delim > 0:
-                            # Parse title
-                            title = line[title_start_delim + 1:index]
-                            # Parse url
-                            url = line[index + 2:index + 2 + url_end_delim]
-                            if (is_nongeneric_url(url)):
-                                continue
-
-                            self.add_rec(url, title, delim_wrap(newtag)
-                                         if newtag else None, None, 0, True)
+            for item in parse_bookmark_markdown(filepath=filepath):
+                self.add_rec(*item)
 
             self.conn.commit()
             infp.close()
