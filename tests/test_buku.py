@@ -482,3 +482,18 @@ def test_is_nongeneric_url(url, exp_res):
     import buku
     res = buku.is_nongeneric_url(url)
     assert res == exp_res
+
+
+@pytest.mark.parametrize(
+    'newtag, exp_res',
+    [
+        (None, ('http://example.com', 'text1', None, None, 0, True)),
+        ('tag1',('http://example.com', 'text1', ',tag1,', None, 0, True)),
+    ]
+)
+def test_import_md(tmpdir, newtag, exp_res):
+    from buku import import_md
+    p = tmpdir.mkdir("importmd").join("test.md")
+    p.write("[text1](http://example.com)")
+    res = list(import_md(p.strpath, newtag))
+    assert res[0] == exp_res
