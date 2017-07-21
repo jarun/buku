@@ -329,10 +329,11 @@ class BukuCrypt:
             sys.exit(1)
 
 
-def import_md(fp):
+def import_md(fp, newtag):
     '''Parse bookmark markdown file
 
     :param filepath: Markdown file
+    :param newtag: New tag
     :return: a tuple containing parsed result
     '''
     with open(fp, mode='r', encoding='utf-8') as infp:
@@ -1705,7 +1706,7 @@ class BukuDb:
             newtag = None
 
         if filepath.endswith('.md'):
-            for item in import_md(fp=filepath):
+            for item in import_md(fp=filepath, newtag=newtag):
                 self.add_rec(*item)
 
             self.conn.commit()
