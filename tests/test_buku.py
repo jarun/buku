@@ -536,6 +536,15 @@ def test_import_md(tmpdir, newtag, exp_res):
                 ),
                 ('https://news.com/', 'News', ',tag1,tag2,tag3,', None, 0, True)
             )
+        ),
+        (
+
+            """DT><A HREF="https://github.com/j" ADD_DATE="1360951967" PRIVATE="1" TAGS="tag1,tag2">GitHub</A>
+            <DD>comment for the bookmark here""",
+            ((
+                'https://github.com/j', 'GitHub', ',tag1,tag2,',
+                'comment for the bookmark here', 0, True
+            ),)
         )
 
     ]
