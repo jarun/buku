@@ -329,14 +329,14 @@ class BukuCrypt:
             sys.exit(1)
 
 
-def import_md(fp, newtag):
+def import_md(filepath, newtag):
     '''Parse bookmark markdown file
 
     :param filepath: Markdown file
     :param newtag: New tag
     :return: a tuple containing parsed result
     '''
-    with open(fp, mode='r', encoding='utf-8') as infp:
+    with open(filepath, mode='r', encoding='utf-8') as infp:
         for line in infp:
             # Supported markdown format: [title](url)
             # Find position of title end, url start delimiter combo
@@ -1706,7 +1706,7 @@ class BukuDb:
             newtag = None
 
         if filepath.endswith('.md'):
-            for item in import_md(fp=filepath, newtag=newtag):
+            for item in import_md(filepath=filepath, newtag=newtag):
                 self.add_rec(*item)
 
             self.conn.commit()
