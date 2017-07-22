@@ -329,6 +329,91 @@ class BukuCrypt:
             sys.exit(1)
 
 
+def import_md(filepath, newtag):
+    '''Parse bookmark markdown file
+
+    :param filepath: Markdown file
+    :param newtag: New tag
+    :return: a tuple containing parsed result
+    '''
+    with open(filepath, mode='r', encoding='utf-8') as infp:
+        for line in infp:
+            # Supported markdown format: [title](url)
+            # Find position of title end, url start delimiter combo
+            index = line.find('](')
+            if index != -1:
+                # Find title start delimiter
+                title_start_delim = line[:index].find('[')
+                # Reverse find the url end delimiter
+                url_end_delim = line[index + 2:].rfind(')')
+
+                if title_start_delim != -1 and url_end_delim > 0:
+                    # Parse title
+                    title = line[title_start_delim + 1:index]
+                    # Parse url
+                    url = line[index + 2:index + 2 + url_end_delim]
+                    if (is_nongeneric_url(url)):
+                        continue
+
+                    yield (
+                        url, title, delim_wrap(newtag)
+                        if newtag else None, None, 0, True
+                    )
+
+
+def import_html(html_soup, add_parent_folder_as_tag, newtag):
+    '''Parse bookmark html
+
+    :param html_soup: HTML soup of bookmark html
+    :param add_parent_folder_as_tag: add parent folder as tag
+    :param newtag: add unique tag
+    :return: a tuple containing parsed result
+    '''
+    # compatibility
+    soup = html_soup
+
+    for tag in soup.findAll('a'):
+        # Extract comment from <dd> tag
+        try:
+            if (is_nongeneric_url(tag['href'])):
+                continue
+        except KeyError as e:
+            continue
+
+        desc = None
+        comment_tag = tag.findNextSibling('dd')
+
+        if comment_tag:
+            desc = comment_tag.find(text=True, recursive=False)
+
+        # add parent folder as tag
+        if add_parent_folder_as_tag:
+            # could be its folder or not
+            possible_folder = tag.find_previous('h3')
+            # get list of tags within that folder
+            tag_list = tag.parent.parent.find_parent('dl')
+
+            if ((possible_folder) and
+                    possible_folder.parent in list(tag_list.parents)):
+                # then it's the folder of this bookmark
+                if tag.has_attr('tags'):
+                    tag['tags'] += (DELIM + possible_folder.text)
+                else:
+                    tag['tags'] = possible_folder.text
+
+        # add unique tag if opted
+        if newtag:
+            if tag.has_attr('tags'):
+                tag['tags'] += (DELIM + newtag)
+            else:
+                tag['tags'] = newtag
+
+        yield (
+            tag['href'], tag.string, parse_tags([tag['tags']])
+            if tag.has_attr('tags') else None, desc, 0, True
+        )
+
+
 class BukuDb:
     '''Abstracts all database operations'''
 
@@ -1617,27 +1702,8 @@ class BukuDb:
             newtag = None
 
         if filepath.endswith('.md'):
-            with open(filepath, mode='r', encoding='utf-8') as infp:
-                for line in infp:
-                    # Supported markdown format: [title](url)
-                    # Find position of title end, url start delimiter combo
-                    index = line.find('](')
-                    if index != -1:
-                        # Find title start delimiter
-                        title_start_delim = line[:index].find('[')
-                        # Reverse find the url end delimiter
-                        url_end_delim = line[index + 2:].rfind(')')
-
-                        if title_start_delim != -1 and url_end_delim > 0:
-                            # Parse title
-                            title = line[title_start_delim + 1:index]
-                            # Parse url
-                            url = line[index + 2:index + 2 + url_end_delim]
-                            if (is_nongeneric_url(url)):
-                                continue
-
-                            self.add_rec(url, title, delim_wrap(newtag)
-                                         if newtag else None, None, 0, True)
+            for item in import_md(filepath=filepath, newtag=newtag):
+                self.add_rec(*item)
 
             self.conn.commit()
             infp.close()
@@ -1658,44 +1724,9 @@ class BukuDb:
             else:
                 resp = 'y'
 
-            for tag in soup.findAll('a'):
-                # Extract comment from <dd> tag
-                try:
-                    if (is_nongeneric_url(tag['href'])):
-                        continue
-                except KeyError as e:
-                    continue
-
-                desc = None
-                comment_tag = tag.findNextSibling('dd')
-
-                if comment_tag:
-                    desc = comment_tag.find(text=True, recursive=False)
-
-                # add parent folder as tag
-                if resp == 'y':
-                    # could be its folder or not
-                    possible_folder = tag.find_previous('h3')
-                    # get list of tags within that folder
-                    tag_list = tag.parent.parent.find_parent('dl')
-
-                    if ((possible_folder) and
-                            possible_folder.parent in list(tag_list.parents)):
-                        # then it's the folder of this bookmark
-                        if tag.has_attr('tags'):
-                            tag['tags'] += (DELIM + possible_folder.text)
-                        else:
-                            tag['tags'] = possible_folder.text
-
-                # add unique tag if opted
-                if newtag:
-                    if tag.has_attr('tags'):
-                        tag['tags'] += (DELIM + newtag)
-                    else:
-                        tag['tags'] = newtag
-
-                self.add_rec(tag['href'], tag.string, parse_tags([tag['tags']])
-                             if tag.has_attr('tags') else None, desc, 0, True)
+            add_parent_folder_as_tag = (resp == 'y')
+            for item in import_html(soup, add_parent_folder_as_tag, newtag):
+                self.add_rec(*item)
 
             self.conn.commit()
             infp.close()
