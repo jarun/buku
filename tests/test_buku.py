@@ -560,3 +560,17 @@ def test_import_html_and_add_parent():
     html_soup = BeautifulSoup(html_text, 'html.parser')
     res = list(import_html(html_soup, True, None))
     assert res[0] == exp_res
+
+
+def test_import_html_and_new_tag():
+    from buku import import_html
+    from bs4 import BeautifulSoup
+    html_text = """<DT><A HREF="https://github.com/j" TAGS="tag1,tag2">GitHub</A>
+<DD>comment for the bookmark here"""
+    exp_res = (
+        'https://github.com/j', 'GitHub', ',tag1,tag2,tag3,',
+        'comment for the bookmark here', 0, True
+    )
+    html_soup = BeautifulSoup(html_text, 'html.parser')
+    res = list(import_html(html_soup, False, 'tag3'))
+    assert res[0] == exp_res
