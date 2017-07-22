@@ -1728,7 +1728,7 @@ class BukuDb:
             else:
                 resp = 'y'
 
-            add_parent_folder_as_tag = resp == 'y'
+            add_parent_folder_as_tag = (resp == 'y')
             for item in import_html(
                     html_soup=soup,
                     add_parent_folder_as_tag=add_parent_folder_as_tag,
