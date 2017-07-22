@@ -356,9 +356,7 @@ def import_md(filepath, newtag):
                         continue
 
                     yield (
-                        url,
-                        title,
-                        delim_wrap(newtag)
+                        url, title, delim_wrap(newtag)
                         if newtag else None, None, 0, True
                     )
 
@@ -411,9 +409,7 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
                 tag['tags'] = newtag
 
         yield (
-            tag['href'],
-            tag.string,
-            parse_tags([tag['tags']])
+            tag['href'], tag.string, parse_tags([tag['tags']])
             if tag.has_attr('tags') else None, desc, 0, True
         )
 
@@ -1729,10 +1725,7 @@ class BukuDb:
                 resp = 'y'
 
             add_parent_folder_as_tag = (resp == 'y')
-            for item in import_html(
-                    html_soup=soup,
-                    add_parent_folder_as_tag=add_parent_folder_as_tag,
-                    newtag=newtag):
+            for item in import_html(soup, add_parent_folder_as_tag, newtag):
                 self.add_rec(*item)
 
             self.conn.commit()
