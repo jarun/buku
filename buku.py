@@ -36,6 +36,7 @@ import threading
 import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
+from colored import fg, bg, attr
 
 __version__ = '3.1'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -47,13 +48,16 @@ DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
-# Default colour to print records
-ID_str = '\x1b[96;1m%d. \x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
-ID_DB_str = '\x1b[96;1m%d. \x1b[1;92m%s\x1b[0m'
-MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
-URL_str = '%s   \x1b[91m>\x1b[0m \x1b[2m%s\x1b[0m\n'
-DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
-TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
+# reset color settings
+resetc = attr('reset')
+
+# regex in db
+ID_str = '%d. %s [%s]\n'
+ID_DB_str = '%d. %s'
+MUTE_str = '%s (L)\n'
+URL_str = '   > [%s]\n'
+DESC_str = '%s   + %s\n'
+TAG_str = '   # [%s]\n'
 
 # Disguise as Firefox on Ubuntu
 USER_AGENT = ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) '
@@ -2439,17 +2443,20 @@ def print_single_rec(row, idx=0):  # NOQA
             pr += '\n'
 
     # Append URL
-    pr = URL_str % (pr, row[1])
+    pr1 = URL_str % (row[1])
 
     # Append description
+    # maybe required to remove pr and adjust regex
+    pr2 = ''
     if row[4]:
-        pr = DESC_str % (pr, row[4])
+        pr2 = DESC_str % (pr, row[4])
 
     # Append tags IF not default (delimiter)
+    pr3 = ''
     if row[3] != DELIM:
-        pr = TAG_str % (pr, row[3][1:-1])
+        pr3 = TAG_str % (row[3][1:-1])
 
-    print(pr)
+    print(pr + pr1 + pr2 + pr3)
 
 
 def format_json(resultset, single_record=False, field_filter=0):
@@ -2832,6 +2839,20 @@ def piped_input(argv, pipeargs=None):
             pipeargs += s.split()
 
 
+
+def setcolors(args):
+    csetlist = []
+    list1 = [ID_DB_str, URL_str, DESC_str, TAG_str]
+    cset = (fg(args[0]) + bg(args[1]) + attr(args[2])) + list1[0] + resetc
+    cset1 = (fg(args[3]) + bg(args[4]) + attr(args[5])) + list1[1] + resetc
+    cset2 = (fg(args[6]) + bg(args[7]) + attr(args[8])) + list1[2] + resetc
+    cset3 = (fg(args[9]) + bg(args[10]) + attr(args[11])) + list1[3] + resetc
+    list.append(csetlist, cset)
+    list.append(csetlist, cset1)
+    list.append(csetlist, cset2)
+    list.append(csetlist, cset3)
+    return csetlist
+
 # main starts here
 def main():
     global colorize, ID_str, ID_DB_str, MUTE_str, URL_str, DESC_str, TAG_str
@@ -2977,6 +2998,7 @@ POSITIONAL ARGUMENTS:
                          N=4: URL, title and tag
     -j, --json           Json formatted output for -p and search
     --nc                 disable color output
+    --colors             set output colors (see man page for details)     
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges
                          open a random bookmark, if no arguments
@@ -2999,6 +3021,7 @@ POSITIONAL ARGUMENTS:
            help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
+    addarg('--colors', nargs=12, help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--oa', action='store_true', help=HIDE)
@@ -3039,6 +3062,13 @@ POSITIONAL ARGUMENTS:
     else:
         # Enable color in logs
         setup_logger(logger)
+
+    if args.colors:
+        setcolors(args.colors)
+        ID_DB_str = setcolors(args.colors)[0]
+        URL_str = setcolors(args.colors)[1]
+        DESC_str = setcolors(args.colors)[2]
+        TAG_str = setcolors(args.colors)[3]
 
     # Set up debugging
     if args.debug:
