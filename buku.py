@@ -53,11 +53,11 @@ resetc = attr('reset')
 
 # regex in db
 ID_str = '%d. %s [%s]\n'
-ID_DB_str = '\n%d. %s'
+ID_DB_str = '%d. %s'
 MUTE_str = '%s (L)\n'
-URL_str = '   > [%s]'
+URL_str = '   > [%s]\n'
 DESC_str = '%s   + %s\n'
-TAG_str = '\n   # [%s]'
+TAG_str = '   # [%s]\n'
 
 # Disguise as Firefox on Ubuntu
 USER_AGENT = ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) '
@@ -3062,7 +3062,7 @@ POSITIONAL ARGUMENTS:
     else:
         # Enable color in logs
         setup_logger(logger)
-    
+
     if args.colors:
         setcolors(args.colors)
         ID_DB_str = setcolors(args.colors)[0]
