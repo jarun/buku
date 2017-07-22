@@ -548,3 +548,15 @@ def test_import_html(html_text, exp_res):
     res = list(import_html(html_soup, False, None))
     for item, exp_item in zip(res, exp_res):
         assert item == exp_item
+
+
+def test_import_html_and_add_parent():
+    from buku import import_html
+    from bs4 import BeautifulSoup
+    html_text = """<DT><H3>1s</H3>
+<DL><p>
+<DT><A HREF="http://example.com/"></A>"""
+    exp_res = ('http://example.com/', None, ',1s,', None, 0, True)
+    html_soup = BeautifulSoup(html_text, 'html.parser')
+    res = list(import_html(html_soup, True, None))
+    assert res[0] == exp_res
