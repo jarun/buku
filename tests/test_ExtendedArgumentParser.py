@@ -16,9 +16,9 @@ def test_program_info(platform, file):
         else:
             buku.ExtendedArgumentParser.program_info(file)
         if platform == 'win32' and file == m_sys.stdout:
-            m_sys.stderr.write.assert_called_once(prog_info_text)
+            m_sys.stderr.write.assert_called_once()
         else:
-            file.write.assert_called_once(prog_info_text)
+            file.write.assert_called_once()
 
 
 def test_prompt_help():
