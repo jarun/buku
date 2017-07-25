@@ -16,9 +16,9 @@ def test_program_info(platform, file):
         else:
             buku.ExtendedArgumentParser.program_info(file)
         if platform == 'win32' and file == m_sys.stdout:
-            m_sys.stderr.write.assert_called_once()
+            assert len(m_sys.stderr.write.mock_calls) == 1
         else:
-            file.write.assert_called_once()
+            assert len(file.write.mock_calls) == 1
 
 
 def test_prompt_help():
@@ -26,7 +26,7 @@ def test_prompt_help():
     file = mock.Mock()
     import buku
     buku.ExtendedArgumentParser.prompt_help(file)
-    file.write.assert_called_once()
+    assert len(file.write.mock_calls) == 1
 
 
 def test_print_help():
