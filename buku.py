@@ -377,7 +377,7 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
         try:
             if (is_nongeneric_url(tag['href'])):
                 continue
-        except KeyError as e:
+        except KeyError:
             continue
 
         desc = None
@@ -1394,6 +1394,59 @@ class BukuDb:
 
         return unique_tags, dic
 
+    def get_tag_similar(self, tagstr):
+        '''Show list of tags those go together in DB
+
+        :param tagstr: original tag string
+        :return: DELIM separated string of tags
+        '''
+
+        tags = tagstr.split(',')
+        if not len(tags):
+            return tagstr
+
+        qry = 'SELECT DISTINCT tags FROM bookmarks WHERE tags LIKE ?'
+        tagset = []
+        unique_tags = []
+        for tag in tags:
+            if tag == '':
+                continue
+
+            self.cur.execute(qry, ('%' + delim_wrap(tag) + '%',))
+            results = self.cur.fetchall()
+            if results:
+                for row in results:
+                    tagset += row[0].strip(DELIM).split(DELIM)
+
+        if len(tagset):
+            for tag in tagset:
+                if tag not in tags and tag not in unique_tags:
+                    unique_tags += (tag, )
+
+        if not len(unique_tags):
+            return tagstr
+
+        unique_tags = sorted(unique_tags)
+        print('similar tags:\n')
+        count = 0
+        for tag in unique_tags:
+            print('%d. %s' % (count + 1, unique_tags[count]))
+            count += 1
+
+        resp = input('\nselect: ')
+        if not resp:
+            return tagstr
+
+        tagset = resp.split()
+        tags = [tagstr]
+        for index in tagset:
+            try:
+                tags.append(delim_wrap(unique_tags[int(index) - 1]))
+            except:
+                continue
+
+        return parse_tags(tags)
+
     def replace_tag(self, orig, new=None):
         '''Replace original tag by new tags in all records.
         Remove original tag if new tag is empty.
@@ -1706,7 +1759,6 @@ class BukuDb:
                 self.add_rec(*item)
 
             self.conn.commit()
-            infp.close()
         else:
             try:
                 import bs4
