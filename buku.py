@@ -1434,6 +1434,7 @@ class BukuDb:
             count += 1
 
         resp = input('\nselect: ')
+        print()
         if not resp:
             return tagstr
 
