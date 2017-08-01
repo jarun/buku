@@ -1394,7 +1394,7 @@ class BukuDb:
 
         return unique_tags, dic
 
-    def get_tag_similar(self, tagstr):
+    def suggest_similar_tag(self, tagstr):
         '''Show list of tags those go together in DB
 
         :param tagstr: original tag string
@@ -3037,6 +3037,7 @@ POSITIONAL ARGUMENTS:
                          delete old tag, if new tag not specified
     --shorten index|URL  fetch shortened url from tny.im service
     --expand index|URL   expand a tny.im shortened url
+    --suggest            show similar tags when adding bookmarks
     --tacit              reduce verbosity
     --threads N          max network connections in full refresh
                          default N=4, min N=1, max N=10
@@ -3057,6 +3058,7 @@ POSITIONAL ARGUMENTS:
     addarg('--replace', nargs='+', help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
     addarg('--expand', nargs=1, help=HIDE)
+    addarg('--suggest', action='store_true', help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=HIDE)
     addarg('-V', dest='upstream', action='store_true', help=HIDE)
@@ -3156,6 +3158,8 @@ POSITIONAL ARGUMENTS:
             result = edit_rec(args.write, '', title_in, tags, desc_in)
             if result is not None:
                 url, title_in, tags, desc_in = result
+                if args.suggest:
+                    tags = bdb.suggest_similar_tag(tags)
                 bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
     # Add record
@@ -3188,6 +3192,8 @@ POSITIONAL ARGUMENTS:
             if result is not None:
                 url, title_in, tags, desc_in = result
 
+        if args.suggest:
+            tags = bdb.suggest_similar_tag(tags)
         bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
     # Search record

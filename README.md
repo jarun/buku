@@ -223,6 +223,7 @@ POWER TOYS:
                            delete old tag, if new tag not specified
       --shorten index|URL  fetch shortened url from tny.im service
       --expand index|URL   expand a tny.im shortened url
+      --suggest            show similar tags when adding bookmarks
       --tacit              reduce verbosity
       --threads N          max network connections in full refresh
                            default N=4, min N=1, max N=10
