@@ -1,3 +1,13 @@
+Buku 3.2
+2017-08-03
+
+What's in?
+- Option `--suggest` to list and choose similar tags when adding a bookmark
+- Ask for a unique tag when importing bookmarks
+- Ignore non-generic URLs when importing browser exported bookmarks
+
+-------------------------------------------------------------------------------
+
 Buku 3.1
 2017-06-30
 
