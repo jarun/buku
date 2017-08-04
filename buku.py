@@ -952,7 +952,8 @@ class BukuDb:
                     cond.release()
                     continue
                 elif mime:
-                    print(mime_str % row[0])
+                    if self.chatty:
+                        print(mime_str % row[0])
                     cond.release()
                     continue
                 elif title == '':
