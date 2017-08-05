@@ -33,6 +33,7 @@ args=(
     '(-s --sany)'{-s,--sany}'[match any keyword]:keyword(s)'
     '(-s --sall)'{-s,--sall}'[match all keywords]:keyword(s)'
     '(--shorten)--shorten[shorten a URL using tny.im]:index/url'
+    '(--suggest)--suggest[show a list of similar tags]'
     '(-t --stag)'{-t,--stag}'[search by tag or show tags]'
     '(--tacit)--tacit[reduce verbosity]'
     '(--tag)--tag[set tags, use + to append, - to remove]'

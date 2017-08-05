@@ -482,3 +482,104 @@ def test_is_nongeneric_url(url, exp_res):
     import buku
     res = buku.is_nongeneric_url(url)
     assert res == exp_res
+
+
+@pytest.mark.parametrize(
+    'newtag, exp_res',
+    [
+        (None, ('http://example.com', 'text1', None, None, 0, True)),
+        ('tag1',('http://example.com', 'text1', ',tag1,', None, 0, True)),
+    ]
+)
+def test_import_md(tmpdir, newtag, exp_res):
+    from buku import import_md
+    p = tmpdir.mkdir("importmd").join("test.md")
+    p.write("[text1](http://example.com)")
+    res = list(import_md(p.strpath, newtag))
+    assert res[0] == exp_res
+
+
+@pytest.mark.parametrize(
+    'html_text, exp_res',
+    [
+        (
+            """<DT><A HREF="https://github.com/j" ADD_DATE="1360951967" PRIVATE="1" TAGS="tag1,tag2">GitHub</A>
+<DD>comment for the bookmark here
+<a> </a>""",
+            ((
+                'https://github.com/j', 'GitHub', ',tag1,tag2,',
+                'comment for the bookmark here\n', 0, True
+            ),)
+        ),
+        (
+            """DT><A HREF="https://github.com/j" ADD_DATE="1360951967" PRIVATE="1" TAGS="tag1,tag2">GitHub</A>
+            <DD>comment for the bookmark here
+            <a>second line of the comment here</a>""",
+            ((
+                'https://github.com/j', 'GitHub', ',tag1,tag2,',
+                'comment for the bookmark here\n            ', 0, True
+            ),)
+        ),
+        (
+            """DT><A HREF="https://github.com/j" ADD_DATE="1360951967" PRIVATE="1" TAGS="tag1,tag2">GitHub</A>
+            <DD>comment for the bookmark here
+            second line of the comment here
+            third line of the comment here
+            <DT><A HREF="https://news.com/" ADD_DATE="1360951967" PRIVATE="1" TAGS="tag1,tag2,tag3">News</A>""",
+            (
+                (
+                    'https://github.com/j', 'GitHub', ',tag1,tag2,',
+                    'comment for the bookmark here\n            '
+                    'second line of the comment here\n            '
+                    'third line of the comment here\n            ',
+                    0, True
+                ),
+                ('https://news.com/', 'News', ',tag1,tag2,tag3,', None, 0, True)
+            )
+        ),
+        (
+
+            """DT><A HREF="https://github.com/j" ADD_DATE="1360951967" PRIVATE="1" TAGS="tag1,tag2">GitHub</A>
+            <DD>comment for the bookmark here""",
+            ((
+                'https://github.com/j', 'GitHub', ',tag1,tag2,',
+                'comment for the bookmark here', 0, True
+            ),)
+        )
+
+    ]
+)
+def test_import_html(html_text, exp_res):
+    """test method."""
+    from buku import import_html
+    from bs4 import BeautifulSoup
+    html_soup = BeautifulSoup(html_text, 'html.parser')
+    res = list(import_html(html_soup, False, None))
+    for item, exp_item in zip(res, exp_res):
+        assert item == exp_item
+
+
+def test_import_html_and_add_parent():
+    from buku import import_html
+    from bs4 import BeautifulSoup
+    html_text = """<DT><H3>1s</H3>
+<DL><p>
+<DT><A HREF="http://example.com/"></A>"""
+    exp_res = ('http://example.com/', None, ',1s,', None, 0, True)
+    html_soup = BeautifulSoup(html_text, 'html.parser')
+    res = list(import_html(html_soup, True, None))
+    assert res[0] == exp_res
+
+
+def test_import_html_and_new_tag():
+    from buku import import_html
+    from bs4 import BeautifulSoup
+    html_text = """<DT><A HREF="https://github.com/j" TAGS="tag1,tag2">GitHub</A>
+<DD>comment for the bookmark here"""
+    exp_res = (
+        'https://github.com/j', 'GitHub', ',tag1,tag2,tag3,',
+        'comment for the bookmark here', 0, True
+    )
+    html_soup = BeautifulSoup(html_text, 'html.parser')
+    res = list(import_html(html_soup, False, 'tag3'))
+    assert res[0] == exp_res

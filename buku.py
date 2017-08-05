@@ -37,7 +37,7 @@ import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
-__version__ = '3.1'
+__version__ = '3.2'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -327,6 +327,88 @@ class BukuCrypt:
         except Exception as e:
             logerr(e)
             sys.exit(1)
+
+
+def import_md(filepath, newtag):
+    '''Parse bookmark markdown file
+    :param filepath: Markdown file
+    :param newtag: New tag
+    :return: a tuple containing parsed result
+    '''
+    with open(filepath, mode='r', encoding='utf-8') as infp:
+        for line in infp:
+            # Supported markdown format: [title](url)
+            # Find position of title end, url start delimiter combo
+            index = line.find('](')
+            if index != -1:
+                # Find title start delimiter
+                title_start_delim = line[:index].find('[')
+                # Reverse find the url end delimiter
+                url_end_delim = line[index + 2:].rfind(')')
+
+                if title_start_delim != -1 and url_end_delim > 0:
+                    # Parse title
+                    title = line[title_start_delim + 1:index]
+                    # Parse url
+                    url = line[index + 2:index + 2 + url_end_delim]
+                    if (is_nongeneric_url(url)):
+                        continue
+
+                    yield (
+                        url, title, delim_wrap(newtag)
+                        if newtag else None, None, 0, True
+                    )
+
+def import_html(html_soup, add_parent_folder_as_tag, newtag):
+    '''Parse bookmark html
+    :param html_soup: HTML soup of bookmark html
+    :param add_parent_folder_as_tag: add parent folder as tag
+    :param newtag: add unique tag
+    :return: a tuple containing parsed result
+    '''
+    # compatibility
+    soup = html_soup
+
+    for tag in soup.findAll('a'):
+        # Extract comment from <dd> tag
+        try:
+            if (is_nongeneric_url(tag['href'])):
+                continue
+        except KeyError:
+            continue
+
+        desc = None
+        comment_tag = tag.findNextSibling('dd')
+
+        if comment_tag:
+            desc = comment_tag.find(text=True, recursive=False)
+
+        # add parent folder as tag
+        if add_parent_folder_as_tag:
+            # could be its folder or not
+            possible_folder = tag.find_previous('h3')
+            # get list of tags within that folder
+            tag_list = tag.parent.parent.find_parent('dl')
+
+            if ((possible_folder) and
+                    possible_folder.parent in list(tag_list.parents)):
+                # then it's the folder of this bookmark
+                if tag.has_attr('tags'):
+                    tag['tags'] += (DELIM + possible_folder.text)
+                else:
+                    tag['tags'] = possible_folder.text
+
+        # add unique tag if opted
+        if newtag:
+            if tag.has_attr('tags'):
+                tag['tags'] += (DELIM + newtag)
+            else:
+                tag['tags'] = newtag
+
+        yield (
+            tag['href'], tag.string, parse_tags([tag['tags']])
+            if tag.has_attr('tags') else None, desc, 0, True
+        )
 
 
 class BukuDb:
@@ -867,7 +949,8 @@ class BukuDb:
                     cond.release()
                     continue
                 elif mime:
-                    print(mime_str % row[0])
+                    if self.chatty:
+                        print(mime_str % row[0])
                     cond.release()
                     continue
                 elif title == '':
@@ -1309,6 +1392,60 @@ class BukuDb:
 
         return unique_tags, dic
 
+    def suggest_similar_tag(self, tagstr):
+        '''Show list of tags those go together in DB
+
+        :param tagstr: original tag string
+        :return: DELIM separated string of tags
+        '''
+
+        tags = tagstr.split(',')
+        if not len(tags):
+            return tagstr
+
+        qry = 'SELECT DISTINCT tags FROM bookmarks WHERE tags LIKE ?'
+        tagset = []
+        unique_tags = []
+        for tag in tags:
+            if tag == '':
+                continue
+
+            self.cur.execute(qry, ('%' + delim_wrap(tag) + '%',))
+            results = self.cur.fetchall()
+            if results:
+                for row in results:
+                    tagset += row[0].strip(DELIM).split(DELIM)
+
+        if len(tagset):
+            for tag in tagset:
+                if tag not in tags and tag not in unique_tags:
+                    unique_tags += (tag, )
+
+        if not len(unique_tags):
+            return tagstr
+
+        unique_tags = sorted(unique_tags)
+        print('similar tags:\n')
+        count = 0
+        for tag in unique_tags:
+            print('%d. %s' % (count + 1, unique_tags[count]))
+            count += 1
+
+        resp = input('\nselect: ')
+        print()
+        if not resp:
+            return tagstr
+
+        tagset = resp.split()
+        tags = [tagstr]
+        for index in tagset:
+            try:
+                tags.append(delim_wrap(unique_tags[int(index) - 1]))
+            except:
+                continue
+
+        return parse_tags(tags)
+
     def replace_tag(self, orig, new=None):
         '''Replace original tag by new tags in all records.
         Remove original tag if new tag is empty.
@@ -1600,6 +1737,7 @@ class BukuDb:
         print('%s exported' % count)
         return True
 
+<<<<<<< HEAD
     def walk(self, root):
         '''Recursively iterate over json
 
@@ -1755,37 +1893,26 @@ class BukuDb:
 
         self.conn.commit()
 
-    def importdb(self, filepath):
+    def importdb(self, filepath, tacit=False):
         '''Import bookmarks from a html or a markdown
         file (with extension '.md').  Supports Firefox,
         Google Chrome and IE exported html
-
         :param filepath: path to file to import
+        :param tacit: no questions asked if True
+                      folder names are automatically imported as tags if True
         :return: True on success, False on failure
         '''
 
+        if not tacit:
+            newtag = input('Specify unique tag for imports (Enter to skip): ')
+        else:
+            newtag = None
+
         if filepath.endswith('.md'):
-            with open(filepath, mode='r', encoding='utf-8') as infp:
-                for line in infp:
-                    # Supported markdown format: [title](url)
-                    # Find position of title end, url start delimiter combo
-                    index = line.find('](')
-                    if index != -1:
-                        # Find title start delimiter
-                        title_start_delim = line[:index].find('[')
-                        # Reverse find the url end delimiter
-                        url_end_delim = line[index + 2:].rfind(')')
-
-                        if title_start_delim != -1 and url_end_delim > 0:
-                            # Parse title
-                            title = line[title_start_delim + 1:index]
-                            # Parse url
-                            url = line[index + 2:index + 2 + url_end_delim]
-
-                            self.add_rec(url, title, None, None, 0, True)
+            for item in import_md(filepath=filepath, newtag=newtag):
+                self.add_rec(*item)
 
             self.conn.commit()
-            infp.close()
         else:
             try:
                 import bs4
@@ -1798,33 +1925,14 @@ class BukuDb:
                 logerr(e)
                 return False
 
-            html_tags = soup.findAll('a')
+            if not tacit:
+                resp = input('Add imported folders names as tags? (y/n): ')
+            else:
+                resp = 'y'
 
-            resp = input('Add imported folders names as tags? (y/n): ')
-            if resp == 'y':
-                for tag in html_tags:
-                    # could be its folder or not
-                    possible_folder = tag.find_previous('h3')
-                    # get list of tags within that folder
-                    tag_list = tag.parent.parent.find_parent('dl')
-
-                    if ((possible_folder) and
-                            possible_folder.parent in list(tag_list.parents)):
-                        # then it's the folder of this bookmark
-                        if tag.has_attr('tags'):
-                            tag['tags'] += (DELIM + possible_folder.text)
-                        else:
-                            tag['tags'] = possible_folder.text
-
-            for tag in html_tags:
-                # Extract comment from <dd> tag
-                desc = None
-                comment_tag = tag.findNextSibling('dd')
-                if comment_tag:
-                    desc = comment_tag.text[0:comment_tag.text.find('\n')]
-
-                self.add_rec(tag['href'], tag.string, parse_tags([tag['tags']])
-                             if tag.has_attr('tags') else None, desc, 0, True)
+            add_parent_folder_as_tag = (resp == 'y')
+            for item in import_html(soup, add_parent_folder_as_tag, newtag):
+                self.add_rec(*item)
 
             self.conn.commit()
             infp.close()
@@ -1988,20 +2096,20 @@ Webpage: https://github.com/jarun/Buku
     def prompt_help(file=sys.stdout):
         file.write('''
 keys:
-  1-N                    browse search result indices and/or ranges
-  a                      open all results in browser
-  s keyword [...]        search for records with ANY keyword
-  S keyword [...]        search for records with ALL keywords
-  d                      match substrings ('pen' matches 'opened')
-  r expression           run a regex search
-  t [...]                search bookmarks by a tag or show tag list
-  g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
-  o [...]                browse bookmarks by indices and/or ranges
-  p [...]                print bookmarks by indices and/or ranges
-  w [editor|index]       edit and add or update a bookmark
-                         (tag list index fetches bookmarks by tag)
-  ?                      show this help
-  q, ^D, double Enter    exit buku
+    1-N                    browse search result indices and/or ranges
+    a                      open all results in browser
+    s keyword [...]        search for records with ANY keyword
+    S keyword [...]        search for records with ALL keywords
+    d                      match substrings ('pen' matches 'opened')
+    r expression           run a regex search
+    t [...]                search bookmarks by a tag or show tag list
+    g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
+    o [...]                browse bookmarks by indices and/or ranges
+    p [...]                print bookmarks by indices and/or ranges
+    w [editor|index]       edit and add or update a bookmark
+                           (tag list index fetches bookmarks by tag)
+    ?                      show this help
+    q, ^D, double Enter    exit buku
 
 ''')
 
@@ -3071,6 +3179,7 @@ POSITIONAL ARGUMENTS:
                          delete old tag, if new tag not specified
     --shorten index|URL  fetch shortened url from tny.im service
     --expand index|URL   expand a tny.im shortened url
+    --suggest            show similar tags when adding bookmarks
     --tacit              reduce verbosity
     --threads N          max network connections in full refresh
                          default N=4, min N=1, max N=10
@@ -3092,6 +3201,7 @@ POSITIONAL ARGUMENTS:
     addarg('--replace', nargs='+', help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
     addarg('--expand', nargs=1, help=HIDE)
+    addarg('--suggest', action='store_true', help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=HIDE)
     addarg('-V', dest='upstream', action='store_true', help=HIDE)
@@ -3191,6 +3301,8 @@ POSITIONAL ARGUMENTS:
             result = edit_rec(args.write, '', title_in, tags, desc_in)
             if result is not None:
                 url, title_in, tags, desc_in = result
+                if args.suggest:
+                    tags = bdb.suggest_similar_tag(tags)
                 bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
     # Add record
@@ -3223,6 +3335,8 @@ POSITIONAL ARGUMENTS:
             if result is not None:
                 url, title_in, tags, desc_in = result
 
+        if args.suggest:
+            tags = bdb.suggest_similar_tag(tags)
         bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
     # Search record
@@ -3421,7 +3535,7 @@ POSITIONAL ARGUMENTS:
 
     # Import bookmarks
     if args.importfile is not None:
-        bdb.importdb(args.importfile[0])
+        bdb.importdb(args.importfile[0], args.tacit)
 
     # Import bookmarks from browser
     if args.ib:

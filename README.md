@@ -52,7 +52,7 @@ Though a terminal utility, it's possible to add bookmarks to `buku` without touc
 
 There are several [projects](#related-projects) based on `buku`, including a browser plug-in.
 
-PRs are welcome. Please visit [#135](https://github.com/jarun/Buku/issues/135) for a list of TODOs.
+PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) for a list of TODOs.
 
 <p align="center">
 <a href="https://saythanks.io/to/jarun"><img src="https://img.shields.io/badge/say-thanks!-ff69b4.svg" /></a>
@@ -223,6 +223,7 @@ POWER TOYS:
                            delete old tag, if new tag not specified
       --shorten index|URL  fetch shortened url from tny.im service
       --expand index|URL   expand a tny.im shortened url
+      --suggest            show similar tags when adding bookmarks
       --tacit              reduce verbosity
       --threads N          max network connections in full refresh
                            default N=4, min N=1, max N=10
@@ -233,6 +234,22 @@ SYMBOLS:
       >                    url
       +                    comment
       #                    tags
+
+keys:
+    1-N                    browse search result indices and/or ranges
+    a                      open all results in browser
+    s keyword [...]        search for records with ANY keyword
+    S keyword [...]        search for records with ALL keywords
+    d                      match substrings ('pen' matches 'opened')
+    r expression           run a regex search
+    t [...]                search bookmarks by a tag or show tag list
+    g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
+    o [...]                browse bookmarks by indices and/or ranges
+    p [...]                print bookmarks by indices and/or ranges
+    w [editor|index]       edit and add or update a bookmark
+                           (tag list index fetches bookmarks by tag)
+    ?                      show this help
+    q, ^D, double Enter    exit buku
 ```
 
 #### Operational notes
@@ -270,6 +287,7 @@ SYMBOLS:
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the title.
 - **Import**:
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
+  - Folder names are automatically imported as tags if --tacit is used.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using `buku` and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 - **Editor** support:
   - A single bookmark can be edited before adding. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes preference. If -a is used along with -w, the details are populated in the editor template.
