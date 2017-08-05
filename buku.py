@@ -1600,7 +1600,6 @@ class BukuDb:
         print('%s exported' % count)
         return True
 
-    # XXX: POC
     def walk(self, root):
         '''Recursively iterate over json
 
@@ -1693,29 +1692,6 @@ class BukuDb:
             conn.close()
         except Exception:
             print('Error here')
-
-    def detect_file_type(self, file_path):
-        '''Check wether file is SQLite db or JSON db
-
-        :param file_path: path to file to be checked
-        :return: SQLite, JSON or Unknown if file type
-        can not be detected
-        '''
-        SQLite = 'sqlite'
-        JSON = 'json'
-        Unknown = None
-
-        file_type = Unknown
-
-        # I wish I could use `subprocess('file file_path'...)`
-        with open(file_path) as detect:
-            data = detectme.read(20)
-            if data.startswith('SQLite format3'):
-                file_type = SQLite
-            elif data.startswith('{') and data.trim().endswith('}'):
-                file_type = JSON
-
-        return file_type
 
     def get_firefox_profile_name(path):
         '''List folder and detect default firefox profile name.
