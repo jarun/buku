@@ -1637,7 +1637,62 @@ class BukuDb:
         :param path: path to firefox bookmarks database
         :return: None
         '''
-        raise NotImplementedError
+        # Connect to input DB
+        if sys.version_info >= (3, 4, 4):
+            # Python 3.4.4 and above
+            conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True)
+        else:
+            conn = sqlite3.connect(path)
+
+        cur = conn.cursor()
+        res = cur.execute(
+            'SELECT lastModified,fk FROM moz_bookmarks '
+            'WHERE type=1 ORDER BY lastModified')
+        # get id's and remove duplicates
+        bookmarks_places_ids = set([item[1] for item in res.fetchall()])
+        for place_id in bookmarks_places_ids:
+            res = cur.execute(
+                'SELECT url FROM moz_places where id={}'.format(place_id)
+            )
+            url = res.fetchone()[0]
+
+            # get tags
+            res = cur.execute(
+                'SELECT parent FROM moz_bookmarks WHERE fk={} '
+                'AND title IS NULL'.format(place_id)
+            )
+            bookmark_tags_ids = [tid for item in res.fetchall() for tid in item]
+
+            bookmark_tags = []
+            for bookmark_tag_id in bookmark_tags_ids:
+                res = cur.execute(
+                    'SELECT title FROM moz_bookmarks WHERE id={}'.format(bookmark_tag_id)
+                )
+                bookmark_tags.append(res.fetchone()[0])
+
+            # get the url
+            res = cur.execute(
+                'SELECT url FROM moz_places WHERE id={}'.format(place_id)
+            )
+            url = res.fetchone()[0]
+
+            # get the title
+            res = cur.execute(
+                'SELECT title FROM moz_bookmarks '
+                'WHERE fk={} AND title!="" LIMIT 1'.format(place_id)
+            )
+            title_data = res.fetchone()
+            if title_data:
+                title = title_data[0]
+            else:
+                title = ''
+            tags = self.parse_tags(bookmark_tags)
+            self.add_rec(url, title, tags)
+        try:
+            cur.close()
+            conn.close()
+        except Exception:
+            print('Error here')
 
     def detect_file_type(self, file_path):
         '''Check wether file is SQLite db or JSON db
@@ -1661,7 +1716,7 @@ class BukuDb:
                 file_type = JSON
 
         return file_type
-        
+
     def import_from_browser(self, bookmark_db_path):
         '''Import bookmarks from a browser database file.
         Supports Firefox and Google Chrome.
@@ -1677,18 +1732,16 @@ class BukuDb:
             # Done
 
         if sys.platform.startswith('linux'):
-            CHROME_BOOKMARK_DATABASE_PATH = '~/.config/google-chrome/Default/Bookmarks'
-            FIREFOX_BOOKMARK_DATABASE_PATH = '~/.mozilla/firefox/{profile}.default/places.sqlite'
+            GC_BOOKMARK_DATABASE_PATH = '~/.config/google-chrome/Default/Bookmarks'
+            names = os.listdir(os.path.expanduser('~/.mozilla/firefox'))
+            profile = [name[:-8] for name in names if name.endswith('.default')][0]
 
-        elif sys.platform == "darwin":
-            pass
-
-        elif sys.platform == "win32":
-            pass
-
+            FF_BOOKMARK_DATABASE_PATH = (
+                '~/.mozilla/firefox/{profile}.default/places.sqlite'.format(profile=profile)
+            )
         try:
             webbrowser.get('google-chrome')
-            bookmarks_database = os.path.expanduser(CHROME_BOOKMARK_DATABASE_PATH)
+            bookmarks_database = os.path.expanduser(GC_BOOKMARK_DATABASE_PATH)
             self.load_chrome_database(bookmarks_database)
 
         # XXX: improve exception handling
@@ -1698,16 +1751,7 @@ class BukuDb:
 
         try:
             webbrowser.get('firefox')
-            # XXX: hardcode
-            # File is .ini so would be great to import `configparser' module
-            # with open('~/.mozilla/firefox/profiles.ini', mode='r') as profile_ini:
-            #    data = profile_ini.read()
-
-            # XXX: hardcode
-            bookmarks_database = os.path.expanduser(
-                os.path.expanduser(
-                    FIREFOX_BOOKMARK_DATABASE_PATH.format(
-                        profile='8g5db2ua')))
+            bookmarks_database = os.path.expanduser(FF_BOOKMARK_DATABASE_PATH)
             self.load_firefox_database(bookmarks_database)
 
         # XXX: improve exception handling
@@ -3041,7 +3085,7 @@ POSITIONAL ARGUMENTS:
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
-    addarg('--ib', '--import-from-browser', nargs=1, dest='importfrombrowser', help=HIDE)
+    addarg('--ib', nargs='?', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4},
@@ -3386,8 +3430,8 @@ POSITIONAL ARGUMENTS:
         bdb.importdb(args.importfile[0])
 
     # Import bookmarks from browser
-    if args.importfrombrowser is not None:
-        bdb.import_from_browser(args.importfrombrowser[0])
+    if args.ib:
+        bdb.import_from_browser(args.ib)
 
     # Merge a database file and exit
     if args.merge is not None:
