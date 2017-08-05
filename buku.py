@@ -1620,8 +1620,8 @@ class BukuDb:
         :param path: path to google-chrome Bookmarks file
         :return: None
         '''
-        # TODO: close file
-        data = json.load(open(path))
+        with open(path, 'r') as datafile:
+            data = json.load(datafile)
 
         other = data['roots']['other']
         bookmark_bar = data['roots']['bookmark_bar']
