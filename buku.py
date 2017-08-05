@@ -1717,34 +1717,53 @@ class BukuDb:
 
         return file_type
 
-    def import_from_browser(self, bookmark_db_path):
-        '''Import bookmarks from a browser database file.
+    def get_firefox_profile_name(path):
+        '''List folder and detect default firefox profile name.
+        :return: profile name
+        '''
+        names = os.listdir(path)
+        profile = [name[:-8] for name in names if name.endswith('.default')][0]
+        return profile
+
+    def import_from_browser(self):
+        '''Import bookmarks from a browser default database file.
         Supports Firefox and Google Chrome.
 
-        :param filepath: path to bookmarks database file
         :return: True on success, False on failure
         '''
-        # XXX: In debug purposes only
-        bookmark_db_path = None
-        if bookmark_db_path:
-            # use FF or GC import function?
-            self.detect_file_type(bookmark_db_path)
-            # Done
-
         if sys.platform.startswith('linux'):
             GC_BOOKMARK_DATABASE_PATH = '~/.config/google-chrome/Default/Bookmarks'
-            names = os.listdir(os.path.expanduser('~/.mozilla/firefox'))
-            profile = [name[:-8] for name in names if name.endswith('.default')][0]
 
+            DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
+            profile = self.get_firefox_profile_name(DEFAULT_FF_FOLDER)
             FF_BOOKMARK_DATABASE_PATH = (
-                '~/.mozilla/firefox/{profile}.default/places.sqlite'.format(profile=profile)
+                '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
+            )
+        elif sys.platform == 'darwin':
+            GC_BOOKMARK_DATABASE_PATH = (
+                '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
+            )
+            DEFAULT_FF_FOLDER = os.path.expanduser('~/Library/Application Support/Firefox')
+            profile = self.get_firefox_profile_name(DEFAULT_FF_FOLDER)
+            FF_BOOKMARK_DATABASE_PATH = (
+                '~/Library/Application Support/Firefox/{}.default/places.sqlite'.format(profile)
+            )
+
+        elif sys.platform == 'win32':
+            username = os.getlogin()
+            GC_BOOKMARK_DATABASE_PATH = (
+                'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
+            )
+            DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
+            profile = self.get_firefox_profile_name(DEFAULT_FF_FOLDER)
+            FF_BOOKMARK_DATABASE_PATH = (
+                os.path.join(DEFAULT_FF_FOLDER, '{}.default/places.sqlite'.format(profile))
             )
         try:
             webbrowser.get('google-chrome')
             bookmarks_database = os.path.expanduser(GC_BOOKMARK_DATABASE_PATH)
             self.load_chrome_database(bookmarks_database)
 
-        # XXX: improve exception handling
         except Exception as e:
             logerr(e)
             logerr('Could not detect `google-chrome\' browser')
@@ -1754,7 +1773,6 @@ class BukuDb:
             bookmarks_database = os.path.expanduser(FF_BOOKMARK_DATABASE_PATH)
             self.load_firefox_database(bookmarks_database)
 
-        # XXX: improve exception handling
         except Exception as e:
             logerr(e)
             logerr('Could not detect `firefox\' browser')
@@ -3085,7 +3103,7 @@ POSITIONAL ARGUMENTS:
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
-    addarg('--ib', nargs='?', help=HIDE)
+    addarg('--ib', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4},
@@ -3431,7 +3449,7 @@ POSITIONAL ARGUMENTS:
 
     # Import bookmarks from browser
     if args.ib:
-        bdb.import_from_browser(args.ib)
+        bdb.import_from_browser()
 
     # Merge a database file and exit
     if args.merge is not None:
