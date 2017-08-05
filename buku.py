@@ -359,6 +359,7 @@ def import_md(filepath, newtag):
                         if newtag else None, None, 0, True
                     )
 
+
 def import_html(html_soup, add_parent_folder_as_tag, newtag):
     '''Parse bookmark html
     :param html_soup: HTML soup of bookmark html
@@ -1737,7 +1738,6 @@ class BukuDb:
         print('%s exported' % count)
         return True
 
-<<<<<<< HEAD
     def walk(self, root):
         '''Recursively iterate over json
 
