@@ -2106,11 +2106,13 @@ keys:
 
 def get_firefox_profile_name(path):
     '''List folder and detect default firefox profile name.
+
     :return: profile name
     '''
     names = os.listdir(path)
     profile = [name[:-8] for name in names if name.endswith('.default')][0]
     return profile
+
 
 def walk(root):
     '''Recursively iterate over json
@@ -2125,6 +2127,7 @@ def walk(root):
             yield (url, title, None, None, 0, True)
         else:
             walk(element)
+
 
 def is_bad_url(url):
     '''Check if URL is malformed
@@ -2154,6 +2157,7 @@ def is_bad_url(url):
 
     return False
 
+
 def is_nongeneric_url(url):
     '''Returns true for URLs which are non-http and non-generic'''
 
@@ -2164,6 +2168,7 @@ def is_nongeneric_url(url):
             return True
 
     return False
+
 
 def is_ignored_mime(url):
     '''Check if URL links to ignored mime
