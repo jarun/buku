@@ -38,6 +38,7 @@
 - [Mentions](#mentions)
 - [Examples](#examples)
 - [Third-party integration](#third-party-integration)
+- [Running tests](#running-tests)
 - [Collaborators](#collaborators)
 
 ### Introduction
