@@ -331,6 +331,7 @@ class BukuCrypt:
 
 def import_md(filepath, newtag):
     '''Parse bookmark markdown file
+
     :param filepath: Markdown file
     :param newtag: New tag
     :return: a tuple containing parsed result
@@ -362,6 +363,7 @@ def import_md(filepath, newtag):
 
 def import_html(html_soup, add_parent_folder_as_tag, newtag):
     '''Parse bookmark html
+
     :param html_soup: HTML soup of bookmark html
     :param add_parent_folder_as_tag: add parent folder as tag
     :param newtag: add unique tag
@@ -1878,6 +1880,7 @@ class BukuDb:
         '''Import bookmarks from a html or a markdown
         file (with extension '.md').  Supports Firefox,
         Google Chrome and IE exported html
+
         :param filepath: path to file to import
         :param tacit: no questions asked if True
                       folder names are automatically imported as tags if True
