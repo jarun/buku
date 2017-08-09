@@ -1738,25 +1738,11 @@ class BukuDb:
         print('%s exported' % count)
         return True
 
-    def walk(self, root):
-        '''Recursively iterate over json
-
-        :param root: base node of the json data
-        :return: None
-        '''
-        for element in root['children']:
-            if element['type'] == 'url':
-                url = element['url']
-                title = element['name']
-                self.add_rec(url, title, None, None, 0, True)
-            else:
-                self.walk(element)
-
     def load_chrome_database(self, path):
         '''Open Chrome Bookmarks json file and import data
 
         :param path: path to google-chrome Bookmarks file
-        :return: None
+        :return: `bookmarks' dict
         '''
         with open(path, 'r') as datafile:
             data = json.load(datafile)
@@ -1765,7 +1751,7 @@ class BukuDb:
         bookmark_bar = data['roots']['bookmark_bar']
         bookmarks = {'children': [bookmark_bar, other]}
 
-        self.walk(bookmarks)
+        return bookmarks
 
     def load_firefox_database(self, path):
         '''Connect to firefox sqlite database and transfer
@@ -1831,14 +1817,6 @@ class BukuDb:
         except Exception:
             print('Error here')
 
-    def get_firefox_profile_name(path):
-        '''List folder and detect default firefox profile name.
-        :return: profile name
-        '''
-        names = os.listdir(path)
-        profile = [name[:-8] for name in names if name.endswith('.default')][0]
-        return profile
-
     def import_from_browser(self):
         '''Import bookmarks from a browser default database file.
         Supports Firefox and Google Chrome.
@@ -1846,49 +1824,52 @@ class BukuDb:
         :return: True on success, False on failure
         '''
         if sys.platform.startswith('linux'):
-            GC_BOOKMARK_DATABASE_PATH = '~/.config/google-chrome/Default/Bookmarks'
-
+            GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
             DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
-            profile = self.get_firefox_profile_name(DEFAULT_FF_FOLDER)
-            FF_BOOKMARK_DATABASE_PATH = (
+            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+            FF_BM_DB_PATH = (
                 '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
             )
+
         elif sys.platform == 'darwin':
-            GC_BOOKMARK_DATABASE_PATH = (
+            GC_BM_DB_PATH = (
                 '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             )
             DEFAULT_FF_FOLDER = os.path.expanduser('~/Library/Application Support/Firefox')
-            profile = self.get_firefox_profile_name(DEFAULT_FF_FOLDER)
-            FF_BOOKMARK_DATABASE_PATH = (
+            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+
+            FF_BM_DB_PATH = (
                 '~/Library/Application Support/Firefox/{}.default/places.sqlite'.format(profile)
             )
 
         elif sys.platform == 'win32':
             username = os.getlogin()
-            GC_BOOKMARK_DATABASE_PATH = (
+            GC_BM_DB_PATH = (
                 'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
             )
             DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
-            profile = self.get_firefox_profile_name(DEFAULT_FF_FOLDER)
-            FF_BOOKMARK_DATABASE_PATH = (
+            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+
+            FF_BM_DB_PATH = (
                 os.path.join(DEFAULT_FF_FOLDER, '{}.default/places.sqlite'.format(profile))
             )
+
+        else:
+            logerr('Buku does not support {} yet'.format(sys.platform))
+            self.close_quit(1)
+
         try:
             webbrowser.get('google-chrome')
-            bookmarks_database = os.path.expanduser(GC_BOOKMARK_DATABASE_PATH)
-            self.load_chrome_database(bookmarks_database)
-
+            bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
+            walk(load_chrome_database(bookmarks_database))
         except Exception as e:
-            logerr(e)
             logerr('Could not detect `google-chrome\' browser')
 
         try:
             webbrowser.get('firefox')
-            bookmarks_database = os.path.expanduser(FF_BOOKMARK_DATABASE_PATH)
+            bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
             self.load_firefox_database(bookmarks_database)
-
         except Exception as e:
-            logerr(e)
             logerr('Could not detect `firefox\' browser')
 
         self.conn.commit()
@@ -2123,6 +2104,28 @@ keys:
 # Helper functions
 # ----------------
 
+def get_firefox_profile_name(path):
+    '''List folder and detect default firefox profile name.
+    :return: profile name
+    '''
+    names = os.listdir(path)
+    profile = [name[:-8] for name in names if name.endswith('.default')][0]
+    return profile
+
+def walk(root):
+    '''Recursively iterate over json
+
+    :param root: base node of the json data
+    :return: None
+    '''
+    for element in root['children']:
+        if element['type'] == 'url':
+            url = element['url']
+            title = element['name']
+            yield (url, title, None, None, 0, True)
+        else:
+            walk(element)
+
 def is_bad_url(url):
     '''Check if URL is malformed
     This API is not bulletproof but works in most cases.
@@ -2151,6 +2154,16 @@ def is_bad_url(url):
 
     return False
 
+def is_nongeneric_url(url):
+    '''Returns true for URLs which are non-http and non-generic'''
+
+    ignored_prefix = ['place:', 'file://', 'apt:']
+
+    for prefix in ignored_prefix:
+        if url.startswith(prefix):
+            return True
+
+    return False
 
 def is_ignored_mime(url):
     '''Check if URL links to ignored mime
