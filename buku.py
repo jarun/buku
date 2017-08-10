@@ -1740,6 +1740,142 @@ class BukuDb:
         print('%s exported' % count)
         return True
 
+    def load_chrome_database(self, path):
+        '''Open Chrome Bookmarks json file and import data
+
+        :param path: path to google-chrome Bookmarks file
+        :return: `bookmarks' dict
+        '''
+        with open(path, 'r') as datafile:
+            data = json.load(datafile)
+
+        other = data['roots']['other']
+        bookmark_bar = data['roots']['bookmark_bar']
+        bookmarks = {'children': [bookmark_bar, other]}
+
+        return bookmarks
+
+    def load_firefox_database(self, path):
+        '''Connect to firefox sqlite database and transfer
+        all bookmarks into Buku database
+
+        :param path: path to firefox bookmarks database
+        :return: None
+        '''
+        # Connect to input DB
+        if sys.version_info >= (3, 4, 4):
+            # Python 3.4.4 and above
+            conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True)
+        else:
+            conn = sqlite3.connect(path)
+
+        cur = conn.cursor()
+        res = cur.execute(
+            'SELECT lastModified,fk FROM moz_bookmarks '
+            'WHERE type=1 ORDER BY lastModified')
+        # get id's and remove duplicates
+        bookmarks_places_ids = set([item[1] for item in res.fetchall()])
+        for place_id in bookmarks_places_ids:
+            res = cur.execute(
+                'SELECT url FROM moz_places where id={}'.format(place_id)
+            )
+            url = res.fetchone()[0]
+
+            # get tags
+            res = cur.execute(
+                'SELECT parent FROM moz_bookmarks WHERE fk={} '
+                'AND title IS NULL'.format(place_id)
+            )
+            bookmark_tags_ids = [tid for item in res.fetchall() for tid in item]
+
+            bookmark_tags = []
+            for bookmark_tag_id in bookmark_tags_ids:
+                res = cur.execute(
+                    'SELECT title FROM moz_bookmarks WHERE id={}'.format(bookmark_tag_id)
+                )
+                bookmark_tags.append(res.fetchone()[0])
+
+            # get the url
+            res = cur.execute(
+                'SELECT url FROM moz_places WHERE id={}'.format(place_id)
+            )
+            url = res.fetchone()[0]
+
+            # get the title
+            res = cur.execute(
+                'SELECT title FROM moz_bookmarks '
+                'WHERE fk={} AND title!="" LIMIT 1'.format(place_id)
+            )
+            title_data = res.fetchone()
+            if title_data:
+                title = title_data[0]
+            else:
+                title = ''
+            tags = self.parse_tags(bookmark_tags)
+            self.add_rec(url, title, tags)
+        try:
+            cur.close()
+            conn.close()
+        except Exception:
+            print('Error here')
+
+    def import_from_browser(self):
+        '''Import bookmarks from a browser default database file.
+        Supports Firefox and Google Chrome.
+
+        :return: True on success, False on failure
+        '''
+        if sys.platform.startswith('linux'):
+            GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
+            DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
+            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+            FF_BM_DB_PATH = (
+                '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
+            )
+
+        elif sys.platform == 'darwin':
+            GC_BM_DB_PATH = (
+                '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
+            )
+            DEFAULT_FF_FOLDER = os.path.expanduser('~/Library/Application Support/Firefox')
+            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+
+            FF_BM_DB_PATH = (
+                '~/Library/Application Support/Firefox/{}.default/places.sqlite'.format(profile)
+            )
+
+        elif sys.platform == 'win32':
+            username = os.getlogin()
+            GC_BM_DB_PATH = (
+                'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
+            )
+            DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
+            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+
+            FF_BM_DB_PATH = (
+                os.path.join(DEFAULT_FF_FOLDER, '{}.default/places.sqlite'.format(profile))
+            )
+
+        else:
+            logerr('Buku does not support {} yet'.format(sys.platform))
+            self.close_quit(1)
+
+        try:
+            webbrowser.get('google-chrome')
+            bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
+            walk(load_chrome_database(bookmarks_database))
+        except Exception as e:
+            logerr('Could not detect `google-chrome\' browser')
+
+        try:
+            webbrowser.get('firefox')
+            bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
+            self.load_firefox_database(bookmarks_database)
+        except Exception as e:
+            logerr('Could not detect `firefox\' browser')
+
+        self.conn.commit()
+
     def importdb(self, filepath, tacit=False):
         '''Import bookmarks from a html or a markdown
         file (with extension '.md').  Supports Firefox,
@@ -1970,6 +2106,31 @@ keys:
 # ----------------
 # Helper functions
 # ----------------
+
+def get_firefox_profile_name(path):
+    '''List folder and detect default firefox profile name.
+
+    :return: profile name
+    '''
+    names = os.listdir(path)
+    profile = [name[:-8] for name in names if name.endswith('.default')][0]
+    return profile
+
+
+def walk(root):
+    '''Recursively iterate over json
+
+    :param root: base node of the json data
+    :return: None
+    '''
+    for element in root['children']:
+        if element['type'] == 'url':
+            url = element['url']
+            title = element['name']
+            yield (url, title, None, None, 0, True)
+        else:
+            walk(element)
+
 
 def is_bad_url(url):
     '''Check if URL is malformed
@@ -3048,6 +3209,7 @@ POSITIONAL ARGUMENTS:
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
+    addarg('--ib', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4},
@@ -3395,6 +3557,10 @@ POSITIONAL ARGUMENTS:
     # Import bookmarks
     if args.importfile is not None:
         bdb.importdb(args.importfile[0], args.tacit)
+
+    # Import bookmarks from browser
+    if args.ib:
+        bdb.import_from_browser()
 
     # Merge a database file and exit
     if args.merge is not None:
