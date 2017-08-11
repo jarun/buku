@@ -1746,6 +1746,7 @@ class BukuDb:
         :param path: path to google-chrome Bookmarks file
         :return: `bookmarks' dict
         '''
+
         with open(path, 'r') as datafile:
             data = json.load(datafile)
 
@@ -1762,6 +1763,7 @@ class BukuDb:
         :param path: path to firefox bookmarks database
         :return: None
         '''
+
         # Connect to input DB
         if sys.version_info >= (3, 4, 4):
             # Python 3.4.4 and above
@@ -1786,12 +1788,13 @@ class BukuDb:
                 'SELECT parent FROM moz_bookmarks WHERE fk={} '
                 'AND title IS NULL'.format(place_id)
             )
-            bookmark_tags_ids = [tid for item in res.fetchall() for tid in item]
+            bm_tag_ids = [tid for item in res.fetchall() for tid in item]
 
             bookmark_tags = []
-            for bookmark_tag_id in bookmark_tags_ids:
+            for bm_tag_id in bm_tag_ids:
                 res = cur.execute(
-                    'SELECT title FROM moz_bookmarks WHERE id={}'.format(bookmark_tag_id)
+                    'SELECT title FROM moz_bookmarks WHERE id={}'
+                    .format(bm_tag_id)
                 )
                 bookmark_tags.append(res.fetchone()[0])
 
@@ -1827,6 +1830,7 @@ class BukuDb:
 
         :return: True on success, False on failure
         '''
+
         if sys.platform.startswith('linux'):
             GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
             DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
@@ -1834,30 +1838,35 @@ class BukuDb:
             FF_BM_DB_PATH = (
                 '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
             )
-
         elif sys.platform == 'darwin':
             GC_BM_DB_PATH = (
                 '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             )
-            DEFAULT_FF_FOLDER = os.path.expanduser('~/Library/Application Support/Firefox')
+            DEFAULT_FF_FOLDER = (
+                os.path.expanduser('~/Library/Application Support/Firefox')
+            )
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
 
             FF_BM_DB_PATH = (
-                '~/Library/Application Support/Firefox/{}.default/places.sqlite'.format(profile)
+                '~/Library/Application Support/Firefox/{}.default/'
+                'places.sqlite'.format(profile)
             )
-
         elif sys.platform == 'win32':
             username = os.getlogin()
             GC_BM_DB_PATH = (
-                'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
+                'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/'
+                'Bookmarks'.format(username)
             )
-            DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
+            DEFAULT_FF_FOLDER = (
+                'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'
+                .format(username)
+            )
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
 
             FF_BM_DB_PATH = (
-                os.path.join(DEFAULT_FF_FOLDER, '{}.default/places.sqlite'.format(profile))
+                os.path.join(DEFAULT_FF_FOLDER,
+                             '{}.default/places.sqlite'.format(profile))
             )
-
         else:
             logerr('Buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
@@ -1865,16 +1874,16 @@ class BukuDb:
         try:
             webbrowser.get('google-chrome')
             bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
-            walk(load_chrome_database(bookmarks_database))
-        except Exception as e:
-            logerr('Could not detect `google-chrome\' browser')
+            walk(self.load_chrome_database(bookmarks_database))
+        except Exception:
+            logerr('Could not import from google-chrome')
 
         try:
             webbrowser.get('firefox')
             bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
             self.load_firefox_database(bookmarks_database)
-        except Exception as e:
-            logerr('Could not detect `firefox\' browser')
+        except Exception:
+            logerr('Could not import from firefox')
 
         self.conn.commit()
 
@@ -2114,6 +2123,7 @@ def get_firefox_profile_name(path):
 
     :return: profile name
     '''
+
     names = os.listdir(path)
     profile = [name[:-8] for name in names if name.endswith('.default')][0]
     return profile
@@ -2125,6 +2135,7 @@ def walk(root):
     :param root: base node of the json data
     :return: None
     '''
+
     for element in root['children']:
         if element['type'] == 'url':
             url = element['url']
