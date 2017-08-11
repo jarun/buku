@@ -1824,7 +1824,7 @@ class BukuDb:
         except Exception:
             print('Error here')
 
-    def import_from_browser(self):
+    def auto_import_from_browser(self):
         '''Import bookmarks from a browser default database file.
         Supports Firefox and Google Chrome.
 
@@ -1871,17 +1871,25 @@ class BukuDb:
             logerr('Buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
 
+        resp = 'y'
+
         try:
-            webbrowser.get('google-chrome')
-            bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
-            walk(self.load_chrome_database(bookmarks_database))
+            if self.chatty:
+                resp = input('Import bookmarks from google chrome? (y/n): ')
+            if resp == 'y':
+                webbrowser.get('google-chrome')
+                bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
+                walk(self.load_chrome_database(bookmarks_database))
         except Exception:
             logerr('Could not import from google-chrome')
 
         try:
-            webbrowser.get('firefox')
-            bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
-            self.load_firefox_database(bookmarks_database)
+            if self.chatty:
+                resp = input('Import bookmarks from firefox? (y/n): ')
+            if resp == 'y':
+                webbrowser.get('firefox')
+                bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
+                self.load_firefox_database(bookmarks_database)
         except Exception:
             logerr('Could not import from firefox')
 
@@ -3573,7 +3581,7 @@ POSITIONAL ARGUMENTS:
 
     # Import bookmarks from browser
     if args.ib:
-        bdb.import_from_browser()
+        bdb.auto_import_from_browser()
 
     # Merge a database file and exit
     if args.merge is not None:
