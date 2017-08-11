@@ -1816,7 +1816,8 @@ class BukuDb:
                 title = title_data[0]
             else:
                 title = ''
-            tags = parse_tags(bookmark_tags)
+            formatted_tags = [DELIM+tag for tag in bookmark_tags]
+            tags = parse_tags(formatted_tags)
             self.add_rec(url, title, tags)
         try:
             cur.close()
@@ -3230,7 +3231,7 @@ POSITIONAL ARGUMENTS:
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
-    addarg('--ib', help=HIDE)
+    addarg('--ai', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4},
@@ -3580,7 +3581,7 @@ POSITIONAL ARGUMENTS:
         bdb.importdb(args.importfile[0], args.tacit)
 
     # Import bookmarks from browser
-    if args.ib:
+    if args.ai:
         bdb.auto_import_from_browser()
 
     # Merge a database file and exit
