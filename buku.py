@@ -1800,6 +1800,8 @@ class BukuDb:
                 'SELECT url FROM moz_places WHERE id={}'.format(place_id)
             )
             url = res.fetchone()[0]
+            if is_nongeneric_url(url):
+                continue
 
             # get the title
             res = cur.execute(
@@ -1811,7 +1813,7 @@ class BukuDb:
                 title = title_data[0]
             else:
                 title = ''
-            tags = self.parse_tags(bookmark_tags)
+            tags = parse_tags(bookmark_tags)
             self.add_rec(url, title, tags)
         try:
             cur.close()
