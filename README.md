@@ -38,6 +38,7 @@
 - [Mentions](#mentions)
 - [Examples](#examples)
 - [Third-party integration](#third-party-integration)
+- [Running tests](#running-tests)
 - [Collaborators](#collaborators)
 
 ### Introduction
@@ -568,6 +569,29 @@ for resp, url in zip(gr_results, urls):
         #!/bin/bash
 
         echo $1 | buku -a
+
+### Running tests
+
+We use [tox](http://readthedocs.org/docs/tox/) to manage virtualenvs and run tests.
+Alternatively, tests can be run using [detox](https://pypi.python.org/pypi/detox/) which allows for running tests in parallel
+
+        $ pip install tox detox
+
+Run all of the tests with:
+        $ tox
+
+Run all of the tests in parallel with detox:
+
+        $ detox
+
+If you running into this error check you buku setting.
+
+```
+>       self.assertEqual(dbdir_local_expected, BukuDb.get_default_dbdir())
+E       AssertionError: '/home/user/.local/share/buku' != '/home/user/projects/buku'
+E       - /home/user/.local/share/buku
+E       + /home/user/projects/buku
+```
 
 ### Collaborators
 

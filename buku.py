@@ -1746,6 +1746,7 @@ class BukuDb:
         :param path: path to google-chrome Bookmarks file
         :return: `bookmarks' dict
         '''
+
         with open(path, 'r') as datafile:
             data = json.load(datafile)
 
@@ -1762,6 +1763,7 @@ class BukuDb:
         :param path: path to firefox bookmarks database
         :return: None
         '''
+
         # Connect to input DB
         if sys.version_info >= (3, 4, 4):
             # Python 3.4.4 and above
@@ -1786,12 +1788,13 @@ class BukuDb:
                 'SELECT parent FROM moz_bookmarks WHERE fk={} '
                 'AND title IS NULL'.format(place_id)
             )
-            bookmark_tags_ids = [tid for item in res.fetchall() for tid in item]
+            bm_tag_ids = [tid for item in res.fetchall() for tid in item]
 
             bookmark_tags = []
-            for bookmark_tag_id in bookmark_tags_ids:
+            for bm_tag_id in bm_tag_ids:
                 res = cur.execute(
-                    'SELECT title FROM moz_bookmarks WHERE id={}'.format(bookmark_tag_id)
+                    'SELECT title FROM moz_bookmarks WHERE id={}'
+                    .format(bm_tag_id)
                 )
                 bookmark_tags.append(res.fetchone()[0])
 
@@ -1800,6 +1803,8 @@ class BukuDb:
                 'SELECT url FROM moz_places WHERE id={}'.format(place_id)
             )
             url = res.fetchone()[0]
+            if is_nongeneric_url(url):
+                continue
 
             # get the title
             res = cur.execute(
@@ -1811,7 +1816,8 @@ class BukuDb:
                 title = title_data[0]
             else:
                 title = ''
-            tags = self.parse_tags(bookmark_tags)
+            formatted_tags = [DELIM+tag for tag in bookmark_tags]
+            tags = parse_tags(bookmark_tags)
             self.add_rec(url, title, tags)
         try:
             cur.close()
@@ -1819,12 +1825,13 @@ class BukuDb:
         except Exception:
             print('Error here')
 
-    def import_from_browser(self):
+    def auto_import_from_browser(self):
         '''Import bookmarks from a browser default database file.
         Supports Firefox and Google Chrome.
 
         :return: True on success, False on failure
         '''
+
         if sys.platform.startswith('linux'):
             GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
             DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
@@ -1832,47 +1839,60 @@ class BukuDb:
             FF_BM_DB_PATH = (
                 '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
             )
-
         elif sys.platform == 'darwin':
             GC_BM_DB_PATH = (
                 '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             )
-            DEFAULT_FF_FOLDER = os.path.expanduser('~/Library/Application Support/Firefox')
+            DEFAULT_FF_FOLDER = (
+                os.path.expanduser('~/Library/Application Support/Firefox')
+            )
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
 
             FF_BM_DB_PATH = (
-                '~/Library/Application Support/Firefox/{}.default/places.sqlite'.format(profile)
+                '~/Library/Application Support/Firefox/{}.default/'
+                'places.sqlite'.format(profile)
             )
-
         elif sys.platform == 'win32':
             username = os.getlogin()
             GC_BM_DB_PATH = (
-                'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
+                'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/'
+                'Bookmarks'.format(username)
             )
-            DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
+            DEFAULT_FF_FOLDER = (
+                'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'
+                .format(username)
+            )
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
 
             FF_BM_DB_PATH = (
-                os.path.join(DEFAULT_FF_FOLDER, '{}.default/places.sqlite'.format(profile))
+                os.path.join(DEFAULT_FF_FOLDER,
+                             '{}.default/places.sqlite'.format(profile))
             )
-
         else:
             logerr('Buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
 
-        try:
-            webbrowser.get('google-chrome')
-            bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
-            walk(load_chrome_database(bookmarks_database))
-        except Exception as e:
-            logerr('Could not detect `google-chrome\' browser')
+        resp = 'y'
 
         try:
-            webbrowser.get('firefox')
-            bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
-            self.load_firefox_database(bookmarks_database)
-        except Exception as e:
-            logerr('Could not detect `firefox\' browser')
+            if self.chatty:
+                resp = input('Import bookmarks from google chrome? (y/n): ')
+            if resp == 'y':
+                webbrowser.get('google-chrome')
+                bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
+                walk(self.load_chrome_database(bookmarks_database))
+        except Exception:
+            logerr('Could not import from google-chrome')
+
+        try:
+            if self.chatty:
+                resp = input('Import bookmarks from firefox? (y/n): ')
+            if resp == 'y':
+                webbrowser.get('firefox')
+                bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
+                self.load_firefox_database(bookmarks_database)
+        except Exception:
+            logerr('Could not import from firefox')
 
         self.conn.commit()
 
@@ -2112,6 +2132,7 @@ def get_firefox_profile_name(path):
 
     :return: profile name
     '''
+
     names = os.listdir(path)
     profile = [name[:-8] for name in names if name.endswith('.default')][0]
     return profile
@@ -2123,6 +2144,7 @@ def walk(root):
     :param root: base node of the json data
     :return: None
     '''
+
     for element in root['children']:
         if element['type'] == 'url':
             url = element['url']
@@ -3560,7 +3582,7 @@ POSITIONAL ARGUMENTS:
 
     # Import bookmarks from browser
     if args.ib:
-        bdb.import_from_browser()
+        bdb.auto_import_from_browser()
 
     # Merge a database file and exit
     if args.merge is not None:
