@@ -27,7 +27,7 @@ This is more important than your design or code! Users check this first.
 #### Coding guidelines
 - Add new program options to a reasonable group.
 - *Single quote, single quote, single all the way!*
-- A single line should be less than 80 chars in length.
+- A single line should be less than 140 chars in length.
 - No trailing whitespaces.
 - Avoid append(), extend() and use concatenation if possible.
 - Use string concatenation than substitution if possible, except (logger) prints.
