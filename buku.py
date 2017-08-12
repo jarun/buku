@@ -56,8 +56,7 @@ DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
 TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
 
 # Disguise as Firefox on Ubuntu
-USER_AGENT = ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) '
-              'Gecko/20100101 Firefox/51.0')
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0'
 myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
 
@@ -144,8 +143,7 @@ class BukuCrypt:
 
         try:
             from cryptography.hazmat.backends import default_backend
-            from cryptography.hazmat.primitives.ciphers import (Cipher, modes,
-                                                                algorithms)
+            from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
             import struct
@@ -192,8 +190,7 @@ class BukuCrypt:
 
         # Generate random 256-bit salt and key
         salt = os.urandom(BukuCrypt.SALT_SIZE)
-        key = ('%s%s' % (password,
-               salt.decode('utf-8', 'replace'))).encode('utf-8')
+        key = ('%s%s' % (password, salt.decode('utf-8', 'replace'))).encode('utf-8')
         for _ in range(iterations):
             key = sha256(key).digest()
 
@@ -241,8 +238,7 @@ class BukuCrypt:
 
         try:
             from cryptography.hazmat.backends import default_backend
-            from cryptography.hazmat.primitives.ciphers import (Cipher, modes,
-                                                                algorithms)
+            from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
             import struct
@@ -286,8 +282,7 @@ class BukuCrypt:
 
                 # Read 256-bit salt and generate key
                 salt = infp.read(32)
-                key = ('%s%s' % (password,
-                       salt.decode('utf-8', 'replace'))).encode('utf-8')
+                key = ('%s%s' % (password, salt.decode('utf-8', 'replace'))).encode('utf-8')
                 for _ in range(iterations):
                     key = sha256(key).digest()
 
@@ -307,8 +302,7 @@ class BukuCrypt:
                         if len(chunk) == 0:
                             break
 
-                        outfp.write(
-                                decryptor.update(chunk) + decryptor.finalize())
+                        outfp.write(decryptor.update(chunk) + decryptor.finalize())
 
                     outfp.truncate(size)
 
@@ -393,8 +387,7 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
             # get list of tags within that folder
             tag_list = tag.parent.parent.find_parent('dl')
 
-            if ((possible_folder) and
-                    possible_folder.parent in list(tag_list.parents)):
+            if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
                 # then it's the folder of this bookmark
                 if tag.has_attr('tags'):
                     tag['tags'] += (DELIM + possible_folder.text)
@@ -417,8 +410,7 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
 class BukuDb:
     '''Abstracts all database operations'''
 
-    def __init__(self, json=False, field_filter=0, chatty=False, dbfile=None,
-                 colorize=True):
+    def __init__(self, json=False, field_filter=0, chatty=False, dbfile=None, colorize=True):
         '''Database initialization API
 
         :param json: print results in json format
@@ -455,8 +447,7 @@ class BukuDb:
                 else:
                     return os.path.abspath('.')
             else:
-                data_home = os.path.join(os.environ.get('HOME'),
-                                         '.local', 'share')
+                data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
 
         return os.path.join(data_home, 'buku')
 
@@ -498,8 +489,7 @@ class BukuDb:
             sys.exit(1)
         else:
             # not db_exists and not enc_exists
-            print('DB file is being created at %s.\nYou should encrypt it.'
-                  % dbfile)
+            print('DB file is being created at %s.\nYou should encrypt it.' % dbfile)
 
         try:
             # Create a connection
@@ -540,8 +530,7 @@ class BukuDb:
         :return: bookmark data as a tuple, or None, if index is not found
         '''
 
-        self.cur.execute('SELECT * FROM bookmarks WHERE id = ? LIMIT 1',
-                         (index,))
+        self.cur.execute('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', (index,))
         resultset = self.cur.fetchall()
         return resultset[0] if resultset else None
 
@@ -552,8 +541,7 @@ class BukuDb:
         :return: DB index if URL found, else -1
         '''
 
-        self.cur.execute('SELECT id FROM bookmarks WHERE URL = ? LIMIT 1',
-                         (url,))
+        self.cur.execute('SELECT id FROM bookmarks WHERE URL = ? LIMIT 1', (url,))
         resultset = self.cur.fetchall()
         return resultset[0][0] if resultset else -1
 
@@ -567,8 +555,7 @@ class BukuDb:
         resultset = self.cur.fetchall()
         return -1 if resultset[0][0] is None else resultset[0][0]
 
-    def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0,
-                delay_commit=False):
+    def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0, delay_commit=False):
         '''Add a new bookmark
 
         :param url: URL to bookmark
@@ -623,8 +610,7 @@ class BukuDb:
             if immutable == 1:
                 flagset |= immutable
 
-            qry = ('INSERT INTO bookmarks(URL, metadata, tags, desc, flags) '
-                   'VALUES (?, ?, ?, ?, ?)')
+            qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
             self.cur.execute(qry, (url, meta, tags_in, desc, flagset))
             if not delay_commit:
                 self.conn.commit()
@@ -651,8 +637,7 @@ class BukuDb:
 
             self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
         else:
-            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ? '
-                             'LIMIT 1', (index,))
+            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ? LIMIT 1', (index,))
 
         resultset = self.cur.fetchall()
         if resultset:
@@ -691,8 +676,7 @@ class BukuDb:
             match = "'%' || ? || '%'"
             for tag in tags_to_delete:
                 tag = delim_wrap(tag)
-                q = ("UPDATE bookmarks SET tags = replace(tags, '%s', '%s') "
-                     'WHERE tags LIKE %s' % (tag, DELIM, match))
+                q = ("UPDATE bookmarks SET tags = replace(tags, '%s', '%s') WHERE tags LIKE %s" % (tag, DELIM, match))
                 self.cur.execute(q, (tag,))
                 count += self.cur.rowcount
 
@@ -727,8 +711,7 @@ class BukuDb:
 
         return True
 
-    def update_rec(self, index, url=None, title_in=None, tags_in=None,
-                   desc=None, immutable=-1, threads=4):
+    def update_rec(self, index, url=None, title_in=None, tags_in=None, desc=None, immutable=-1, threads=4):
         '''Update an existing record at index
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
@@ -886,11 +869,9 @@ class BukuDb:
         '''
 
         if index == 0:
-            self.cur.execute('SELECT id, url, flags FROM bookmarks '
-                             'ORDER BY id ASC')
+            self.cur.execute('SELECT id, url, flags FROM bookmarks ORDER BY id ASC')
         else:
-            self.cur.execute('SELECT id, url, flags FROM bookmarks WHERE '
-                             'id = ? LIMIT 1', (index,))
+            self.cur.execute('SELECT id, url, flags FROM bookmarks WHERE id = ? LIMIT 1', (index,))
 
         resultset = self.cur.fetchall()
         recs = len(resultset)
@@ -1106,8 +1087,7 @@ class BukuDb:
         '''
 
         tag = delim_wrap(tag.strip(DELIM))
-        query = ('SELECT id, url, metadata, tags, desc FROM bookmarks '
-                 "WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC")
+        query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC"
         logdbg('query: "%s", args: %s', query, tag)
 
         self.cur.execute(query, (tag,))
@@ -1126,26 +1106,22 @@ class BukuDb:
         if max_id == -1:
             return
 
-        query1 = ('SELECT id, URL, metadata, tags, desc FROM bookmarks '
-                  'WHERE id = ? LIMIT 1')
+        query1 = 'SELECT id, URL, metadata, tags, desc FROM bookmarks WHERE id = ? LIMIT 1'
         query2 = 'DELETE FROM bookmarks WHERE id = ?'
-        query3 = ('INSERT INTO bookmarks(id, URL, metadata, tags, desc) '
-                  'VALUES (?, ?, ?, ?, ?)')
+        query3 = 'INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)'
 
         if max_id > index:
             self.cur.execute(query1, (max_id,))
             results = self.cur.fetchall()
             for row in results:
                 self.cur.execute(query2, (row[0],))
-                self.cur.execute(query3,
-                                 (index, row[1], row[2], row[3], row[4],))
+                self.cur.execute(query3, (index, row[1], row[2], row[3], row[4],))
                 if not delay_commit:
                     self.conn.commit()
                 if self.chatty:
                     print('Index %d moved to %d' % (row[0], index))
 
-    def delete_rec(self, index, low=0, high=0, is_range=False,
-                   delay_commit=False):
+    def delete_rec(self, index, low=0, high=0, is_range=False, delay_commit=False):
         '''Delete a single record or remove the table if index is None
 
         :param index: DB index of deleted entry
@@ -1172,8 +1148,7 @@ class BukuDb:
             try:
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
-                print('Index %d-%d: %d deleted'
-                      % (low, high, self.cur.rowcount))
+                print('Index %d-%d: %d deleted' % (low, high, self.cur.rowcount))
                 if not self.cur.rowcount:
                     return False
 
@@ -1331,8 +1306,7 @@ class BukuDb:
                     elif self.field_filter == 3:
                         print('%s\t%s' % (row[0], row[2]))
                     elif self.field_filter == 4:
-                        print('%s\t%s\t%s\t%s' % (
-                                row[0], row[1], row[2], row[3][1:-1]))
+                        print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
             else:
                 print(format_json(results, True, self.field_filter))
 
@@ -1360,8 +1334,7 @@ class BukuDb:
                     print('%s\t%s' % (row[0], row[2]))
             elif self.field_filter == 4:
                 for row in resultset:
-                    print('%s\t%s\t%s\t%s' % (
-                            row[0], row[1], row[2], row[3][1:-1]))
+                    print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
         else:
             print(format_json(resultset, field_filter=self.field_filter))
 
@@ -1711,20 +1684,16 @@ class BukuDb:
                 count += 1
         else:
             outfp.write('<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
-                        '<META HTTP-EQUIV="Content-Type" '
-                        'CONTENT="text/html; charset=UTF-8">\n'
+                        '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
                         '<TITLE>Bookmarks</TITLE>\n'
                         '<H1>Bookmarks</H1>\n\n'
                         '<DL><p>\n'
-                        '    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" '
-                        'PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
+                        '    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
                         '    <DL><p>\n'
                         % (timestamp, timestamp))
 
             for row in resultset:
-                out = ('        <DT><A HREF="%s" ADD_DATE="%s" '
-                       'LAST_MODIFIED="%s"') \
-                        % (row[1], timestamp, timestamp)
+                out = ('        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row[1], timestamp, timestamp))
                 if row[3] != DELIM:
                     out += ' TAGS="' + row[3][1:-1] + '"'
                 out += '>' + row[2] + '</A>\n'
@@ -1772,45 +1741,30 @@ class BukuDb:
             conn = sqlite3.connect(path)
 
         cur = conn.cursor()
-        res = cur.execute(
-            'SELECT lastModified,fk FROM moz_bookmarks '
-            'WHERE type=1 ORDER BY lastModified')
+        res = cur.execute('SELECT lastModified, fk FROM moz_bookmarks WHERE type=1 ORDER BY lastModified')
         # get id's and remove duplicates
         bookmarks_places_ids = set([item[1] for item in res.fetchall()])
         for place_id in bookmarks_places_ids:
-            res = cur.execute(
-                'SELECT url FROM moz_places where id={}'.format(place_id)
-            )
+            res = cur.execute('SELECT url FROM moz_places where id={}'.format(place_id))
             url = res.fetchone()[0]
 
             # get tags
-            res = cur.execute(
-                'SELECT parent FROM moz_bookmarks WHERE fk={} '
-                'AND title IS NULL'.format(place_id)
-            )
+            res = cur.execute('SELECT parent FROM moz_bookmarks WHERE fk={} AND title IS NULL'.format(place_id))
             bm_tag_ids = [tid for item in res.fetchall() for tid in item]
 
             bookmark_tags = []
             for bm_tag_id in bm_tag_ids:
-                res = cur.execute(
-                    'SELECT title FROM moz_bookmarks WHERE id={}'
-                    .format(bm_tag_id)
-                )
+                res = cur.execute('SELECT title FROM moz_bookmarks WHERE id={}'.format(bm_tag_id))
                 bookmark_tags.append(res.fetchone()[0])
 
             # get the url
-            res = cur.execute(
-                'SELECT url FROM moz_places WHERE id={}'.format(place_id)
-            )
+            res = cur.execute('SELECT url FROM moz_places WHERE id={}'.format(place_id))
             url = res.fetchone()[0]
             if is_nongeneric_url(url):
                 continue
 
             # get the title
-            res = cur.execute(
-                'SELECT title FROM moz_bookmarks '
-                'WHERE fk={} AND title!="" LIMIT 1'.format(place_id)
-            )
+            res = cur.execute('SELECT title FROM moz_bookmarks WHERE fk={} AND title!="" LIMIT 1'.format(place_id))
             title_data = res.fetchone()
             if title_data:
                 title = title_data[0]
@@ -1834,40 +1788,23 @@ class BukuDb:
 
         if sys.platform.startswith('linux'):
             GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
+
             DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
-            FF_BM_DB_PATH = (
-                '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
-            )
+            FF_BM_DB_PATH = '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
         elif sys.platform == 'darwin':
-            GC_BM_DB_PATH = (
-                '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
-            )
-            DEFAULT_FF_FOLDER = (
-                os.path.expanduser('~/Library/Application Support/Firefox')
-            )
-            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+            GC_BM_DB_PATH = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
 
-            FF_BM_DB_PATH = (
-                '~/Library/Application Support/Firefox/{}.default/'
-                'places.sqlite'.format(profile)
-            )
+            DEFAULT_FF_FOLDER = os.path.expanduser('~/Library/Application Support/Firefox')
+            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+            FF_BM_DB_PATH = '~/Library/Application Support/Firefox/{}.default/places.sqlite'.format(profile)
         elif sys.platform == 'win32':
             username = os.getlogin()
-            GC_BM_DB_PATH = (
-                'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/'
-                'Bookmarks'.format(username)
-            )
-            DEFAULT_FF_FOLDER = (
-                'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'
-                .format(username)
-            )
-            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+            GC_BM_DB_PATH = 'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
 
-            FF_BM_DB_PATH = (
-                os.path.join(DEFAULT_FF_FOLDER,
-                             '{}.default/places.sqlite'.format(profile))
-            )
+            DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
+            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+            FF_BM_DB_PATH = os.path.join(DEFAULT_FF_FOLDER, '{}.default/places.sqlite'.format(profile))
         else:
             logerr('Buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
@@ -1993,8 +1930,7 @@ class BukuDb:
             return None
 
         if index:
-            self.cur.execute('SELECT url FROM bookmarks WHERE id = ? LIMIT 1',
-                             (index,))
+            self.cur.execute('SELECT url FROM bookmarks WHERE id = ? LIMIT 1', (index,))
             results = self.cur.fetchall()
             if not results:
                 return None
@@ -2224,8 +2160,7 @@ def get_page_title(resp):
         parser.feed(resp.data.decode(errors='replace'))
     except Exception as e:
         # Suppress Exception due to intentional self.reset() in BHTMLParser
-        if (logger.isEnabledFor(logging.DEBUG) and
-                str(e) != 'we should not get here!'):
+        if (logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!'):
             logerr('get_page_title(): %s', e)
     finally:
         return parser.parsed_title
@@ -2458,10 +2393,8 @@ def taglist_subprompt(obj, msg, noninteractive=False):
         elif nav == 't':
             new_results = True
         elif (nav == 'q' or nav == 'd' or nav == '?' or
-              nav.startswith('s ') or nav.startswith('S ') or
-              nav.startswith('r ') or nav.startswith('t ') or
-              nav.startswith('o ') or nav.startswith('p ') or
-              nav.startswith('g ')):
+              nav.startswith('s ') or nav.startswith('S ') or nav.startswith('r ') or
+              nav.startswith('t ') or nav.startswith('o ') or nav.startswith('p ') or nav.startswith('g ')):
             return nav
         elif nav == 'w' or nav.startswith('w '):
             edit_at_prompt(obj, nav)
@@ -2729,8 +2662,7 @@ def format_json(resultset, single_record=False, field_filter=0):
             elif field_filter == 4:
                 record = {'uri': row[1], 'title': row[2], 'tags': row[3][1:-1]}
             else:
-                record = {'index': row[0], 'uri': row[1], 'title': row[2],
-                          'description': row[4], 'tags': row[3][1:-1]}
+                record = {'index': row[0], 'uri': row[1], 'title': row[2], 'description': row[4], 'tags': row[3][1:-1]}
 
             marks.append(record)
 
@@ -2801,8 +2733,8 @@ def check_upstream_release():
 
     try:
         r = requests.get(
-                'https://api.github.com/repos/jarun/buku/releases?per_page=1',
-                proxies=proxies
+                         'https://api.github.com/repos/jarun/buku/releases?per_page=1',
+                         proxies=proxies
                         )
     except Exception as e:
         logerr(e)
@@ -2912,8 +2844,7 @@ def to_temp_file_content(url, title_in, tags_in, desc):
         strings += (url,)
 
     # TITLE
-    strings += (('# Add TITLE in next line (single line). '
-                 'Leave blank to web fetch, "-" for no title.'),)
+    strings += (('# Add TITLE in next line (single line). Leave blank to web fetch, "-" for no title.'),)
     if title_in is None:
         title_in = ''
     elif title_in == '':
@@ -3050,8 +2981,7 @@ def setup_logger(logger):
             else:
                 color = '\x1b[0m'
 
-            args[0].msg = '{}[{}]\x1b[0m {}'.format(color, args[0].levelname,
-                                                    args[0].msg)
+            args[0].msg = '{}[{}]\x1b[0m {}'.format(color, args[0].levelname, args[0].msg)
             return fn(*args)
         return new
 
@@ -3234,8 +3164,7 @@ POSITIONAL ARGUMENTS:
     addarg('--ai', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
-    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4},
-           help=HIDE)
+    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
@@ -3468,8 +3397,7 @@ POSITIONAL ARGUMENTS:
         if not args.update:
             # Update all records only if search was not opted
             if not search_opted:
-                bdb.update_rec(0, url_in, title_in, tags, desc_in,
-                               args.immutable, args.threads)
+                bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads)
             elif update_search_results and search_results is not None:
                 if not args.tacit:
                     print('Updated results:\n')
@@ -3477,8 +3405,7 @@ POSITIONAL ARGUMENTS:
                 pos = len(search_results) - 1
                 while pos >= 0:
                     idx = search_results[pos][0]
-                    bdb.update_rec(idx, url_in, title_in, tags, desc_in,
-                                   args.immutable, args.threads)
+                    bdb.update_rec(idx, url_in, title_in, tags, desc_in, args.immutable, args.threads)
 
                     # Commit at every 200th removal
                     if pos % 200 == 0:
@@ -3488,8 +3415,7 @@ POSITIONAL ARGUMENTS:
         else:
             for idx in args.update:
                 if is_int(idx):
-                    bdb.update_rec(int(idx), url_in, title_in, tags,
-                                   desc_in, args.immutable, args.threads)
+                    bdb.update_rec(int(idx), url_in, title_in, tags, desc_in, args.immutable, args.threads)
                 elif '-' in idx:
                     try:
                         vals = [int(x) for x in idx.split('-')]
@@ -3498,13 +3424,10 @@ POSITIONAL ARGUMENTS:
 
                         # Update only once if range starts from 0 (all)
                         if vals[0] == 0:
-                            bdb.update_rec(0, url_in, title_in, tags, desc_in,
-                                           args.immutable, args.threads)
+                            bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads)
                         else:
                             for _id in range(vals[0], vals[1] + 1):
-                                bdb.update_rec(_id, url_in, title_in, tags,
-                                               desc_in, args.immutable,
-                                               args.threads)
+                                bdb.update_rec(_id, url_in, title_in, tags, desc_in, args.immutable, args.threads)
                                 if interrupted:
                                     break
                     except ValueError:
