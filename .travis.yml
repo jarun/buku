@@ -16,6 +16,7 @@ addons:
       - devscripts
       - zsh
 script:
+  - python3 -m flake8
   - python3 -m pytest ./tests/test_*.py --cov buku -vv
   - git fetch --unshallow --tags origin
   - ./tools/makedeb
