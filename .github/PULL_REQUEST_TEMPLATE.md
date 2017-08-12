@@ -31,7 +31,7 @@ This is more important than your design or code! Users check this first.
 - No trailing whitespaces.
 - Avoid append(), extend() and use concatenation if possible.
 - Use string concatenation than substitution if possible, except (logger) prints.
-- Run `python3 -m flake8 buku.py`.
+- We have automated linting test but you can also test it by running `python3 -m flake8 buku.py` and `python3 -m pylint buku.py`.
 - Add new API documentation, reasonable code comments.
 - If possible, add test cases for your new API under `tests/`. We are Travis integrated.
 - If possible, squash everything to a single commit.
