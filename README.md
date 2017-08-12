@@ -600,6 +600,9 @@ E       + /home/user/projects/buku
 
 - [Arun Prakash Jana](https://github.com/jarun)
 - [Rachmadani Haryono](https://github.com/rachmadaniHaryono)
+- [Johnathan Jenkins](https://github.com/shaggytwodope)
+- [SZ Lin](https://github.com/szlin)
+- [Alex Bender](https://github.com/alex-bender)
 
 Copyright © 2015-2017 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 <br>
