@@ -274,6 +274,91 @@ class TestBukuDb(unittest.TestCase):
                 self.assertEqual(results, expected)
 
     # @unittest.skip('skipping')
+    def test_search_by_multiple_tags_search_any(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_rec(*bookmark)
+
+        new_bookmark = ['https://newbookmark.com',
+                        'New Bookmark',
+                        parse_tags(['test,old,new']),
+                        'additional bookmark to test multiple tag search']
+
+        self.bdb.add_rec(*new_bookmark)
+
+        with mock.patch('buku.prompt'):
+            # search for bookmarks matching ANY of the supplied tags
+            results = self.bdb.search_by_tag('test, old')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (1, 'http://slashdot.org', 'SLASHDOT',
+                 parse_tags([',news,old,']),
+                 "News for old nerds, stuff that doesn't matter"),
+                (3, 'https://test.com:8080', 'test',
+                 parse_tags([',test,tes,est,es,']),
+                 "a case for replace_tag test"),
+                (4, 'https://newbookmark.com', 'New Bookmark',
+                 parse_tags([',test,old,new,']),
+                 'additional bookmark to test multiple tag search')
+            ]
+            self.assertEqual(results, expected)
+
+    # @unittest.skip('skipping')
+    def test_search_by_multiple_tags_search_all(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_rec(*bookmark)
+
+        new_bookmark = ['https://newbookmark.com',
+                        'New Bookmark',
+                        parse_tags(['test,old,new']),
+                        'additional bookmark to test multiple tag search']
+
+        self.bdb.add_rec(*new_bookmark)
+
+        with mock.patch('buku.prompt'):
+            # search for bookmarks matching ALL of the supplied tags
+            results = self.bdb.search_by_tag('test + old')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (4, 'https://newbookmark.com', 'New Bookmark',
+                 parse_tags([',test,old,new,']),
+                 'additional bookmark to test multiple tag search')
+            ]
+            self.assertEqual(results, expected)
+
+    # @unittest.skip('skipping')
+    def test_search_by_tags_exclusion(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_rec(*bookmark)
+
+        new_bookmark = ['https://newbookmark.com',
+                        'New Bookmark',
+                        parse_tags(['test,old,new']),
+                        'additional bookmark to test multiple tag search']
+
+        self.bdb.add_rec(*new_bookmark)
+
+        with mock.patch('buku.prompt'):
+            # search for bookmarks matching ANY of the supplied tags
+            # while excluding bookmarks from results that match a given tag
+            results = self.bdb.search_by_tag('test, old - est')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (1, 'http://slashdot.org', 'SLASHDOT',
+                 parse_tags([',news,old,']),
+                 "News for old nerds, stuff that doesn't matter"),
+                (4, 'https://newbookmark.com', 'New Bookmark',
+                 parse_tags([',test,old,new,']),
+                 'additional bookmark to test multiple tag search')
+            ]
+            self.assertEqual(results, expected)
+
+    # @unittest.skip('skipping')
     def test_search_and_open_in_broswer_by_range(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
