@@ -207,6 +207,8 @@ POWER TOYS:
                            use --tag to export only specific tags
       -i, --import file    import Firefox or Chrome bookmarks html
                            import markdown, if file ends with '.md'
+      --ai                 auto-import bookmarks
+                           works with Firefox and Google Chrome
       -m, --merge file     add bookmarks from another buku DB file
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
@@ -289,6 +291,7 @@ keys:
 - **Import**:
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
   - Folder names are automatically imported as tags if --tacit is used.
+  - Auto-import looks in the default installation path and default user profile.
 - **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using `buku` and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
 - **Editor** support:
   - A single bookmark can be edited before adding. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes preference. If -a is used along with -w, the details are populated in the editor template.

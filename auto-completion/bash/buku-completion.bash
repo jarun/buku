@@ -12,6 +12,7 @@ _buku () {
     local -a opts opts_with_args
     opts=(
         -a --add
+        --ai
         -c --comment
         -d --delete
         --deep

@@ -10,6 +10,7 @@ setopt localoptions noshwordsplit noksharrays
 local -a args
 args=(
     '(-a --add)'{-a,--add}'[add bookmark]:URL tags'
+    '(--ai)--ai[auto-import bookmarks]'
     '(-c --comment)'{-c,--comment}'[comment on bookmark]'
     '(-d --delete)'{-d,--delete}'[delete bookmark]'
     '(--deep)--deep[search matching substrings]'

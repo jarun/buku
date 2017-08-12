@@ -3135,6 +3135,8 @@ POSITIONAL ARGUMENTS:
                          use --tag to export only specific tags
     -i, --import file    import Firefox or Chrome bookmarks html
                          import markdown, if file ends with '.md'
+    --ai                 auto-import bookmarks
+                         works with Firefox and Google Chrome
     -m, --merge file     add bookmarks from another buku DB file
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
@@ -3161,7 +3163,7 @@ POSITIONAL ARGUMENTS:
     addarg = power_grp.add_argument
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
-    addarg('--ai', help=HIDE)
+    addarg('--ai', action='store_true', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)

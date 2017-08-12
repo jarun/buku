@@ -5,6 +5,7 @@
 #   Arun Prakash Jana <engineerarun@gmail.com>
 #
 complete -c buku -s a -l add     -r --description 'add bookmark'
+complete -c buku -l ai              --description 'auto-import bookmarks'
 complete -c buku -s c -l comment    --description 'comment on bookmark'
 complete -c buku -s d -l delete     --description 'delete bookmark'
 complete -c buku -l deep            --description 'search matching substrings'
