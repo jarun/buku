@@ -474,7 +474,7 @@ class BukuDb:
                 os.makedirs(dbpath)
         except Exception as e:
             logerr(e)
-            os.exit(1)
+            os._exit(1)
 
         db_exists = os.path.exists(dbfile)
         enc_exists = os.path.exists(dbfile + '.enc')
