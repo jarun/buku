@@ -11,14 +11,15 @@ is a command-line utility to store, tag, search and organize bookmarks.
 .PP
   * Lightweight, clean interface
   * Flexible text editor integration
-  * Fetch page title, add tags and comments
-  * Multiple search modes (e.g. \fIdeep\fR, \fIregex\fR)
+  * Fetch, edit page title; add tags and notes
+  * Powerful search modes including regex, substring
   * Continuous search at prompt, on the fly mode switch
   * Open bookmarks and search results in browser
-  * Import/export in HTML (FF, Chrome compatible) or Markdown
+  * Manual encryption support
+  * Auto-import Firefox and Google Chrome bookmarks
+  * Import/export bookmarks from/to HTML or Markdown
   * Shorten and expand URLs
-  * Smart tag editing with >>, > or << symbols at prompt
-  * Password protection (manual)
+  * Smart tag management using redirection (>>, >, <<)
   * Portable, merge-able database to sync between systems
   * Multithreaded full DB refresh
   * Shell completion scripts, man page with handy examples
@@ -168,6 +169,9 @@ Decrypt (unlock) the DB file with
 (> 0, default 8) hash passes to generate key.
 .SH POWER OPTIONS
 .TP
+.BI \--ai
+Auto-import bookmarks from Firefox and Google Chrome.
+.TP
 .BI \-e " " \--export " file"
 Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags. Markdown is used if
 .I file
@@ -179,9 +183,6 @@ Markdown format: [title](url), 1 entry per line.
 Import bookmarks exported from Firefox or Google Chrome as HTML.
 .I file
 is considered Markdown (compliant with --export format) if it has '.md' extension.
-.TP
-.BI \--ai
-Auto-import bookmarks from Firefox and Google Chrome.
 .TP
 .BI \-m " " \--merge " file"
 Add bookmarks from another buku database file.
@@ -281,18 +282,18 @@ Toggle deep search to match substrings ('pen' matches 'opened').
 Run a regular expression search.
 .TP
 .BI "t" " [...]"
-Search bookmarks by a tag. List all tags alphabetically, if no arguments. The index of a tag from the tag list can be used to search all bookmarks having the tag. Note that multiple indices and/or ranges do not work in this case.
+Search bookmarks by a tag. List all tags alphabetically, if no arguments. The index of a tag from the tag list can be used to search all bookmarks having the tag. Note that multiple indices and/or ranges do not work with this key.
 .TP
-.BI "g" " [...][>>|>|<<][...]"
-Append, remove tags to/from indices and/or ranges.
-.TP
-.BI "o" " [...]"
+.BI "o" " id|range [...]"
 Browse bookmarks by indices and/or ranges.
 .TP
-.BI "p" " [...]"
+.BI "p" " id|range [...]"
 Print bookmarks by indices and/or ranges.
 .TP
-.BI "w" " [editor|index]"
+.BI "g" " [taglist id|range ...] [>>|>|<<] record id|range [...]"
+Append, set, remove specific or all tags by indices and/or ranges to bookmark indices and/or ranges (see \fBEXAMPLES\fR section below).
+.TP
+.BI "w" " [editor|id]"
 Edit and add or update a bookmark.
 .TP
 .BI "?"

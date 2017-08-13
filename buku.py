@@ -2035,19 +2035,20 @@ Webpage: https://github.com/jarun/Buku
     @staticmethod
     def prompt_help(file=sys.stdout):
         file.write('''
-keys:
+PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
     a                      open all results in browser
     s keyword [...]        search for records with ANY keyword
     S keyword [...]        search for records with ALL keywords
     d                      match substrings ('pen' matches 'opened')
     r expression           run a regex search
-    t [...]                search bookmarks by a tag or show tag list
-    g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
-    o [...]                browse bookmarks by indices and/or ranges
-    p [...]                print bookmarks by indices and/or ranges
-    w [editor|index]       edit and add or update a bookmark
-                           (tag list index fetches bookmarks by tag)
+    t [...]                search bookmarks by a tag or show taglist
+                           list index after a tag listing shows records with the tag
+    o id|range [...]       browse bookmarks by indices and/or ranges
+    p id|range [...]       print bookmarks by indices and/or ranges
+    g [taglist id|range ...] [>>|>|<<] record id|range [...]
+                           append, set, remove (all or specific) tags
+    w [editor|id]          edit and add or update a bookmark
     ?                      show this help
     q, ^D, double Enter    exit buku
 
@@ -3092,9 +3093,9 @@ POSITIONAL ARGUMENTS:
 
     search_grp = argparser.add_argument_group(
         title='SEARCH OPTIONS',
-        description='''    -s, --sany           find records with ANY search keyword
+        description='''    -s, --sany           find records with ANY matching keyword
                          this is the default search option
-    -S, --sall           find records with ALL search keywords
+    -S, --sall           find records matching ALL the keywords
                          special keywords -
                          "blank": entries with empty title/tag
                          "immutable": entries with locked title
@@ -3129,7 +3130,8 @@ POSITIONAL ARGUMENTS:
 
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
-        description='''    -e, --export file    export bookmarks in Firefox format html
+        description='''    --ai                 auto-import from Firefox and Chrome
+    -e, --export file    export bookmarks in Firefox format html
                          export markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
                          use --tag to export only specific tags
@@ -3161,9 +3163,9 @@ POSITIONAL ARGUMENTS:
     -V                   check latest upstream version available
     -z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
+    addarg('--ai', action='store_true', help=HIDE)
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
-    addarg('--ai', action='store_true', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)

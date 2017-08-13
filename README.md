@@ -64,14 +64,15 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 
 - Lightweight, clean interface
 - Flexible text editor integration
-- Fetch page title, add tags and comments
-- Multiple search modes (e.g. `deep`, `regex`)
+- Fetch, edit page title; add tags and notes
+- Powerful search modes including regex, substring
 - Continuous search at prompt, on the fly mode switch
 - Open bookmarks and search results in browser
-- Import/export in HTML (FF, Chrome compatible) or Markdown
+- Manual encryption support
+- Auto-import Firefox and Google Chrome bookmarks
+- Import/export bookmarks from/to HTML or Markdown
 - Shorten and expand URLs
-- Smart tag editing with >>, > or << symbols at prompt
-- Password protection (manual)
+- Smart tag management using redirection (>>, >, <<)
 - Portable, merge-able database to sync between systems
 - Multithreaded full DB refresh
 - Shell completion scripts, man page with handy examples
@@ -179,9 +180,9 @@ EDIT OPTIONS:
                            N=0: mutable (default), N=1: immutable
 
 SEARCH OPTIONS:
-      -s, --sany           find records with ANY search keyword
+      -s, --sany           find records with ANY matching keyword
                            this is the default search option
-      -S, --sall           find records with ALL search keywords
+      -S, --sall           find records matching ALL the keywords
                            special keywords -
                            "blank": entries with empty title/tag
                            "immutable": entries with locked title
@@ -197,14 +198,13 @@ ENCRYPTION OPTIONS:
                            hash iterations to generate key
 
 POWER TOYS:
+      --ai                 auto-import from Firefox and Chrome
       -e, --export file    export bookmarks in Firefox format html
                            export markdown, if file ends with '.md'
                            format: [title](url), 1 entry per line
                            use --tag to export only specific tags
       -i, --import file    import Firefox or Chrome bookmarks html
                            import markdown, if file ends with '.md'
-      --ai                 auto-import bookmarks
-                           works with Firefox and Google Chrome
       -m, --merge file     add bookmarks from another buku DB file
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
@@ -234,19 +234,20 @@ SYMBOLS:
       +                    comment
       #                    tags
 
-keys:
+PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
     a                      open all results in browser
     s keyword [...]        search for records with ANY keyword
     S keyword [...]        search for records with ALL keywords
     d                      match substrings ('pen' matches 'opened')
     r expression           run a regex search
-    t [...]                search bookmarks by a tag or show tag list
-    g [...][>>|>|<<][...]  append, remove tags to/from indices and/or ranges
-    o [...]                browse bookmarks by indices and/or ranges
-    p [...]                print bookmarks by indices and/or ranges
-    w [editor|index]       edit and add or update a bookmark
-                           (tag list index fetches bookmarks by tag)
+    t [...]                search bookmarks by a tag or show taglist
+                           list index after a tag listing shows records with the tag
+    o id|range [...]       browse bookmarks by indices and/or ranges
+    p id|range [...]       print bookmarks by indices and/or ranges
+    g [taglist id|range ...] [>>|>|<<] record id|range [...]
+                           append, set, remove (all or specific) tags
+    w [editor|id]          edit and add or update a bookmark
     ?                      show this help
     q, ^D, double Enter    exit buku
 ```
