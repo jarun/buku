@@ -24,7 +24,7 @@
   - [Installing with a package manager](#installing-with-a-package-manager)
   - [Installing from this repository](#installing-from-this-repository)
     - [Running as a standalone utility](#running-as-a-standalone-utility)
-    - [Attached packages](#attached-packages)
+    - [Release packages](#release-packages)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
@@ -127,7 +127,7 @@ To remove, run:
     $ chmod +x buku.py
     $ ./buku.py
 
-##### Attached packages
+##### Release packages
 
 Packages for Arch Linux, CentOS, Fedora and Ubuntu are available with the [latest stable release](https://github.com/jarun/Buku/releases/latest).
 
