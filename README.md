@@ -24,7 +24,7 @@
   - [Installing with a package manager](#installing-with-a-package-manager)
   - [Installing from this repository](#installing-from-this-repository)
     - [Running as a standalone utility](#running-as-a-standalone-utility)
-    - [Debian package](#debian-package)
+    - [Attached packages](#attached-packages)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
@@ -63,7 +63,7 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 ### Features
 
 - Lightweight, clean interface
-- Text editor integration
+- Flexible text editor integration
 - Fetch page title, add tags and comments
 - Multiple search modes (e.g. `deep`, `regex`)
 - Continuous search at prompt, on the fly mode switch
@@ -74,7 +74,7 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 - Password protection (manual)
 - Portable, merge-able database to sync between systems
 - Multithreaded full DB refresh
-- Shell completion scripts, man page with examples
+- Shell completion scripts, man page with handy examples
 
 ### Installation
 
@@ -97,18 +97,18 @@ or on Ubuntu:
 
 #### Installing with a package manager
 
-- [PyPi](https://pypi.python.org/pypi/buku/) (`sudo pip3 install buku`)
 - [AUR](https://aur.archlinux.org/packages/buku/)
-- [Homebrew](http://braumeister.org/formula/buku)
 - [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1)
+- [Homebrew](http://braumeister.org/formula/buku)
+- [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`sudo nix-env -i buku`)
+- [PyPi](https://pypi.python.org/pypi/buku/) (`sudo pip3 install buku`)
 - [Ubuntu](http://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
 - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
 - [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`sudo xbps-install -S buku`)
-- [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`sudo nix-env -i buku`)
 
 #### Installing from this repository
 
-If you have git installed, clone this repository. Otherwise download the latest [stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip) (*risky*).
+If you have git installed, clone this repository. Otherwise download the [latest stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip) (*risky*).
 
 Install to default location (`/usr/local`):
 
@@ -126,13 +126,9 @@ To remove, run:
     $ chmod +x buku.py
     $ ./buku.py
 
-##### Debian package
+##### Attached packages
 
-If you are on a Debian (including Ubuntu) based system visit [the latest stable release](https://github.com/jarun/Buku/releases/latest) and download the `.deb` package. To install, run:
-
-    $ sudo dpkg -i buku-$version-all.deb
-
-Please substitute `$version` with the appropriate package version.
+Packages for Arch Linux, CentOS, Fedora and Ubuntu are available with the [latest stable release](https://github.com/jarun/Buku/releases/latest).
 
 ### Shell completion
 
