@@ -1079,18 +1079,32 @@ class BukuDb:
 
         return self.cur.fetchall()
 
-    def search_by_tag(self, tag):
+    def search_by_tag(self, tags):
         '''Search and list bookmarks with a tag
 
-        :param tag: a tag to search as string
+        :param tags: list of tags to search as string
         :return: search results, or None, if no matches
         '''
 
-        tag = delim_wrap(tag.strip(DELIM))
-        query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' ORDER BY id ASC"
-        logdbg('query: "%s", args: %s', query, tag)
+        # do not allow combination of search logics
+        if ' + ' in tags and ',' in tags:
+            logerr("Cannot use both '+' and ',' in same search")
+            return
 
-        self.cur.execute(query, (tag,))
+        tags, search_operator, excluded_tags = prep_tag_search(tags)
+
+        query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
+        for tag in tags[1:]:
+            query += "{} tags LIKE '%' || ? || '%' ".format(search_operator)
+        if excluded_tags:
+            tags.append(excluded_tags)
+            query = query.replace('WHERE tags', 'WHERE (tags')
+            query += ') AND tags NOT REGEXP ? '
+        query += 'ORDER BY id ASC'
+
+        logdbg('query: "%s", args: %s', query, tags)
+
+        self.cur.execute(query, tuple(tags, ))
         return self.cur.fetchall()
 
     def compactdb(self, index, delay_commit=False):
@@ -2042,7 +2056,7 @@ PROMPT KEYS:
     S keyword [...]        search for records with ALL keywords
     d                      match substrings ('pen' matches 'opened')
     r expression           run a regex search
-    t [...]                search bookmarks by a tag or show taglist
+    t [...]                search bookmarks by tags or show taglist
                            list index after a tag listing shows records with the tag
     o id|range [...]       browse bookmarks by indices and/or ranges
     p id|range [...]       print bookmarks by indices and/or ranges
@@ -2324,6 +2338,37 @@ def parse_tags(keywords=[]):
 
     # Wrap with delimiter
     return delim_wrap(DELIM.join(sorted_tags))
+
+
+def prep_tag_search(tags):
+    """Prepare list of tags to search and determine search operator
+
+    :param tags: list of tags to search as string
+    :return: tuple (
+                    list of formatted tags to search,
+                    a string indicating query search operator (either OR or AND),
+                    a regex string of tags (used to exclude matching bookmarks),
+                   ),
+             None, if ' - ' operator is not in the tags argument
+    """
+
+    excluded_tags = None
+    if ' - ' in tags:
+        tags, excluded_tags = tags.split(' - ', 1)
+
+        excluded_taglist = [delim_wrap(t.strip()) for t in excluded_tags.split(',')]
+        # join with pipe to construct regex string
+        excluded_tags = '|'.join(excluded_taglist)
+
+    search_operator = 'OR'
+    tag_delim = ','
+    if ' + ' in tags:
+        search_operator = 'AND'
+        tag_delim = ' + '
+
+    tags = [delim_wrap(t.strip()) for t in tags.split(tag_delim)]
+
+    return tags, search_operator, excluded_tags
 
 
 def edit_at_prompt(obj, nav):
@@ -3101,7 +3146,11 @@ POSITIONAL ARGUMENTS:
                          "immutable": entries with locked title
     --deep               match substrings ('pen' matches 'opens')
     -r, --sreg           run a regex search
-    -t, --stag           search bookmarks by a tag
+    -t, --stag [tag [,|+] ...] [- tag, ...]
+                         search bookmarks by tags
+                         use ',' to find entries matching ANY tag
+                         use '+' to find entries matching ALL tags
+                         excludes entries matching tags following ' - '
                          list all tags, if no search keywords''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', action='store_true', help=HIDE)

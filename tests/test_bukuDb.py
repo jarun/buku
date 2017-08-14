@@ -273,6 +273,169 @@ class TestBukuDb(unittest.TestCase):
                 expected = [(i + 1,) + tuple(self.bookmarks[i])]
                 self.assertEqual(results, expected)
 
+    def test_search_by_multiple_tags_search_any(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_rec(*bookmark)
+
+        new_bookmark = ['https://newbookmark.com',
+                        'New Bookmark',
+                        parse_tags(['test,old,new']),
+                        'additional bookmark to test multiple tag search']
+
+        self.bdb.add_rec(*new_bookmark)
+
+        with mock.patch('buku.prompt'):
+            # search for bookmarks matching ANY of the supplied tags
+            results = self.bdb.search_by_tag('test, old')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (1, 'http://slashdot.org', 'SLASHDOT',
+                 parse_tags([',news,old,']),
+                 "News for old nerds, stuff that doesn't matter"),
+                (3, 'https://test.com:8080', 'test',
+                 parse_tags([',test,tes,est,es,']),
+                 "a case for replace_tag test"),
+                (4, 'https://newbookmark.com', 'New Bookmark',
+                 parse_tags([',test,old,new,']),
+                 'additional bookmark to test multiple tag search')
+            ]
+            self.assertEqual(results, expected)
+
+    def test_search_by_multiple_tags_search_all(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_rec(*bookmark)
+
+        new_bookmark = ['https://newbookmark.com',
+                        'New Bookmark',
+                        parse_tags(['test,old,new']),
+                        'additional bookmark to test multiple tag search']
+
+        self.bdb.add_rec(*new_bookmark)
+
+        with mock.patch('buku.prompt'):
+            # search for bookmarks matching ALL of the supplied tags
+            results = self.bdb.search_by_tag('test + old')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (4, 'https://newbookmark.com', 'New Bookmark',
+                 parse_tags([',test,old,new,']),
+                 'additional bookmark to test multiple tag search')
+            ]
+            self.assertEqual(results, expected)
+
+    def test_search_by_tags_enforces_space_seprations_search_all(self):
+
+        bookmark1 = ['https://bookmark1.com',
+                     'Bookmark One',
+                     parse_tags(['tag, two,tag+two']),
+                     "test case for bookmark with '+' in tag"]
+
+        bookmark2 = ['https://bookmark2.com',
+                     'Bookmark Two',
+                     parse_tags(['tag,two, tag-two']),
+                     "test case for bookmark with hyphenated tag"]
+
+        self.bdb.add_rec(*bookmark1)
+        self.bdb.add_rec(*bookmark2)
+
+        with mock.patch('buku.prompt'):
+            # check that space separation for ' + ' operator is enforced
+            results = self.bdb.search_by_tag('tag+two')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (1, 'https://bookmark1.com', 'Bookmark One',
+                 parse_tags([',tag,two,tag+two,']),
+                 "test case for bookmark with '+' in tag")
+            ]
+            self.assertEqual(results, expected)
+            results = self.bdb.search_by_tag('tag + two')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (1, 'https://bookmark1.com', 'Bookmark One',
+                 parse_tags([',tag,two,tag+two,']),
+                 "test case for bookmark with '+' in tag"),
+                (2, 'https://bookmark2.com', 'Bookmark Two',
+                 parse_tags([',tag,two,tag-two,']),
+                 "test case for bookmark with hyphenated tag"),
+            ]
+            self.assertEqual(results, expected)
+
+    def test_search_by_tags_exclusion(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_rec(*bookmark)
+
+        new_bookmark = ['https://newbookmark.com',
+                        'New Bookmark',
+                        parse_tags(['test,old,new']),
+                        'additional bookmark to test multiple tag search']
+
+        self.bdb.add_rec(*new_bookmark)
+
+        with mock.patch('buku.prompt'):
+            # search for bookmarks matching ANY of the supplied tags
+            # while excluding bookmarks from results that match a given tag
+            results = self.bdb.search_by_tag('test, old - est')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (1, 'http://slashdot.org', 'SLASHDOT',
+                 parse_tags([',news,old,']),
+                 "News for old nerds, stuff that doesn't matter"),
+                (4, 'https://newbookmark.com', 'New Bookmark',
+                 parse_tags([',test,old,new,']),
+                 'additional bookmark to test multiple tag search')
+            ]
+            self.assertEqual(results, expected)
+
+    def test_search_by_tags_enforces_space_seprations_exclusion(self):
+
+        bookmark1 = ['https://bookmark1.com',
+                     'Bookmark One',
+                     parse_tags(['tag, two,tag+two']),
+                     "test case for bookmark with '+' in tag"]
+
+        bookmark2 = ['https://bookmark2.com',
+                     'Bookmark Two',
+                     parse_tags(['tag,two, tag-two']),
+                     "test case for bookmark with hyphenated tag"]
+
+        bookmark3 = ['https://bookmark3.com',
+                     'Bookmark Three',
+                     parse_tags(['tag, tag three']),
+                     "second test case for bookmark with hyphenated tag"]
+
+        self.bdb.add_rec(*bookmark1)
+        self.bdb.add_rec(*bookmark2)
+        self.bdb.add_rec(*bookmark3)
+
+        with mock.patch('buku.prompt'):
+            # check that space separation for ' - ' operator is enforced
+            results = self.bdb.search_by_tag('tag-two')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (2, 'https://bookmark2.com', 'Bookmark Two',
+                 parse_tags([',tag,two,tag-two,']),
+                 "test case for bookmark with hyphenated tag"),
+            ]
+            self.assertEqual(results, expected)
+            results = self.bdb.search_by_tag('tag - two')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (3, 'https://bookmark3.com', 'Bookmark Three',
+                 parse_tags([',tag,tag three,']),
+                 "second test case for bookmark with hyphenated tag"),
+            ]
+            self.assertEqual(results, expected)
+
     # @unittest.skip('skipping')
     def test_search_and_open_in_broswer_by_range(self):
         # adding bookmarks
@@ -426,7 +589,6 @@ class TestBukuDb(unittest.TestCase):
 
     # def test_import_bookmark(self):
         # self.fail()
-
 
 @given(
     index=st.integers(min_value=-10, max_value=10),
@@ -819,6 +981,45 @@ def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_arguments):
     bdb = BukuDb()
     res = bdb.update_rec(**kwargs)
     assert res
+    exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
+    assert caplog.records[-1].getMessage() == exp_log
+    assert caplog.records[-1].levelname == 'DEBUG'
+
+
+@pytest.mark.parametrize(
+    'tags_to_search, exp_query, exp_arguments',
+    [
+        [
+            'tag1, tag2',
+            "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
+            "OR tags LIKE '%' || ? || '%' ORDER BY id ASC",
+            [',tag1,', ',tag2,']
+
+        ],
+        [
+            'tag1+tag2,tag3, tag4',
+            "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
+            "OR tags LIKE '%' || ? || '%' OR tags LIKE '%' || ? || '%' ORDER BY id ASC",
+            [',tag1+tag2,', ',tag3,', ',tag4,']
+        ],
+        [
+            'tag1 + tag2+tag3',
+            "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
+            "AND tags LIKE '%' || ? || '%' ORDER BY id ASC",
+            [',tag1,', ',tag2+tag3,']
+        ],
+        [
+            'tag1-tag2 + tag 3 - tag4',
+            "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE (tags LIKE '%' || ? || '%' "
+            "AND tags LIKE '%' || ? || '%' ) AND tags NOT REGEXP ? ORDER BY id ASC",
+            [',tag1-tag2,', ',tag 3,', ',tag4,']
+        ]
+    ]
+)
+def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_arguments):
+    """test that the correct query and argments are constructed"""
+    bdb = BukuDb()
+    bdb.search_by_tag(tags_to_search)
     exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
     assert caplog.records[-1].getMessage() == exp_log
     assert caplog.records[-1].levelname == 'DEBUG'

@@ -69,7 +69,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - --sall : match all the keywords in URL, title or tags.
   - --deep : match \fBsubstrings\fR (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
-  - --stag : search bookmarks by a tag, or list all tags alphabetically with usage count (if no arguments).
+  - --stag : search bookmarks by tags, or list all tags alphabetically with usage count (if no arguments). Delimit the list of tags in the query with `,` to search for bookmarks that match ANY of the listed tags. Delimit tags with `+` to search for bookmarks that match ALL of the listed tags. Note that `,` and `+` cannot be used together in the same search. Exclude bookmarks matching certain tags from the results by using ` - ` followed by the tags. Note that the ` - ` operator and the ` + ` delimiter must be space separated: ` - ` instead of `-` and ` + ` instead of `+`. This is to distinguish them from hyphenated tags (e.g., `some-tag-name`) and tags with '+'s (e.g., `some+tag+name`).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within '[]' after the title.
 .PP
 .IP 9. 4
@@ -154,8 +154,18 @@ Search modifier to match substrings. Works with --sany, --sall.
 .BI \-r " " \--sreg " expression"
 Scan for a regular expression match.
 .TP
-.BI \-t " " \--stag " [...]"
-Search bookmarks by a tag. List all tags alphabetically, if no arguments. The usage count (number of bookmarks having the tag) is shown within first brackets.
+.BI \-t " " \--stag " [tag [,|+] ...] [\- tag, ...]"
+Search bookmarks by tags.
+.br
+Use ',' delimiter to find entries matching ANY of the tags
+.br
+Use ' + ' delimiter to find entries matching ALL of the tags. (Note that the ' + ' delimiter must be space separated)
+.br
+NOTE: Cannot combine ',' and '+' in the same search
+.br
+Use ' - ' to exclude bookmarks that match the tags that follow. (Note that the '-' operator must be space separated).
+.br
+List all tags alphabetically, if no arguments. The usage count (number of bookmarks having the tag) is shown within first brackets.
 .SH ENCRYPTION OPTIONS
 .TP
 .BI \-l " " \--lock " [N]"
@@ -506,6 +516,28 @@ The last index is moved to the deleted index to keep the DB compact.
 .EE
 .PP
 .IP 19. 4
+\fBSearch\fR for bookmarks matching \fBANY\fR of the tags 'kernel', 'debugging', 'general kernel concepts':
+.PP
+.EX
+.IP
+.B buku --stag kernel, debugging, general kernel concepts
+.EE
+.PP
+.IP 20.4
+\fBSearch\fR for bookmarks matching \fBALL\fR of the tags 'kernel', 'debugging', 'general kernel concepts':
+.PP
+.EX
+.IP
+.B buku --stag kernel + debugging + general kernel concepts
+.EE
+.PP
+.IP 21.4
+\fBSearch\fR for bookmarks matching both the tags `kernel` and `debugging`, but \fBexcluding\fR bookmarks matching the tag 'general kernel concepts':
+.PP
+.EX
+.IP
+.B buku --stag kernel + debugging - general kernel concepts
+.IP 22.4
 List \fBall unique tags\fR alphabetically:
 .PP
 .EX
@@ -513,7 +545,7 @@ List \fBall unique tags\fR alphabetically:
 .B buku --stag
 .EE
 .PP
-.IP 20. 4
+.IP 23. 4
 Run a \fBsearch and update\fR the results:
 .PP
 .EX
@@ -521,7 +553,7 @@ Run a \fBsearch and update\fR the results:
 .B buku -s kernel debugging -u --tag + linux kernel
 .EE
 .PP
-.IP 21. 4
+.IP 24. 4
 Run a \fBsearch and delete\fR the results:
 .PP
 .EX
@@ -529,7 +561,7 @@ Run a \fBsearch and delete\fR the results:
 .B buku -s kernel debugging -d
 .EE
 .PP
-.IP 22. 4
+.IP 25. 4
 \fBEncrypt or decrypt\fR DB with \fBcustom number of iterations\fR (15) to generate key:
 .PP
 .EX
@@ -542,7 +574,7 @@ Run a \fBsearch and delete\fR the results:
 .IP "" 4
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
 .PP
-.IP 23. 4
+.IP 26. 4
 \fBShow details\fR of bookmarks at index 15012014 and ranges 20-30, 40-50:
 .PP
 .EX
@@ -550,7 +582,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -p 20-30 15012014 40-50
 .EE
 .PP
-.IP 24. 4
+.IP 27. 4
 Show details of the \fBlast 10 bookmarks\fR:
 .PP
 .EX
@@ -558,7 +590,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -p -10
 .EE
 .PP
-.IP 25. 4
+.IP 28. 4
 \fBShow all\fR bookmarks with real index from database:
 .PP
 .EX
@@ -567,7 +599,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -p | more
 .EE
 .PP
-.IP 26. 4
+.IP 29. 4
 \fBReplace tag\fR 'old tag' with 'new tag':
 .PP
 .EX
@@ -575,7 +607,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku --replace 'old tag' 'new tag'
 .EE
 .PP
-.IP 27. 4
+.IP 30. 4
 \fBDelete tag\fR 'old tag' from DB:
 .PP
 .EX
@@ -583,7 +615,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku --replace 'old tag'
 .EE
 .PP
-.IP 28. 4
+.IP 31. 4
 \fBAppend (or delete) tags\fR 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 .PP
 .EX
@@ -592,7 +624,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -u 15012014 --tag - tag 1, tag 2
 .EE
 .PP
-.IP 29. 4
+.IP 32. 4
 \fBOpen URL\fR at index 15012014 in browser:
 .PP
 .EX
@@ -600,7 +632,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -o 15012014
 .EE
 .PP
-.IP 30. 4
+.IP 33. 4
 List bookmarks with \fBno title or tags\fR for bookkeeping:
 .PP
 .EX
@@ -608,7 +640,7 @@ List bookmarks with \fBno title or tags\fR for bookkeeping:
 .B buku -S blank
 .EE
 .PP
-.IP 31. 4
+.IP 34. 4
 List bookmarks with \fBimmutable title\fR:
 .PP
 .EX
@@ -616,7 +648,7 @@ List bookmarks with \fBimmutable title\fR:
 .B buku -S immutable
 .EE
 .PP
-.IP 32. 4
+.IP 35. 4
 \fBShorten\fR the URL www.google.com and the URL at index 20:
 .PP
 .EX
@@ -625,7 +657,7 @@ List bookmarks with \fBimmutable title\fR:
 .B buku --shorten 20
 .EE
 .PP
-.IP 33. 4
+.IP 36. 4
 \fBAppend, remove tags at prompt\fR (taglist index to the left, bookmark index to the right):
 .PP
 .EX

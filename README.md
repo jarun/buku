@@ -189,9 +189,12 @@ SEARCH OPTIONS:
                            "immutable": entries with locked title
       --deep               match substrings ('pen' matches 'opens')
       -r, --sreg           run a regex search
-      -t, --stag           search bookmarks by a tag
+      -t, --stag [tag [,|+] ...] [- tag, ...]
+                           search bookmarks by tags
+                           use ',' to find entries matching ANY tag
+                           use '+' to find entries matching ALL tags
+                           excludes entries matching tags following ' - '
                            list all tags, if no search keywords
-
 ENCRYPTION OPTIONS:
       -l, --lock [N]       encrypt DB file with N (> 0, default 8)
                            hash iterations to generate key
@@ -242,7 +245,7 @@ PROMPT KEYS:
     S keyword [...]        search for records with ALL keywords
     d                      match substrings ('pen' matches 'opened')
     r expression           run a regex search
-    t [...]                search bookmarks by a tag or show taglist
+    t [...]                search bookmarks by tags or show taglist
                            list index after a tag listing shows records with the tag
     o id|range [...]       browse bookmarks by indices and/or ranges
     p id|range [...]       print bookmarks by indices and/or ranges
@@ -284,7 +287,7 @@ PROMPT KEYS:
   - --sall : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
-  - --stag : search bookmarks by a tag, or list all tags alphabetically with usage count (if no arguments).
+  - --stag : search bookmarks by tags, or list all tags alphabetically with usage count (if no arguments). Delimit the list of tags in the query with `,` to search for bookmarks that match ANY of the listed tags. Delimit tags with `+` to search for bookmarks that match ALL of the listed tags. Note that `,` and `+` cannot be used together in the same search. Exclude bookmarks matching certain tags from the results by using ` - ` followed by the tags. Note that the ` - ` operator and the ` + ` delimiter must be space separated: ` - ` instead of `-` and ` + ` instead of `+`. This is to distinguish them from hyphenated tags (e.g., `some-tag-name`) and tags with '+'s (e.g., `some+tag+name`).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the title.
 - **Import**:
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
@@ -498,54 +501,63 @@ for resp, url in zip(gr_results, urls):
 18. **Search** bookmarks **tagged** `general kernel concepts`:
 
         $ buku --stag general kernel concepts
-19. List **all unique tags** alphabetically:
+19. **Search** for bookmarks matching **ANY** of the tags `kernel`, `debugging`, `general kernel concepts`:
+
+        $ buku --stag kernel, debugging, general kernel concepts
+20. **Search** for bookmarks matching **ALL** of the tags `kernel`, `debugging`, `general kernel concepts`:
+
+        $ buku --stag kernel + debugging + general kernel concepts
+21. **Search** for bookmarks matching both the tags `kernel` and `debugging`, but **excluding** bookmarks matching the tag `general kernel concepts`:
+
+        $ buku --stag kernel + debugging - general kernel concepts
+22. List **all unique tags** alphabetically:
 
         $ buku --stag
-20. Run a **search and update** the results:
+23. Run a **search and update** the results:
 
         $ buku -s kernel debugging -u --tag + linux kernel
-21. Run a **search and delete** the results:
+24. Run a **search and delete** the results:
 
         $ buku -s kernel debugging -d
-22. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+25. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
     The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
-23. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
+26. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
 
         $ buku -p 20-30 15012014 40-50
-24. Show details of the **last 10 bookmarks**:
+27. Show details of the **last 10 bookmarks**:
 
         $ buku -p -10
-25. **Show all** bookmarks with real index from database:
+28. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-26. **Replace tag** 'old tag' with 'new tag':
+29. **Replace tag** 'old tag' with 'new tag':
 
         $ buku --replace 'old tag' 'new tag'
-27. **Delete tag** 'old tag' from DB:
+30. **Delete tag** 'old tag' from DB:
 
         $ buku --replace 'old tag'
-28. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
+31. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
         $ buku -u 15012014 --tag - tag 1, tag 2
-29. **Open URL** at index 15012014 in browser:
+32. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-30. List bookmarks with **no title or tags** for bookkeeping:
+33. List bookmarks with **no title or tags** for bookkeeping:
 
         $ buku -S blank
-31. List bookmarks with **immutable title**:
+34. List bookmarks with **immutable title**:
 
         $ buku -S immutable
-32. **Shorten URL** www.google.com and the URL at index 20:
+35. **Shorten URL** www.google.com and the URL at index 20:
 
         $ buku --shorten www.google.com
         $ buku --shorten 20
-33. **Append, remove tags at prompt** (taglist index to the left, bookmark index to the right):
+36. **Append, remove tags at prompt** (taglist index to the left, bookmark index to the right):
 
         // append tags at taglist indices 4 and 6-9 to existing tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 >> 5 3-2
@@ -555,7 +567,7 @@ for resp, url in zip(gr_results, urls):
         buku (? for help) g > 5 3-2
         // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 << 5 3-2
-34. More **help**:
+37. More **help**:
 
         $ buku -h
         $ man buku
