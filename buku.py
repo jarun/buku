@@ -1088,7 +1088,7 @@ class BukuDb:
 
         # do not allow combination of search logics
         if '+' in tags and ',' in tags:
-            print('Cannot use both "+" and "," in same search')
+            logerr("Cannot use both '+' and ',' in same search")
             return
 
         excluded_tags = None
@@ -2068,7 +2068,7 @@ PROMPT KEYS:
     S keyword [...]        search for records with ALL keywords
     d                      match substrings ('pen' matches 'opened')
     r expression           run a regex search
-    t [...]                search bookmarks by tags or show tag list
+    t [...]                search bookmarks by tags or show taglist
                            list index after a tag listing shows records with the tag
     o id|range [...]       browse bookmarks by indices and/or ranges
     p id|range [...]       print bookmarks by indices and/or ranges
@@ -3131,7 +3131,7 @@ POSITIONAL ARGUMENTS:
                          search bookmarks by tags
                          use ',' to find entries matching ANY tag
                          use '+' to find entries matching ALL tags
-                         excludes entries matching tags following '-'
+                         excludes entries matching tags following ' - '
                          list all tags, if no search keywords''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', action='store_true', help=HIDE)
