@@ -1087,7 +1087,7 @@ class BukuDb:
         '''
 
         # do not allow combination of search logics
-        if '+' in tags and ',' in tags:
+        if ' + ' in tags and ',' in tags:
             logerr("Cannot use both '+' and ',' in same search")
             return
 
@@ -1099,9 +1099,9 @@ class BukuDb:
 
         search_operator = 'OR'
         tag_delim = ','
-        if '+' in tags:
+        if ' + ' in tags:
             search_operator = 'AND'
-            tag_delim = '+'
+            tag_delim = ' + '
 
         tags = [delim_wrap(t.strip()) for t in tags.split(tag_delim)]
 

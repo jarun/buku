@@ -286,7 +286,7 @@ PROMPT KEYS:
   - --sall : match all the keywords in URL, title or tags.
   - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
-  - --stag : search bookmarks by tags, or list all tags alphabetically with usage count (if no arguments). Delimit the list of tags in the query with `,` to search for bookmarks that match ANY of the listed tags. Delimit tags with `+` to search for bookmarks that match ALL of the listed tags. Note that `,` and `+` cannot be used together in the same search. Exclude bookmarks matching certain tags from the results by using ` - ` followed by the tags. Note that the '-' character must be space separated: ` - ` instead of `-`. This is to distinguish it from hyphenated tags (e.g., `some-tag-name`).
+  - --stag : search bookmarks by tags, or list all tags alphabetically with usage count (if no arguments). Delimit the list of tags in the query with `,` to search for bookmarks that match ANY of the listed tags. Delimit tags with `+` to search for bookmarks that match ALL of the listed tags. Note that `,` and `+` cannot be used together in the same search. Exclude bookmarks matching certain tags from the results by using ` - ` followed by the tags. Note that the ` - ` operator and the ` + ` delimiter must be space separated: ` - ` instead of `-` and ` + ` instead of `+`. This is to distinguish them from hyphenated tags (e.g., `some-tag-name`) and tags with '+'s (e.g., `some+tag+name`).
   - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the title.
 - **Import**:
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.

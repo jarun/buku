@@ -330,6 +330,46 @@ class TestBukuDb(unittest.TestCase):
             self.assertEqual(results, expected)
 
     # @unittest.skip('skipping')
+    def test_search_by_tags_enforces_space_seprations_search_all(self):
+
+        bookmark1 = ['https://bookmark1.com',
+                     'Bookmark One',
+                     parse_tags(['tag, two,tag+two']),
+                     "test case for bookmark with '+' in tag"]
+
+        bookmark2 = ['https://bookmark2.com',
+                     'Bookmark Two',
+                     parse_tags(['tag,two, tag-two']),
+                     "test case for bookmark with hyphenated tag"]
+
+        self.bdb.add_rec(*bookmark1)
+        self.bdb.add_rec(*bookmark2)
+
+        with mock.patch('buku.prompt'):
+            # check that space separation for ' + ' operator is enforced
+            results = self.bdb.search_by_tag('tag+two')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (1, 'https://bookmark1.com', 'Bookmark One',
+                 parse_tags([',tag,two,tag+two,']),
+                 "test case for bookmark with '+' in tag")
+            ]
+            self.assertEqual(results, expected)
+            results = self.bdb.search_by_tag('tag + two')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (1, 'https://bookmark1.com', 'Bookmark One',
+                 parse_tags([',tag,two,tag+two,']),
+                 "test case for bookmark with '+' in tag"),
+                (2, 'https://bookmark2.com', 'Bookmark Two',
+                 parse_tags([',tag,two,tag-two,']),
+                 "test case for bookmark with hyphenated tag"),
+            ]
+            self.assertEqual(results, expected)
+
+    # @unittest.skip('skipping')
     def test_search_by_tags_exclusion(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -355,6 +395,49 @@ class TestBukuDb(unittest.TestCase):
                 (4, 'https://newbookmark.com', 'New Bookmark',
                  parse_tags([',test,old,new,']),
                  'additional bookmark to test multiple tag search')
+            ]
+            self.assertEqual(results, expected)
+
+    # @unittest.skip('skipping')
+    def test_search_by_tags_enforces_space_seprations_exclusion(self):
+
+        bookmark1 = ['https://bookmark1.com',
+                     'Bookmark One',
+                     parse_tags(['tag, two,tag+two']),
+                     "test case for bookmark with '+' in tag"]
+
+        bookmark2 = ['https://bookmark2.com',
+                     'Bookmark Two',
+                     parse_tags(['tag,two, tag-two']),
+                    "test case for bookmark with hyphenated tag"]
+
+        bookmark3 = ['https://bookmark3.com',
+                     'Bookmark Three',
+                     parse_tags(['tag, tag three']),
+                    "second test case for bookmark with hyphenated tag"]
+
+        self.bdb.add_rec(*bookmark1)
+        self.bdb.add_rec(*bookmark2)
+        self.bdb.add_rec(*bookmark3)
+
+        with mock.patch('buku.prompt'):
+            # check that space separation for ' - ' operator is enforced
+            results = self.bdb.search_by_tag('tag-two')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (2, 'https://bookmark2.com', 'Bookmark Two',
+                 parse_tags([',tag,two,tag-two,']),
+                 "test case for bookmark with hyphenated tag"),
+            ]
+            self.assertEqual(results, expected)
+            results = self.bdb.search_by_tag('tag - two')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description
+            expected = [
+                (3, 'https://bookmark3.com', 'Bookmark Three',
+                 parse_tags([',tag,tag three,']),
+                 "second test case for bookmark with hyphenated tag"),
             ]
             self.assertEqual(results, expected)
 
