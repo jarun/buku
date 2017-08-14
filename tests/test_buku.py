@@ -8,7 +8,7 @@ import unittest
 
 import pytest
 
-from buku import is_int, parse_tags
+from buku import is_int, parse_tags, prep_tag_search
 
 only_python_3_5 = pytest.mark.skipif(
     sys.version_info < (3, 5), reason="requires Python 3.5 or later")
@@ -105,6 +105,31 @@ def test_parse_tags(keywords, exp_res):
         exp_res = buku.DELIM
     res = buku.parse_tags(keywords)
     assert res == exp_res
+
+
+def test_prep_tag_search():
+    """test prep_tag_search helper function"""
+
+    taglist1 = 'tag1, tag2+3'
+    results = prep_tag_search(taglist1)
+    expected = ([',tag1,', ',tag2+3,'],
+                'OR',
+                None)
+    assert results == expected
+
+    taglist2 = 'tag1 + tag2-3 + tag4'
+    results = prep_tag_search(taglist2)
+    expected = ([',tag1,', ',tag2-3,', ',tag4,'],
+                'AND',
+                None)
+    assert results == expected
+
+    taglist3 = 'tag1, tag2-3 - tag4, tag5'
+    results = prep_tag_search(taglist3)
+    expected = ([',tag1,', ',tag2-3,'],
+                'OR',
+                ',tag4,|,tag5,')
+    assert results == expected
 
 
 @pytest.mark.parametrize(
