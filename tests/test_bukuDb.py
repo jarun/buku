@@ -409,12 +409,12 @@ class TestBukuDb(unittest.TestCase):
         bookmark2 = ['https://bookmark2.com',
                      'Bookmark Two',
                      parse_tags(['tag,two, tag-two']),
-                    "test case for bookmark with hyphenated tag"]
+                     "test case for bookmark with hyphenated tag"]
 
         bookmark3 = ['https://bookmark3.com',
                      'Bookmark Three',
                      parse_tags(['tag, tag three']),
-                    "second test case for bookmark with hyphenated tag"]
+                     "second test case for bookmark with hyphenated tag"]
 
         self.bdb.add_rec(*bookmark1)
         self.bdb.add_rec(*bookmark2)
