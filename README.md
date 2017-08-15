@@ -27,19 +27,10 @@
   - [Running standalone](#running-standalone)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
-  - [Cmdline options](#cmdline-options)
-  - [Operational notes](#operational-notes)
-- [GUI integration](#gui-integration)
-  - [Add bookmarks from anywhere](#add-bookmarks-from-anywhere)
-  - [Import bookmarks to browser](#import-bookmarks-to-browser)
-- [Sync database across systems](#sync-database-across-systems)
-- [As a library](#as-a-library)
-- [Related projects](#related-projects)
-- [Mentions](#mentions)
 - [Examples](#examples)
-- [Third-party integration](#third-party-integration)
-- [Running tests](#running-tests)
 - [Collaborators](#collaborators)
+- [Related projects](#related-projects)
+- [In the Press](#in-the-press)
 
 ### Introduction
 
@@ -47,13 +38,13 @@
 
 `buku` fetches the title of a bookmarked web page and stores it along with any additional comments and tags. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once.
 
-Though a terminal utility, it's possible to add bookmarks to `buku` without touching the terminal! Refer to the section on [GUI integration](#gui-integration). If you prefer the terminal, thanks to the [shell completion](#shell-completion) scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
+For GUI integration, refer to the wiki page on [System integration](https://github.com/jarun/Buku/wiki/System-integration). If you prefer the terminal, thanks to the [shell completion](#shell-completion) scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
-*Buku* is too busy to track you - no history, obsolete records, usage analytics or homing.
+We have one of the best documentation around. You can start with the [Examples](#examples). *Buku* is too busy to track you - no history, obsolete records, usage analytics or homing. To learn more on how it works or to contribute to the project, please refer to the wiki page on [Operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
 
 There are several [projects](#related-projects) based on `buku`, including a browser plug-in.
 
-PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) for a list of TODOs.
+PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) for a list of TODOs. Visit the [wiki](https://github.com/jarun/Buku/wiki) for guidelines.
 
 <p align="center">
 <a href="https://saythanks.io/to/jarun"><img src="https://img.shields.io/badge/say-thanks!-ff69b4.svg" /></a>
@@ -63,10 +54,10 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 ### Features
 
 - Lightweight, clean interface
-- Flexible text editor integration
+- Text editor integration
 - Fetch, edit page title; add tags and notes
-- Powerful search modes including regex, substring
-- Continuous search at prompt, on the fly mode switch
+- Powerful search modes (regex, substring...)
+- Continuous search with on the fly mode switch
 - Open bookmarks and search results in browser
 - Manual encryption support
 - Auto-import Firefox and Google Chrome bookmarks
@@ -138,8 +129,6 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 ### Usage
 
-#### Cmdline options
-
 ```
 usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 
@@ -195,6 +184,7 @@ SEARCH OPTIONS:
                            use '+' to find entries matching ALL tags
                            excludes entries matching tags following ' - '
                            list all tags, if no search keywords
+
 ENCRYPTION OPTIONS:
       -l, --lock [N]       encrypt DB file with N (> 0, default 8)
                            hash iterations to generate key
@@ -255,172 +245,6 @@ PROMPT KEYS:
     ?                      show this help
     q, ^D, double Enter    exit buku
 ```
-
-#### Operational notes
-
-- The database file is stored in:
-  - **$XDG_DATA_HOME/buku/bookmarks.db**, if XDG_DATA_HOME is defined (first preference) or
-  - **$HOME/.local/share/buku/bookmarks.db**, if HOME is defined (second preference) or
-  - **%APPDATA%\buku\bookmarks.db**, if you are on Windows or
-  - **the current directory**.
-- If the URL contains characters like `;`, `&` or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes (`'`/`"`).
-- URLs are unique in DB. The same URL cannot be added twice.
-- Bookmarks with immutable titles are listed with `(L)` after the title.
-- **Tags**:
-  - Comma (`,`) is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
-  - Folder names are converted to all-lowercase tags during bookmarks html import.
-  - Releases prior to [v2.7](https://github.com/jarun/Buku/releases/tag/v2.7) support both capital and lower cases in tags. From v2.7 all tags are stored in lowercase. An undocumented option `--fixtags` is introduced to modify the older tags. It also fixes another issue where the same tag appears multiple times in the tagset of a record. Run `buku --fixtags` once.
-  - Tags can be edited from the prompt very easily using `>>` (append), `>` (overwrite) and `<<` (remove) symbols. The LHS of the operands denotes the indices and ranges of tags to apply (as listed by --tag or key `t` at prompt) and the RHS denotes the actual DB indices and ranges of the bookmarks to apply the change to.
-- **Update** operation:
-  - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
-  - If --url is passed (and --title is omitted), update the title from web using the URL.
-  - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles from web. Bookmarks marked immutable are skipped.
-  - Can update bookmarks matching a search, when combined with any of the search options and no arguments to update are passed.
-- **Delete** operation:
-  - When a record is deleted, the last record is moved to the index.
-  - Delete doesn't work with range and indices provided together as arguments. It's an intentional decision to avoid extra sorting, in-range checks and to keep the auto-DB compaction functionality intact. On the same lines, indices are deleted in descending order.
-  - Can delete bookmarks matching a search, when combined with any of the search options and no arguments to delete are passed.
-- **Search** works in mysterious ways:
-  - Case-insensitive.
-  - Matches words in URL, title and tags.
-  - --sany : match any of the keywords in URL, title or tags. Default search option.
-  - --sall : match all the keywords in URL, title or tags.
-  - --deep : match **substrings** (`match` matches `rematched`) in URL, title and tags.
-  - --sreg : match a regular expression (ignores --deep).
-  - --stag : search bookmarks by tags, or list all tags alphabetically with usage count (if no arguments). Delimit the list of tags in the query with `,` to search for bookmarks that match ANY of the listed tags. Delimit tags with `+` to search for bookmarks that match ALL of the listed tags. Note that `,` and `+` cannot be used together in the same search. Exclude bookmarks matching certain tags from the results by using ` - ` followed by the tags. Note that the ` - ` operator and the ` + ` delimiter must be space separated: ` - ` instead of `-` and ` + ` instead of `+`. This is to distinguish them from hyphenated tags (e.g., `some-tag-name`) and tags with '+'s (e.g., `some+tag+name`).
-  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within `[]` after the title.
-- **Import**:
-  - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
-  - Folder names are automatically imported as tags if --tacit is used.
-  - Auto-import looks in the default installation path and default user profile.
-- **Encryption** is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using `buku` and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is *unencrypted on creation*.
-- **Editor** support:
-  - A single bookmark can be edited before adding. The editor can be set using the environment variable *EDITOR* or by explicitly specifying the editor. The latter takes preference. If -a is used along with -w, the details are populated in the editor template.
-  - In case of edit and update (a single bookmark), the existing record details are fetched from DB and populated in the editor template. The environment variable EDITOR must be set Note that -u works independently of -w.
-  - All lines beginning with "#" will be stripped. Then line 1 will be treated as the URL, line 2 will be the title, line 3 will be comma separated tags, and the rest of the lines will be parsed as descriptions.
-- **Proxy** support: environment variable *https_proxy*, if defined, is used to tunnel data for both http and https connections. The supported format is:
-
-      http[s]://[username:password@]proxyhost:proxyport/
-
-### GUI integration
-
-![buku](http://i.imgur.com/8Y6PTPw.png)
-
-`buku` can be integrated in a GUI environment with simple tweaks.
-
-#### Add bookmarks from anywhere
-
-With support for piped input, it's possible to add bookmarks to `buku` using keyboard shortcuts on Linux and OS X. CLIPBOARD (plus PRIMARY on Linux) text selections can be added directly this way. The additional utility required is `xsel` (on Linux) or `pbpaste` (on OS X).
-
-The following steps explore the procedure on Linux with Ubuntu as the reference platform.
-
-1. To install `xsel` on Ubuntu, run:
-
-        $ sudo apt install xsel
-2. Create a new script `bukuadd` with the following content:
-
-        #!/bin/bash
-
-        xsel | buku -a
-
-      `-a` is the option to add a bookmark.
-3. Make the script executable:
-
-        $ chmod +x bukuadd
-4. Copy it somewhere in your `PATH`.
-5. Add a new keyboard shortcut to run the script. I use `<Alt-b>`.
-
-##### Test drive
-
-Copy or select a URL with mouse and press the keyboard shortcut to add it to the `buku` database. The addition might take a few seconds to reflect depending on your internet speed and the time `buku` needs to fetch the title from the URL. To avoid title fetch from the web, add the `--title` option to the script.
-
-To verify that the bookmark has indeed been added, run:
-
-    $ buku -p -1
-and check the entry.
-
-##### Tips
-
-- To add the last visited URL in Firefox to `buku`, use the following script:
-
-        #!/bin/bash
-
-        sqlite3 $HOME/.mozilla/firefox/*.default/places.sqlite "select url from moz_places where last_visit_date=(select max(last_visit_date) from moz_places)" | buku -a
-- If you want to tag these bookmarks, look them up later using:
-
-        $ buku -S blank
-  Use option `-u` to tag these bookmarks.
-
-#### Import bookmarks to browser
-
-`buku` can export (or import) bookmarks in HTML format recognized by Firefox, Google Chrome and Internet Explorer.
-
-To export all bookmarks, run:
-
-    $ buku --export path_to_bookmarks.html
-To export specific tags, run:
-
-    $ buku --export path_to_bookmarks.html --tag tag 1, tag 2
-Once exported, import the html file in your browser.
-
-### Sync database across systems
-
-`buku` has the capability to import records from another `buku` database file. However, users with a cloud service client installed on multiple systems can keep the database synced across these systems automatically. To achieve this store the actual database file in a synced directory and create a symbolic link to it in the location where the database file would exist otherwise. For example, `$HOME/.local/share/buku/bookmarks.db` can be a symbolic link to `~/synced_dir/bookmarks.db`.
-
-### As a library
-
-`buku` is developed as a powerful python library for bookmark management. All functionality are available through carefully designed APIs. `main()` is a good usage example. It's also possible to use a custom database file in multi-user scenarios. Check out the documentation for the following APIs which accept an optional argument as database file:
-
-    BukuDb.initdb(dbfile=None)
-    BukuCrypt.encrypt_file(iterations, dbfile=None)
-    BukuCrypt.decrypt_file(iterations, dbfile=None)
-NOTE: This flexibility is not exposed in the program.
-
-The [api](https://github.com/jarun/Buku/tree/master/api) directory has several example wrapper web APIs, not necessarily updated. Feel free to update if you need them.
-
-An example to print the http status code of urls saved in `buku` goes below. To run, install [grequests](https://github.com/kennethreitz/grequests).
-
-```python
-import buku
-import grequests
-
-bdb = buku.BukuDb()
-recs = bdb.get_rec_all()
-recs[0]
-# output: (1, 'example.com', 'example', 'tag1,tag2', 'page description', 0)
-# Records have following structure:
-# - id,
-# - url,
-# - metadata,
-# - tags,
-# - description,
-# - flags
-urls = [x[1] for x in recs]
-rs = (grequests.get(u) for u in urls)
-gr_results = grequests.map(rs)
-for resp, url in zip(gr_results, urls):
-  stat_code = None if resp.status_code is None else resp.status_code
-  print('{}: {}'.format(stat_code, url))
-# output
-# 200: http://example.com
-# None: http://website1.com/
-# 200: http://website2.com/
-# ...
-```
-
-### Related projects
-
-- [bukubrow](https://github.com/SamHH/bukubrow), WebExtension for browser integration
-- [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli frontend
-- [buku_run](https://github.com/carnager/buku_run), rofi frontend
-
-### Mentions
-
-- [One Thing Well](http://onethingwell.org/post/144952807044/buku)
-- [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
-- [Make Tech Easier](https://www.maketecheasier.com/manage-browser-bookmarks-ubuntu-command-line/)
-- [LinuxUser Magazine 01/2017 Issue](http://www.linux-community.de/LU/2017/01/Das-Beste-aus-zwei-Welten)
-- [2daygeek](http://www.2daygeek.com/buku-command-line-bookmark-manager-linux/)
 
 ### Examples
 
@@ -572,40 +396,6 @@ for resp, url in zip(gr_results, urls):
         $ buku -h
         $ man buku
 
-### Third-party integration
-
-1. `buku` waits until its input is closed when not started in a tty. For example, the following hangs:
-
-        $ cat | buku
-   This is the intended behaviour as the primary reason behind supporting piped input is to add bookmarks with a keyboard shortcut. Third-party applications should explicitly close the input stream or use a wrapper script like the following one:
-
-        #!/bin/bash
-
-        echo $1 | buku -a
-
-### Running tests
-
-We use [tox](http://readthedocs.org/docs/tox/) to manage virtualenvs and run tests.
-Alternatively, tests can be run using [detox](https://pypi.python.org/pypi/detox/) which allows for running tests in parallel
-
-        $ pip install tox detox
-
-Run all of the tests with:
-        $ tox
-
-Run all of the tests in parallel with detox:
-
-        $ detox
-
-If you running into this error check you buku setting.
-
-```
->       self.assertEqual(dbdir_local_expected, BukuDb.get_default_dbdir())
-E       AssertionError: '/home/user/.local/share/buku' != '/home/user/projects/buku'
-E       - /home/user/.local/share/buku
-E       + /home/user/projects/buku
-```
-
 ### Collaborators
 
 - [Arun Prakash Jana](https://github.com/jarun)
@@ -613,7 +403,23 @@ E       + /home/user/projects/buku
 - [Johnathan Jenkins](https://github.com/shaggytwodope)
 - [SZ Lin](https://github.com/szlin)
 - [Alex Bender](https://github.com/alex-bender)
+- [Alex Gontar](https://github.com/mosegontar)
 
 Copyright © 2015-2017 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 <br>
 <p><a href="https://gitter.im/jarun/Buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a></p>
+
+### Related projects
+
+- [bukubrow](https://github.com/SamHH/bukubrow), WebExtension for browser integration
+- [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli frontend
+- [buku_run](https://github.com/carnager/buku_run), rofi frontend
+
+### In the Press
+
+- [One Thing Well](http://onethingwell.org/post/144952807044/buku)
+- [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
+- [Make Tech Easier](https://www.maketecheasier.com/manage-browser-bookmarks-ubuntu-command-line/)
+- [LinuxUser Magazine 01/2017 Issue](http://www.linux-community.de/LU/2017/01/Das-Beste-aus-zwei-Welten)
+- [2daygeek](http://www.2daygeek.com/buku-command-line-bookmark-manager-linux/)
+- [LinOxide](https://linoxide.com/linux-how-to/buku-browser-bookmarks-linux/)

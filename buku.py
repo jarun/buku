@@ -3186,8 +3186,6 @@ POSITIONAL ARGUMENTS:
                          use --tag to export only specific tags
     -i, --import file    import Firefox or Chrome bookmarks html
                          import markdown, if file ends with '.md'
-    --ai                 auto-import bookmarks
-                         works with Firefox and Google Chrome
     -m, --merge file     add bookmarks from another buku DB file
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
