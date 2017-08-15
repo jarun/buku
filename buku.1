@@ -74,9 +74,9 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 .PP
 .IP 9. 4
 \fBImport\fR:
+  - Auto-import looks in the default installation path and default user profile.
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
   - Folder names are automatically imported as tags if --tacit is used.
-  - Auto-import looks in the default installation path and default user profile.
 .PP
 .IP 10. 4
 \fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
@@ -672,9 +672,11 @@ List bookmarks with \fBimmutable title\fR:
 .B buku (? for help) g 4 9-6 << 5 3-2
 .EE
 .SH AUTHOR
-Arun Prakash Jana <engineerarun@gmail.com>.
+Arun Prakash Jana <engineerarun@gmail.com>
 .SH HOME
 .I https://github.com/jarun/Buku
+.SH WIKI
+.I https://github.com/jarun/Buku/wiki
 .SH REPORTING BUGS
 .I https://github.com/jarun/Buku/issues
 .SH LICENSE
