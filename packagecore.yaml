@@ -17,7 +17,7 @@ packages:
       - python-cryptography
       - python-beautifulsoup4
       - python
-  fedora25:
+  fedora26:
     builddeps:
       - make
     deps:
