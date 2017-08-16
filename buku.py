@@ -2347,9 +2347,8 @@ def prep_tag_search(tags):
     :return: tuple (
                     list of formatted tags to search,
                     a string indicating query search operator (either OR or AND),
-                    a regex string of tags (used to exclude matching bookmarks),
-                   ),
-             None, if ' - ' operator is not in the tags argument
+                    a regex string of tags (None if ' - ' operator not in tags)
+                   )
     """
 
     excluded_tags = None
