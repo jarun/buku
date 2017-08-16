@@ -4,33 +4,33 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+sudo: required
+services:
+- docker
+dist: trusty
 before_install:
   - "pip install --upgrade setuptools"
   - "pip install --upgrade pip"
   - "pip install -e .[tests]"
 install: "pip install -r requirements.txt"
-addons:
-  apt:
-    packages:
-      - debhelper
-      - devscripts
-      - fakeroot
-      - zsh
 script:
   - python3 -m flake8
   - find . -iname "*.py" | xargs pylint --rcfile .pylintrc
   - python3 -m pytest ./tests/test_*.py --cov buku -vv
-  - git fetch --unshallow --tags origin
-  - ./tools/makedeb
+before_deploy:
+- sudo apt-get update -qy
+- sudo apt-get install -qy python3 python3-pip
+- python3 -m pip install packagecore
+- packagecore -o dist/ "${TRAVIS_TAG#v}"
 deploy:
   provider: releases
-  skip_cleanup: true
-  api-key:
+  api_key:
     secure: Zf+3StERDV9B0knxNj9UdiMv9kmrE9d80a27/e7IioZv6CUvCqbIpgzN5bD3yoTlJsHq3hY6BHF8OQpkH0B0pj3xwcxgcicwDdpGA9o43aIA+zqNSb6w1VHm784KZ+Z+z1NcVNEzCyIONXEIV0KRe73NUU/7Re6heA46lPDIMFF0EL8Fjv5tPb5VLq3z0jvA8mNlXfqiwtiWT/Zz7y6PvbKQZ5nSebK0WVBdGhuaQLj9EKNwdnxkgH3gsA1gAtiuaQdgDUxF69Xf5VY6hZPhdK5LSLl/5HDpandX9nLu5j3ZuSHn1pJWgdKw72aeWYSpKtgnBQ/uS5JLamqK31kHXfRVebp0uB2I1RBiLYhb5T0MO8BnFc6O+/f2qS7nQHGKZ9M+Mo+I+ceharLmCt7KfDA1yBP+AnwjsHYe1zgnGZfwSm+/ny1R1NoVmuyXPHkEDviOsT5JLSfLvuzCUstY4gsAYyXKHLDbHfMLxXQRRfK1RoJzR4taMntmsWsl2fIshzKujeck1o4wRu/FQIlq2ANYQVNrrcDSO+C5lZkSA8iivg7lIXk/n9Lxk7QcJkvrZkzOg0y9EKAejY87vejpessG1t2OD7GwUqWZMBBlPJXnbfTiUzTJqC+b8brwnAhu/QI8jMUvxWkTMO7XOiyZBpQljv2U9MwFNH8Ge4fwIag=
   file_glob: true
-  file: dist/*.deb
+  file:
+      - dist/*
+  skip_cleanup: true
   on:
-    repo: jarun/Buku
     tags: true
-    # Upload from only one job (doesn't matter which one because we're packaging the same thing throughout the matrix)
+    repo: jarun/Buku
     python: "3.6"

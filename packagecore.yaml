@@ -1,0 +1,37 @@
+name: buku
+metadata:
+  maintainer: Arun Prakash Jana <engineerarun@gmail.com>
+  license: GPLv3 
+  summary: A highly delicious bookmark manager. Your mini web!
+  homepage: https://github.com/jarun/Buku/
+commands:
+  install:
+    - make PREFIX="/usr" install DESTDIR="${BP_DESTDIR}"
+packages:
+  archlinux:
+    builddeps:
+      - make
+    deps: 
+      - python-urllib3
+      - python-requests
+      - python-cryptography
+      - python-beautifulsoup4
+      - python
+  fedora25:
+    builddeps:
+      - make
+    deps:
+        - python3-beautifulsoup4
+        - python3-cryptography
+        - python3-requests
+        - python3-urllib3
+        - python3
+  ubuntu17.10:
+    builddeps:
+      - make
+    deps:
+        - python3-urllib3
+        - python3-requests
+        - python3-cryptography
+        - python3-bs4
+        - python3
