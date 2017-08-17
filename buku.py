@@ -36,6 +36,7 @@ import threading
 import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
+import collections
 
 __version__ = '3.2'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -54,6 +55,19 @@ MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
 URL_str = '%s   \x1b[91m>\x1b[0m \x1b[2m%s\x1b[0m\n'
 DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
 TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
+
+# colormap for color output from "googler" project
+COLORMAP = {k: '\x1b[%sm' % v for k, v in {
+    'a': '30', 'b': '31', 'c': '32', 'd': '33',
+    'e': '34', 'f': '35', 'g': '36', 'h': '37',
+    'i': '90', 'j': '91', 'k': '92', 'l': '93',
+    'm': '94', 'n': '95', 'o': '96', 'p': '97',
+    'A': '30;1', 'B': '31;1', 'C': '32;1', 'D': '33;1',
+    'E': '34;1', 'F': '35;1', 'G': '36;1', 'H': '37;1',
+    'I': '90;1', 'J': '91;1', 'K': '92;1', 'L': '93;1',
+    'M': '94;1', 'N': '95;1', 'O': '96;1', 'P': '97;1',
+    'x': '0', 'X': '1', 'y': '7', 'Y': '7;1',
+}.items()}
 
 # Disguise as Firefox on Ubuntu
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0'
@@ -2068,10 +2082,25 @@ PROMPT KEYS:
 
 ''')
 
+    @staticmethod
+    def is_colorstr(arg):
+        """Check if a string is a valid color string."""
+        try:
+            assert len(arg) == 4
+            for c in arg:
+                assert c in COLORMAP
+        except AssertionError:
+            raise argparse.ArgumentTypeError('%s is not a valid color string' % arg)
+        return arg
+
     # Help
     def print_help(self, file=sys.stdout):
         super(ExtendedArgumentParser, self).print_help(file)
         self.program_info(file)
+
+
+# colormap selection tuple
+Colors = collections.namedtuple('Colors', 'ID_DB_str, URL_str, DESC_str, TAG_str, reset')
 
 
 # ----------------
@@ -2644,28 +2673,30 @@ def print_single_rec(row, idx=0):  # NOQA
 
     # Start with index and title
     if idx != 0:
-        pr = ID_str % (idx, row[2] if row[2] else 'Untitled', row[0])
+        idandtitleresult = ID_str % (idx, row[2] if row[2] else 'Untitled', row[0])
     else:
-        pr = ID_DB_str % (row[0], row[2] if row[2] else 'Untitled')
+        idandtitleresult = ID_DB_str % (row[0], row[2] if row[2] else 'Untitled')
         # Indicate if record is immutable
         if row[5] & 1:
-            pr = MUTE_str % (pr)
+            idandtitleresult = MUTE_str % (idandtitleresult)
         else:
-            pr += '\n'
+            idandtitleresult += '\n'
 
     # Append URL
-    pr = URL_str % (pr, row[1])
+    urlresult = ''
+    urlresult = URL_str % (urlresult, row[1])
 
     # Append description
+    descresult = ''
     if row[4]:
-        pr = DESC_str % (pr, row[4])
+        descresult = DESC_str % (descresult, row[4])
 
     # Append tags IF not default (delimiter)
+    tagresult = ''
     if row[3] != DELIM:
-        pr = TAG_str % (pr, row[3][1:-1])
+        tagresult = TAG_str % (tagresult, row[3][1:-1])
 
-    print(pr)
-
+    print(idandtitleresult + urlresult + descresult + tagresult)
 
 def format_json(resultset, single_record=False, field_filter=0):
     '''Return results in Json format
@@ -3194,6 +3225,7 @@ POSITIONAL ARGUMENTS:
                          N=4: URL, title and tag
     -j, --json           Json formatted output for -p and search
     --nc                 disable color output
+    --colors             set output colors (see man page for details     
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges
                          open a random bookmark, if no arguments
@@ -3217,6 +3249,8 @@ POSITIONAL ARGUMENTS:
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
+    addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS',
+           help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--oa', action='store_true', help=HIDE)
@@ -3258,6 +3292,22 @@ POSITIONAL ARGUMENTS:
     else:
         # Enable color in logs
         setup_logger(logger)
+
+    # Set colors
+    if args.colorstr:
+        ID_str = '%d. %s [%s]\n'
+        ID_DB_str = '%d. %s'
+        MUTE_str = '%s (L)\n'
+        URL_str = '%s   > %s\n'
+        DESC_str = '%s   + %s\n'
+        TAG_str = '%s   # %s\n'
+        colors = Colors(*[COLORMAP[c] for c in args.colorstr], reset=COLORMAP['x'])
+        ID_DB_str = colors.ID_DB_str + ID_DB_str + COLORMAP['x']
+        URL_str = colors.URL_str + URL_str + COLORMAP['x']
+        DESC_str = colors.DESC_str + DESC_str + COLORMAP['x']
+        TAG_str = colors.TAG_str + TAG_str + COLORMAP['x']
+    else:
+        print('no')
 
     # Set up debugging
     if args.debug:

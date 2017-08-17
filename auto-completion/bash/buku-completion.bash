@@ -26,6 +26,7 @@ _buku () {
         -k --unlock
         -l --lock
         -m --merge
+        --colors
         --nc
         --np
         -o --open
