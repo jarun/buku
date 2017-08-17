@@ -1,7 +1,7 @@
 name: buku
 metadata:
   maintainer: Arun Prakash Jana <engineerarun@gmail.com>
-  license: GPLv3 
+  license: GPLv3
   summary: A highly delicious bookmark manager. Your mini web!
   homepage: https://github.com/jarun/Buku/
 commands:
@@ -11,7 +11,7 @@ packages:
   archlinux:
     builddeps:
       - make
-    deps: 
+    deps:
       - python-urllib3
       - python-requests
       - python-cryptography
@@ -21,21 +21,21 @@ packages:
     builddeps:
       - make
     deps:
-        - python3-beautifulsoup4
-        - python3-cryptography
-        - python3-requests
-        - python3-urllib3
-        - python3
+      - python3-beautifulsoup4
+      - python3-cryptography
+      - python3-requests
+      - python3-urllib3
+      - python3
 # centos no beautifulsoup4
 #  centos7.3:
 #    builddeps:
 #      - make
 #    deps:
-#        - python-beautifulsoup4
-#        - python-cryptography
-#        - python-requests
-#        - python-urllib3
-#        - python
+#      - python-beautifulsoup4
+#      - python-cryptography
+#      - python-requests
+#      - python-urllib3
+#      - python
 #    commands:
 #      pre:
 #        - yum install epel-release
@@ -43,26 +43,26 @@ packages:
     builddeps:
       - make
     deps:
-        - python3-urllib3
-        - python3-requests
-        - python3-cryptography
-        - python3-bs4
-        - python3
+      - python3-urllib3
+      - python3-requests
+      - python3-cryptography
+      - python3-bs4
+      - python3
   ubuntu17.10:
     builddeps:
       - make
     deps:
-        - python3-urllib3
-        - python3-requests
-        - python3-cryptography
-        - python3-bs4
-        - python3
+      - python3-urllib3
+      - python3-requests
+      - python3-cryptography
+      - python3-bs4
+      - python3
   debian9:
     builddeps:
       - make
     deps:
-        - python3-urllib3
-        - python3-requests
-        - python3-cryptography
-        - python3-bs4
-        - python3
+      - python3-urllib3
+      - python3-requests
+      - python3-cryptography
+      - python3-bs4
+      - python3
