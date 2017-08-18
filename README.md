@@ -15,23 +15,6 @@
 <a href="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv"><img src="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv.png" alt="Asciicast" width="734"/></a>
 </p>
 
-### Table of Contents
-
-- [Introduction](#introduction)
-- [Features](#features)
-- [Installation](#installation)
-  - [Dependencies](#dependencies)
-  - [From a package manager](#from-a-package-manager)
-  - [Release packages](#release-packages)
-  - [From source](#from-source)
-  - [Running standalone](#running-standalone)
-- [Shell completion](#shell-completion)
-- [Usage](#usage)
-- [Examples](#examples)
-- [Collaborators](#collaborators)
-- [Related projects](#related-projects)
-- [In the Press](#in-the-press)
-
 ### Introduction
 
 `buku` is a powerful bookmark manager written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `Buku` (after my son's nickname, meaning *close to the heart* in my language).
@@ -50,6 +33,22 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 <a href="https://saythanks.io/to/jarun"><img src="https://img.shields.io/badge/say-thanks!-ff69b4.svg" /></a>
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/PayPal-donate-FC746D.svg" alt="Donate via PayPal!" /></a>
 </p>
+
+### Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+  - [Dependencies](#dependencies)
+  - [From a package manager](#from-a-package-manager)
+  - [Release packages](#release-packages)
+  - [From source](#from-source)
+  - [Running standalone](#running-standalone)
+- [Shell completion](#shell-completion)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Collaborators](#collaborators)
+- [Related projects](#related-projects)
+- [In the Press](#in-the-press)
 
 ### Features
 
