@@ -74,7 +74,8 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 .PP
 .IP 9. 4
 \fBImport\fR:
-  - Auto-import looks in the default installation path and default user profile.
+  - Buku supports bookmarks.html, the standard format used by most browsers and bookmarking services for importing/exporting bookmarks. bookmarks.html files can be imported into Buku with the -i import option (`buku -i path/to/bookmarks.html`).
+  - Auto-import (-ai) looks in the default installation path and default user profile to directly import bookmarks from Firefox and Google Chrome.
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
   - Folder names are automatically imported as tags if --tacit is used.
 .PP
