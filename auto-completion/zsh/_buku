@@ -24,7 +24,7 @@ args=(
     '(-k --unlock)'{-k,--unlock}'[decrypt database]'
     '(-l --lock)'{-l,--lock}'[encrypt database]'
     '(-m --merge)'{-m,--merge}'[merge another buku database]:buku db file'
-    '(--colors)--colors[custom color output]'
+    '(--colors)--colors[set output colors (see man page for details)]'
     '(--nc)--nc[disable color output]'
     '(--np)--np[noninteractive mode]'
     '(-o --open)'{-o,--open}'[open bookmarks in browser]'

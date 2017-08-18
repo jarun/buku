@@ -18,6 +18,7 @@
 # along with Buku.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import collections
 import html.parser as HTMLParser
 import json
 import logging
@@ -36,7 +37,6 @@ import threading
 import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
-import collections
 
 __version__ = '3.2'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -2673,30 +2673,30 @@ def print_single_rec(row, idx=0):  # NOQA
 
     # Start with index and title
     if idx != 0:
-        idandtitleresult = ID_str % (idx, row[2] if row[2] else 'Untitled', row[0])
+        id_title_res = ID_str % (idx, row[2] if row[2] else 'Untitled', row[0])
     else:
-        idandtitleresult = ID_DB_str % (row[0], row[2] if row[2] else 'Untitled')
+        id_title_res = ID_DB_str % (row[0], row[2] if row[2] else 'Untitled')
         # Indicate if record is immutable
         if row[5] & 1:
-            idandtitleresult = MUTE_str % (idandtitleresult)
+            id_title_res = MUTE_str % (id_title_res)
         else:
-            idandtitleresult += '\n'
+            id_title_res += '\n'
 
     # Append URL
-    urlresult = ''
-    urlresult = URL_str % (urlresult, row[1])
+    url_res = ''
+    url_res = URL_str % (url_res, row[1])
 
     # Append description
-    descresult = ''
+    desc_res = ''
     if row[4]:
-        descresult = DESC_str % (descresult, row[4])
+        desc_res = DESC_str % (desc_res, row[4])
 
     # Append tags IF not default (delimiter)
-    tagresult = ''
+    tag_res = ''
     if row[3] != DELIM:
-        tagresult = TAG_str % (tagresult, row[3][1:-1])
+        tag_res = TAG_str % (tag_res, row[3][1:-1])
 
-    print(idandtitleresult + urlresult + descresult + tagresult)
+    print(id_title_res + url_res + desc_res + tag_res)
 
 def format_json(resultset, single_record=False, field_filter=0):
     '''Return results in Json format
@@ -3083,6 +3083,7 @@ def main():
     tags_in = None
     desc_in = None
     pipeargs = []
+    colorstr_env = os.getenv('BUKU_COLORS')
 
     try:
         piped_input(sys.argv, pipeargs)
@@ -3224,8 +3225,8 @@ POSITIONAL ARGUMENTS:
                          N=1: URL, N=2: URL and tag, N=3: title,
                          N=4: URL, title and tag
     -j, --json           Json formatted output for -p and search
+    --colors             set output colors (see man page for details)
     --nc                 disable color output
-    --colors             set output colors (see man page for details     
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges
                          open a random bookmark, if no arguments
@@ -3248,9 +3249,9 @@ POSITIONAL ARGUMENTS:
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
+    addarg('--colors', dest='colorstr', type=argparser.is_colorstr,
+           default=colorstr_env if colorstr_env else 'GKlg', metavar='COLORS', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
-    addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS',
-           help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--oa', action='store_true', help=HIDE)
