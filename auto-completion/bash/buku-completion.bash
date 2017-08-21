@@ -13,6 +13,7 @@ _buku () {
     opts=(
         -a --add
         --ai
+        --colors
         -c --comment
         -d --delete
         --deep
@@ -26,7 +27,6 @@ _buku () {
         -k --unlock
         -l --lock
         -m --merge
-        --colors
         --nc
         --np
         -o --open
