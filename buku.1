@@ -416,6 +416,7 @@ Please consult the manual of your terminal emulator as well as \fIhttps://en.wik
 .EX
 .IP
 .B buku -w
+.br
 .B buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
 .EE
 .PP
@@ -496,6 +497,7 @@ Applies to --url, --title and --tag too.
 .EX
 .IP
 .B buku -e bookmarks.html --tag tag 1, tag 2
+.br
 .B buku -e bookmarks.md --tag tag 1, tag 2
 .EE
 .PP
@@ -508,6 +510,7 @@ All bookmarks are exported if --tag is not specified.
 .EX
 .IP
 .B buku -i bookmarks.html
+.br
 .B buku -i bookmarks.md
 .EE
 .PP
@@ -528,6 +531,7 @@ Applies to --title and --tag too. URL cannot be deleted without deleting the boo
 .EX
 .IP
 .B buku -u
+.br
 .B buku -u --tacit (show only failures and exceptions)
 .EE
 .PP
@@ -559,6 +563,7 @@ The last index is moved to the deleted index to keep the DB compact.
 .EX
 .IP
 .B buku -d 100-200
+.br
 .B buku -d 100 15 200
 .EE
 .PP
@@ -568,6 +573,7 @@ The last index is moved to the deleted index to keep the DB compact.
 .EX
 .IP
 .B buku kernel debugging
+.br
 .B buku -s kernel debugging
 .EE
 .PP
@@ -668,6 +674,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .EX
 .IP
 .B buku -p
+.br
 .B buku -p | more
 .EE
 .PP
@@ -693,6 +700,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .EX
 .IP
 .B buku -u 15012014 --tag + tag 1, tag 2
+.br
 .B buku -u 15012014 --tag - tag 1, tag 2
 .EE
 .PP
@@ -726,6 +734,7 @@ List bookmarks with \fBimmutable title\fR:
 .EX
 .IP
 .B buku --shorten www.google.com
+.br
 .B buku --shorten 20
 .EE
 .PP
@@ -735,12 +744,19 @@ List bookmarks with \fBimmutable title\fR:
 .EX
 .IP
 // append tags at taglist indices 4 and 6-9 to existing tags in bookmarks at indices 5 and 2-3
+.br
 .B buku (? for help) g 4 9-6 >> 5 3-2
+.br
 // set tags at taglist indices 4 and 6-9 as tags in bookmarks at indices 5 and 2-3
+.br
 .B buku (? for help) g 4 9-6 > 5 3-2
+.br
 // remove all tags from bookmarks at indices 5 and 2-3
+.br
 .B buku (? for help) g > 5 3-2
+.br
 // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
+.br
 .B buku (? for help) g 4 9-6 << 5 3-2
 .EE
 .SH AUTHOR
