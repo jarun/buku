@@ -6,6 +6,7 @@
 #
 complete -c buku -s a -l add     -r --description 'add bookmark'
 complete -c buku -l ai              --description 'auto-import bookmarks'
+complete -c buku -l colors          --description 'set output colors (see man page for details)'
 complete -c buku -s c -l comment    --description 'comment on bookmark'
 complete -c buku -s d -l delete     --description 'delete bookmark'
 complete -c buku -l deep            --description 'search matching substrings'
@@ -19,7 +20,6 @@ complete -c buku -s j -l json       --description 'show Json output for print an
 complete -c buku -s k -l unlock     --description 'decrypt database'
 complete -c buku -s l -l lock       --description 'encrypt database'
 complete -c buku -s m -l merge   -r --description 'merge another buku database'
-complete -c buku -l colors          --description 'set output colors (see man page for details)'
 complete -c buku -l nc              --description 'disable color output'
 complete -c buku -l np              --description 'non-interactive mode'
 complete -c buku -s o -l open       --description 'open bookmarks in browser'
