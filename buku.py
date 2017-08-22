@@ -3236,7 +3236,7 @@ POSITIONAL ARGUMENTS:
                          N=1: URL, N=2: URL and tag, N=3: title,
                          N=4: URL, title and tag
     -j, --json           Json formatted output for -p and search
-    --colors             COLORS set output colors
+    --colors COLORS      set output colors using 5 letter string
     --nc                 disable color output
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges
@@ -3321,7 +3321,6 @@ POSITIONAL ARGUMENTS:
         URL_str = setcolors(args.colorstr)[2] + URL_str
         DESC_str = setcolors(args.colorstr)[3] + DESC_str
         TAG_str = setcolors(args.colorstr)[4] + TAG_str
-
 
     # Set up debugging
     if args.debug:

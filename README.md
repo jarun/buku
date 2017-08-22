@@ -206,7 +206,7 @@ POWER TOYS:
                            N=1: URL, N=2: URL and tag, N=3: title,
                            N=4: URL, title and tag
       -j, --json           Json formatted output for -p and search
-      --colors             --colors COLORS set output colors
+      --colors COLORS      set output colors using 5 letter string
       --nc                 disable color output
       --np                 do not show the prompt, run and exit
       -o, --open [...]     browse bookmarks by indices and ranges
