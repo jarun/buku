@@ -49,12 +49,14 @@ SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
 # Default colour to print records
-ID_str = '\x1b[96;1m%d. \x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
-ID_DB_str = '\x1b[96;1m%d. \x1b[1;92m%s\x1b[0m'
+ID_srch = '\x1b[36m%d.\x1b[0m'
+ID_str = ID_srch + '\x1b[1;92m%s\x1b[2m [%s]\x1b[0m\n'
+ID_dbidx = '\x1b[36m%d.\x1b[0m'
+ID_DB_str = ID_dbidx + '\x1b[1;92m%s\x1b[0m'
 MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
-URL_str = '%s   \x1b[91m>\x1b[0m \x1b[2m%s\x1b[0m\n'
+URL_str = '%s   \x1b[91m>\x1b[93m \x1b[2m%s\x1b[0m\n'
 DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
-TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
+TAG_str = '%s   \x1b[91m#\x1b[34m %s\n'
 
 # colormap for color output from "googler" project
 COLORMAP = {k: '\x1b[%sm' % v for k, v in {
@@ -2086,7 +2088,7 @@ PROMPT KEYS:
     def is_colorstr(arg):
         """Check if a string is a valid color string."""
         try:
-            assert len(arg) == 4
+            assert len(arg) == 5
             for c in arg:
                 assert c in COLORMAP
         except AssertionError:
@@ -2097,10 +2099,6 @@ PROMPT KEYS:
     def print_help(self, file=sys.stdout):
         super(ExtendedArgumentParser, self).print_help(file)
         self.program_info(file)
-
-
-# colormap selection tuple
-Colors = collections.namedtuple('Colors', 'ID_DB_str, URL_str, DESC_str, TAG_str, reset')
 
 
 # ----------------
@@ -2673,9 +2671,11 @@ def print_single_rec(row, idx=0):  # NOQA
 
     # Start with index and title
     if idx != 0:
-        id_title_res = ID_str % (idx, row[2] if row[2] else 'Untitled', row[0])
+        ID_srch = idx
+        id_title_res = ID_str % (ID_srch, row[2] if row[2] else 'Untitled', row[0])
     else:
-        id_title_res = ID_DB_str % (row[0], row[2] if row[2] else 'Untitled')
+        ID_dbidx = row[0]
+        id_title_res = ID_DB_str % (ID_dbidx, row[2] if row[2] else 'Untitled')
         # Indicate if record is immutable
         if row[5] & 1:
             id_title_res = MUTE_str % (id_title_res)
@@ -3075,6 +3075,18 @@ def piped_input(argv, pipeargs=None):
             pipeargs += s.split()
 
 
+# get colors from user input and separete into "result" list for use in args.colors
+def setcolors(args):
+    Colors = collections.namedtuple('Colors', ' ID_srch, ID_str, URL_str, DESC_str, TAG_str')
+    colors = Colors(*[COLORMAP[c] for c in args])
+    id_col = colors.ID_srch
+    id_str_col = colors.ID_str
+    url_col = colors.URL_str
+    desc_col = colors.DESC_str
+    tag_col = colors.TAG_str
+    result = [id_col, id_str_col, url_col, desc_col, tag_col]
+    return result
+
 # main starts here
 def main():
     global colorize, ID_str, ID_DB_str, MUTE_str, URL_str, DESC_str, TAG_str
@@ -3083,7 +3095,6 @@ def main():
     tags_in = None
     desc_in = None
     pipeargs = []
-    colorstr_env = os.getenv('BUKU_COLORS')
 
     try:
         piped_input(sys.argv, pipeargs)
@@ -3211,6 +3222,7 @@ POSITIONAL ARGUMENTS:
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
         description='''    --ai                 auto-import from Firefox and Chrome
+    --colors             set output colors
     -e, --export file    export bookmarks in Firefox format html
                          export markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
@@ -3225,7 +3237,6 @@ POSITIONAL ARGUMENTS:
                          N=1: URL, N=2: URL and tag, N=3: title,
                          N=4: URL, title and tag
     -j, --json           Json formatted output for -p and search
-    --colors             set output colors (see man page for details)
     --nc                 disable color output
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges
@@ -3243,14 +3254,13 @@ POSITIONAL ARGUMENTS:
     -z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
     addarg('--ai', action='store_true', help=HIDE)
+    addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=HIDE)
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
-    addarg('--colors', dest='colorstr', type=argparser.is_colorstr,
-           default=colorstr_env if colorstr_env else 'GKlg', metavar='COLORS', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
@@ -3296,19 +3306,21 @@ POSITIONAL ARGUMENTS:
 
     # Set colors
     if args.colorstr:
-        ID_str = '%d. %s [%s]\n'
-        ID_DB_str = '%d. %s'
+        ID_srch = '%d.'
+        ID_str = '%s [%s]\n'
+        ID_DB_str = '%s'
         MUTE_str = '%s (L)\n'
         URL_str = '%s   > %s\n'
         DESC_str = '%s   + %s\n'
         TAG_str = '%s   # %s\n'
-        colors = Colors(*[COLORMAP[c] for c in args.colorstr], reset=COLORMAP['x'])
-        ID_DB_str = colors.ID_DB_str + ID_DB_str + COLORMAP['x']
-        URL_str = colors.URL_str + URL_str + COLORMAP['x']
-        DESC_str = colors.DESC_str + DESC_str + COLORMAP['x']
-        TAG_str = colors.TAG_str + TAG_str + COLORMAP['x']
-    else:
-        print('no')
+        ID_srch = setcolors(args.colorstr)[0] + ID_srch
+        ID_str = ID_srch + COLORMAP['x'] + setcolors(args.colorstr)[1] + ID_str
+        ID_DB_str = ID_dbidx + COLORMAP['x'] + setcolors(args.colorstr)[1] + ID_DB_str
+        MUTE_str = setcolors(args.colorstr)[3] + MUTE_str
+        URL_str = setcolors(args.colorstr)[2] + URL_str
+        DESC_str = setcolors(args.colorstr)[3] + DESC_str
+        TAG_str = setcolors(args.colorstr)[4] + TAG_str
+
 
     # Set up debugging
     if args.debug:

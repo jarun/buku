@@ -15,6 +15,7 @@ _buku () {
         --ai
         --colors
         -c --comment
+        --colors
         -d --delete
         --deep
         -e --export
@@ -52,6 +53,7 @@ _buku () {
     )
     opts_with_arg=(
         -a --add
+        --colors
         -e --export
         --expand
         -f --format

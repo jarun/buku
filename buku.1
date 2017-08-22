@@ -23,6 +23,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Portable, merge-able database to sync between systems
   * Multithreaded full DB refresh
   * Shell completion scripts, man page with handy examples
+  * Colored output
 .SH OPERATIONAL NOTES
 .PP
 .IP 1. 4
@@ -182,6 +183,9 @@ Decrypt (unlock) the DB file with
 .BI \--ai
 Auto-import bookmarks from Firefox and Google Chrome.
 .TP
+.BI \--colors " COLORS"
+Set output colors. Refer to the \fBCOLORS\fR section below for details.
+.TP
 .BI \-e " " \--export " file"
 Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags. Markdown is used if
 .I file
@@ -217,9 +221,6 @@ Show selective monochrome output with specific fields. Works with --print. Searc
 .TP
 .BI \-j " " \--json
 Output data formatted as json, works with --print output and search results.
-.TP
-.BI "--colors=" COLORS
-Set output colors. Refer to the \fBCOLORS\fR section below for details.
 .TP
 .BI \--nc
 Disable color output in all messages. Useful on terminals which can't handle ANSI color codes or scripted environments.
@@ -340,10 +341,12 @@ can be integrated in a GUI environment with simple tweaks. Refer to:
 .br
 .I https://github.com/jarun/Buku#gui-integration
 .SH COLORS
-\buku\fR allows you to customize the color scheme via a four-letter string, reminiscent of BSD \fBLSCOLORS\fR. The four letters represent the colors of
+\fBBuku\fR allows you to customize the color scheme via a five-letter string, reminiscent of BSD \fBLSCOLORS\fR. The five letters represent the colors of
 .IP - 2
-bookmark's id and title
+bookmark's id
 .PD 0 \" Change paragraph spacing to 0 in the list
+.IP - 2
+bookmark's title
 .IP - 2
 bookmark's url
 .IP - 2
@@ -352,7 +355,7 @@ bookmark's description
 bookmark's tag
 .PD 1 \" Restore paragraph spacing
 .TP
-respectively. The four-letter string is passed in either as the argument to the \fB--colors\fR option, or as the value of the environment variable \fBBUKU_COLORS\fR.
+respectively. The five-letter string is passed is as the argument to the \fB--colors\fR option.
 .TP
 We offer the following colors/styles:
 .TS
@@ -386,16 +389,18 @@ Y;bold reverse video
 .TE
 .TP
 .TP
-The default colors string is \fIGKlg\fR, which stands for
+The default colors string is \fIGKlxe\fR, which stands for
 .IP - 2
-bold bright cyan index and title
+bold cyan index
 .PD 0 \" Change paragraph spacing to 0 in the list
 .IP - 2
-bold bright green url
+bold bright green title
 .IP - 2
-bright yellow description
+bright yellow url
 .IP - 2
-cyan tag
+comments/notes/desc - normal
+.IP - 2
+blue tag
 .PD 1 \" Restore paragraph spacing
 .TP
 Note that
@@ -759,6 +764,16 @@ List bookmarks with \fBimmutable title\fR:
 .br
 .B buku (? for help) g 4 9-6 << 5 3-2
 .EE
+.PP
+.IP 37. 4
+List bookmarks with \fBcolored output\fR:
+.PP
+.EX
+.IP
+.B $ buku --colors GKlxe -p
+.EE
+.PP
+
 .SH AUTHOR
 Arun Prakash Jana <engineerarun@gmail.com>
 .SH HOME

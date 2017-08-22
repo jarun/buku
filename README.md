@@ -66,6 +66,7 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 - Portable, merge-able database to sync between systems
 - Multithreaded full DB refresh
 - Shell completion scripts, man page with handy examples
+- Colored output
 
 ### Installation
 
@@ -192,6 +193,7 @@ ENCRYPTION OPTIONS:
 
 POWER TOYS:
       --ai                 auto-import from Firefox and Chrome
+      --colors             set output colors
       -e, --export file    export bookmarks in Firefox format html
                            export markdown, if file ends with '.md'
                            format: [title](url), 1 entry per line
@@ -206,7 +208,6 @@ POWER TOYS:
                            N=1: URL, N=2: URL and tag, N=3: title,
                            N=4: URL, title and tag
       -j, --json           Json formatted output for -p and search
-      --colors             set output colors (see man page for details)
       --nc                 disable color output
       --np                 do not show the prompt, run and exit
       -o, --open [...]     browse bookmarks by indices and ranges
@@ -391,7 +392,10 @@ PROMPT KEYS:
         buku (? for help) g > 5 3-2
         // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 << 5 3-2
-37. More **help**:
+37. List bookmarks with **colored output**:
+
+        $ buku --colors GKlxe -p
+38. More **help**:
 
         $ buku -h
         $ man buku
