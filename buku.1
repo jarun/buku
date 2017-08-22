@@ -23,7 +23,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Portable, merge-able database to sync between systems
   * Multithreaded full DB refresh
   * Shell completion scripts, man page with handy examples
-  * Colored output
+  * Lightweight, clean interface, custom colors
 .SH OPERATIONAL NOTES
 .PP
 .IP 1. 4
@@ -183,9 +183,6 @@ Decrypt (unlock) the DB file with
 .BI \--ai
 Auto-import bookmarks from Firefox and Google Chrome.
 .TP
-.BI \--colors " COLORS"
-Set output colors. Refer to the \fBCOLORS\fR section below for details.
-.TP
 .BI \-e " " \--export " file"
 Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags. Markdown is used if
 .I file
@@ -221,6 +218,9 @@ Show selective monochrome output with specific fields. Works with --print. Searc
 .TP
 .BI \-j " " \--json
 Output data formatted as json, works with --print output and search results.
+.TP
+.BI \--colors " COLORS"
+Set output colors. Refer to the \fBCOLORS\fR section below for details.
 .TP
 .BI \--nc
 Disable color output in all messages. Useful on terminals which can't handle ANSI color codes or scripted environments.
@@ -341,7 +341,7 @@ can be integrated in a GUI environment with simple tweaks. Refer to:
 .br
 .I https://github.com/jarun/Buku#gui-integration
 .SH COLORS
-\fBBuku\fR allows you to customize the color scheme via a five-letter string, reminiscent of BSD \fBLSCOLORS\fR. The five letters represent the colors of
+\fBbuku\fR allows you to customize the color scheme via a five-letter string, reminiscent of BSD \fBLSCOLORS\fR. The five letters represent the colors of
 .IP - 2
 bookmark's id
 .PD 0 \" Change paragraph spacing to 0 in the list

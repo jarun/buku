@@ -6,7 +6,7 @@
 #
 complete -c buku -s a -l add     -r --description 'add bookmark'
 complete -c buku -l ai              --description 'auto-import bookmarks'
-complete -c buku -l colors          --description 'set output colors'
+complete -c buku -l colors       -r --description 'set output colors'
 complete -c buku -s c -l comment    --description 'comment on bookmark'
 complete -c buku -s d -l delete     --description 'delete bookmark'
 complete -c buku -l deep            --description 'search matching substrings'

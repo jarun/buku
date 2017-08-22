@@ -49,9 +49,9 @@ SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
 # Default colour to print records
-ID_srch = '\x1b[36m%d.\x1b[0m'
-ID_str = ID_srch + '\x1b[1;92m%s\x1b[2m [%s]\x1b[0m\n'
-ID_dbidx = '\x1b[36m%d.\x1b[0m'
+ID_srch = '\x1b[36m%d. \x1b[0m'
+ID_str = ID_srch + '\x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
+ID_dbidx = '\x1b[36m%d. \x1b[0m'
 ID_DB_str = ID_dbidx + '\x1b[1;92m%s\x1b[0m'
 MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
 URL_str = '%s   \x1b[91m>\x1b[93m \x1b[2m%s\x1b[0m\n'
@@ -3222,7 +3222,6 @@ POSITIONAL ARGUMENTS:
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
         description='''    --ai                 auto-import from Firefox and Chrome
-    --colors             set output colors
     -e, --export file    export bookmarks in Firefox format html
                          export markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
@@ -3237,6 +3236,7 @@ POSITIONAL ARGUMENTS:
                          N=1: URL, N=2: URL and tag, N=3: title,
                          N=4: URL, title and tag
     -j, --json           Json formatted output for -p and search
+    --colors             --colors COLORS set output colors
     --nc                 disable color output
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges
@@ -3254,13 +3254,13 @@ POSITIONAL ARGUMENTS:
     -z, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
     addarg('--ai', action='store_true', help=HIDE)
-    addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=HIDE)
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
     addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
+    addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
@@ -3308,6 +3308,7 @@ POSITIONAL ARGUMENTS:
     if args.colorstr:
         ID_srch = '%d.'
         ID_str = '%s [%s]\n'
+        ID_dbidx = '%d.'
         ID_DB_str = '%s'
         MUTE_str = '%s (L)\n'
         URL_str = '%s   > %s\n'

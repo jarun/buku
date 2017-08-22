@@ -66,7 +66,7 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 - Portable, merge-able database to sync between systems
 - Multithreaded full DB refresh
 - Shell completion scripts, man page with handy examples
-- Colored output
+- Lightweight, clean interface, custom colors
 
 ### Installation
 
@@ -193,7 +193,6 @@ ENCRYPTION OPTIONS:
 
 POWER TOYS:
       --ai                 auto-import from Firefox and Chrome
-      --colors             set output colors
       -e, --export file    export bookmarks in Firefox format html
                            export markdown, if file ends with '.md'
                            format: [title](url), 1 entry per line
@@ -208,6 +207,7 @@ POWER TOYS:
                            N=1: URL, N=2: URL and tag, N=3: title,
                            N=4: URL, title and tag
       -j, --json           Json formatted output for -p and search
+      --colors             --colors COLORS set output colors
       --nc                 disable color output
       --np                 do not show the prompt, run and exit
       -o, --open [...]     browse bookmarks by indices and ranges
