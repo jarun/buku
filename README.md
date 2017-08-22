@@ -52,7 +52,7 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 
 ### Features
 
-- Lightweight, clean interface
+- Lightweight, clean interface, custom colors
 - Text editor integration
 - Fetch, edit page title; add tags and notes
 - Powerful search modes (regex, substring...)
@@ -66,7 +66,6 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 - Portable, merge-able database to sync between systems
 - Multithreaded full DB refresh
 - Shell completion scripts, man page with handy examples
-- Lightweight, clean interface, custom colors
 
 ### Installation
 
