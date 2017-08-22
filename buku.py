@@ -18,6 +18,7 @@
 # along with Buku.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import collections
 import html.parser as HTMLParser
 import json
 import logging
@@ -48,12 +49,27 @@ SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
 # Default colour to print records
-ID_str = '\x1b[96;1m%d. \x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
-ID_DB_str = '\x1b[96;1m%d. \x1b[1;92m%s\x1b[0m'
+ID_srch = '\x1b[36m%d. \x1b[0m'
+ID_str = ID_srch + '\x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
+ID_dbidx = '\x1b[36m%d. \x1b[0m'
+ID_DB_str = ID_dbidx + '\x1b[1;92m%s\x1b[0m'
 MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
-URL_str = '%s   \x1b[91m>\x1b[0m \x1b[2m%s\x1b[0m\n'
+URL_str = '%s   \x1b[91m>\x1b[93m \x1b[2m%s\x1b[0m\n'
 DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
-TAG_str = '%s   \x1b[91m#\x1b[0m %s\n'
+TAG_str = '%s   \x1b[91m#\x1b[34m %s\n'
+
+# colormap for color output from "googler" project
+COLORMAP = {k: '\x1b[%sm' % v for k, v in {
+    'a': '30', 'b': '31', 'c': '32', 'd': '33',
+    'e': '34', 'f': '35', 'g': '36', 'h': '37',
+    'i': '90', 'j': '91', 'k': '92', 'l': '93',
+    'm': '94', 'n': '95', 'o': '96', 'p': '97',
+    'A': '30;1', 'B': '31;1', 'C': '32;1', 'D': '33;1',
+    'E': '34;1', 'F': '35;1', 'G': '36;1', 'H': '37;1',
+    'I': '90;1', 'J': '91;1', 'K': '92;1', 'L': '93;1',
+    'M': '94;1', 'N': '95;1', 'O': '96;1', 'P': '97;1',
+    'x': '0', 'X': '1', 'y': '7', 'Y': '7;1',
+}.items()}
 
 # Disguise as Firefox on Ubuntu
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0'
@@ -2068,6 +2084,17 @@ PROMPT KEYS:
 
 ''')
 
+    @staticmethod
+    def is_colorstr(arg):
+        """Check if a string is a valid color string."""
+        try:
+            assert len(arg) == 5
+            for c in arg:
+                assert c in COLORMAP
+        except AssertionError:
+            raise argparse.ArgumentTypeError('%s is not a valid color string' % arg)
+        return arg
+
     # Help
     def print_help(self, file=sys.stdout):
         super(ExtendedArgumentParser, self).print_help(file)
@@ -2644,28 +2671,32 @@ def print_single_rec(row, idx=0):  # NOQA
 
     # Start with index and title
     if idx != 0:
-        pr = ID_str % (idx, row[2] if row[2] else 'Untitled', row[0])
+        ID_srch = idx
+        id_title_res = ID_str % (ID_srch, row[2] if row[2] else 'Untitled', row[0])
     else:
-        pr = ID_DB_str % (row[0], row[2] if row[2] else 'Untitled')
+        ID_dbidx = row[0]
+        id_title_res = ID_DB_str % (ID_dbidx, row[2] if row[2] else 'Untitled')
         # Indicate if record is immutable
         if row[5] & 1:
-            pr = MUTE_str % (pr)
+            id_title_res = MUTE_str % (id_title_res)
         else:
-            pr += '\n'
+            id_title_res += '\n'
 
     # Append URL
-    pr = URL_str % (pr, row[1])
+    url_res = ''
+    url_res = URL_str % (url_res, row[1])
 
     # Append description
+    desc_res = ''
     if row[4]:
-        pr = DESC_str % (pr, row[4])
+        desc_res = DESC_str % (desc_res, row[4])
 
     # Append tags IF not default (delimiter)
+    tag_res = ''
     if row[3] != DELIM:
-        pr = TAG_str % (pr, row[3][1:-1])
+        tag_res = TAG_str % (tag_res, row[3][1:-1])
 
-    print(pr)
-
+    print(id_title_res + url_res + desc_res + tag_res)
 
 def format_json(resultset, single_record=False, field_filter=0):
     '''Return results in Json format
@@ -3044,6 +3075,18 @@ def piped_input(argv, pipeargs=None):
             pipeargs += s.split()
 
 
+# get colors from user input and separete into "result" list for use in args.colors
+def setcolors(args):
+    Colors = collections.namedtuple('Colors', ' ID_srch, ID_str, URL_str, DESC_str, TAG_str')
+    colors = Colors(*[COLORMAP[c] for c in args])
+    id_col = colors.ID_srch
+    id_str_col = colors.ID_str
+    url_col = colors.URL_str
+    desc_col = colors.DESC_str
+    tag_col = colors.TAG_str
+    result = [id_col, id_str_col, url_col, desc_col, tag_col]
+    return result
+
 # main starts here
 def main():
     global colorize, ID_str, ID_DB_str, MUTE_str, URL_str, DESC_str, TAG_str
@@ -3193,6 +3236,7 @@ POSITIONAL ARGUMENTS:
                          N=1: URL, N=2: URL and tag, N=3: title,
                          N=4: URL, title and tag
     -j, --json           Json formatted output for -p and search
+    --colors             COLORS set output colors
     --nc                 disable color output
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges
@@ -3216,6 +3260,7 @@ POSITIONAL ARGUMENTS:
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
+    addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
@@ -3258,6 +3303,25 @@ POSITIONAL ARGUMENTS:
     else:
         # Enable color in logs
         setup_logger(logger)
+
+    # Set colors
+    if args.colorstr:
+        ID_srch = '%d.'
+        ID_str = '%s [%s]\n'
+        ID_dbidx = '%d.'
+        ID_DB_str = '%s'
+        MUTE_str = '%s (L)\n'
+        URL_str = '%s   > %s\n'
+        DESC_str = '%s   + %s\n'
+        TAG_str = '%s   # %s\n'
+        ID_srch = setcolors(args.colorstr)[0] + ID_srch
+        ID_str = ID_srch + COLORMAP['x'] + setcolors(args.colorstr)[1] + ID_str
+        ID_DB_str = ID_dbidx + COLORMAP['x'] + setcolors(args.colorstr)[1] + ID_DB_str
+        MUTE_str = setcolors(args.colorstr)[3] + MUTE_str
+        URL_str = setcolors(args.colorstr)[2] + URL_str
+        DESC_str = setcolors(args.colorstr)[3] + DESC_str
+        TAG_str = setcolors(args.colorstr)[4] + TAG_str
+
 
     # Set up debugging
     if args.debug:

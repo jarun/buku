@@ -52,7 +52,7 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 
 ### Features
 
-- Lightweight, clean interface
+- Lightweight, clean interface, custom colors
 - Text editor integration
 - Fetch, edit page title; add tags and notes
 - Powerful search modes (regex, substring...)
@@ -206,6 +206,7 @@ POWER TOYS:
                            N=1: URL, N=2: URL and tag, N=3: title,
                            N=4: URL, title and tag
       -j, --json           Json formatted output for -p and search
+      --colors             --colors COLORS set output colors
       --nc                 disable color output
       --np                 do not show the prompt, run and exit
       -o, --open [...]     browse bookmarks by indices and ranges
@@ -390,7 +391,10 @@ PROMPT KEYS:
         buku (? for help) g > 5 3-2
         // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 << 5 3-2
-37. More **help**:
+37. List bookmarks with **colored output**:
+
+        $ buku --colors GKlxe -p
+38. More **help**:
 
         $ buku -h
         $ man buku

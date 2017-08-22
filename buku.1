@@ -9,7 +9,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
 .PP
 .B Features
 .PP
-  * Lightweight, clean interface
+  * Lightweight, clean interface, custom colors
   * Text editor integration
   * Fetch, edit page title; add tags and notes
   * Powerful search modes (regex, substring...)
@@ -218,6 +218,9 @@ Show selective monochrome output with specific fields. Works with --print. Searc
 .BI \-j " " \--json
 Output data formatted as json, works with --print output and search results.
 .TP
+.BI \--colors " COLORS"
+Set output colors. Refer to the \fBCOLORS\fR section below for details.
+.TP
 .BI \--nc
 Disable color output in all messages. Useful on terminals which can't handle ANSI color codes or scripted environments.
 .TP
@@ -336,6 +339,79 @@ http[s]://[username:password@]proxyhost:proxyport/
 can be integrated in a GUI environment with simple tweaks. Refer to:
 .br
 .I https://github.com/jarun/Buku#gui-integration
+.SH COLORS
+\fBbuku\fR allows you to customize the color scheme via a five-letter string, reminiscent of BSD \fBLSCOLORS\fR. The five letters represent the colors of
+.IP - 2
+bookmark's id
+.PD 0 \" Change paragraph spacing to 0 in the list
+.IP - 2
+bookmark's title
+.IP - 2
+bookmark's url
+.IP - 2
+bookmark's description
+.IP - 2
+bookmark's tag
+.PD 1 \" Restore paragraph spacing
+.TP
+respectively. The five-letter string is passed is as the argument to the \fB--colors\fR option.
+.TP
+We offer the following colors/styles:
+.TS
+tab(;) box;
+l|l
+-|-
+l|l.
+Letter;Color/Style
+a;black
+b;red
+c;green
+d;yellow
+e;blue
+f;magenta
+g;cyan
+h;white
+i;bright black
+j;bright red
+k;bright green
+l;bright yellow
+m;bright blue
+n;bright magenta
+o;bright cyan
+p;bright white
+A-H;bold version of the lowercase-letter color
+I-P;bold version of the lowercase-letter bright color
+x;normal
+X;bold
+y;reverse video
+Y;bold reverse video
+.TE
+.TP
+.TP
+The default colors string is \fIGKlxe\fR, which stands for
+.IP - 2
+bold cyan index
+.PD 0 \" Change paragraph spacing to 0 in the list
+.IP - 2
+bold bright green title
+.IP - 2
+bright yellow url
+.IP - 2
+comments/notes/desc - normal
+.IP - 2
+blue tag
+.PD 1 \" Restore paragraph spacing
+.TP
+Note that
+.IP - 2
+Bright colors (implemented as \\x1b[90m - \\x1b[97m) may not be available in all color-capable terminal emulators;
+.IP - 2
+Some terminal emulators draw bold text in bright colors instead;
+.IP - 2
+Some terminal emulators only distinguish between bold and bright colors via a default-off switch.
+.TP
+Please consult the manual of your terminal emulator as well as \fIhttps://en.wikipedia.org/wiki/ANSI_escape_code\fR for details.
+
 .SH EXAMPLES
 .PP
 .IP 1. 4
@@ -687,6 +763,16 @@ List bookmarks with \fBimmutable title\fR:
 .br
 .B buku (? for help) g 4 9-6 << 5 3-2
 .EE
+.PP
+.IP 37. 4
+List bookmarks with \fBcolored output\fR:
+.PP
+.EX
+.IP
+.B $ buku --colors GKlxe -p
+.EE
+.PP
+
 .SH AUTHOR
 Arun Prakash Jana <engineerarun@gmail.com>
 .SH HOME
