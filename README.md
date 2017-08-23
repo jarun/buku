@@ -206,7 +206,7 @@ POWER TOYS:
                            N=1: URL, N=2: URL and tag, N=3: title,
                            N=4: URL, title and tag
       -j, --json           Json formatted output for -p and search
-      --colors COLORS      set output colors using 5 letter string
+      --colors COLORS      set output colors in five-letter string
       --nc                 disable color output
       --np                 do not show the prompt, run and exit
       -o, --open [...]     browse bookmarks by indices and ranges
@@ -393,7 +393,7 @@ PROMPT KEYS:
         buku (? for help) g 4 9-6 << 5 3-2
 37. List bookmarks with **colored output**:
 
-        $ buku --colors GKlxe -p
+        $ buku --colors gKlxe -p
 38. More **help**:
 
         $ buku -h

@@ -49,12 +49,12 @@ SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
 # Default colour to print records
-ID_srch = '\x1b[36m%d. \x1b[0m'
+ID_srch = '\x1b[96m%d. \x1b[0m'
 ID_str = ID_srch + '\x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
-ID_dbidx = '\x1b[36m%d. \x1b[0m'
+ID_dbidx = '\x1b[96m%d. \x1b[0m'
 ID_DB_str = ID_dbidx + '\x1b[1;92m%s\x1b[0m'
 MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
-URL_str = '%s   \x1b[91m>\x1b[93m \x1b[2m%s\x1b[0m\n'
+URL_str = '%s   \x1b[91m>\x1b[93m %s\x1b[0m\n'
 DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
 TAG_str = '%s   \x1b[91m#\x1b[34m %s\n'
 
@@ -3236,7 +3236,7 @@ POSITIONAL ARGUMENTS:
                          N=1: URL, N=2: URL and tag, N=3: title,
                          N=4: URL, title and tag
     -j, --json           Json formatted output for -p and search
-    --colors COLORS      set output colors using 5 letter string
+    --colors COLORS      set output colors in five-letter string
     --nc                 disable color output
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges

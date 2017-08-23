@@ -11,8 +11,8 @@ local -a args
 args=(
     '(-a --add)'{-a,--add}'[add bookmark]:URL tags'
     '(--ai)--ai[auto-import bookmarks]'
-    '(--colors)--colors[set output colors]:color string'
     '(-c --comment)'{-c,--comment}'[comment on bookmark]'
+    '(--colors)--colors[set output colors in 5-letter string]:color string'
     '(-d --delete)'{-d,--delete}'[delete bookmark]'
     '(--deep)--deep[search matching substrings]'
     '(-e --export)'{-e,--export}'[export bookmarks]:html output file'

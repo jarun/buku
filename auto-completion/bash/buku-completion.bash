@@ -13,7 +13,6 @@ _buku () {
     opts=(
         -a --add
         --ai
-        --colors
         -c --comment
         --colors
         -d --delete

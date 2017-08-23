@@ -342,16 +342,16 @@ can be integrated in a GUI environment with simple tweaks. Refer to:
 .SH COLORS
 \fBbuku\fR allows you to customize the color scheme via a five-letter string, reminiscent of BSD \fBLSCOLORS\fR. The five letters represent the colors of
 .IP - 2
-bookmark's id
+index
 .PD 0 \" Change paragraph spacing to 0 in the list
 .IP - 2
-bookmark's title
+title
 .IP - 2
-bookmark's url
+url
 .IP - 2
-bookmark's description
+description
 .IP - 2
-bookmark's tag
+tag
 .PD 1 \" Restore paragraph spacing
 .TP
 respectively. The five-letter string is passed is as the argument to the \fB--colors\fR option.
@@ -388,14 +388,14 @@ Y;bold reverse video
 .TE
 .TP
 .TP
-The default colors string is \fIGKlxe\fR, which stands for
+The default colors string is \fIgKlxe\fR, which stands for
 .IP - 2
-bold cyan index
+cyan index
 .PD 0 \" Change paragraph spacing to 0 in the list
 .IP - 2
 bold bright green title
 .IP - 2
-bright yellow url
+yellow url
 .IP - 2
 comments/notes/desc - normal
 .IP - 2
@@ -769,7 +769,7 @@ List bookmarks with \fBcolored output\fR:
 .PP
 .EX
 .IP
-.B $ buku --colors GKlxe -p
+.B $ buku --colors gKlxe -p
 .EE
 .PP
 
