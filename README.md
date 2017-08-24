@@ -246,6 +246,8 @@ PROMPT KEYS:
     q, ^D, double Enter    exit buku
 ```
 
+`buku` supports custom colors. Visit the wiki page on how to [customize colors](https://github.com/jarun/Buku/wiki/Customize-colors) for more details.
+
 ### Examples
 
 1. **Edit and add** a bookmark from editor:

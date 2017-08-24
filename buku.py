@@ -49,13 +49,12 @@ SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
 # Default colour to print records
-ID = '\x1b[96m%d. \x1b[0m'
-ID_str = ID + '\x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
-ID_DB_str = ID + '\x1b[1;92m%s\x1b[0m'
+ID_str = ''
+ID_DB_str = ''
 MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
-URL_str = '%s   \x1b[91m>\x1b[93m %s\x1b[0m\n'
-DESC_str = '%s   \x1b[91m+\x1b[0m %s\x1b[0m\n'
-TAG_str = '%s   \x1b[91m#\x1b[94m %s\x1b[0m\n'
+URL_str = ''
+DESC_str = ''
+TAG_str = ''
 
 # colormap for color output from "googler" project
 COLORMAP = {k: '\x1b[%sm' % v for k, v in {
@@ -3094,6 +3093,7 @@ def main():
     tags_in = None
     desc_in = None
     pipeargs = []
+    colorstr_env = os.getenv('BUKU_COLORS')
 
     try:
         piped_input(sys.argv, pipeargs)
@@ -3259,7 +3259,8 @@ POSITIONAL ARGUMENTS:
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
-    addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=HIDE)
+    addarg('--colors', dest='colorstr', type=argparser.is_colorstr,
+           default=colorstr_env if colorstr_env else 'oKlxm', metavar='COLORS', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
