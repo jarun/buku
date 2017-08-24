@@ -45,6 +45,8 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
   - [Running standalone](#running-standalone)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
+  - [Cmdline options](#cmdline-options)
+  - [Colors](#colors)
 - [Examples](#examples)
 - [Collaborators](#collaborators)
 - [Related projects](#related-projects)
@@ -127,6 +129,8 @@ To remove, run:
 Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/Buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
 
 ### Usage
+
+#### Cmdline options
 
 ```
 usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
@@ -245,6 +249,8 @@ PROMPT KEYS:
     ?                      show this help
     q, ^D, double Enter    exit buku
 ```
+
+#### Colors
 
 `buku` supports custom colors. Visit the wiki page on how to [customize colors](https://github.com/jarun/Buku/wiki/Customize-colors) for more details.
 
