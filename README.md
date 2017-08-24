@@ -393,7 +393,7 @@ PROMPT KEYS:
         buku (? for help) g 4 9-6 << 5 3-2
 37. List bookmarks with **colored output**:
 
-        $ buku --colors gKlxe -p
+        $ buku --colors oKlxm -p
 38. More **help**:
 
         $ buku -h

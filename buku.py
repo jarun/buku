@@ -49,14 +49,13 @@ SKIP_MIMES = {'.pdf', '.txt'}
 colorize = True  # Allow color output by default
 
 # Default colour to print records
-ID_srch = '\x1b[96m%d. \x1b[0m'
-ID_str = ID_srch + '\x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
-ID_dbidx = '\x1b[96m%d. \x1b[0m'
-ID_DB_str = ID_dbidx + '\x1b[1;92m%s\x1b[0m'
+ID = '\x1b[96m%d. \x1b[0m'
+ID_str = ID + '\x1b[1;92m%s\x1b[0;2m [%s]\x1b[0m\n'
+ID_DB_str = ID + '\x1b[1;92m%s\x1b[0m'
 MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
 URL_str = '%s   \x1b[91m>\x1b[93m %s\x1b[0m\n'
-DESC_str = '%s   \x1b[91m+\x1b[0m %s\n'
-TAG_str = '%s   \x1b[91m#\x1b[34m %s\n'
+DESC_str = '%s   \x1b[91m+\x1b[0m %s\x1b[0m\n'
+TAG_str = '%s   \x1b[91m#\x1b[94m %s\x1b[0m\n'
 
 # colormap for color output from "googler" project
 COLORMAP = {k: '\x1b[%sm' % v for k, v in {
@@ -68,7 +67,7 @@ COLORMAP = {k: '\x1b[%sm' % v for k, v in {
     'E': '34;1', 'F': '35;1', 'G': '36;1', 'H': '37;1',
     'I': '90;1', 'J': '91;1', 'K': '92;1', 'L': '93;1',
     'M': '94;1', 'N': '95;1', 'O': '96;1', 'P': '97;1',
-    'x': '0', 'X': '1', 'y': '7', 'Y': '7;1',
+    'x': '0', 'X': '1', 'y': '7', 'Y': '7;1', 'z': '2',
 }.items()}
 
 # Disguise as Firefox on Ubuntu
@@ -3306,21 +3305,13 @@ POSITIONAL ARGUMENTS:
 
     # Set colors
     if args.colorstr:
-        ID_srch = '%d.'
-        ID_str = '%s [%s]\n'
-        ID_dbidx = '%d.'
-        ID_DB_str = '%s'
-        MUTE_str = '%s (L)\n'
-        URL_str = '%s   > %s\n'
-        DESC_str = '%s   + %s\n'
-        TAG_str = '%s   # %s\n'
-        ID_srch = setcolors(args.colorstr)[0] + ID_srch
-        ID_str = ID_srch + COLORMAP['x'] + setcolors(args.colorstr)[1] + ID_str
-        ID_DB_str = ID_dbidx + COLORMAP['x'] + setcolors(args.colorstr)[1] + ID_DB_str
-        MUTE_str = setcolors(args.colorstr)[3] + MUTE_str
-        URL_str = setcolors(args.colorstr)[2] + URL_str
-        DESC_str = setcolors(args.colorstr)[3] + DESC_str
-        TAG_str = setcolors(args.colorstr)[4] + TAG_str
+        ID = setcolors(args.colorstr)[0] + '%d. ' + COLORMAP['x']
+        ID_DB_dim = COLORMAP['z'] + '[%s]\n' + COLORMAP['x']
+        ID_str = ID + setcolors(args.colorstr)[1] + '%s ' + COLORMAP['x'] + ID_DB_dim
+        ID_DB_str = ID + setcolors(args.colorstr)[1] + '%s' + COLORMAP['x']
+        URL_str = COLORMAP['j'] + '%s   > ' + setcolors(args.colorstr)[2] + '%s\n' + COLORMAP['x']
+        DESC_str = COLORMAP['j'] + '%s   + ' + setcolors(args.colorstr)[3] + '%s\n' + COLORMAP['x']
+        TAG_str = COLORMAP['j'] + '%s   # ' + setcolors(args.colorstr)[4] + '%s\n' + COLORMAP['x']
 
     # Set up debugging
     if args.debug:
