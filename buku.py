@@ -46,15 +46,15 @@ __license__ = 'GPLv3'
 interrupted = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
-colorize = True  # Allow color output by default
+promptmsg = 'buku (? for help): '  # Prompt message string
 
-# Default colour to print records
-ID_str = ''
-ID_DB_str = ''
-MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
-URL_str = ''
-DESC_str = ''
-TAG_str = ''
+# Default format specifiers to print records
+ID_str = '%d. %s [%s]\n'
+ID_DB_str = '%d. %s'
+MUTE_str = '%s (L)\n'
+URL_str = '%s   > %s\n'
+DESC_str = '%s   + %s\n'
+TAG_str = '%s   # %s\n'
 
 # colormap for color output from "googler" project
 COLORMAP = {k: '\x1b[%sm' % v for k, v in {
@@ -2417,11 +2417,10 @@ def edit_at_prompt(obj, nav):
         obj.add_rec(url, title, tags, desc)
 
 
-def taglist_subprompt(obj, msg, noninteractive=False):
+def taglist_subprompt(obj, noninteractive=False):
     '''Additional prompt to show unique tag list
 
     :param obj: a valid instance of BukuDb class
-    :param msg: sub-prompt message
     :param noninteractive: do not seek user input
     :return: new command string
     '''
@@ -2445,9 +2444,9 @@ def taglist_subprompt(obj, msg, noninteractive=False):
                 return
 
         try:
-            nav = read_in(msg)
+            nav = read_in(promptmsg)
             if not nav:
-                nav = read_in(msg)
+                nav = read_in(promptmsg)
                 if not nav:
                     # Quit on double enter
                     return 'q'
@@ -2489,10 +2488,6 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
         return
 
     new_results = True
-    if colorize:
-        msg = '\x1b[7mbuku (? for help)\x1b[0m '
-    else:
-        msg = 'buku (? for help): '
 
     while True:
         if not subprompt:
@@ -2510,9 +2505,9 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
                     return
 
             try:
-                nav = read_in(msg)
+                nav = read_in(promptmsg)
                 if not nav:
-                    nav = read_in(msg)
+                    nav = read_in(promptmsg)
                     if not nav:
                         # Quit on double enter
                         break
@@ -2525,7 +2520,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
 
         # list tags with 't'
         if nav == 't':
-            nav = taglist_subprompt(obj, msg, noninteractive)
+            nav = taglist_subprompt(obj, noninteractive)
             if noninteractive:
                 return
 
@@ -3087,7 +3082,7 @@ def setcolors(args):
 
 # main starts here
 def main():
-    global colorize, ID_str, ID_DB_str, MUTE_str, URL_str, DESC_str, TAG_str
+    global ID_str, ID_DB_str, MUTE_str, URL_str, DESC_str, TAG_str, promptmsg
 
     title_in = None
     tags_in = None
@@ -3292,13 +3287,6 @@ POSITIONAL ARGUMENTS:
 
     # Handle color output preference
     if args.nc:
-        colorize = False
-        ID_str = '%d. %s [%s]\n'
-        ID_DB_str = '%d. %s'
-        MUTE_str = '%s (L)\n'
-        URL_str = '%s   > %s\n'
-        DESC_str = '%s   + %s\n'
-        TAG_str = '%s   # %s\n'
         logging.basicConfig(format='[%(levelname)s] %(message)s')
     else:
         # Set colors
@@ -3306,12 +3294,16 @@ POSITIONAL ARGUMENTS:
         ID_DB_dim = COLORMAP['z'] + '[%s]\n' + COLORMAP['x']
         ID_str = ID + setcolors(args.colorstr)[1] + '%s ' + COLORMAP['x'] + ID_DB_dim
         ID_DB_str = ID + setcolors(args.colorstr)[1] + '%s' + COLORMAP['x']
+        MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
         URL_str = COLORMAP['j'] + '%s   > ' + setcolors(args.colorstr)[2] + '%s\n' + COLORMAP['x']
         DESC_str = COLORMAP['j'] + '%s   + ' + setcolors(args.colorstr)[3] + '%s\n' + COLORMAP['x']
         TAG_str = COLORMAP['j'] + '%s   # ' + setcolors(args.colorstr)[4] + '%s\n' + COLORMAP['x']
 
         # Enable color in logs
         setup_logger(logger)
+
+        # Enable prompt with reverse video
+        promptmsg = '\x1b[7mbuku (? for help)\x1b[0m '
 
     # Set up debugging
     if args.debug:
@@ -3349,9 +3341,7 @@ POSITIONAL ARGUMENTS:
             desc_in = ''
 
     # Initialize the database and get handles, set verbose by default
-    bdb = BukuDb(args.json, args.format, not args.tacit,
-                 dbfile=args.db[0] if args.db is not None else None,
-                 colorize=not args.nc)
+    bdb = BukuDb(args.json, args.format, not args.tacit, dbfile=args.db[0] if args.db is not None else None, colorize=not args.nc)
 
     # Editor mode
     if args.write is not None:
