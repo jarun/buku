@@ -3301,11 +3301,7 @@ POSITIONAL ARGUMENTS:
         TAG_str = '%s   # %s\n'
         logging.basicConfig(format='[%(levelname)s] %(message)s')
     else:
-        # Enable color in logs
-        setup_logger(logger)
-
-    # Set colors
-    if args.colorstr:
+        # Set colors
         ID = setcolors(args.colorstr)[0] + '%d. ' + COLORMAP['x']
         ID_DB_dim = COLORMAP['z'] + '[%s]\n' + COLORMAP['x']
         ID_str = ID + setcolors(args.colorstr)[1] + '%s ' + COLORMAP['x'] + ID_DB_dim
@@ -3313,6 +3309,9 @@ POSITIONAL ARGUMENTS:
         URL_str = COLORMAP['j'] + '%s   > ' + setcolors(args.colorstr)[2] + '%s\n' + COLORMAP['x']
         DESC_str = COLORMAP['j'] + '%s   + ' + setcolors(args.colorstr)[3] + '%s\n' + COLORMAP['x']
         TAG_str = COLORMAP['j'] + '%s   # ' + setcolors(args.colorstr)[4] + '%s\n' + COLORMAP['x']
+
+        # Enable color in logs
+        setup_logger(logger)
 
     # Set up debugging
     if args.debug:
