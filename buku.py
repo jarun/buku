@@ -52,9 +52,9 @@ promptmsg = 'buku (? for help): '  # Prompt message string
 ID_str = '%d. %s [%s]\n'
 ID_DB_str = '%d. %s'
 MUTE_str = '%s (L)\n'
-URL_str = '%s   > %s\n'
-DESC_str = '%s   + %s\n'
-TAG_str = '%s   # %s\n'
+URL_str = '   > %s\n'
+DESC_str = '   + %s\n'
+TAG_str = '   # %s\n'
 
 # colormap for color output from "googler" project
 COLORMAP = {k: '\x1b[%sm' % v for k, v in {
@@ -2662,34 +2662,28 @@ def print_single_rec(row, idx=0):  # NOQA
     :param idx: search result index. If 0, print with DB index
     '''
 
+    str_list = []
+
     # Start with index and title
     if idx != 0:
-        ID_srch = idx
-        id_title_res = ID_str % (ID_srch, row[2] if row[2] else 'Untitled', row[0])
+        id_title_res = ID_str % (idx, row[2] if row[2] else 'Untitled', row[0])
     else:
-        ID_dbidx = row[0]
-        id_title_res = ID_DB_str % (ID_dbidx, row[2] if row[2] else 'Untitled')
+        id_title_res = ID_DB_str % (row[0], row[2] if row[2] else 'Untitled')
         # Indicate if record is immutable
         if row[5] & 1:
             id_title_res = MUTE_str % (id_title_res)
         else:
             id_title_res += '\n'
 
-    # Append URL
-    url_res = ''
-    url_res = URL_str % (url_res, row[1])
-
-    # Append description
-    desc_res = ''
+    str_list.append(id_title_res)
+    str_list.append(URL_str % (row[1]))
     if row[4]:
-        desc_res = DESC_str % (desc_res, row[4])
-
-    # Append tags IF not default (delimiter)
-    tag_res = ''
+        str_list.append(DESC_str % (row[4]))
     if row[3] != DELIM:
-        tag_res = TAG_str % (tag_res, row[3][1:-1])
+        str_list.append(TAG_str % (row[3][1:-1]))
 
-    print(id_title_res + url_res + desc_res + tag_res)
+    print(''.join(str_list))
+
 
 def format_json(resultset, single_record=False, field_filter=0):
     '''Return results in Json format
@@ -3295,9 +3289,9 @@ POSITIONAL ARGUMENTS:
         ID_str = ID + setcolors(args.colorstr)[1] + '%s ' + COLORMAP['x'] + ID_DB_dim
         ID_DB_str = ID + setcolors(args.colorstr)[1] + '%s' + COLORMAP['x']
         MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
-        URL_str = COLORMAP['j'] + '%s   > ' + setcolors(args.colorstr)[2] + '%s\n' + COLORMAP['x']
-        DESC_str = COLORMAP['j'] + '%s   + ' + setcolors(args.colorstr)[3] + '%s\n' + COLORMAP['x']
-        TAG_str = COLORMAP['j'] + '%s   # ' + setcolors(args.colorstr)[4] + '%s\n' + COLORMAP['x']
+        URL_str = COLORMAP['j'] + '   > ' + setcolors(args.colorstr)[2] + '%s\n' + COLORMAP['x']
+        DESC_str = COLORMAP['j'] + '   + ' + setcolors(args.colorstr)[3] + '%s\n' + COLORMAP['x']
+        TAG_str = COLORMAP['j'] + '   # ' + setcolors(args.colorstr)[4] + '%s\n' + COLORMAP['x']
 
         # Enable color in logs
         setup_logger(logger)
