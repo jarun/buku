@@ -2,6 +2,7 @@
 *.sw[po]
 .cache/
 .coverage
+.hypothesis
 buku.egg-info
 dist
 build

@@ -15,7 +15,7 @@ before_install:
 install: "pip install -r requirements.txt"
 script:
   - python3 -m flake8
-  - find . -iname "*.py" | xargs pylint --rcfile .pylintrc
+  - find . -iname "*.py" | xargs pylint --rcfile tests/.pylintrc
   - python3 -m pytest ./tests/test_*.py --cov buku -vv
 before_deploy:
   - sudo apt-get update -qy
