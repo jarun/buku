@@ -1489,9 +1489,9 @@ class BukuDb:
         index : int
             DB index of record to print. 0 prints all records.
         low : int
-            Actual lower index of range
+            Actual lower index of range.
         high : int
-            Actual higher index of range
+            Actual higher index of range.
         is_range : bool
             A range is passed using low and high arguments.
             An index is ignored if is_range is True (use dummy index).
@@ -1828,15 +1828,25 @@ class BukuDb:
         return update_count
 
     def browse_by_index(self, index=0, low=0, high=0, is_range=False):
-        '''Open URL at index or range of indies in browser
+        """Open URL at index or range of indies in browser
 
-        :param index: index to browse, 0 opens a random bookmark
-        :param low: actual lower index of range
-        :param high: actual higher index of range
-        :param is_range: a range is passed using low and high arguments
-                         index is ignored if is_range is True
-        :return: True on success, False on failure
-        '''
+        Parameters
+        ----------
+        index : int
+            Index to browse. 0 opens a random bookmark.
+        low : int
+            Actual lower index of range.
+        high : int
+            Higher index of range.
+        is_range : bool
+            A range is passed using low and high arguments.
+            If True, index is ignored. Default is False.
+
+        Returns
+        -------
+        bool
+            True on success, False on failure.
+        """
 
         if is_range:
             if low < 0 or high < 0:
@@ -1888,14 +1898,24 @@ class BukuDb:
         return False
 
     def exportdb(self, filepath, taglist=None):
-        '''Export bookmarks to a Firefox bookmarks
-        formatted html or a markdown file, if
-        destination file name ends with '.md'.
+        """Export DB bookmarks to file.
 
-        :param filepath: path to file to export to
-        :param taglist: list of specific tags to export
-        :return: True on success, False on failure
-        '''
+        If destination file name ends with '.md', bookmarks are
+        exported to a markdown file. Otherwise, bookmarks are
+        exported to a Firefox bookmarks.html formatted file.
+
+        Parameters
+        ----------
+        filepath : str
+            Path to export destination file.
+        taglist : list
+            Specific tags to export.
+
+        Returns
+        -------
+        bool
+            True on success, False on failure.
+        """
 
         import time
 
@@ -1981,11 +2001,18 @@ class BukuDb:
         return True
 
     def load_chrome_database(self, path):
-        '''Open Chrome Bookmarks json file and import data
+        """Open Chrome Bookmarks json file and import data.
 
-        :param path: path to google-chrome Bookmarks file
-        :return: `bookmarks' dict
-        '''
+        Parameters
+        ----------
+        path : str
+            Path to Google Chrome bookmarks file.
+
+        Returns
+        -------
+        bookmarks : dict
+            Dictionary holding Google Chroom bookmarks data.
+        """
 
         with open(path, 'r') as datafile:
             data = json.load(datafile)
@@ -1997,12 +2024,13 @@ class BukuDb:
         return bookmarks
 
     def load_firefox_database(self, path):
-        '''Connect to firefox sqlite database and transfer
-        all bookmarks into Buku database
+        """Connect to Firefox sqlite db and import bookmarks into BukuDb.
 
-        :param path: path to firefox bookmarks database
-        :return: None
-        '''
+        Parameters
+        ----------
+        path : str
+            Path to Firefox bookmarks sqlite database.
+        """
 
         # Connect to input DB
         if sys.version_info >= (3, 4, 4):
@@ -2051,11 +2079,15 @@ class BukuDb:
             print('Error here')
 
     def auto_import_from_browser(self):
-        '''Import bookmarks from a browser default database file.
+        """Import bookmarks from a browser default database file.
+
         Supports Firefox and Google Chrome.
 
-        :return: True on success, False on failure
-        '''
+        Returns
+        -------
+        bool
+            True on success, False on failure.
+        """
 
         if sys.platform.startswith('linux'):
             GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
@@ -2105,15 +2137,24 @@ class BukuDb:
         self.conn.commit()
 
     def importdb(self, filepath, tacit=False):
-        '''Import bookmarks from a html or a markdown
-        file (with extension '.md').  Supports Firefox,
-        Google Chrome and IE exported html
+        """Import bookmarks from a html or a markdown file.
 
-        :param filepath: path to file to import
-        :param tacit: no questions asked if True
-                      folder names are automatically imported as tags if True
-        :return: True on success, False on failure
-        '''
+        Supports Firefox, Google Chrome, and IE exported html bookmarks.
+        Supports markdown files with extension '.md'.
+
+        Parameters
+        ----------
+        filepath : str
+            Path to file to import.
+        tacit : bool
+            If True, no questions asked and folder names are automatically
+            imported as tags. Default is False.
+
+        Returns
+        -------
+        bool
+            True on success, False on failure.
+        """
 
         if not tacit:
             newtag = input('Specify unique tag for imports (Enter to skip): ')
@@ -2152,11 +2193,18 @@ class BukuDb:
         return True
 
     def mergedb(self, path):
-        '''Merge bookmarks from another Buku database file
+        """Merge bookmarks from another Buku database file.
 
-        :param path: path to DB file to merge
-        :return: True on success, False on failure
-        '''
+        Parameters
+        ----------
+        path : str
+            Path to DB file to merge.
+
+        Returns
+        -------
+        bool
+            True on success, False on failure.
+        """
 
         try:
             # Connect to input DB
@@ -2188,13 +2236,22 @@ class BukuDb:
         return True
 
     def tnyfy_url(self, index=0, url=None, shorten=True):
-        '''Shorted a URL using Google URL shortener
+        """Shorten a URL using Google URL shortener.
 
-        :param index: shorten the URL at DB index (int)
-        :param url: pass a URL (string)
-        :param shorten: True (default) to shorten, False to expand (boolean)
-        :return: shortened url string on success, None on failure
-        '''
+        Parameters
+        ----------
+        index : int
+            DB index of the bookmark with the URL to shorten.
+        url : str
+            URL to shorten
+        shorten : bool
+            True to shorten, False to expand. Default is False.
+
+        Returns
+        -------
+        str
+            Shortened url on success, None on failure.
+        """
 
         if not index and not url:
             logerr('Either a valid DB index or URL required')
@@ -2238,13 +2295,13 @@ class BukuDb:
         return r.text
 
     def fixtags(self):
-        '''Undocumented API to fix tags set
+        """Undocumented API to fix tags set
         in earlier versions. Functionalities:
 
         1. Remove duplicate tags
         2. Sort tags
         3. Use lower case to store tags
-        '''
+        """
 
         to_commit = False
         self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
