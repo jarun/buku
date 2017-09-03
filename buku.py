@@ -2295,8 +2295,9 @@ class BukuDb:
         return r.text
 
     def fixtags(self):
-        """Undocumented API to fix tags set
-        in earlier versions. Functionalities:
+        """Undocumented API to fix tags set in earlier versions.
+
+        Functionalities:
 
         1. Remove duplicate tags
         2. Sort tags
@@ -2323,10 +2324,13 @@ class BukuDb:
             self.conn.commit()
 
     def close_quit(self, exitval=0):
-        '''Close a DB connection and exit
+        """Close a DB connection and exit.
 
-        :param exitval: program exit value
-        '''
+        Parameters
+        ----------
+        exitval : int
+            Program exit value.
+        """
 
         if self.conn is not None:
             try:
@@ -2339,11 +2343,17 @@ class BukuDb:
 
 
 class ExtendedArgumentParser(argparse.ArgumentParser):
-    '''Extend classic argument parser'''
+    """Extend classic argument parser"""
 
-    # Print program info
     @staticmethod
     def program_info(file=sys.stdout):
+        """Print program info.
+
+        Parameters
+        ----------
+        file : file
+            File to write program info to. Default is sys.stdout.
+        """
         if sys.platform == 'win32' and file == sys.stdout:
             file = sys.stderr
 
@@ -2359,9 +2369,15 @@ License: %s
 Webpage: https://github.com/jarun/Buku
 ''' % (__version__, __author__, __license__))
 
-    # Print prompt help
     @staticmethod
     def prompt_help(file=sys.stdout):
+        """Print prompt help.
+
+        Parameters
+        ----------
+        file : file
+            File to write program info to. Default is sys.stdout.
+        """
         file.write('''
 PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
@@ -2384,7 +2400,23 @@ PROMPT KEYS:
 
     @staticmethod
     def is_colorstr(arg):
-        """Check if a string is a valid color string."""
+        """Check if a string is a valid color string.
+
+        Parameters
+        ----------
+        arg : str
+            Color string to validate.
+
+        Returns
+        -------
+        str
+            Same color string that was passed as an argument.
+
+        Raises
+        ------
+        ArgumentTypeError
+            If the arg is not a valid color string.
+        """
         try:
             assert len(arg) == 5
             for c in arg:
