@@ -1895,7 +1895,7 @@ class BukuDb:
                 return False
 
             if not tacit:
-                resp = input('Add imported folders names as tags? (y/n): ')
+                resp = input('Add parent folder names as tags? (y/n): ')
             else:
                 resp = 'y'
 
