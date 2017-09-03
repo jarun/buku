@@ -462,7 +462,7 @@ class BukuDb:
     conn : sqlite database connection
     cur : sqlite database cursor
     json : bool
-        True if results should be printed in JSON format else False
+        True if results should be printed in json format else False
     field_filter : int
         Indicates format for displaying bookmarks. Default is 0.
     chatty : bool
@@ -475,7 +475,7 @@ class BukuDb:
         Parameters
         ----------
         json : bool
-            True if results should be printed in JSON format else False
+            True if results should be printed in json format else False
         field_filter : int
             Indicates format for displaying bookmarks. Default is 0.
         chatty : bool
@@ -2436,10 +2436,13 @@ PROMPT KEYS:
 # ----------------
 
 def get_firefox_profile_name(path):
-    '''List folder and detect default firefox profile name.
+    """List folder and detect default Firefox profile name.
 
-    :return: profile name
-    '''
+    Returns
+    -------
+    profile : str
+        Firefox profile name.
+    """
 
     names = os.listdir(path)
     profile = [name[:-8] for name in names if name.endswith('.default')][0]
@@ -2447,11 +2450,13 @@ def get_firefox_profile_name(path):
 
 
 def walk(root):
-    '''Recursively iterate over json
+    """Recursively iterate over json.
 
-    :param root: base node of the json data
-    :return: None
-    '''
+    Parameters
+    ----------
+    root : json element
+        Base node of the json data.
+    """
 
     for element in root['children']:
         if element['type'] == 'url':
@@ -2463,12 +2468,20 @@ def walk(root):
 
 
 def is_bad_url(url):
-    '''Check if URL is malformed
-    This API is not bulletproof but works in most cases.
+    """Check if URL is malformed.
 
-    :param url: URL to scan
-    :return: True or False
-    '''
+    .. note:: This API is not bulletproof but works in most cases.
+
+    Parameters
+    ----------
+    url : str
+        URL to scan.
+
+    Returns
+    -------
+    bool
+        True if URL is malformed, False otherwise.
+    """
 
     # Get the netloc token
     netloc = parse_url(url).netloc
@@ -2492,7 +2505,18 @@ def is_bad_url(url):
 
 
 def is_nongeneric_url(url):
-    '''Returns true for URLs which are non-http and non-generic'''
+    """Returns True for URLs which are non-http and non-generic.
+
+    Parameters
+    ----------
+    url : str
+        URL to scan.
+
+    Returns
+    -------
+    bool
+        True if URL is a nongeneric URL, False otherwise.
+    """
 
     ignored_prefix = ['place:', 'file://', 'apt:']
 
@@ -2504,12 +2528,20 @@ def is_nongeneric_url(url):
 
 
 def is_ignored_mime(url):
-    '''Check if URL links to ignored mime
-    Only a 'HEAD' request is made for these URLs
+    """Check if URL links to ignored MIME.
 
-    :param url: URL to scan
-    :return: True or False
-    '''
+    .. note:: Only a 'HEAD' request is made for these URLs.
+
+    Parameters
+    ----------
+    url : str
+        URL to scan.
+
+    Returns
+    -------
+    bool
+        True if URL links to ignored MIME, False otherwise.
+    """
 
     for mime in SKIP_MIMES:
         if url.lower().endswith(mime):
@@ -2520,11 +2552,18 @@ def is_ignored_mime(url):
 
 
 def get_page_title(resp):
-    '''Invoke HTML parser and extract title from HTTP response
+    """Invoke HTML parser and extract title from HTTP response.
 
-    :param resp: HTTP(S) GET response
-    :return: title fetched from parsed page
-    '''
+    Parameters
+    ----------
+    resp : HTTP response
+        Response from GET request.
+
+    Returns
+    -------
+    str
+        Title fetched from parsed page.
+    """
 
     parser = BukuHTMLParser()
 
@@ -2539,7 +2578,7 @@ def get_page_title(resp):
 
 
 def gen_headers():
-    '''Generate headers for network connection'''
+    """Generate headers for network connection."""
 
     global myheaders, myproxy
 
@@ -2569,10 +2608,13 @@ def gen_headers():
 
 
 def get_PoolManager():
-    '''Creates a pool manager with proxy support, if applicable
+    """Creates a pool manager with proxy support, if applicable.
 
-    :return: ProxyManager if https_proxy is defined, else PoolManager.
-    '''
+    Returns
+    -------
+    ProxyManager or PoolManager
+        ProxyManager if https_proxy is defined, PoolManager otherwise.
+    """
 
     if myproxy:
         return urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders)
@@ -2581,12 +2623,20 @@ def get_PoolManager():
 
 
 def network_handler(url, http_head=False):
-    '''Handle server connection and redirections
+    """Handle server connection and redirections.
 
-    :param url: URL to fetch
-    :param http_head: send only HTTP HEAD request
-    :return: (title, recognized mime, bad url) tuple
-    '''
+    Parameters
+    ----------
+    url : str
+        URL to fetch.
+    http_head : bool
+        If True, send only HTTP HEAD request. Default is False.
+
+    Returns
+    -------
+    tuple
+        (title, recognized mime, bad url)
+    """
 
     page_title = None
 
@@ -2641,13 +2691,22 @@ def network_handler(url, http_head=False):
 
 
 def parse_tags(keywords=[]):
-    '''Format and get tag string from tokens
+    """Format and get tag string from tokens.
 
-    :param keywords: list of tags
-    :return: comma-delimited string of tags
-    :return: just delimiter, if no keywords
-    :return: None, if keyword is None
-    '''
+    Parameters
+    ----------
+    keywords : list
+        List of tags to parse. Default is empty list.
+
+    Returns
+    -------
+    str
+        Comma-delimited string of tags.
+    DELIM : str
+        If no keywords, returns the delimiter.
+    None
+        If keywords is None.
+    """
 
     if keywords is None:
         return None
@@ -2698,14 +2757,19 @@ def parse_tags(keywords=[]):
 
 
 def prep_tag_search(tags):
-    """Prepare list of tags to search and determine search operator
+    """Prepare list of tags to search and determine search operator.
 
-    :param tags: list of tags to search as string
-    :return: tuple (
-                    list of formatted tags to search,
-                    a string indicating query search operator (either OR or AND),
-                    a regex string of tags (None if ' - ' operator not in tags)
-                   )
+    Parameters
+    ----------
+    tags : str
+        String list of tags to search.
+
+    Returns
+    -------
+    tuple
+        (list of formatted tags to search,
+         a string indicating query search operator (either OR or AND),
+         a regex string of tags or None if ' - ' delimiter not in tags)
     """
 
     excluded_tags = None
@@ -2728,10 +2792,15 @@ def prep_tag_search(tags):
 
 
 def edit_at_prompt(obj, nav):
-    '''Edit and add or update a bookmark
+    """Edit and add or update a bookmark.
 
-    :param obj: a valid instance of BukuDb class
-    '''
+    Parameters
+    ----------
+    obj : BukuDb instance
+        A valid instance of BukuDb class.
+    nav : str
+        Navigation command argument passed at prompt by user.
+    """
 
     if nav == 'w':
         editor = get_system_editor()
@@ -2750,12 +2819,20 @@ def edit_at_prompt(obj, nav):
 
 
 def taglist_subprompt(obj, noninteractive=False):
-    '''Additional prompt to show unique tag list
+    """Additional prompt to show unique tag list.
 
-    :param obj: a valid instance of BukuDb class
-    :param noninteractive: do not seek user input
-    :return: new command string
-    '''
+    Parameters
+    ----------
+    obj : BukuDb instance
+        A valid instance of BukuDb class.
+    noninteractive : bool
+        If True, does not seek user input. Default is False.
+
+    Returns
+    -------
+    str
+        New command string.
+    """
 
     unique_tags, dic = obj.get_tag_all()
     new_results = True
@@ -2806,14 +2883,21 @@ def taglist_subprompt(obj, noninteractive=False):
 
 
 def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
-    '''Show each matching result from a search and prompt
+    """Show each matching result from a search and prompt.
 
-    :param obj: a valid instance of BukuDb class
-    :param results: result set from a DB query
-    :param noninteractive: do not seek user input
-    :param deep: use deep search
-    :param subprompt: jump directly to sub prompt
-    '''
+    Parameters
+    ----------
+    obj : BukuDb instance
+        A valid instance of BukuDb class.
+    results : list
+        Search result set from a DB query.
+    noninteractive : bool, optional
+        If True, does not seek user input. Default is False.
+    deep : bool, optional
+        Use deep search. Default is False.
+    subprompt : bool, optional
+        If True, jump directly to subprompt.
+    """
 
     if not type(obj) is BukuDb:
         logerr('Not a BukuDb instance')
@@ -2988,11 +3072,18 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
 
 
 def print_single_rec(row, idx=0):  # NOQA
-    '''Print a single DB record
-    Handles both search result and individual record
+    """Print a single DB record.
 
-    :param idx: search result index. If 0, print with DB index
-    '''
+    Handles both search results and individual record
+
+    Parameters
+    ----------
+    row : tuple
+        Tuple representing bookmark record data.
+    idx : int, optional
+        Search result index. If 0, print with DB index.
+        Default is 0.
+    """
 
     # Start with index and title
     if idx != 0:
@@ -3024,12 +3115,20 @@ def print_single_rec(row, idx=0):  # NOQA
     print(id_title_res + url_res + desc_res + tag_res)
 
 def format_json(resultset, single_record=False, field_filter=0):
-    '''Return results in Json format
+    """Return results in json format.
 
-    :param single_record: indicates only one record
-    :param field_filter: determines fields to show
-    :return: record(s) in Json format
-    '''
+    Parameters
+    ----------
+    resultset : list
+        Search results from DB query.
+    single_record : bool, optional
+        If True, indicates only one record. Default is False.
+
+    Returns
+    -------
+    json
+        Record(s) in json format.
+    """
 
     if single_record:
         marks = {}
@@ -3071,11 +3170,16 @@ def format_json(resultset, single_record=False, field_filter=0):
 
 
 def is_int(string):
-    '''Check if a string is a digit
+    """Check if a string is a digit.
 
-    :param string: input string
-    :return: True on success, False on exception
-    '''
+    string : str
+        Input string to check.
+
+    Returns
+    -------
+    bool
+        True on success, False on exception.
+    """
 
     try:
         int(string)
@@ -3085,11 +3189,16 @@ def is_int(string):
 
 
 def browse(url):
-    '''Duplicate stdin, stdout (to suppress showing errors
-    on the terminal) and open URL in default browser
+    """Duplicate stdin, stdout and open URL in default browser
 
-    :param url: URL to open
-    '''
+    .. note:: Duplicates stdin and stdout in order to
+              suppress showing errors on the terminal.
+
+    Parameters
+    ----------
+    url : str
+        URL to open in browser.
+    """
 
     if not parse_url(url).scheme:
         # Prefix with 'http://' if no scheme
@@ -3126,7 +3235,7 @@ def browse(url):
 
 
 def check_upstream_release():
-    '''Check and report the latest upstream release version'''
+    """Check and report the latest upstream release version."""
 
     proxies = {
         'https': os.environ.get('https_proxy'),
@@ -3152,19 +3261,49 @@ def check_upstream_release():
 
 
 def regexp(expr, item):
-    '''Perform a regular expression search'''
+    """Perform a regular expression search.
+
+    Parameters
+    ----------
+    expr : regex
+        Regular expression to search for.
+    item : str
+        Item on which to perform regex search.
+
+    Returns
+    -------
+    bool
+        True if result of search is not None, returns None otherwise.
+    """
 
     return re.search(expr, item, re.IGNORECASE) is not None
 
 
 def delim_wrap(token):
-    '''Wrap a string with delimiters and return'''
+    """Returns token string wrapped in delimiters.
+
+    Parameters
+    ----------
+    token : str
+        String item to wrap with DELIM.
+
+    Returns
+    -------
+    str
+        Token string wrapped by DELIM.
+    """
 
     return DELIM + token + DELIM
 
 
 def read_in(msg):
-    '''A wrapper to handle input() with interrupts disabled'''
+    """A wrapper to handle input() with interrupts disabled.
+
+    Parameters
+    ----------
+    msg : str
+        String to pass to to input()
+    """
 
     disable_sigint_handler()
     message = None
@@ -3178,7 +3317,18 @@ def read_in(msg):
 
 
 def sigint_handler(signum, frame):
-    '''Custom SIGINT handler'''
+    """Custom SIGINT handler.
+
+    .. note:: Neither signum nor frame are used in
+              this custom handler. However, they are
+              required parameters for signal handlers.
+
+    Parameters
+    ----------
+    signum : int
+        Signal number.
+    frame : frame object or None
+    """
 
     global interrupted
 
@@ -3192,10 +3342,12 @@ DEFAULT_HANDLER = signal.signal(signal.SIGINT, sigint_handler)
 
 
 def disable_sigint_handler():
+    """Disable signint handler."""
     signal.signal(signal.SIGINT, DEFAULT_HANDLER)
 
 
 def enable_sigint_handler():
+    """Enable sigint handler."""
     signal.signal(signal.SIGINT, sigint_handler)
 
 # ---------------------
