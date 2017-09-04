@@ -81,8 +81,24 @@ logerr = logger.error
 
 
 class BukuHTMLParser(HTMLParser.HTMLParser):
-    """Class to parse and fetch the title from a HTML page, if available
+    """Class to parse and fetch the title from a HTML page, if available.
 
+    .. note:: The methods in this class are custom implementations of the
+              HTMLParser object.
+
+              See docs https://docs.python.org/3/library/html.parser.html.
+
+
+    Attributes
+    ----------
+    in_title_tag : bool
+        True if HTML tag is a <title> tag. Initial value is False.
+    data : str
+        Initial value is empty string.
+    prev_tag : None or str
+        Initial value is None.
+    parsed_title : None or str
+        The parsed title from a title tag. Initial value is None.
     """
 
     def __init__(self):
@@ -162,7 +178,7 @@ class BukuCrypt:
         ----------
         iterations : int
             Number of iterations for key generation
-        dbfile : str
+        dbfile : str, optional
             Custom database file path (including filename)
         """
 
@@ -260,7 +276,7 @@ class BukuCrypt:
         ----------
         iterations : int
             Number of iterations for key generation
-        dbfile : str
+        dbfile : str, optional
             Custom database file path (including filename)
             The '.enc' suffix must be omitted.
         """
@@ -474,13 +490,13 @@ class BukuDb:
 
         Parameters
         ----------
-        json : bool
+        json : bool, optional
             True if results should be printed in json format else False
-        field_filter : int
+        field_filter : int, optional
             Indicates format for displaying bookmarks. Default is 0.
-        chatty : bool
+        chatty : bool, optional
             Sets the verbosity of the APIs. Default is False.
-        colorize : bool
+        colorize : bool, optional
             Indicates whether color should be used in output. Default is True.
         """
 
@@ -528,7 +544,7 @@ class BukuDb:
 
         Parameters
         ----------
-        dbfile : str
+        dbfile : str, optional
             Custom database file path (including filename)
 
         Returns
@@ -659,17 +675,17 @@ class BukuDb:
         ----------
         url : str
             URL to bookmark
-        title_in :str
+        title_in :str, optional
             Title to add manually. Default is None.
-        tags_in : str
+        tags_in : str, optional
             Comma-separated tags to add manually.
             Must start and end with comma. Default is None.
-        desc : str
+        desc : str, optional
             Description of the bookmark. Default is None.
-        immutable : int
+        immutable : int, optional
             Indicates whether to disable title fetch from web.
             Default is 0.
-        delay_commit : bool
+        delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
 
@@ -741,7 +757,7 @@ class BukuDb:
             DB index of the record. 0 indicates all records.
         tags_in : str
             Comma-separated tags to add manually
-        delay_commit : bool
+        delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
 
@@ -786,7 +802,7 @@ class BukuDb:
             DB index of bookmark record. 0 indicates all records.
         tags_in : str
             Comma-separated tags to delete manually
-        delay_commit : bool
+        delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
 
@@ -852,19 +868,19 @@ class BukuDb:
         ----------
         index : int
             DB index of record. 0 indicates all records.
-        url : str
+        url : str, optional
             Bookmark address
-        title_in : str
-            Title to add manually
-        tags_in : str
+        title_in : str, optional
+            Title to add manually.
+        tags_in : str, optional
             Comma-separated tags to add manually. Must start and end with comma.
             Prefix with '+,' to append to current tags.
             Prefix with '-,' to delete from current tags
-        desc : str
+        desc : str, optional
             Description of bookmark
-        immutable : int
+        immutable : int, optional
             Diable title fetch from web if 1. Default is -1.
-        threads : int
+        threads : int, optional
             Number of threads to use to refresh full DB. Default is 4.
 
         Returns
@@ -1142,7 +1158,7 @@ class BukuDb:
         ----------
         index : int
             DB index of the record
-        immutable : int
+        immutable : int, optional
             Diable title fetch from web if 1. Default is -1.
 
         Returns
@@ -1178,12 +1194,12 @@ class BukuDb:
         ----------
         keywords : list of str
             Keywords to search
-        all_keywords : bool
+        all_keywords : bool, optional
             True to return records matching ALL keywords.
             False (default value) to return records matching ANY keyword.
-        deep : bool
+        deep : bool, optional
             True to search for matching substrings. Default is False.
-        regex : bool
+        regex : bool, optional
             Match a regular expression if True. Default is False.
 
         Returns
@@ -1300,7 +1316,7 @@ class BukuDb:
         ----------
         index : int
             DB index of deleted entry
-        delay_commit : bool
+        delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
         """
@@ -1332,14 +1348,15 @@ class BukuDb:
         ----------
         index : int
             DB index of deleted entry.
-        low : int
+        low : int, optional
             Actual lower index of range.
-        high : Actual higher index of range
-        is_range : bool
+        high : int, optional
+            Actual higher index of range.
+        is_range : bool, optional
             A range is passed using low and high arguments.
             An index is ignored if is_range is True (use dummy index).
             Default is False.
-        delay_commit : bool
+        delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
 
@@ -1441,7 +1458,7 @@ class BukuDb:
 
         Parameters
         ----------
-        delay_commit : bool
+        delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
 
@@ -1486,13 +1503,13 @@ class BukuDb:
 
         Parameters
         -----------
-        index : int
+        index : int, optional
             DB index of record to print. 0 prints all records.
-        low : int
+        low : int, optional
             Actual lower index of range.
-        high : int
+        high : int, optional
             Actual higher index of range.
-        is_range : bool
+        is_range : bool, optional
             A range is passed using low and high arguments.
             An index is ignored if is_range is True (use dummy index).
             Default is False.
@@ -1908,7 +1925,7 @@ class BukuDb:
         ----------
         filepath : str
             Path to export destination file.
-        taglist : list
+        taglist : list, optional
             Specific tags to export.
 
         Returns
@@ -2146,7 +2163,7 @@ class BukuDb:
         ----------
         filepath : str
             Path to file to import.
-        tacit : bool
+        tacit : bool, optional
             If True, no questions asked and folder names are automatically
             imported as tags. Default is False.
 
@@ -2240,11 +2257,11 @@ class BukuDb:
 
         Parameters
         ----------
-        index : int
-            DB index of the bookmark with the URL to shorten.
-        url : str
+        index : int, optional (if URL is provided)
+            DB index of the bookmark with the URL to shorten. Default is 0.
+        url : str, optional (if index is provided)
             URL to shorten
-        shorten : bool
+        shorten : bool, optional
             True to shorten, False to expand. Default is False.
 
         Returns
@@ -2328,7 +2345,7 @@ class BukuDb:
 
         Parameters
         ----------
-        exitval : int
+        exitval : int, optional
             Program exit value.
         """
 
@@ -2351,7 +2368,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
 
         Parameters
         ----------
-        file : file
+        file : file, optional
             File to write program info to. Default is sys.stdout.
         """
         if sys.platform == 'win32' and file == sys.stdout:
@@ -2375,7 +2392,7 @@ Webpage: https://github.com/jarun/Buku
 
         Parameters
         ----------
-        file : file
+        file : file, optional
             File to write program info to. Default is sys.stdout.
         """
         file.write('''
@@ -2427,6 +2444,13 @@ PROMPT KEYS:
 
     # Help
     def print_help(self, file=sys.stdout):
+        """Print help prompt.
+
+        Parameters
+        ----------
+        file : file, optional
+            File to write program info to. Default is sys.stdout.
+        """
         super(ExtendedArgumentParser, self).print_help(file)
         self.program_info(file)
 
@@ -2695,7 +2719,7 @@ def parse_tags(keywords=[]):
 
     Parameters
     ----------
-    keywords : list
+    keywords : list, optional
         List of tags to parse. Default is empty list.
 
     Returns
@@ -2825,7 +2849,7 @@ def taglist_subprompt(obj, noninteractive=False):
     ----------
     obj : BukuDb instance
         A valid instance of BukuDb class.
-    noninteractive : bool
+    noninteractive : bool, optional
         If True, does not seek user input. Default is False.
 
     Returns
@@ -3356,17 +3380,24 @@ def enable_sigint_handler():
 
 
 def get_system_editor():
-    '''Returns default system editor is $EDITOR is set'''
+    """Returns default system editor is $EDITOR is set"""
 
     return os.environ.get('EDITOR', 'none')
 
 
 def is_editor_valid(editor):
-    '''Check if the editor string is valid
+    """Check if the editor string is valid
 
-    :param editor: editor string
-    :return: True if string is valid, else False
-    '''
+    Parameters
+    ----------
+    editor : str
+        Editor string.
+
+    Returns
+    -------
+    bool
+        True if string is valid, else False.
+    """
 
     if editor == 'none':
         logerr('EDITOR is not set')
@@ -3380,14 +3411,24 @@ def is_editor_valid(editor):
 
 
 def to_temp_file_content(url, title_in, tags_in, desc):
-    '''Generate temporary file content string
+    """Generate temporary file content string
 
-    :param url: URL to open
-    :param title_in: string title to add manually
-    :param tags_in: string of comma-separated tags to add manually
-    :param desc: string description
-    :return: lines as newline separated string
-    '''
+    Parameters
+    ----------
+    url : str
+        URL to open.
+    title_in : str
+        Title to add manually.
+    tags_in : str
+        Comma-separated tags to add manually.
+    desc : str
+        String description.
+
+    Returns
+    -------
+    str
+        Lines as newline separated string.
+    """
 
     strings = [('# Lines beginning with "#" will be stripped.\n'
                 '# Add URL in next line (single line).'), ]
@@ -3418,15 +3459,23 @@ def to_temp_file_content(url, title_in, tags_in, desc):
 
 
 def parse_temp_file_content(content):
-    '''Parse and return temporary file content
+    """Parse and return temporary file content.
 
-    :param content: string of content
-    :return: tuple
-             url: URL to open
-             title: string title to add manually
-             tags: string of comma-separated tags to add manually
-             comments: string description
-    '''
+    Parameters
+    ----------
+    content : str
+        String of content
+
+    Returns
+    -------
+    tuple
+        (url, title, tags, comments)
+
+        url: URL to open
+        title: string title to add manually
+        tags: string of comma-separated tags to add manually
+        comments: string description
+    """
 
     content = content.split('\n')
     content = [c for c in content if not c or c[0] != '#']
@@ -3467,15 +3516,26 @@ def parse_temp_file_content(content):
 
 
 def edit_rec(editor, url, title_in, tags_in, desc):
-    '''Edit a bookmark record
+    """Edit a bookmark record
 
-    :param editor: editor to open
-    :param url: URL to open
-    :param title_in: string title to add manually
-    :param tags_in: string of comma-separated tags to add manually
-    :param desc: string description
-    :return: parsed content
-    '''
+    Parameters
+    ----------
+    editor : str
+        Editor to open.
+    URL : str
+        URL to open.
+    title_in : str
+        Title to add manually.
+    tags_in : str
+        Comma-separated tags to add manually.
+    desc : str
+        Bookmark description.
+
+    Returns
+    -------
+    tuple
+        Parsed results from parse_temp_file_content().
+    """
 
     import tempfile
     import subprocess
@@ -3512,10 +3572,13 @@ def edit_rec(editor, url, title_in, tags_in, desc):
 
 
 def setup_logger(logger):
-    '''Setup logger with color
+    """Setup logger with color.
 
-    :param logger: logger to colorize
-    '''
+    Parameters
+    ----------
+    logger : logger object
+        Logger to colorize.
+    """
 
     def decorate_emit(fn):
         def new(*args):
@@ -3543,8 +3606,13 @@ def setup_logger(logger):
     logger.addHandler(sh)
 
 
-# Handle piped input
 def piped_input(argv, pipeargs=None):
+    """Handle piped input.
+
+    Parameters
+    ----------
+    pipeargs : str
+    """
     if not sys.stdin.isatty():
         pipeargs += argv
         print('waiting for input')
@@ -3552,8 +3620,14 @@ def piped_input(argv, pipeargs=None):
             pipeargs += s.split()
 
 
-# get colors from user input and separete into "result" list for use in args.colors
 def setcolors(args):
+    """Get colors from user and separate into 'result' list for use in arg.colors.
+
+    Parameters
+    ----------
+    args : str
+        Color string.
+    """
     Colors = collections.namedtuple('Colors', ' ID_srch, ID_str, URL_str, DESC_str, TAG_str')
     colors = Colors(*[COLORMAP[c] for c in args])
     id_col = colors.ID_srch
@@ -3566,6 +3640,7 @@ def setcolors(args):
 
 # main starts here
 def main():
+    """Main."""
     global ID_str, ID_DB_str, MUTE_str, URL_str, DESC_str, TAG_str, promptmsg
 
     title_in = None
