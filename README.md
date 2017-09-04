@@ -31,7 +31,7 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 
 <p align="center">
 <a href="https://saythanks.io/to/jarun"><img src="https://img.shields.io/badge/say-thanks!-ff69b4.svg" /></a>
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/PayPal-donate-FC746D.svg" alt="Donate via PayPal!" /></a>
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/Donate-$5-FC746D.svg" alt="Donate via PayPal!" /></a>
 </p>
 
 ### Table of Contents
