@@ -1,9 +1,8 @@
 name: buku
-metadata:
-  maintainer: Arun Prakash Jana <engineerarun@gmail.com>
-  license: GPLv3
-  summary: A highly delicious bookmark manager. Your mini web!
-  homepage: https://github.com/jarun/Buku/
+maintainer: Arun Prakash Jana <engineerarun@gmail.com>
+license: GPLv3
+summary: A highly delicious bookmark manager. Your mini web!
+homepage: https://github.com/jarun/Buku
 commands:
   install:
     - make PREFIX="/usr" install DESTDIR="${BP_DESTDIR}"
