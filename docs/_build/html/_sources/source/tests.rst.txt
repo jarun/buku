@@ -1,0 +1,54 @@
+tests package
+=============
+
+Submodules
+----------
+
+tests\.test\_BukuCrypt module
+-----------------------------
+
+.. automodule:: tests.test_BukuCrypt
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+tests\.test\_BukuHTMLParser module
+----------------------------------
+
+.. automodule:: tests.test_BukuHTMLParser
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+tests\.test\_ExtendedArgumentParser module
+------------------------------------------
+
+.. automodule:: tests.test_ExtendedArgumentParser
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+tests\.test\_buku module
+------------------------
+
+.. automodule:: tests.test_buku
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+tests\.test\_bukuDb module
+--------------------------
+
+.. automodule:: tests.test_bukuDb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: tests
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,827 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tests.test_buku &mdash; Buku  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Buku  documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Buku
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/buku.html">Buku</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buku</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tests.test_buku</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tests.test_buku</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;test module.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">unittest</span> <span class="k">import</span> <span class="n">mock</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="kn">from</span> <span class="nn">buku</span> <span class="k">import</span> <span class="n">is_int</span><span class="p">,</span> <span class="n">parse_tags</span><span class="p">,</span> <span class="n">prep_tag_search</span>
+
+<span class="n">only_python_3_5</span> <span class="o">=</span> <span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skipif</span><span class="p">(</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;requires Python 3.5 or later&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="test_is_bad_url"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_is_bad_url">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;url, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;ftp://ftp.somedomain.org&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;http://examplecom.&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;http://.example.com&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;http://example.com.&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_is_bad_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">is_bad_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_is_ignored_mime"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_is_ignored_mime">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;url, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;http://example.com/file.pdf&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;http://example.com/file.txt&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;http://example.com/file.jpg&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_is_ignored_mime</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="k">assert</span> <span class="n">exp_res</span> <span class="o">==</span> <span class="n">buku</span><span class="o">.</span><span class="n">is_ignored_mime</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_get_page_title"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_get_page_title">[docs]</a><span class="k">def</span> <span class="nf">test_get_page_title</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.BukuHTMLParser&#39;</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="n">parser</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">get_page_title</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">parser</span><span class="o">.</span><span class="n">parsed_title</span></div>
+
+
+<div class="viewcode-block" id="test_gen_headers"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_gen_headers">[docs]</a><span class="k">def</span> <span class="nf">test_gen_headers</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="n">exp_myheaders</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Accept-Encoding&#39;</span><span class="p">:</span> <span class="s1">&#39;gzip,deflate&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="n">buku</span><span class="o">.</span><span class="n">USER_AGENT</span><span class="p">,</span>
+        <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;*/*&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Cookie&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;DNT&#39;</span><span class="p">:</span> <span class="s1">&#39;1&#39;</span>
+    <span class="p">}</span>
+    <span class="n">buku</span><span class="o">.</span><span class="n">gen_headers</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">buku</span><span class="o">.</span><span class="n">myproxy</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">buku</span><span class="o">.</span><span class="n">myheaders</span> <span class="o">==</span> <span class="n">exp_myheaders</span></div>
+
+
+<div class="viewcode-block" id="test_get_PoolManager"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_get_PoolManager">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s1">&#39;m_myproxy&#39;</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()])</span>
+<span class="k">def</span> <span class="nf">test_get_PoolManager</span><span class="p">(</span><span class="n">m_myproxy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.urllib3&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_ul3</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">buku</span><span class="o">.</span><span class="n">myproxy</span> <span class="o">=</span> <span class="n">m_myproxy</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">get_PoolManager</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">m_myproxy</span><span class="p">:</span>
+            <span class="n">m_ul3</span><span class="o">.</span><span class="n">ProxyManager</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span>
+                <span class="n">m_myproxy</span><span class="p">,</span> <span class="n">num_pools</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">buku</span><span class="o">.</span><span class="n">myheaders</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">m_ul3</span><span class="o">.</span><span class="n">ProxyManager</span><span class="o">.</span><span class="n">return_value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">m_ul3</span><span class="o">.</span><span class="n">PoolManager</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span>
+                <span class="n">num_pools</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">buku</span><span class="o">.</span><span class="n">myheaders</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">m_ul3</span><span class="o">.</span><span class="n">PoolManager</span><span class="o">.</span><span class="n">return_value</span></div>
+
+
+<div class="viewcode-block" id="test_parse_tags"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_parse_tags">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;keywords, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">([],</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">([</span><span class="s1">&#39;tag1&#39;</span><span class="p">,</span> <span class="s1">&#39;tag2&#39;</span><span class="p">],</span> <span class="s1">&#39;,tag1 tag2,&#39;</span><span class="p">),</span>
+        <span class="p">([</span><span class="s1">&#39;tag1,tag2&#39;</span><span class="p">,</span> <span class="s1">&#39;tag3&#39;</span><span class="p">],</span> <span class="s1">&#39;,tag1,tag2 tag3,&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_parse_tags</span><span class="p">(</span><span class="n">keywords</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="k">if</span> <span class="n">keywords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">keywords</span><span class="p">:</span>
+        <span class="n">exp_res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">DELIM</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">parse_tags</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_prep_tag_search"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_prep_tag_search">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;taglist, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="s1">&#39;tag1, tag2+3&#39;</span><span class="p">,</span>
+            <span class="p">([</span><span class="s1">&#39;,tag1,&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag2+3,&#39;</span><span class="p">],</span> <span class="s1">&#39;OR&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="p">[</span>
+            <span class="s1">&#39;tag1 + tag2-3 + tag4&#39;</span><span class="p">,</span>
+            <span class="p">([</span><span class="s1">&#39;,tag1,&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag2-3,&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag4,&#39;</span><span class="p">],</span> <span class="s1">&#39;AND&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="p">[</span>
+            <span class="s1">&#39;tag1, tag2-3 - tag4, tag5&#39;</span><span class="p">,</span>
+            <span class="p">([</span><span class="s1">&#39;,tag1,&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag2-3,&#39;</span><span class="p">],</span> <span class="s1">&#39;OR&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag4,|,tag5,&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_prep_tag_search</span><span class="p">(</span><span class="n">taglist</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test prep_tag_search helper function&quot;&quot;&quot;</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="n">prep_tag_search</span><span class="p">(</span><span class="n">taglist</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">results</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_edit_at_prompt"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_edit_at_prompt">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;nav, is_editor_valid_retval, edit_rec_retval&#39;</span><span class="p">,</span>
+    <span class="n">product</span><span class="p">(</span>
+        <span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">]],</span>
+        <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+        <span class="p">[[</span><span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">(),</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">(),</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">(),</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()],</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_edit_at_prompt</span><span class="p">(</span><span class="n">nav</span><span class="p">,</span> <span class="n">is_editor_valid_retval</span><span class="p">,</span> <span class="n">edit_rec_retval</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+    <span class="n">editor</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.get_system_editor&#39;</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="n">editor</span><span class="p">),</span> \
+            <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.is_editor_valid&#39;</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="n">is_editor_valid_retval</span><span class="p">),</span> \
+            <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.edit_rec&#39;</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="n">edit_rec_retval</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_edit_rec</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">buku</span><span class="o">.</span><span class="n">edit_at_prompt</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">nav</span><span class="p">)</span>
+        <span class="c1"># test</span>
+        <span class="k">if</span> <span class="n">nav</span> <span class="o">==</span> <span class="s1">&#39;w&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_editor_valid_retval</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="n">nav</span> <span class="o">==</span> <span class="s1">&#39;w&#39;</span><span class="p">:</span>
+            <span class="n">m_edit_rec</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">buku</span><span class="o">.</span><span class="n">DELIM</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">buku</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">nav</span><span class="p">[</span><span class="mi">2</span><span class="p">:]):</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">edit_update_rec</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">nav</span><span class="p">[</span><span class="mi">2</span><span class="p">:]))</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">editor</span> <span class="o">=</span> <span class="n">nav</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">m_edit_rec</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">buku</span><span class="o">.</span><span class="n">DELIM</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">edit_rec_retval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">add_rec</span><span class="p">(</span><span class="o">*</span><span class="n">edit_rec_retval</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_format_json"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_format_json">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;field_filter, single_record&#39;</span><span class="p">,</span>
+    <span class="n">product</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)),</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_format_json</span><span class="p">(</span><span class="n">field_filter</span><span class="p">,</span> <span class="n">single_record</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="n">resultset</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;row</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)]]</span>
+    <span class="k">if</span> <span class="n">field_filter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">marks</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;uri&#39;</span><span class="p">:</span> <span class="s1">&#39;row1&#39;</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="n">field_filter</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">marks</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;uri&#39;</span><span class="p">:</span> <span class="s1">&#39;row1&#39;</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="s1">&#39;row3&#39;</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]}</span>
+    <span class="k">elif</span> <span class="n">field_filter</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">marks</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;row2&#39;</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">marks</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;row0&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;uri&#39;</span><span class="p">:</span> <span class="s1">&#39;row1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;row2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;row4&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="s1">&#39;row3&#39;</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">single_record</span><span class="p">:</span>
+        <span class="n">marks</span> <span class="o">=</span> <span class="p">[</span><span class="n">marks</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.json&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_json</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">format_json</span><span class="p">(</span><span class="n">resultset</span><span class="p">,</span> <span class="n">single_record</span><span class="p">,</span> <span class="n">field_filter</span><span class="p">)</span>
+        <span class="n">m_json</span><span class="o">.</span><span class="n">dumps</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">marks</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">m_json</span><span class="o">.</span><span class="n">dumps</span><span class="o">.</span><span class="n">return_value</span></div>
+
+
+<div class="viewcode-block" id="test_is_int"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_is_int">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;string, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;12&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;12.1&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_is_int</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="k">assert</span> <span class="n">exp_res</span> <span class="o">==</span> <span class="n">buku</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">string</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_browse"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_browse">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;url, opened_url, platform&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;linux&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;linux&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;win32&#39;</span><span class="p">],</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_browse</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">opened_url</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.webbrowser&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_webbrowser</span><span class="p">,</span> \
+            <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.sys&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_sys</span><span class="p">:</span>
+        <span class="n">m_sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">=</span> <span class="n">platform</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">buku</span><span class="o">.</span><span class="n">browse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">m_webbrowser</span><span class="o">.</span><span class="n">open</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">opened_url</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_check_upstream_release"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_check_upstream_release">[docs]</a><span class="nd">@only_python_3_5</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;status_code, latest_release&#39;</span><span class="p">,</span>
+    <span class="n">product</span><span class="p">([</span><span class="mi">200</span><span class="p">,</span> <span class="mi">404</span><span class="p">],</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_check_upstream_release</span><span class="p">(</span><span class="n">status_code</span><span class="p">,</span> <span class="n">latest_release</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.requests&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_requests</span><span class="p">,</span> \
+            <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.print&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_print</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="k">if</span> <span class="n">latest_release</span><span class="p">:</span>
+            <span class="n">latest_version</span> <span class="o">=</span> <span class="s1">&#39;v</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">buku</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">latest_version</span> <span class="o">=</span> <span class="s1">&#39;v0&#39;</span>
+        <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;tag_name&#39;</span><span class="p">:</span> <span class="n">latest_version</span><span class="p">}]</span>
+        <span class="n">m_requests</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="n">resp</span>
+        <span class="n">buku</span><span class="o">.</span><span class="n">check_upstream_release</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">latest_release</span><span class="p">:</span>
+            <span class="n">print_text</span> <span class="o">=</span> <span class="s1">&#39;This is the latest release&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_text</span> <span class="o">=</span> <span class="s1">&#39;Latest upstream release is </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">latest_version</span>
+        <span class="n">m_print</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">print_text</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_regexp"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_regexp">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;exp, item, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;cat.y&#39;</span><span class="p">,</span> <span class="s1">&#39;catty&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;cat.y&#39;</span><span class="p">,</span> <span class="s1">&#39;caty&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_regexp</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">regexp</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_delim_wrap"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_delim_wrap">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s1">&#39;token, exp_res&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;,text,&#39;</span><span class="p">)])</span>
+<span class="k">def</span> <span class="nf">test_delim_wrap</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">delim_wrap</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_read_in"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_read_in">[docs]</a><span class="nd">@only_python_3_5</span>
+<span class="k">def</span> <span class="nf">test_read_in</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.disable_sigint_handler&#39;</span><span class="p">),</span> \
+            <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.enable_sigint_handler&#39;</span><span class="p">),</span> \
+            <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.input&#39;</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="n">message</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">read_in</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">message</span></div>
+
+
+<div class="viewcode-block" id="test_sigint_handler_with_mock"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_sigint_handler_with_mock">[docs]</a><span class="k">def</span> <span class="nf">test_sigint_handler_with_mock</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.os&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_os</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">buku</span><span class="o">.</span><span class="n">sigint_handler</span><span class="p">(</span><span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">(),</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">())</span>
+        <span class="n">m_os</span><span class="o">.</span><span class="n">_exit</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_get_system_editor"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_get_system_editor">[docs]</a><span class="k">def</span> <span class="nf">test_get_system_editor</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.os&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_os</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">get_system_editor</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">m_os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">return_value</span>
+        <span class="n">m_os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="s1">&#39;EDITOR&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_is_editor_valid"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_is_editor_valid">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;editor, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;random_editor&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_is_editor_valid</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="k">assert</span> <span class="n">buku</span><span class="o">.</span><span class="n">is_editor_valid</span><span class="p">(</span><span class="n">editor</span><span class="p">)</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_to_temp_file_content"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_to_temp_file_content">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;url, title_in, tags_in, desc&#39;</span><span class="p">,</span>
+    <span class="n">product</span><span class="p">(</span>
+        <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;example.com&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;tag1,tag2&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag1,tag2,&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">],</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_to_temp_file_content</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">title_in</span><span class="p">,</span> <span class="n">tags_in</span><span class="p">,</span> <span class="n">desc</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">to_temp_file_content</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">title_in</span><span class="p">,</span> <span class="n">tags_in</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;# Lines beginning with &quot;#&quot; will be stripped.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# Add URL in next line (single line).&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# Add TITLE in next line (single line). Leave blank to web fetch, &quot;-&quot; for no title.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# Add comma-separated TAGS in next line (single line).&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# Add COMMENTS in next line(s).&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">idx_offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># url</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+        <span class="n">idx_offset</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">title_in</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">title_in</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">elif</span> <span class="n">title_in</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">title_in</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># title</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx_offset</span> <span class="o">+</span> <span class="mi">3</span><span class="p">,</span> <span class="n">title_in</span><span class="p">)</span>
+    <span class="n">idx_offset</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># tags</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx_offset</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="n">tags_in</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">buku</span><span class="o">.</span><span class="n">DELIM</span><span class="p">))</span>
+    <span class="n">idx_offset</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># description</span>
+    <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">desc</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx_offset</span> <span class="o">+</span> <span class="mi">5</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">res_line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()):</span>
+        <span class="k">assert</span> <span class="n">lines</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">res_line</span></div>
+
+
+<div class="viewcode-block" id="test_parse_temp_file_content"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_parse_temp_file_content">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;content, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;#line1</span><span class="se">\n</span><span class="s1">#line2&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+                <span class="s1">&#39;example.com&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;title&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;tags&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;desc&#39;</span><span class="p">,</span>
+            <span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;,tags,&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_parse_temp_file_content</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">parse_temp_file_content</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_edit_rec"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_edit_rec">[docs]</a><span class="nd">@only_python_3_5</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="n">reason</span><span class="o">=</span><span class="s2">&quot;can&#39;t patch subprocess&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_edit_rec</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="n">editor</span> <span class="o">=</span> <span class="s1">&#39;nanoe&#39;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="s1">&#39;title_in&#39;</span><span class="p">,</span> <span class="s1">&#39;tags_in&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.to_temp_file_content&#39;</span><span class="p">),</span> \
+            <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.os&#39;</span><span class="p">),</span> \
+            <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.open&#39;</span><span class="p">),</span> \
+            <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.parse_temp_file_content&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_ptfc</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">edit_rec</span><span class="p">(</span><span class="n">editor</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">m_ptfc</span><span class="o">.</span><span class="n">return_value</span></div>
+
+
+<div class="viewcode-block" id="test_piped_input"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_piped_input">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s1">&#39;argv, pipeargs, isatty&#39;</span><span class="p">,</span> <span class="n">product</span><span class="p">([</span><span class="s1">&#39;argv&#39;</span><span class="p">],</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">[]],</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]))</span>
+<span class="k">def</span> <span class="nf">test_piped_input</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="n">pipeargs</span><span class="p">,</span> <span class="n">isatty</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.sys&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_sys</span><span class="p">:</span>
+        <span class="n">m_sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">isatty</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="n">isatty</span>
+        <span class="n">m_sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">readlines</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="s1">&#39;arg1</span><span class="se">\n</span><span class="s1">arg2&#39;</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="k">if</span> <span class="n">pipeargs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isatty</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+                <span class="n">buku</span><span class="o">.</span><span class="n">piped_input</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="n">pipeargs</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">buku</span><span class="o">.</span><span class="n">piped_input</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="n">pipeargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestHelpers"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.TestHelpers">[docs]</a><span class="k">class</span> <span class="nc">TestHelpers</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="c1"># @unittest.skip(&#39;skipping&#39;)</span>
+<div class="viewcode-block" id="TestHelpers.test_parse_tags"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.TestHelpers.test_parse_tags">[docs]</a>    <span class="k">def</span> <span class="nf">test_parse_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># call with None</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">parse_tags</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span>
+        <span class="c1"># call with empty list</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">parse_tags</span><span class="p">([])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="c1"># empty tags</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">parse_tags</span><span class="p">([</span><span class="s2">&quot;,,,,,&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="c1"># sorting tags</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">parse_tags</span><span class="p">([</span><span class="s2">&quot;z_tag,a_tag,n_tag&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="s2">&quot;,a_tag,n_tag,z_tag,&quot;</span><span class="p">)</span>
+        <span class="c1"># whitespaces</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">parse_tags</span><span class="p">([</span><span class="s2">&quot; a tag , ,   ,  ,</span><span class="se">\t</span><span class="s2">,</span><span class="se">\n</span><span class="s2">,</span><span class="se">\r</span><span class="s2">,</span><span class="se">\x0b</span><span class="s2">,</span><span class="se">\x0c</span><span class="s2">&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="s2">&quot;,a tag,&quot;</span><span class="p">)</span>
+        <span class="c1"># duplicates, excessive spaces</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">parse_tags</span><span class="p">([</span><span class="s2">&quot;tag,tag, tag,  tag,tag , tag &quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="s2">&quot;,tag,&quot;</span><span class="p">)</span>
+        <span class="c1"># escaping quotes</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">parse_tags</span><span class="p">([</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">tag</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&#39;</span><span class="s2">tag</span><span class="se">\&#39;</span><span class="s2">,tag&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="s2">&quot;,</span><span class="se">\&quot;</span><span class="s2">tag</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&#39;</span><span class="s2">tag</span><span class="se">\&#39;</span><span class="s2">,tag,&quot;</span><span class="p">)</span>
+        <span class="c1"># combo</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">parse_tags</span><span class="p">([</span><span class="s2">&quot;,,z_tag, a tag ,</span><span class="se">\t</span><span class="s2">,,,  ,n_tag ,n_tag, a_tag, </span><span class="se">\n</span><span class="s2">a tag  ,</span><span class="se">\r</span><span class="s2">, </span><span class="se">\&quot;</span><span class="s2">a_tag</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="s2">&quot;,</span><span class="se">\&quot;</span><span class="s2">a_tag</span><span class="se">\&quot;</span><span class="s2">,a tag,a_tag,n_tag,z_tag,&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># @unittest.skip(&#39;skipping&#39;)</span>
+<div class="viewcode-block" id="TestHelpers.test_is_int"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.TestHelpers.test_is_int">[docs]</a>    <span class="k">def</span> <span class="nf">test_is_int</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">is_int</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">is_int</span><span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">is_int</span><span class="p">(</span><span class="s1">&#39;-1&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_int</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_int</span><span class="p">(</span><span class="s1">&#39;one&#39;</span><span class="p">))</span></div></div>
+
+<span class="c1"># This test fails because we use os._exit() now</span>
+<div class="viewcode-block" id="test_sigint_handler"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_sigint_handler">[docs]</a><span class="nd">@unittest</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="s1">&#39;skipping&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_sigint_handler</span><span class="p">(</span><span class="n">capsys</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># sending SIGINT to self</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">(),</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">SystemExit</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">capsys</span><span class="o">.</span><span class="n">readouterr</span><span class="p">()</span>
+        <span class="c1"># assert exited with 1</span>
+        <span class="k">assert</span> <span class="n">error</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="c1"># assert proper error message</span>
+        <span class="k">assert</span> <span class="n">out</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">assert</span> <span class="n">err</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Interrupted.</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+
+
+<div class="viewcode-block" id="test_network_handler_with_url"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_network_handler_with_url">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;url, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;http://example.com.&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)],</span>
+        <span class="p">[</span><span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;Example Domain&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)],</span>
+        <span class="p">[</span><span class="s1">&#39;http://example.com/page1.txt&#39;</span><span class="p">,</span> <span class="p">((</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))],</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_network_handler_with_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test func.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="kn">import</span> <span class="nn">urllib3</span>
+    <span class="n">buku</span><span class="o">.</span><span class="n">urllib3</span> <span class="o">=</span> <span class="n">urllib3</span>
+    <span class="n">buku</span><span class="o">.</span><span class="n">myproxy</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">network_handler</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_is_nongeneric_url"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_is_nongeneric_url">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;url, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;apt:package1,package2,package3&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;apt://firefox&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;file:///tmp/vim-markdown-preview.html&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;place:sort=8&amp;maxResults=10&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_is_nongeneric_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">is_nongeneric_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">res</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_import_md"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_import_md">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;newtag, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;text1&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;tag1&#39;</span><span class="p">,(</span><span class="s1">&#39;http://example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;text1&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag1,&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_import_md</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">newtag</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">buku</span> <span class="k">import</span> <span class="n">import_md</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">tmpdir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s2">&quot;importmd&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;test.md&quot;</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;[text1](http://example.com)&quot;</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">import_md</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">strpath</span><span class="p">,</span> <span class="n">newtag</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_import_html"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_import_html">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s1">&#39;html_text, exp_res&#39;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;&lt;DT&gt;&lt;A HREF=&quot;https://github.com/j&quot; ADD_DATE=&quot;1360951967&quot; PRIVATE=&quot;1&quot; TAGS=&quot;tag1,tag2&quot;&gt;GitHub&lt;/A&gt;</span>
+<span class="sd">&lt;DD&gt;comment for the bookmark here</span>
+<span class="sd">&lt;a&gt; &lt;/a&gt;&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">((</span>
+                <span class="s1">&#39;https://github.com/j&#39;</span><span class="p">,</span> <span class="s1">&#39;GitHub&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag1,tag2,&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;comment for the bookmark here</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span>
+            <span class="p">),)</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;DT&gt;&lt;A HREF=&quot;https://github.com/j&quot; ADD_DATE=&quot;1360951967&quot; PRIVATE=&quot;1&quot; TAGS=&quot;tag1,tag2&quot;&gt;GitHub&lt;/A&gt;</span>
+<span class="sd">            &lt;DD&gt;comment for the bookmark here</span>
+<span class="sd">            &lt;a&gt;second line of the comment here&lt;/a&gt;&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">((</span>
+                <span class="s1">&#39;https://github.com/j&#39;</span><span class="p">,</span> <span class="s1">&#39;GitHub&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag1,tag2,&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;comment for the bookmark here</span><span class="se">\n</span><span class="s1">            &#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span>
+            <span class="p">),)</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;DT&gt;&lt;A HREF=&quot;https://github.com/j&quot; ADD_DATE=&quot;1360951967&quot; PRIVATE=&quot;1&quot; TAGS=&quot;tag1,tag2&quot;&gt;GitHub&lt;/A&gt;</span>
+<span class="sd">            &lt;DD&gt;comment for the bookmark here</span>
+<span class="sd">            second line of the comment here</span>
+<span class="sd">            third line of the comment here</span>
+<span class="sd">            &lt;DT&gt;&lt;A HREF=&quot;https://news.com/&quot; ADD_DATE=&quot;1360951967&quot; PRIVATE=&quot;1&quot; TAGS=&quot;tag1,tag2,tag3&quot;&gt;News&lt;/A&gt;&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;https://github.com/j&#39;</span><span class="p">,</span> <span class="s1">&#39;GitHub&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag1,tag2,&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;comment for the bookmark here</span><span class="se">\n</span><span class="s1">            &#39;</span>
+                    <span class="s1">&#39;second line of the comment here</span><span class="se">\n</span><span class="s1">            &#39;</span>
+                    <span class="s1">&#39;third line of the comment here</span><span class="se">\n</span><span class="s1">            &#39;</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span>
+                <span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;https://news.com/&#39;</span><span class="p">,</span> <span class="s1">&#39;News&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag1,tag2,tag3,&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+
+            <span class="sd">&quot;&quot;&quot;DT&gt;&lt;A HREF=&quot;https://github.com/j&quot; ADD_DATE=&quot;1360951967&quot; PRIVATE=&quot;1&quot; TAGS=&quot;tag1,tag2&quot;&gt;GitHub&lt;/A&gt;</span>
+<span class="sd">            &lt;DD&gt;comment for the bookmark here&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">((</span>
+                <span class="s1">&#39;https://github.com/j&#39;</span><span class="p">,</span> <span class="s1">&#39;GitHub&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag1,tag2,&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;comment for the bookmark here&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span>
+            <span class="p">),)</span>
+        <span class="p">)</span>
+
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_import_html</span><span class="p">(</span><span class="n">html_text</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test method.&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">buku</span> <span class="k">import</span> <span class="n">import_html</span>
+    <span class="kn">from</span> <span class="nn">bs4</span> <span class="k">import</span> <span class="n">BeautifulSoup</span>
+    <span class="n">html_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_text</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">import_html</span><span class="p">(</span><span class="n">html_soup</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">exp_item</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">item</span> <span class="o">==</span> <span class="n">exp_item</span></div>
+
+
+<div class="viewcode-block" id="test_import_html_and_add_parent"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_import_html_and_add_parent">[docs]</a><span class="k">def</span> <span class="nf">test_import_html_and_add_parent</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">buku</span> <span class="k">import</span> <span class="n">import_html</span>
+    <span class="kn">from</span> <span class="nn">bs4</span> <span class="k">import</span> <span class="n">BeautifulSoup</span>
+    <span class="n">html_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;DT&gt;&lt;H3&gt;1s&lt;/H3&gt;</span>
+<span class="s2">&lt;DL&gt;&lt;p&gt;</span>
+<span class="s2">&lt;DT&gt;&lt;A HREF=&quot;http://example.com/&quot;&gt;&lt;/A&gt;&quot;&quot;&quot;</span>
+    <span class="n">exp_res</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;http://example.com/&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;,1s,&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">html_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_text</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">import_html</span><span class="p">(</span><span class="n">html_soup</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+
+
+<div class="viewcode-block" id="test_import_html_and_new_tag"><a class="viewcode-back" href="../../source/tests.html#tests.test_buku.test_import_html_and_new_tag">[docs]</a><span class="k">def</span> <span class="nf">test_import_html_and_new_tag</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">buku</span> <span class="k">import</span> <span class="n">import_html</span>
+    <span class="kn">from</span> <span class="nn">bs4</span> <span class="k">import</span> <span class="n">BeautifulSoup</span>
+    <span class="n">html_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;DT&gt;&lt;A HREF=&quot;https://github.com/j&quot; TAGS=&quot;tag1,tag2&quot;&gt;GitHub&lt;/A&gt;</span>
+<span class="s2">&lt;DD&gt;comment for the bookmark here&quot;&quot;&quot;</span>
+    <span class="n">exp_res</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;https://github.com/j&#39;</span><span class="p">,</span> <span class="s1">&#39;GitHub&#39;</span><span class="p">,</span> <span class="s1">&#39;,tag1,tag2,tag3,&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;comment for the bookmark here&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">html_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_text</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">import_html</span><span class="p">(</span><span class="n">html_soup</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;tag3&#39;</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">exp_res</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Arun Prakash Jana.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

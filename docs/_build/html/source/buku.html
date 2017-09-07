@@ -1,0 +1,1847 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>buku module &mdash; Buku  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Buku  documentation" href="../index.html"/>
+        <link rel="prev" title="Buku" href="../index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Buku
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Buku</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Buku</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>buku module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/source/buku.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-buku">
+<span id="buku-module"></span><h1>buku module<a class="headerlink" href="#module-buku" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="buku.BukuCrypt">
+<em class="property">class </em><code class="descclassname">buku.</code><code class="descname">BukuCrypt</code><a class="reference internal" href="../_modules/buku.html#BukuCrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuCrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class to handle encryption and decryption of
+the database file. Functionally a separate entity.</p>
+<p>Involves late imports in the static functions but it
+saves ~100ms each time. Given that encrypt/decrypt are
+not done automatically and any one should be called at
+a time, this doesn’t seem to be an outrageous approach.</p>
+<dl class="attribute">
+<dt id="buku.BukuCrypt.BLOCKSIZE">
+<code class="descname">BLOCKSIZE</code><em class="property"> = 65536</em><a class="headerlink" href="#buku.BukuCrypt.BLOCKSIZE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="buku.BukuCrypt.CHUNKSIZE">
+<code class="descname">CHUNKSIZE</code><em class="property"> = 524288</em><a class="headerlink" href="#buku.BukuCrypt.CHUNKSIZE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="buku.BukuCrypt.SALT_SIZE">
+<code class="descname">SALT_SIZE</code><em class="property"> = 32</em><a class="headerlink" href="#buku.BukuCrypt.SALT_SIZE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="buku.BukuCrypt.decrypt_file">
+<em class="property">static </em><code class="descname">decrypt_file</code><span class="sig-paren">(</span><em>iterations</em>, <em>dbfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuCrypt.decrypt_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuCrypt.decrypt_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrypt the bookmarks database file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>iterations</strong> (<em>int</em>) – Number of iterations for key generation</li>
+<li><strong>dbfile</strong> (<em>str</em><em>, </em><em>optional</em>) – Custom database file path (including filename)
+The ‘.enc’ suffix must be omitted.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="buku.BukuCrypt.encrypt_file">
+<em class="property">static </em><code class="descname">encrypt_file</code><span class="sig-paren">(</span><em>iterations</em>, <em>dbfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuCrypt.encrypt_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuCrypt.encrypt_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypt the bookmarks database file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>iterations</strong> (<em>int</em>) – Number of iterations for key generation</li>
+<li><strong>dbfile</strong> (<em>str</em><em>, </em><em>optional</em>) – Custom database file path (including filename)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="buku.BukuCrypt.get_filehash">
+<em class="property">static </em><code class="descname">get_filehash</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuCrypt.get_filehash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuCrypt.get_filehash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the SHA256 hash of a file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filepath</strong> (<em>str</em>) – Path to the file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>hash</strong> – Hash digest of file</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bytes</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="buku.BukuDb">
+<em class="property">class </em><code class="descclassname">buku.</code><code class="descname">BukuDb</code><span class="sig-paren">(</span><em>json=False</em>, <em>field_filter=0</em>, <em>chatty=False</em>, <em>dbfile=None</em>, <em>colorize=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Abstracts all database operations</p>
+<dl class="attribute">
+<dt id="buku.BukuDb.conn">
+<code class="descname">conn</code><a class="headerlink" href="#buku.BukuDb.conn" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>sqlite database connection</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buku.BukuDb.cur">
+<code class="descname">cur</code><a class="headerlink" href="#buku.BukuDb.cur" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>sqlite database cursor</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buku.BukuDb.json">
+<code class="descname">json</code><a class="headerlink" href="#buku.BukuDb.json" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> – True if results should be printed in json format else False</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buku.BukuDb.field_filter">
+<code class="descname">field_filter</code><a class="headerlink" href="#buku.BukuDb.field_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> – Indicates format for displaying bookmarks. Default is 0.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buku.BukuDb.chatty">
+<code class="descname">chatty</code><a class="headerlink" href="#buku.BukuDb.chatty" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> – Sets the verbosity of the APIs. Default is False.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.add_rec">
+<code class="descname">add_rec</code><span class="sig-paren">(</span><em>url</em>, <em>title_in=None</em>, <em>tags_in=None</em>, <em>desc=None</em>, <em>immutable=0</em>, <em>delay_commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.add_rec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.add_rec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new bookmark</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>url</strong> (<em>str</em>) – URL to bookmark</li>
+<li><strong>title_in</strong> (<em>str</em><em>, </em><em>optional</em>) – Title to add manually. Default is None.</li>
+<li><strong>tags_in</strong> (<em>str</em><em>, </em><em>optional</em>) – Comma-separated tags to add manually.
+Must start and end with comma. Default is None.</li>
+<li><strong>desc</strong> (<em>str</em><em>, </em><em>optional</em>) – Description of the bookmark. Default is None.</li>
+<li><strong>immutable</strong> (<em>int</em><em>, </em><em>optional</em>) – Indicates whether to disable title fetch from web.
+Default is 0.</li>
+<li><strong>delay_commit</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if record should not be committed to the DB,
+leaving commit responsibility to caller. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">DB index of new bookmark on success, -1 on failure</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.append_tag_at_index">
+<code class="descname">append_tag_at_index</code><span class="sig-paren">(</span><em>index</em>, <em>tags_in</em>, <em>delay_commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.append_tag_at_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.append_tag_at_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append tags to bookmark tagset at index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>index</strong> (<em>int</em>) – DB index of the record. 0 indicates all records.</li>
+<li><strong>tags_in</strong> (<em>str</em>) – Comma-separated tags to add manually</li>
+<li><strong>delay_commit</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if record should not be committed to the DB,
+leaving commit responsibility to caller. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True on success, False on failuree</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.auto_import_from_browser">
+<code class="descname">auto_import_from_browser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.auto_import_from_browser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.auto_import_from_browser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import bookmarks from a browser default database file.</p>
+<p>Supports Firefox and Google Chrome.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True on success, False on failure.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.browse_by_index">
+<code class="descname">browse_by_index</code><span class="sig-paren">(</span><em>index=0</em>, <em>low=0</em>, <em>high=0</em>, <em>is_range=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.browse_by_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.browse_by_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open URL at index or range of indies in browser</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>index</strong> (<em>int</em>) – Index to browse. 0 opens a random bookmark.</li>
+<li><strong>low</strong> (<em>int</em>) – Actual lower index of range.</li>
+<li><strong>high</strong> (<em>int</em>) – Higher index of range.</li>
+<li><strong>is_range</strong> (<em>bool</em>) – A range is passed using low and high arguments.
+If True, index is ignored. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True on success, False on failure.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.cleardb">
+<code class="descname">cleardb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.cleardb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.cleardb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drops the bookmark table if it exists</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True on success, False on failure</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.close_quit">
+<code class="descname">close_quit</code><span class="sig-paren">(</span><em>exitval=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.close_quit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.close_quit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close a DB connection and exit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>exitval</strong> (<em>int</em><em>, </em><em>optional</em>) – Program exit value.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.compactdb">
+<code class="descname">compactdb</code><span class="sig-paren">(</span><em>index</em>, <em>delay_commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.compactdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.compactdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>When an entry at index is deleted, move the
+last entry in DB to index, if index is lesser.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> (<em>int</em>) – DB index of deleted entry</li>
+<li><strong>delay_commit</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if record should not be committed to the DB,
+leaving commit responsibility to caller. Default is False.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.delete_rec">
+<code class="descname">delete_rec</code><span class="sig-paren">(</span><em>index</em>, <em>low=0</em>, <em>high=0</em>, <em>is_range=False</em>, <em>delay_commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.delete_rec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.delete_rec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a single record or remove the table if index is None</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>index</strong> (<em>int</em>) – DB index of deleted entry.</li>
+<li><strong>low</strong> (<em>int</em><em>, </em><em>optional</em>) – Actual lower index of range.</li>
+<li><strong>high</strong> (<em>int</em><em>, </em><em>optional</em>) – Actual higher index of range.</li>
+<li><strong>is_range</strong> (<em>bool</em><em>, </em><em>optional</em>) – A range is passed using low and high arguments.
+An index is ignored if is_range is True (use dummy index).
+Default is False.</li>
+<li><strong>delay_commit</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if record should not be committed to the DB,
+leaving commit responsibility to caller. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True on success, False on failure.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.delete_rec_all">
+<code class="descname">delete_rec_all</code><span class="sig-paren">(</span><em>delay_commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.delete_rec_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.delete_rec_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all records in the Bookmarks table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>delay_commit</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if record should not be committed to the DB,
+leaving commit responsibility to caller. Default is False.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True on success, False on failure</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.delete_resultset">
+<code class="descname">delete_resultset</code><span class="sig-paren">(</span><em>results</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.delete_resultset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.delete_resultset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete search results in descending order of DB index.</p>
+<p>Indices are expected to be unique and in ascending order.</p>
+<p class="rubric">Notes</p>
+<p>This API forces a delayed commit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>results</strong> (<em>list of tuples</em>) – List of results to delete from DB.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True on success, False on failure</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.delete_tag_at_index">
+<code class="descname">delete_tag_at_index</code><span class="sig-paren">(</span><em>index</em>, <em>tags_in</em>, <em>delay_commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.delete_tag_at_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.delete_tag_at_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete tags from bookmark tagset at index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>index</strong> (<em>int</em>) – DB index of bookmark record. 0 indicates all records.</li>
+<li><strong>tags_in</strong> (<em>str</em>) – Comma-separated tags to delete manually</li>
+<li><strong>delay_commit</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if record should not be committed to the DB,
+leaving commit responsibility to caller. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True on success, False on failure</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.edit_update_rec">
+<code class="descname">edit_update_rec</code><span class="sig-paren">(</span><em>index</em>, <em>immutable=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.edit_update_rec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.edit_update_rec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit in editor and update a record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>index</strong> (<em>int</em>) – DB index of the record</li>
+<li><strong>immutable</strong> (<em>int</em><em>, </em><em>optional</em>) – Diable title fetch from web if 1. Default is -1.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if updated, else False</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.exportdb">
+<code class="descname">exportdb</code><span class="sig-paren">(</span><em>filepath</em>, <em>taglist=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.exportdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.exportdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export DB bookmarks to file.</p>
+<p>If destination file name ends with ‘.md’, bookmarks are
+exported to a markdown file. Otherwise, bookmarks are
+exported to a Firefox bookmarks.html formatted file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filepath</strong> (<em>str</em>) – Path to export destination file.</li>
+<li><strong>taglist</strong> (<em>list</em><em>, </em><em>optional</em>) – Specific tags to export.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True on success, False on failure.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.fixtags">
+<code class="descname">fixtags</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.fixtags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.fixtags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undocumented API to fix tags set in earlier versions.</p>
+<p>Functionalities:</p>
+<ol class="arabic simple">
+<li>Remove duplicate tags</li>
+<li>Sort tags</li>
+<li>Use lower case to store tags</li>
+</ol>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="buku.BukuDb.get_default_dbdir">
+<em class="property">static </em><code class="descname">get_default_dbdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.get_default_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.get_default_dbdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the directory path where dbfile will be stored</p>
+<p>If the platform is Windows, use %APPDATA%
+else if $XDG_DATA_HOME is defined, use it
+else if $HOME exists, use it
+else use the current directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path to database file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.get_max_id">
+<code class="descname">get_max_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.get_max_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.get_max_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the ID of the last record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">ID of the record if any record exists, else -1</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.get_rec_all">
+<code class="descname">get_rec_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.get_rec_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.get_rec_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all the bookmarks in the database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of tuples representing bookmark records</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.get_rec_by_id">
+<code class="descname">get_rec_by_id</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.get_rec_by_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.get_rec_by_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a bookmark from database by its ID.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> (<em>int</em>) – DB index of bookmark record</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Bookmark data, or None if index is not found</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.get_rec_id">
+<code class="descname">get_rec_id</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.get_rec_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.get_rec_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if URL already exists in DB</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<em>str</em>) – A URL to search for in the DB</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">DB index, or -1 if URL not found in DB</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.get_tag_all">
+<code class="descname">get_tag_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.get_tag_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.get_tag_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of tags in DB</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>(list of unique tags sorted alphabetically,</dt>
+<dd>dictionary of {tag: usage_count})</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.importdb">
+<code class="descname">importdb</code><span class="sig-paren">(</span><em>filepath</em>, <em>tacit=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.importdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.importdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import bookmarks from a html or a markdown file.</p>
+<p>Supports Firefox, Google Chrome, and IE exported html bookmarks.
+Supports markdown files with extension ‘.md’.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filepath</strong> (<em>str</em>) – Path to file to import.</li>
+<li><strong>tacit</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, no questions asked and folder names are automatically
+imported as tags. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True on success, False on failure.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="buku.BukuDb.initdb">
+<em class="property">static </em><code class="descname">initdb</code><span class="sig-paren">(</span><em>dbfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.initdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.initdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the database connection.</p>
+<p>Create DB file and/or bookmarks table if they don’t exist.
+Alert on encryption options on first execution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dbfile</strong> (<em>str</em><em>, </em><em>optional</em>) – Custom database file path (including filename)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(connection, cursor)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.load_chrome_database">
+<code class="descname">load_chrome_database</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.load_chrome_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.load_chrome_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open Chrome Bookmarks json file and import data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – Path to Google Chrome bookmarks file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bookmarks</strong> – Dictionary holding Google Chroom bookmarks data.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.load_firefox_database">
+<code class="descname">load_firefox_database</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.load_firefox_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.load_firefox_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to Firefox sqlite db and import bookmarks into BukuDb.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – Path to Firefox bookmarks sqlite database.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.mergedb">
+<code class="descname">mergedb</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.mergedb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.mergedb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge bookmarks from another Buku database file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – Path to DB file to merge.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True on success, False on failure.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.print_rec">
+<code class="descname">print_rec</code><span class="sig-paren">(</span><em>index=0</em>, <em>low=0</em>, <em>high=0</em>, <em>is_range=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.print_rec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.print_rec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print bookmark details at index or all bookmarks if index is 0</p>
+<p>A negative index behaves like tail, if title is blank show “Untitled”</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> (<em>int</em><em>, </em><em>optional</em>) – DB index of record to print. 0 prints all records.</li>
+<li><strong>low</strong> (<em>int</em><em>, </em><em>optional</em>) – Actual lower index of range.</li>
+<li><strong>high</strong> (<em>int</em><em>, </em><em>optional</em>) – Actual higher index of range.</li>
+<li><strong>is_range</strong> (<em>bool</em><em>, </em><em>optional</em>) – A range is passed using low and high arguments.
+An index is ignored if is_range is True (use dummy index).
+Default is False.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.refreshdb">
+<code class="descname">refreshdb</code><span class="sig-paren">(</span><em>index</em>, <em>threads</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.refreshdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.refreshdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refresh ALL records in the database.</p>
+<p>Fetch title for eachbookmark from the web and update the records.
+Doesn’t update the record if title is empty.</p>
+<p class="rubric">Notes</p>
+<p>This API doesn’t change DB index, URL or tags of a bookmark.
+This API is verbose.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> (<em>int</em>) – DB index of record to update. 0 indicates all records.</li>
+<li><strong>threads</strong> (<em>int</em>) – Number of threads to use to refresh full DB. Default is 4.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.replace_tag">
+<code class="descname">replace_tag</code><span class="sig-paren">(</span><em>orig</em>, <em>new=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.replace_tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.replace_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace original tag by new tags in all records.</p>
+<p>Remove original tag if new tag is empty.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>orig</strong> (<em>str</em>) – Original tag.</li>
+<li><strong>new</strong> (<em>list</em>) – Replacement tags.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True on success, False on failure.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.search_by_tag">
+<code class="descname">search_by_tag</code><span class="sig-paren">(</span><em>tags</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.search_by_tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.search_by_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search bookmarks for entries with given tags</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tags</strong> (<em>str</em>) – String of tags to search for.
+Retrieves entries matching ANY tag if tags are
+delimited with ‘,’.
+Retrieves entries matching ALL tags if tags are
+delimited with ‘+’.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of search results, or None if no matches</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.searchdb">
+<code class="descname">searchdb</code><span class="sig-paren">(</span><em>keywords</em>, <em>all_keywords=False</em>, <em>deep=False</em>, <em>regex=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.searchdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.searchdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search DB for entries where tags, URL, or title fields match keywords</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>keywords</strong> (<em>list of str</em>) – Keywords to search</li>
+<li><strong>all_keywords</strong> (<em>bool</em><em>, </em><em>optional</em>) – True to return records matching ALL keywords.
+False (default value) to return records matching ANY keyword.</li>
+<li><strong>deep</strong> (<em>bool</em><em>, </em><em>optional</em>) – True to search for matching substrings. Default is False.</li>
+<li><strong>regex</strong> (<em>bool</em><em>, </em><em>optional</em>) – Match a regular expression if True. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List of search results, or None if no matches</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list or None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.set_tag">
+<code class="descname">set_tag</code><span class="sig-paren">(</span><em>cmdstr</em>, <em>taglist</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.set_tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.set_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append, overwrite, remove tags using the symbols &gt;&gt;, &gt; and &lt;&lt; respectively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cmdstr</strong> (<em>str</em>) – Command pattern.</li>
+<li><strong>taglist</strong> (<em>list</em>) – List of tags.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Number of indices updated on success, -1 on failure.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.suggest_similar_tag">
+<code class="descname">suggest_similar_tag</code><span class="sig-paren">(</span><em>tagstr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.suggest_similar_tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.suggest_similar_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show list of tags those go together in DB</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tagstr</strong> (<em>str</em>) – Original tag string.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">DELIM separated string of tags</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.tnyfy_url">
+<code class="descname">tnyfy_url</code><span class="sig-paren">(</span><em>index=0</em>, <em>url=None</em>, <em>shorten=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.tnyfy_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.tnyfy_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shorten a URL using Google URL shortener.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>index</strong> (<em>int</em><em>, </em><em>optional</em><em> (</em><em>if URL is provided</em><em>)</em>) – DB index of the bookmark with the URL to shorten. Default is 0.</li>
+<li><strong>url</strong> (<em>str</em><em>, </em><em>optional</em><em> (</em><em>if index is provided</em><em>)</em>) – URL to shorten</li>
+<li><strong>shorten</strong> (<em>bool</em><em>, </em><em>optional</em>) – True to shorten, False to expand. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Shortened url on success, None on failure.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuDb.update_rec">
+<code class="descname">update_rec</code><span class="sig-paren">(</span><em>index</em>, <em>url=None</em>, <em>title_in=None</em>, <em>tags_in=None</em>, <em>desc=None</em>, <em>immutable=-1</em>, <em>threads=4</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuDb.update_rec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuDb.update_rec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an existing record at index</p>
+<p>Update all records if index is 0 and url is not specified.
+URL is an exception because URLs are unique in DB.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>index</strong> (<em>int</em>) – DB index of record. 0 indicates all records.</li>
+<li><strong>url</strong> (<em>str</em><em>, </em><em>optional</em>) – Bookmark address</li>
+<li><strong>title_in</strong> (<em>str</em><em>, </em><em>optional</em>) – Title to add manually.</li>
+<li><strong>tags_in</strong> (<em>str</em><em>, </em><em>optional</em>) – Comma-separated tags to add manually. Must start and end with comma.
+Prefix with ‘+,’ to append to current tags.
+Prefix with ‘-,’ to delete from current tags</li>
+<li><strong>desc</strong> (<em>str</em><em>, </em><em>optional</em>) – Description of bookmark</li>
+<li><strong>immutable</strong> (<em>int</em><em>, </em><em>optional</em>) – Diable title fetch from web if 1. Default is -1.</li>
+<li><strong>threads</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of threads to use to refresh full DB. Default is 4.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True on success, False on Failure</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="buku.BukuHTMLParser">
+<em class="property">class </em><code class="descclassname">buku.</code><code class="descname">BukuHTMLParser</code><a class="reference internal" href="../_modules/buku.html#BukuHTMLParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuHTMLParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">html.parser.HTMLParser</span></code></p>
+<p>Class to parse and fetch the title from a HTML page, if available.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The methods in this class are custom implementations of the
+HTMLParser object.</p>
+<p class="last">See docs <a class="reference external" href="https://docs.python.org/3/library/html.parser.html">https://docs.python.org/3/library/html.parser.html</a>.</p>
+</div>
+<dl class="attribute">
+<dt id="buku.BukuHTMLParser.in_title_tag">
+<code class="descname">in_title_tag</code><a class="headerlink" href="#buku.BukuHTMLParser.in_title_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> – True if HTML tag is a &lt;title&gt; tag. Initial value is False.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buku.BukuHTMLParser.data">
+<code class="descname">data</code><a class="headerlink" href="#buku.BukuHTMLParser.data" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – Initial value is empty string.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buku.BukuHTMLParser.prev_tag">
+<code class="descname">prev_tag</code><a class="headerlink" href="#buku.BukuHTMLParser.prev_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>None or str</em> – Initial value is None.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buku.BukuHTMLParser.parsed_title">
+<code class="descname">parsed_title</code><a class="headerlink" href="#buku.BukuHTMLParser.parsed_title" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>None or str</em> – The parsed title from a title tag. Initial value is None.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuHTMLParser.error">
+<code class="descname">error</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuHTMLParser.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuHTMLParser.error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuHTMLParser.handle_data">
+<code class="descname">handle_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuHTMLParser.handle_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuHTMLParser.handle_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuHTMLParser.handle_endtag">
+<code class="descname">handle_endtag</code><span class="sig-paren">(</span><em>tag</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuHTMLParser.handle_endtag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuHTMLParser.handle_endtag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="buku.BukuHTMLParser.handle_starttag">
+<code class="descname">handle_starttag</code><span class="sig-paren">(</span><em>tag</em>, <em>attrs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#BukuHTMLParser.handle_starttag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.BukuHTMLParser.handle_starttag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="buku.ExtendedArgumentParser">
+<em class="property">class </em><code class="descclassname">buku.</code><code class="descname">ExtendedArgumentParser</code><span class="sig-paren">(</span><em>prog=None</em>, <em>usage=None</em>, <em>description=None</em>, <em>epilog=None</em>, <em>parents=[]</em>, <em>formatter_class=&lt;class 'argparse.HelpFormatter'&gt;</em>, <em>prefix_chars='-'</em>, <em>fromfile_prefix_chars=None</em>, <em>argument_default=None</em>, <em>conflict_handler='error'</em>, <em>add_help=True</em>, <em>allow_abbrev=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#ExtendedArgumentParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.ExtendedArgumentParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">argparse.ArgumentParser</span></code></p>
+<p>Extend classic argument parser</p>
+<dl class="staticmethod">
+<dt id="buku.ExtendedArgumentParser.is_colorstr">
+<em class="property">static </em><code class="descname">is_colorstr</code><span class="sig-paren">(</span><em>arg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#ExtendedArgumentParser.is_colorstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.ExtendedArgumentParser.is_colorstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a string is a valid color string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arg</strong> (<em>str</em>) – Color string to validate.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Same color string that was passed as an argument.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ArgumentTypeError</span></code> – If the arg is not a valid color string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="buku.ExtendedArgumentParser.print_help">
+<code class="descname">print_help</code><span class="sig-paren">(</span><em>file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#ExtendedArgumentParser.print_help"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.ExtendedArgumentParser.print_help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print help prompt.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>file</em><em>, </em><em>optional</em>) – File to write program info to. Default is sys.stdout.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="buku.ExtendedArgumentParser.program_info">
+<em class="property">static </em><code class="descname">program_info</code><span class="sig-paren">(</span><em>file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#ExtendedArgumentParser.program_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.ExtendedArgumentParser.program_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print program info.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>file</em><em>, </em><em>optional</em>) – File to write program info to. Default is sys.stdout.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="buku.ExtendedArgumentParser.prompt_help">
+<em class="property">static </em><code class="descname">prompt_help</code><span class="sig-paren">(</span><em>file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#ExtendedArgumentParser.prompt_help"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.ExtendedArgumentParser.prompt_help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print prompt help.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>file</em><em>, </em><em>optional</em>) – File to write program info to. Default is sys.stdout.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.browse">
+<code class="descclassname">buku.</code><code class="descname">browse</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#browse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.browse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Duplicate stdin, stdout and open URL in default browser</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Duplicates stdin and stdout in order to
+suppress showing errors on the terminal.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<em>str</em>) – URL to open in browser.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.check_upstream_release">
+<code class="descclassname">buku.</code><code class="descname">check_upstream_release</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#check_upstream_release"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.check_upstream_release" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check and report the latest upstream release version.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.delim_wrap">
+<code class="descclassname">buku.</code><code class="descname">delim_wrap</code><span class="sig-paren">(</span><em>token</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#delim_wrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.delim_wrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns token string wrapped in delimiters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>token</strong> (<em>str</em>) – String item to wrap with DELIM.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Token string wrapped by DELIM.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.disable_sigint_handler">
+<code class="descclassname">buku.</code><code class="descname">disable_sigint_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#disable_sigint_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.disable_sigint_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable signint handler.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.edit_at_prompt">
+<code class="descclassname">buku.</code><code class="descname">edit_at_prompt</code><span class="sig-paren">(</span><em>obj</em>, <em>nav</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#edit_at_prompt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.edit_at_prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit and add or update a bookmark.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> (<em>BukuDb instance</em>) – A valid instance of BukuDb class.</li>
+<li><strong>nav</strong> (<em>str</em>) – Navigation command argument passed at prompt by user.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.edit_rec">
+<code class="descclassname">buku.</code><code class="descname">edit_rec</code><span class="sig-paren">(</span><em>editor</em>, <em>url</em>, <em>title_in</em>, <em>tags_in</em>, <em>desc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#edit_rec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.edit_rec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit a bookmark record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>editor</strong> (<em>str</em>) – Editor to open.</li>
+<li><strong>URL</strong> (<em>str</em>) – URL to open.</li>
+<li><strong>title_in</strong> (<em>str</em>) – Title to add manually.</li>
+<li><strong>tags_in</strong> (<em>str</em>) – Comma-separated tags to add manually.</li>
+<li><strong>desc</strong> (<em>str</em>) – Bookmark description.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Parsed results from parse_temp_file_content().</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.enable_sigint_handler">
+<code class="descclassname">buku.</code><code class="descname">enable_sigint_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#enable_sigint_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.enable_sigint_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable sigint handler.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.format_json">
+<code class="descclassname">buku.</code><code class="descname">format_json</code><span class="sig-paren">(</span><em>resultset</em>, <em>single_record=False</em>, <em>field_filter=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#format_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.format_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return results in json format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>resultset</strong> (<em>list</em>) – Search results from DB query.</li>
+<li><strong>single_record</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, indicates only one record. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Record(s) in json format.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#buku.BukuDb.json" title="buku.BukuDb.json">json</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.gen_headers">
+<code class="descclassname">buku.</code><code class="descname">gen_headers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#gen_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.gen_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate headers for network connection.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.get_PoolManager">
+<code class="descclassname">buku.</code><code class="descname">get_PoolManager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#get_PoolManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.get_PoolManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a pool manager with proxy support, if applicable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">ProxyManager if https_proxy is defined, PoolManager otherwise.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">ProxyManager or PoolManager</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.get_firefox_profile_name">
+<code class="descclassname">buku.</code><code class="descname">get_firefox_profile_name</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#get_firefox_profile_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.get_firefox_profile_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>List folder and detect default Firefox profile name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>profile</strong> – Firefox profile name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.get_page_title">
+<code class="descclassname">buku.</code><code class="descname">get_page_title</code><span class="sig-paren">(</span><em>resp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#get_page_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.get_page_title" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke HTML parser and extract title from HTTP response.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resp</strong> (<em>HTTP response</em>) – Response from GET request.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Title fetched from parsed page.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.get_system_editor">
+<code class="descclassname">buku.</code><code class="descname">get_system_editor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#get_system_editor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.get_system_editor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns default system editor is $EDITOR is set</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.import_html">
+<code class="descclassname">buku.</code><code class="descname">import_html</code><span class="sig-paren">(</span><em>html_soup</em>, <em>add_parent_folder_as_tag</em>, <em>newtag</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#import_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.import_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse bookmark html</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>html_soup</strong> (<em>BeautifulSoup object</em>) – BeautifulSoup representation of bookmark html</li>
+<li><strong>add_parent_folder_as_tag</strong> (<em>bool</em>) – True if bookmark parent folders should be added as tags else False</li>
+<li><strong>newtag</strong> (<em>str</em>) – A new unique tag to add to imported bookmarks</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Parsed result</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.import_md">
+<code class="descclassname">buku.</code><code class="descname">import_md</code><span class="sig-paren">(</span><em>filepath</em>, <em>newtag</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#import_md"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.import_md" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse bookmark markdown file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filepath</strong> (<em>str</em>) – Path to markdown file</li>
+<li><strong>newtag</strong> (<em>str</em>) – New tag for bookmarks in markdown file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Parsed result</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.is_bad_url">
+<code class="descclassname">buku.</code><code class="descname">is_bad_url</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#is_bad_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.is_bad_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if URL is malformed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This API is not bulletproof but works in most cases.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<em>str</em>) – URL to scan.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if URL is malformed, False otherwise.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.is_editor_valid">
+<code class="descclassname">buku.</code><code class="descname">is_editor_valid</code><span class="sig-paren">(</span><em>editor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#is_editor_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.is_editor_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the editor string is valid</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>editor</strong> (<em>str</em>) – Editor string.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if string is valid, else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.is_ignored_mime">
+<code class="descclassname">buku.</code><code class="descname">is_ignored_mime</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#is_ignored_mime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.is_ignored_mime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if URL links to ignored MIME.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only a ‘HEAD’ request is made for these URLs.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<em>str</em>) – URL to scan.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if URL links to ignored MIME, False otherwise.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.is_int">
+<code class="descclassname">buku.</code><code class="descname">is_int</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#is_int"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.is_int" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a string is a digit.</p>
+<dl class="docutils">
+<dt>string <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Input string to check.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True on success, False on exception.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.is_nongeneric_url">
+<code class="descclassname">buku.</code><code class="descname">is_nongeneric_url</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#is_nongeneric_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.is_nongeneric_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True for URLs which are non-http and non-generic.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<em>str</em>) – URL to scan.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if URL is a nongeneric URL, False otherwise.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.main">
+<code class="descclassname">buku.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.network_handler">
+<code class="descclassname">buku.</code><code class="descname">network_handler</code><span class="sig-paren">(</span><em>url</em>, <em>http_head=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#network_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.network_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle server connection and redirections.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>url</strong> (<em>str</em>) – URL to fetch.</li>
+<li><strong>http_head</strong> (<em>bool</em>) – If True, send only HTTP HEAD request. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(title, recognized mime, bad url)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.parse_tags">
+<code class="descclassname">buku.</code><code class="descname">parse_tags</code><span class="sig-paren">(</span><em>keywords=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#parse_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.parse_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format and get tag string from tokens.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>keywords</strong> (<em>list</em><em>, </em><em>optional</em>) – List of tags to parse. Default is empty list.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><em>str</em> – Comma-delimited string of tags.</li>
+<li><strong>DELIM</strong> (<em>str</em>) – If no keywords, returns the delimiter.</li>
+<li><em>None</em> – If keywords is None.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.parse_temp_file_content">
+<code class="descclassname">buku.</code><code class="descname">parse_temp_file_content</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#parse_temp_file_content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.parse_temp_file_content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse and return temporary file content.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>content</strong> (<em>str</em>) – String of content</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(url, title, tags, comments)<p>url: URL to open
+title: string title to add manually
+tags: string of comma-separated tags to add manually
+comments: string description</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.piped_input">
+<code class="descclassname">buku.</code><code class="descname">piped_input</code><span class="sig-paren">(</span><em>argv</em>, <em>pipeargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#piped_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.piped_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle piped input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pipeargs</strong> (<em>str</em>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.prep_tag_search">
+<code class="descclassname">buku.</code><code class="descname">prep_tag_search</code><span class="sig-paren">(</span><em>tags</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#prep_tag_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.prep_tag_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare list of tags to search and determine search operator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tags</strong> (<em>str</em>) – String list of tags to search.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>(list of formatted tags to search,</dt>
+<dd>a string indicating query search operator (either OR or AND),
+a regex string of tags or None if ‘ - ‘ delimiter not in tags)</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.print_single_rec">
+<code class="descclassname">buku.</code><code class="descname">print_single_rec</code><span class="sig-paren">(</span><em>row</em>, <em>idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#print_single_rec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.print_single_rec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a single DB record.</p>
+<p>Handles both search results and individual record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>row</strong> (<em>tuple</em>) – Tuple representing bookmark record data.</li>
+<li><strong>idx</strong> (<em>int</em><em>, </em><em>optional</em>) – Search result index. If 0, print with DB index.
+Default is 0.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.prompt">
+<code class="descclassname">buku.</code><code class="descname">prompt</code><span class="sig-paren">(</span><em>obj</em>, <em>results</em>, <em>noninteractive=False</em>, <em>deep=False</em>, <em>subprompt=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#prompt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show each matching result from a search and prompt.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> (<em>BukuDb instance</em>) – A valid instance of BukuDb class.</li>
+<li><strong>results</strong> (<em>list</em>) – Search result set from a DB query.</li>
+<li><strong>noninteractive</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, does not seek user input. Default is False.</li>
+<li><strong>deep</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use deep search. Default is False.</li>
+<li><strong>subprompt</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, jump directly to subprompt.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.read_in">
+<code class="descclassname">buku.</code><code class="descname">read_in</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#read_in"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.read_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper to handle input() with interrupts disabled.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>str</em>) – String to pass to to input()</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.regexp">
+<code class="descclassname">buku.</code><code class="descname">regexp</code><span class="sig-paren">(</span><em>expr</em>, <em>item</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#regexp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.regexp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a regular expression search.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>expr</strong> (<em>regex</em>) – Regular expression to search for.</li>
+<li><strong>item</strong> (<em>str</em>) – Item on which to perform regex search.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if result of search is not None, returns None otherwise.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.setcolors">
+<code class="descclassname">buku.</code><code class="descname">setcolors</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#setcolors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.setcolors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get colors from user and separate into ‘result’ list for use in arg.colors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> (<em>str</em>) – Color string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.setup_logger">
+<code class="descclassname">buku.</code><code class="descname">setup_logger</code><span class="sig-paren">(</span><em>logger</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#setup_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.setup_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup logger with color.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logger</strong> (<em>logger object</em>) – Logger to colorize.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.sigint_handler">
+<code class="descclassname">buku.</code><code class="descname">sigint_handler</code><span class="sig-paren">(</span><em>signum</em>, <em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#sigint_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.sigint_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom SIGINT handler.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Neither signum nor frame are used in
+this custom handler. However, they are
+required parameters for signal handlers.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>signum</strong> (<em>int</em>) – Signal number.</li>
+<li><strong>frame</strong> (<em>frame object</em><em> or </em><em>None</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.taglist_subprompt">
+<code class="descclassname">buku.</code><code class="descname">taglist_subprompt</code><span class="sig-paren">(</span><em>obj</em>, <em>noninteractive=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#taglist_subprompt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.taglist_subprompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Additional prompt to show unique tag list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>obj</strong> (<em>BukuDb instance</em>) – A valid instance of BukuDb class.</li>
+<li><strong>noninteractive</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, does not seek user input. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">New command string.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.to_temp_file_content">
+<code class="descclassname">buku.</code><code class="descname">to_temp_file_content</code><span class="sig-paren">(</span><em>url</em>, <em>title_in</em>, <em>tags_in</em>, <em>desc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#to_temp_file_content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.to_temp_file_content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate temporary file content string</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>url</strong> (<em>str</em>) – URL to open.</li>
+<li><strong>title_in</strong> (<em>str</em>) – Title to add manually.</li>
+<li><strong>tags_in</strong> (<em>str</em>) – Comma-separated tags to add manually.</li>
+<li><strong>desc</strong> (<em>str</em>) – String description.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Lines as newline separated string.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="buku.walk">
+<code class="descclassname">buku.</code><code class="descname">walk</code><span class="sig-paren">(</span><em>root</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/buku.html#walk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#buku.walk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively iterate over json.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>root</strong> (<em>json element</em>) – Base node of the json data.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../index.html" class="btn btn-neutral" title="Buku" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Arun Prakash Jana.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

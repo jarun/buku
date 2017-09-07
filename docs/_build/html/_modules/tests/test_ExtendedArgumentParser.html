@@ -1,0 +1,257 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tests.test_ExtendedArgumentParser &mdash; Buku  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Buku  documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Buku
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/buku.html">Buku</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buku</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tests.test_ExtendedArgumentParser</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tests.test_ExtendedArgumentParser</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;test module.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">unittest</span> <span class="k">import</span> <span class="n">mock</span>
+
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+
+<div class="viewcode-block" id="test_program_info"><a class="viewcode-back" href="../../source/tests.html#tests.test_ExtendedArgumentParser.test_program_info">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;platform, file&quot;</span><span class="p">,</span> <span class="n">product</span><span class="p">([</span><span class="s1">&#39;win32&#39;</span><span class="p">,</span> <span class="s1">&#39;linux&#39;</span><span class="p">],</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()]))</span>
+<span class="k">def</span> <span class="nf">test_program_info</span><span class="p">(</span><span class="n">platform</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;test method.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s1">&#39;buku.sys&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m_sys</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">buku</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">buku</span><span class="o">.</span><span class="n">ExtendedArgumentParser</span><span class="o">.</span><span class="n">program_info</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">buku</span><span class="o">.</span><span class="n">ExtendedArgumentParser</span><span class="o">.</span><span class="n">program_info</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;win32&#39;</span> <span class="ow">and</span> <span class="n">file</span> <span class="o">==</span> <span class="n">m_sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">m_sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">mock_calls</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">mock_calls</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="test_prompt_help"><a class="viewcode-back" href="../../source/tests.html#tests.test_ExtendedArgumentParser.test_prompt_help">[docs]</a><span class="k">def</span> <span class="nf">test_prompt_help</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;test method.&quot;&quot;&quot;</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="n">buku</span><span class="o">.</span><span class="n">ExtendedArgumentParser</span><span class="o">.</span><span class="n">prompt_help</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">mock_calls</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="test_print_help"><a class="viewcode-back" href="../../source/tests.html#tests.test_ExtendedArgumentParser.test_print_help">[docs]</a><span class="k">def</span> <span class="nf">test_print_help</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;test method.&quot;&quot;&quot;</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">buku</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">buku</span><span class="o">.</span><span class="n">ExtendedArgumentParser</span><span class="p">()</span>
+    <span class="n">obj</span><span class="o">.</span><span class="n">program_info</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+    <span class="n">obj</span><span class="o">.</span><span class="n">print_help</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="n">obj</span><span class="o">.</span><span class="n">program_info</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Arun Prakash Jana.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
