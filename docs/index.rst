@@ -9,8 +9,9 @@ Buku
 .. toctree::
    :maxdepth: 2
    :glob:
+   :caption: Table of Contents
 
-   Buku <source/buku>
+   buku <source/buku>
 
 Indices and tables
 ==================
