@@ -671,7 +671,7 @@ class BukuDb:
     def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0, delay_commit=False):
         """Add a new bookmark
 
-        Paramaters
+        Parameters
         ----------
         url : str
             URL to bookmark
