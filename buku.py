@@ -2134,9 +2134,11 @@ class BukuDb:
             if self.chatty:
                 resp = input('Import bookmarks from google chrome? (y/n): ')
             if resp == 'y':
-                webbrowser.get('google-chrome')
                 bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
-                walk(self.load_chrome_database(bookmarks_database))
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
+                for item in walk(self.load_chrome_database(bookmarks_database)):
+                    self.add_rec(*item)
         except Exception:
             logerr('Could not import from google-chrome')
 
@@ -2144,8 +2146,9 @@ class BukuDb:
             if self.chatty:
                 resp = input('Import bookmarks from firefox? (y/n): ')
             if resp == 'y':
-                webbrowser.get('firefox')
                 bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
                 self.load_firefox_database(bookmarks_database)
         except Exception:
             logerr('Could not import from firefox')
