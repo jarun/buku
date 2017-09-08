@@ -34,6 +34,7 @@ import signal
 import sqlite3
 import sys
 import threading
+import time
 import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
@@ -1934,8 +1935,6 @@ class BukuDb:
             True on success, False on failure.
         """
 
-        import time
-
         count = 0
         timestamp = str(int(time.time()))
         arguments = []
@@ -2165,7 +2164,9 @@ class BukuDb:
             Path to file to import.
         tacit : bool, optional
             If True, no questions asked and folder names are automatically
-            imported as tags. Default is False.
+            imported as tags from bookmarks html.
+            If True, automatic timestamp tag is NOT added.
+            Default is False.
 
         Returns
         -------
@@ -2174,7 +2175,7 @@ class BukuDb:
         """
 
         if not tacit:
-            newtag = input('Specify unique tag for imports (Enter to skip): ')
+            newtag = gen_auto_tag()
         else:
             newtag = None
 
@@ -2206,6 +2207,9 @@ class BukuDb:
 
             self.conn.commit()
             infp.close()
+
+        if newtag:
+            print('\nAuto-generated tag: %s' % newtag)
 
         return True
 
@@ -2813,6 +2817,21 @@ def prep_tag_search(tags):
     tags = [delim_wrap(t.strip()) for t in tags.split(tag_delim)]
 
     return tags, search_operator, excluded_tags
+
+
+def gen_auto_tag():
+    """Generate a tag in Year-Month-Date format
+
+    Returns
+    -------
+    str
+        New tag as YYYYMonDD
+    """
+
+    import calendar as cal
+
+    t = time.localtime()
+    return ('%d%s%02d' % (t.tm_year, cal.month_abbr[t.tm_mon], t.tm_mday))
 
 
 def edit_at_prompt(obj, nav):
