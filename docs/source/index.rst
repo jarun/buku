@@ -10,7 +10,7 @@ Buku
    :maxdepth: 2
    :caption: Table of Contents
 
-   Buku <source/buku>
+   Buku <buku>
 
 Indices and tables
 ==================
