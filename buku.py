@@ -3238,6 +3238,11 @@ def browse(url):
     ----------
     url : str
         URL to open in browser.
+
+    Attributes
+    ----------
+    suppress_browser_output : bool
+        True if a text based browser is detected.
     """
 
     if not parse_url(url).scheme:
@@ -3248,13 +3253,14 @@ def browse(url):
         logerr('scheme missing in URI, trying http')
         url = 'http://' + url
 
-    _stderr = os.dup(2)
-    os.close(2)
-    _stdout = os.dup(1)
-    os.close(1)
-    fd = os.open(os.devnull, os.O_RDWR)
-    os.dup2(fd, 2)
-    os.dup2(fd, 1)
+    if browse.suppress_browser_output:
+        _stderr = os.dup(2)
+        os.close(2)
+        _stdout = os.dup(1)
+        os.close(1)
+        fd = os.open(os.devnull, os.O_RDWR)
+        os.dup2(fd, 2)
+        os.dup2(fd, 1)
     try:
         if sys.platform != 'win32':
             webbrowser.open(url, new=2)
@@ -3269,9 +3275,10 @@ def browse(url):
     except Exception as e:
         logerr('browse(): %s', e)
     finally:
-        os.close(fd)
-        os.dup2(_stderr, 2)
-        os.dup2(_stdout, 1)
+        if browse.suppress_browser_output:
+            os.close(fd)
+            os.dup2(_stderr, 2)
+            os.dup2(_stdout, 1)
 
 
 def check_upstream_release():
@@ -3979,6 +3986,12 @@ POSITIONAL ARGUMENTS:
         if args.suggest:
             tags = bdb.suggest_similar_tag(tags)
         bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
+
+    # Enable browser output in case of a text based browser
+    if os.getenv('BROWSER') in ['elinks', 'links', 'lynx', 'w3m', 'links2']:
+        browse.suppress_browser_output = False
+    else:
+        browse.suppress_browser_output = True
 
     # Search record
     search_results = None
