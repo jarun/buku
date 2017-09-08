@@ -2027,7 +2027,7 @@ class BukuDb:
         Returns
         -------
         bookmarks : dict
-            Dictionary holding Google Chroom bookmarks data.
+            Dictionary holding Google Chrome bookmarks data.
         """
 
         with open(path, 'r') as datafile:
@@ -2092,7 +2092,7 @@ class BukuDb:
             cur.close()
             conn.close()
         except Exception:
-            print('Error here')
+            print('Error in load_firefox_database()')
 
     def auto_import_from_browser(self):
         """Import bookmarks from a browser default database file.
@@ -2820,7 +2820,7 @@ def prep_tag_search(tags):
 
 
 def gen_auto_tag():
-    """Generate a tag in Year-Month-Date format
+    """Generate a tag in Year-Month-Date format.
 
     Returns
     -------
