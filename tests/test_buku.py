@@ -222,6 +222,7 @@ def test_browse(url, opened_url, platform):
             mock.patch('buku.sys') as m_sys:
         m_sys.platform = platform
         import buku
+        buku.browse.suppress_browser_output = True
         buku.browse(url)
         m_webbrowser.open.assert_called_once_with(opened_url, new=2)
 
