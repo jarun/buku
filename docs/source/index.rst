@@ -6,15 +6,17 @@
 Buku
 ====
 
+A highly delicious bookmark manager. Your mini web!
+
 .. toctree::
    :maxdepth: 2
-   :caption: Read Me
+   :caption: README
 
    README.md
 
 .. toctree::
    :maxdepth: 2
-   :caption: Docs
+   :caption: Documentation
 
    Buku <buku>
 
