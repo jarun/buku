@@ -6,11 +6,17 @@
 Buku
 ====
 
-`buku <https://github.com/jarun/buku>`_ is a powerful bookmark manager written in Python3 and SQLite3. When I started writing it, I couldn’t find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, Buku (after my son’s nickname, meaning close to the heart in my language).
+A highly delicious bookmark manager. Your mini web!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Table of Contents
+   :caption: README
+
+   README.md
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Documentation
 
    Buku <buku>
 
