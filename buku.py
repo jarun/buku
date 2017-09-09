@@ -2125,7 +2125,9 @@ class BukuDb:
                 title = title_data[0]
             else:
                 title = ''
-            formatted_tags = [DELIM+tag for tag in bookmark_tags]
+            formatted_tags = [DELIM + tag for tag in bookmark_tags]
+            if unique_tag:
+                formatted_tags.append(DELIM + unique_tag)
             tags = parse_tags(formatted_tags)
             self.add_rec(url, title, tags)
         try:
