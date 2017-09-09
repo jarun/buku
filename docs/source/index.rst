@@ -8,13 +8,13 @@ Buku
 
 .. toctree::
    :maxdepth: 2
-   :caption: README
+   :caption: Read Me
 
-   ../../README.md
+   README.md
 
 .. toctree::
    :maxdepth: 2
-   :caption: Documentation
+   :caption: Docs
 
    Buku <buku>
 
