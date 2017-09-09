@@ -2096,15 +2096,17 @@ class BukuDb:
             conn = sqlite3.connect(path)
 
         cur = conn.cursor()
-        res = cur.execute('SELECT lastModified, fk FROM moz_bookmarks WHERE type=1 ORDER BY lastModified')
+        res = cur.execute('SELECT DISTINCT fk, parent, title FROM moz_bookmarks WHERE type=1')
         # get id's and remove duplicates
-        bookmarks_places_ids = set([item[1] for item in res.fetchall()])
-        for place_id in bookmarks_places_ids:
-            res = cur.execute('SELECT url FROM moz_places where id={}'.format(place_id))
+        for row in res.fetchall():
+            # get the url
+            res = cur.execute('SELECT url FROM moz_places where id={}'.format(row[0]))
             url = res.fetchone()[0]
+            if (is_nongeneric_url(url)):
+                continue
 
             # get tags
-            res = cur.execute('SELECT parent FROM moz_bookmarks WHERE fk={} AND title IS NULL'.format(place_id))
+            res = cur.execute('SELECT parent FROM moz_bookmarks WHERE fk={} AND title IS NULL'.format(row[0]))
             bm_tag_ids = [tid for item in res.fetchall() for tid in item]
 
             bookmark_tags = []
@@ -2112,29 +2114,30 @@ class BukuDb:
                 res = cur.execute('SELECT title FROM moz_bookmarks WHERE id={}'.format(bm_tag_id))
                 bookmark_tags.append(res.fetchone()[0])
 
-            # get the url
-            res = cur.execute('SELECT url FROM moz_places WHERE id={}'.format(place_id))
-            url = res.fetchone()[0]
-            if is_nongeneric_url(url):
-                continue
+            if add_parent_folder_as_tag:
+                # add folder name
+                res = cur.execute('SELECT title FROM moz_bookmarks WHERE id={}'.format(row[1]))
+                bookmark_tags.append(res.fetchone()[0])
+
+            if unique_tag:
+                # add timestamp tag
+                bookmark_tags.append(unique_tag)
+
+            formatted_tags = [DELIM + tag for tag in bookmark_tags]
+            tags = parse_tags(formatted_tags)
 
             # get the title
-            res = cur.execute('SELECT title FROM moz_bookmarks WHERE fk={} AND title!="" LIMIT 1'.format(place_id))
-            title_data = res.fetchone()
-            if title_data:
-                title = title_data[0]
+            if row[2]:
+                title = row[2]
             else:
                 title = ''
-            formatted_tags = [DELIM + tag for tag in bookmark_tags]
-            if unique_tag:
-                formatted_tags.append(DELIM + unique_tag)
-            tags = parse_tags(formatted_tags)
-            self.add_rec(url, title, tags)
+
+            self.add_rec(url, title, tags, None, 0, True)
         try:
             cur.close()
             conn.close()
-        except Exception:
-            print('Error in load_firefox_database()')
+        except Exception as e:
+            logerr(e)
 
     def auto_import_from_browser(self):
         """Import bookmarks from a browser default database file.
@@ -2189,7 +2192,7 @@ class BukuDb:
                     raise FileNotFoundError
                 self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception:
-            logerr('Could not import from google-chrome')
+            print('Could not import bookmarks from google-chrome')
 
         try:
             if self.chatty:
@@ -2200,7 +2203,7 @@ class BukuDb:
                     raise FileNotFoundError
                 self.load_firefox_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception:
-            logerr('Could not import from firefox')
+            print('Could not import bookmarks from firefox')
 
         self.conn.commit()
 

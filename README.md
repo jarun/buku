@@ -414,7 +414,6 @@ PROMPT KEYS:
 - [Rachmadani Haryono](https://github.com/rachmadaniHaryono)
 - [Johnathan Jenkins](https://github.com/shaggytwodope)
 - [SZ Lin](https://github.com/szlin)
-- [Alex Bender](https://github.com/alex-bender)
 - [Alex Gontar](https://github.com/mosegontar)
 
 Copyright © 2015-2017 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
