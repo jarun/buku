@@ -10,7 +10,7 @@ A highly delicious bookmark manager. Your mini web!
 
 .. toctree::
    :maxdepth: 2
-   :caption: README
+   :caption: User guide
 
    README.md
 
