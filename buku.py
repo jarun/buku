@@ -2016,13 +2016,55 @@ class BukuDb:
         print('%s exported' % count)
         return True
 
-    def load_chrome_database(self, path):
+    def traverse_bm_folder(self, sublist, unique_tag, folder_name, add_parent_folder_as_tag):
+        """Traverse folders recursively and find bookmarks.
+
+        Parameters
+        ----------
+        sublist : list
+            List of child entries in bookmark folder
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format
+        folder_name : str
+            Name of the parent folder
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False
+
+        Returns
+        -------
+        tuple
+            Bookmark record data
+        """
+
+        for item in sublist:
+            if item['type'] == 'folder':
+                for i in self.traverse_bm_folder(item['children'], unique_tag, item['name'], add_parent_folder_as_tag):
+                    yield (i)
+            elif item['type'] == 'url':
+                try:
+                    if (is_nongeneric_url(item['url'])):
+                        continue
+                except KeyError:
+                    continue
+
+                tags = ''
+                if add_parent_folder_as_tag:
+                    tags += folder_name
+                if unique_tag:
+                    tags += DELIM + unique_tag
+                yield (item['url'], item['name'], parse_tags([tags]), None, 0, True)
+
+    def load_chrome_database(self, path, unique_tag, add_parent_folder_as_tag):
         """Open Chrome Bookmarks json file and import data.
 
         Parameters
         ----------
         path : str
             Path to Google Chrome bookmarks file.
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False
 
         Returns
         -------
@@ -2033,19 +2075,22 @@ class BukuDb:
         with open(path, 'r') as datafile:
             data = json.load(datafile)
 
-        other = data['roots']['other']
-        bookmark_bar = data['roots']['bookmark_bar']
-        bookmarks = {'children': [bookmark_bar, other]}
+        roots = data['roots']
+        for entry in roots:
+            for item in self.traverse_bm_folder(roots[entry]['children'], unique_tag, roots[entry]['name'], add_parent_folder_as_tag):
+                self.add_rec(*item)
 
-        return bookmarks
-
-    def load_firefox_database(self, path):
+    def load_firefox_database(self, path, unique_tag, add_parent_folder_as_tag):
         """Connect to Firefox sqlite db and import bookmarks into BukuDb.
 
         Parameters
         ----------
         path : str
             Path to Firefox bookmarks sqlite database.
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False
         """
 
         # Connect to input DB
@@ -2128,6 +2173,14 @@ class BukuDb:
             logerr('Buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
 
+        if self.chatty:
+            newtag = gen_auto_tag()
+            resp = input('Add parent folder names as tags? (y/n): ')
+        else:
+            newtag = None
+            resp = 'y'
+        add_parent_folder_as_tag = (resp == 'y')
+
         resp = 'y'
 
         try:
@@ -2137,8 +2190,7 @@ class BukuDb:
                 bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
                 if not os.path.exists(bookmarks_database):
                     raise FileNotFoundError
-                for item in walk(self.load_chrome_database(bookmarks_database)):
-                    self.add_rec(*item)
+                self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception:
             logerr('Could not import from google-chrome')
 
@@ -2149,11 +2201,14 @@ class BukuDb:
                 bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
                 if not os.path.exists(bookmarks_database):
                     raise FileNotFoundError
-                self.load_firefox_database(bookmarks_database)
+                self.load_firefox_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception:
             logerr('Could not import from firefox')
 
         self.conn.commit()
+
+        if newtag:
+            print('\nAuto-generated tag: %s' % newtag)
 
     def importdb(self, filepath, tacit=False):
         """Import bookmarks from a html or a markdown file.
