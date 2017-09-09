@@ -2017,23 +2017,23 @@ class BukuDb:
         return True
 
     def traverse_bm_folder(self, sublist, unique_tag, folder_name, add_parent_folder_as_tag):
-        """Traverse folders recursively and find bookmarks.
+        """Traverse bookmark folders recursively and find bookmarks.
 
         Parameters
         ----------
         sublist : list
-            List of child entries in bookmark folder
+            List of child entries in bookmark folder.
         unique_tag : str
-            Timestamp tag in YYYYMonDD format
+            Timestamp tag in YYYYMonDD format.
         folder_name : str
-            Name of the parent folder
+            Name of the parent folder.
         add_parent_folder_as_tag : bool
-            True if bookmark parent folders should be added as tags else False
+            True if bookmark parent folders should be added as tags else False.
 
         Returns
         -------
         tuple
-            Bookmark record data
+            Bookmark record data.
         """
 
         for item in sublist:
@@ -2062,14 +2062,9 @@ class BukuDb:
         path : str
             Path to Google Chrome bookmarks file.
         unique_tag : str
-            Timestamp tag in YYYYMonDD format
+            Timestamp tag in YYYYMonDD format.
         add_parent_folder_as_tag : bool
-            True if bookmark parent folders should be added as tags else False
-
-        Returns
-        -------
-        bookmarks : dict
-            Dictionary holding Google Chrome bookmarks data.
+            True if bookmark parent folders should be added as tags else False.
         """
 
         with open(path, 'r') as datafile:
@@ -2088,9 +2083,9 @@ class BukuDb:
         path : str
             Path to Firefox bookmarks sqlite database.
         unique_tag : str
-            Timestamp tag in YYYYMonDD format
+            Timestamp tag in YYYYMonDD format.
         add_parent_folder_as_tag : bool
-            True if bookmark parent folders should be added as tags else False
+            True if bookmark parent folders should be added as tags else False.
         """
 
         # Connect to input DB
