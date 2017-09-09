@@ -34,6 +34,7 @@ import signal
 import sqlite3
 import sys
 import threading
+import time
 import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
@@ -1934,8 +1935,6 @@ class BukuDb:
             True on success, False on failure.
         """
 
-        import time
-
         count = 0
         timestamp = str(int(time.time()))
         arguments = []
@@ -2017,36 +2016,76 @@ class BukuDb:
         print('%s exported' % count)
         return True
 
-    def load_chrome_database(self, path):
+    def traverse_bm_folder(self, sublist, unique_tag, folder_name, add_parent_folder_as_tag):
+        """Traverse bookmark folders recursively and find bookmarks.
+
+        Parameters
+        ----------
+        sublist : list
+            List of child entries in bookmark folder.
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format.
+        folder_name : str
+            Name of the parent folder.
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False.
+
+        Returns
+        -------
+        tuple
+            Bookmark record data.
+        """
+
+        for item in sublist:
+            if item['type'] == 'folder':
+                for i in self.traverse_bm_folder(item['children'], unique_tag, item['name'], add_parent_folder_as_tag):
+                    yield (i)
+            elif item['type'] == 'url':
+                try:
+                    if (is_nongeneric_url(item['url'])):
+                        continue
+                except KeyError:
+                    continue
+
+                tags = ''
+                if add_parent_folder_as_tag:
+                    tags += folder_name
+                if unique_tag:
+                    tags += DELIM + unique_tag
+                yield (item['url'], item['name'], parse_tags([tags]), None, 0, True)
+
+    def load_chrome_database(self, path, unique_tag, add_parent_folder_as_tag):
         """Open Chrome Bookmarks json file and import data.
 
         Parameters
         ----------
         path : str
             Path to Google Chrome bookmarks file.
-
-        Returns
-        -------
-        bookmarks : dict
-            Dictionary holding Google Chroom bookmarks data.
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format.
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False.
         """
 
         with open(path, 'r') as datafile:
             data = json.load(datafile)
 
-        other = data['roots']['other']
-        bookmark_bar = data['roots']['bookmark_bar']
-        bookmarks = {'children': [bookmark_bar, other]}
+        roots = data['roots']
+        for entry in roots:
+            for item in self.traverse_bm_folder(roots[entry]['children'], unique_tag, roots[entry]['name'], add_parent_folder_as_tag):
+                self.add_rec(*item)
 
-        return bookmarks
-
-    def load_firefox_database(self, path):
+    def load_firefox_database(self, path, unique_tag, add_parent_folder_as_tag):
         """Connect to Firefox sqlite db and import bookmarks into BukuDb.
 
         Parameters
         ----------
         path : str
             Path to Firefox bookmarks sqlite database.
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format.
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False.
         """
 
         # Connect to input DB
@@ -2086,14 +2125,16 @@ class BukuDb:
                 title = title_data[0]
             else:
                 title = ''
-            formatted_tags = [DELIM+tag for tag in bookmark_tags]
+            formatted_tags = [DELIM + tag for tag in bookmark_tags]
+            if unique_tag:
+                formatted_tags.append(DELIM + unique_tag)
             tags = parse_tags(formatted_tags)
             self.add_rec(url, title, tags)
         try:
             cur.close()
             conn.close()
         except Exception:
-            print('Error here')
+            print('Error in load_firefox_database()')
 
     def auto_import_from_browser(self):
         """Import bookmarks from a browser default database file.
@@ -2129,15 +2170,24 @@ class BukuDb:
             logerr('Buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
 
+        if self.chatty:
+            newtag = gen_auto_tag()
+            resp = input('Add parent folder names as tags? (y/n): ')
+        else:
+            newtag = None
+            resp = 'y'
+        add_parent_folder_as_tag = (resp == 'y')
+
         resp = 'y'
 
         try:
             if self.chatty:
                 resp = input('Import bookmarks from google chrome? (y/n): ')
             if resp == 'y':
-                webbrowser.get('google-chrome')
                 bookmarks_database = os.path.expanduser(GC_BM_DB_PATH)
-                walk(self.load_chrome_database(bookmarks_database))
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
+                self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception:
             logerr('Could not import from google-chrome')
 
@@ -2145,13 +2195,17 @@ class BukuDb:
             if self.chatty:
                 resp = input('Import bookmarks from firefox? (y/n): ')
             if resp == 'y':
-                webbrowser.get('firefox')
                 bookmarks_database = os.path.expanduser(FF_BM_DB_PATH)
-                self.load_firefox_database(bookmarks_database)
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
+                self.load_firefox_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception:
             logerr('Could not import from firefox')
 
         self.conn.commit()
+
+        if newtag:
+            print('\nAuto-generated tag: %s' % newtag)
 
     def importdb(self, filepath, tacit=False):
         """Import bookmarks from a html or a markdown file.
@@ -2165,7 +2219,9 @@ class BukuDb:
             Path to file to import.
         tacit : bool, optional
             If True, no questions asked and folder names are automatically
-            imported as tags. Default is False.
+            imported as tags from bookmarks html.
+            If True, automatic timestamp tag is NOT added.
+            Default is False.
 
         Returns
         -------
@@ -2174,7 +2230,7 @@ class BukuDb:
         """
 
         if not tacit:
-            newtag = input('Specify unique tag for imports (Enter to skip): ')
+            newtag = gen_auto_tag()
         else:
             newtag = None
 
@@ -2206,6 +2262,9 @@ class BukuDb:
 
             self.conn.commit()
             infp.close()
+
+        if newtag:
+            print('\nAuto-generated tag: %s' % newtag)
 
         return True
 
@@ -2815,6 +2874,21 @@ def prep_tag_search(tags):
     return tags, search_operator, excluded_tags
 
 
+def gen_auto_tag():
+    """Generate a tag in Year-Month-Date format.
+
+    Returns
+    -------
+    str
+        New tag as YYYYMonDD
+    """
+
+    import calendar as cal
+
+    t = time.localtime()
+    return ('%d%s%02d' % (t.tm_year, cal.month_abbr[t.tm_mon], t.tm_mday))
+
+
 def edit_at_prompt(obj, nav):
     """Edit and add or update a bookmark.
 
@@ -3216,6 +3290,11 @@ def browse(url):
     ----------
     url : str
         URL to open in browser.
+
+    Attributes
+    ----------
+    suppress_browser_output : bool
+        True if a text based browser is detected.
     """
 
     if not parse_url(url).scheme:
@@ -3226,13 +3305,14 @@ def browse(url):
         logerr('scheme missing in URI, trying http')
         url = 'http://' + url
 
-    _stderr = os.dup(2)
-    os.close(2)
-    _stdout = os.dup(1)
-    os.close(1)
-    fd = os.open(os.devnull, os.O_RDWR)
-    os.dup2(fd, 2)
-    os.dup2(fd, 1)
+    if browse.suppress_browser_output:
+        _stderr = os.dup(2)
+        os.close(2)
+        _stdout = os.dup(1)
+        os.close(1)
+        fd = os.open(os.devnull, os.O_RDWR)
+        os.dup2(fd, 2)
+        os.dup2(fd, 1)
     try:
         if sys.platform != 'win32':
             webbrowser.open(url, new=2)
@@ -3247,9 +3327,10 @@ def browse(url):
     except Exception as e:
         logerr('browse(): %s', e)
     finally:
-        os.close(fd)
-        os.dup2(_stderr, 2)
-        os.dup2(_stdout, 1)
+        if browse.suppress_browser_output:
+            os.close(fd)
+            os.dup2(_stderr, 2)
+            os.dup2(_stdout, 1)
 
 
 def check_upstream_release():
@@ -3957,6 +4038,12 @@ POSITIONAL ARGUMENTS:
         if args.suggest:
             tags = bdb.suggest_similar_tag(tags)
         bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
+
+    # Enable browser output in case of a text based browser
+    if os.getenv('BROWSER') in ['elinks', 'links', 'lynx', 'w3m', 'links2']:
+        browse.suppress_browser_output = False
+    else:
+        browse.suppress_browser_output = True
 
     # Search record
     search_results = None
