@@ -13,8 +13,10 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv"><img src="https://asciinema.org/a/8pm3q3n5s95tvat8naam68ejv.png" alt="Asciicast" width="734"/></a>
+<a href="https://asciinema.org/a/137065"><img src="https://asciinema.org/a/137065.png" alt="Buku in action!" width="734"/></a>
 </p>
+
+<p align="center"><i>Buku in action!</i></p>
 
 ### Introduction
 
