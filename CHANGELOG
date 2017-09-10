@@ -1,3 +1,18 @@
+Buku 3.3
+2017-09-11
+
+What's in?
+- Auto-import (`--ai`) bookmarks from Firefox and Google Chrome
+- Support custom colors (`--colors`)
+- Search multiple tags (with exclusion)
+- Timestamp (YYYYMonDD) tag in auto-imported bookmarks
+- Enable browser output for text browsers
+- Generate documentation in RTD using Sphinx (http://buku.readthedocs.io)
+- Integrated flake8 and pylint in Travis CI
+- Integrated PackageCore to auto-generate packages in Travis CI
+
+-------------------------------------------------------------------------------
+
 Buku 3.2
 2017-08-03
 
