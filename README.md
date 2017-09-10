@@ -428,6 +428,8 @@ Copyright © 2015-2017 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 - [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli frontend
 - [buku_run](https://github.com/carnager/buku_run), rofi frontend
 
+<a href="http://buku.readthedocs.io/en/stable/?badge=stable"><img src="https://img.shields.io/badge/docs-stable-brightgreen.svg?maxAge=2592000" alt="Stable Docs" /></a>
+
 ### In the Press
 
 - [One Thing Well](http://onethingwell.org/post/144952807044/buku)
