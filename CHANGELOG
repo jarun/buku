@@ -1,3 +1,13 @@
+Buku 3.3.1
+2017-09-11
+
+This is for all purposes the same as v3.3. We had to re-upload a new version to
+PyPi and hence the new tag. Functionality remains the same.
+
+The tagline is changed to - `Powerful command-line bookmark manager.`
+
+-------------------------------------------------------------------------------
+
 Buku 3.3
 2017-09-11
 

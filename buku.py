@@ -39,7 +39,7 @@ import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
-__version__ = '3.3'
+__version__ = '3.3.1'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -3738,7 +3738,7 @@ def main():
 
     # Setup custom argument parser
     argparser = ExtendedArgumentParser(
-        description='''Powerful command-line bookmark manager. Your mini web!
+        description='''Powerful command-line bookmark manager.
 
 POSITIONAL ARGUMENTS:
       KEYWORD              search keywords''',
