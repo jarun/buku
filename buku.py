@@ -3298,6 +3298,7 @@ def browse(url):
     ----------
     suppress_browser_output : bool
         True if a text based browser is detected.
+        Must be initialized (as applicable) to use the API.
     """
 
     if not parse_url(url).scheme:
