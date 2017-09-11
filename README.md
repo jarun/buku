@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/137065"><img src="https://asciinema.org/a/137065.png" alt="Buku in action!" width="734"/></a>
+<a href="https://asciinema.org/a/137065"><img src="https://s26.postimg.org/o6lka0dw9/buku_demo.png" alt="Buku in action!" width="734"/></a>
 </p>
 
 <p align="center"><i>Buku in action!</i></p>
