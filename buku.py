@@ -2150,25 +2150,30 @@ class BukuDb:
             True on success, False on failure.
         """
 
+        FF_BM_DB_PATH = None
+
         if sys.platform.startswith('linux'):
             GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
 
             DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
-            FF_BM_DB_PATH = '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
+            if profile:
+                FF_BM_DB_PATH = '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
         elif sys.platform == 'darwin':
             GC_BM_DB_PATH = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
 
             DEFAULT_FF_FOLDER = os.path.expanduser('~/Library/Application Support/Firefox')
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
-            FF_BM_DB_PATH = '~/Library/Application Support/Firefox/{}.default/places.sqlite'.format(profile)
+            if profile:
+                FF_BM_DB_PATH = '~/Library/Application Support/Firefox/{}.default/places.sqlite'.format(profile)
         elif sys.platform == 'win32':
             username = os.getlogin()
             GC_BM_DB_PATH = 'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
 
             DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
-            FF_BM_DB_PATH = os.path.join(DEFAULT_FF_FOLDER, '{}.default/places.sqlite'.format(profile))
+            if profile:
+                FF_BM_DB_PATH = os.path.join(DEFAULT_FF_FOLDER, '{}.default/places.sqlite'.format(profile))
         else:
             logerr('Buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
@@ -2530,8 +2535,12 @@ def get_firefox_profile_name(path):
         Firefox profile name.
     """
 
-    names = os.listdir(path)
-    profile = [name[:-8] for name in names if name.endswith('.default')][0]
+    try:
+        names = os.listdir(path)
+        profile = [name[:-8] for name in names if name.endswith('.default')][0]
+    except FileNotFoundError:
+        profile = None
+
     return profile
 
 
