@@ -6,7 +6,7 @@
 Buku
 ====
 
-A highly delicious bookmark manager. Your mini web!
+Powerful command-line bookmark manager. Your mini web!
 
 .. toctree::
    :maxdepth: 2
