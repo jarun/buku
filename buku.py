@@ -2901,7 +2901,7 @@ def gen_auto_tag():
     return ('%d%s%02d' % (t.tm_year, cal.month_abbr[t.tm_mon], t.tm_mday))
 
 
-def edit_at_prompt(obj, nav):
+def edit_at_prompt(obj, nav, suggest=False):
     """Edit and add or update a bookmark.
 
     Parameters
@@ -2910,6 +2910,8 @@ def edit_at_prompt(obj, nav):
         A valid instance of BukuDb class.
     nav : str
         Navigation command argument passed at prompt by user.
+    suggest : bool, optional
+        If True, suggest similar tags on new bookmark addition.
     """
 
     if nav == 'w':
@@ -2925,6 +2927,8 @@ def edit_at_prompt(obj, nav):
     result = edit_rec(editor, '', None, DELIM, None)
     if result is not None:
         url, title, tags, desc = result
+        if suggest:
+            tags = obj.suggest_similar_tag(tags)
         obj.add_rec(url, title, tags, desc)
 
 
@@ -2982,17 +2986,15 @@ def taglist_subprompt(obj, noninteractive=False):
             new_results = True
         elif (nav == 'q' or nav == 'd' or nav == '?' or
               nav.startswith('s ') or nav.startswith('S ') or nav.startswith('r ') or
-              nav.startswith('t ') or nav.startswith('o ') or nav.startswith('p ') or nav.startswith('g ')):
+              nav.startswith('t ') or nav.startswith('o ') or nav.startswith('p ') or
+              nav.startswith('g ')) or nav == 'w' or nav.startswith('w '):
             return nav
-        elif nav == 'w' or nav.startswith('w '):
-            edit_at_prompt(obj, nav)
-            new_results = False
         else:
             print('Invalid input')
             new_results = False
 
 
-def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
+def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, suggest=False):
     """Show each matching result from a search and prompt.
 
     Parameters
@@ -3007,6 +3009,8 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
         Use deep search. Default is False.
     subprompt : bool, optional
         If True, jump directly to subprompt.
+    suggest : bool, optional
+        If True, suggest similar tags on edit and add bookmark.
     """
 
     if not type(obj) is BukuDb:
@@ -3098,7 +3102,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False):
 
         # Edit and add or update
         if nav == 'w' or nav.startswith('w '):
-            edit_at_prompt(obj, nav)
+            edit_at_prompt(obj, nav, suggest)
             continue
 
         # Append or overwrite tags
@@ -4078,7 +4082,7 @@ POSITIONAL ARGUMENTS:
             search_results = bdb.search_by_tag(' '.join(args.keywords))
         else:
             # Use sub prompt to list all tags
-            prompt(bdb, None, args.np, subprompt=True)
+            prompt(bdb, None, args.np, subprompt=True, suggest=args.suggest)
     elif args.keywords:
         search_results = bdb.searchdb(args.keywords, False, args.deep)
     else:
