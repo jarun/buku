@@ -147,17 +147,17 @@ class BukuCrypt:
 
     @staticmethod
     def get_filehash(filepath):
-        """Get the SHA256 hash of a file
+        """Get the SHA256 hash of a file.
 
         Parameters
         ----------
         filepath : str
-            Path to the file
+            Path to the file.
 
         Returns
         -------
         hash : bytes
-            Hash digest of file
+            Hash digest of file.
         """
 
         from hashlib import sha256
@@ -173,14 +173,14 @@ class BukuCrypt:
 
     @staticmethod
     def encrypt_file(iterations, dbfile=None):
-        """Encrypt the bookmarks database file
+        """Encrypt the bookmarks database file.
 
         Parameters
         ----------
         iterations : int
-            Number of iterations for key generation
+            Number of iterations for key generation.
         dbfile : str, optional
-            Custom database file path (including filename)
+            Custom database file path (including filename).
         """
 
         try:
@@ -271,14 +271,14 @@ class BukuCrypt:
 
     @staticmethod
     def decrypt_file(iterations, dbfile=None):
-        """Decrypt the bookmarks database file
+        """Decrypt the bookmarks database file.
 
         Parameters
         ----------
         iterations : int
-            Number of iterations for key generation
+            Number of iterations for key generation.
         dbfile : str, optional
-            Custom database file path (including filename)
+            Custom database file path (including filename).
             The '.enc' suffix must be omitted.
         """
 
@@ -370,19 +370,19 @@ class BukuCrypt:
 
 
 def import_md(filepath, newtag):
-    """Parse bookmark markdown file
+    """Parse bookmark markdown file.
 
     Parameters
     ----------
     filepath : str
-        Path to markdown file
+        Path to markdown file.
     newtag : str
-        New tag for bookmarks in markdown file
+        New tag for bookmarks in markdown file.
 
     Returns
     -------
     tuple
-        Parsed result
+        Parsed result.
     """
     with open(filepath, mode='r', encoding='utf-8') as infp:
         for line in infp:
@@ -410,21 +410,21 @@ def import_md(filepath, newtag):
 
 
 def import_html(html_soup, add_parent_folder_as_tag, newtag):
-    """Parse bookmark html
+    """Parse bookmark html.
 
     Parameters
     ----------
     html_soup : BeautifulSoup object
-        BeautifulSoup representation of bookmark html
+        BeautifulSoup representation of bookmark html.
     add_parent_folder_as_tag : bool
-        True if bookmark parent folders should be added as tags else False
+        True if bookmark parent folders should be added as tags else False.
     newtag : str
-        A new unique tag to add to imported bookmarks
+        A new unique tag to add to imported bookmarks.
 
     Returns
     -------
     tuple
-        Parsed result
+        Parsed result.
     """
 
     # compatibility
@@ -472,14 +472,14 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
 
 
 class BukuDb:
-    """Abstracts all database operations
+    """Abstracts all database operations.
 
     Attributes
     ----------
-    conn : sqlite database connection
-    cur : sqlite database cursor
+    conn : sqlite database connection.
+    cur : sqlite database cursor.
     json : bool
-        True if results should be printed in json format else False
+        True if results should be printed in json format else False.
     field_filter : int
         Indicates format for displaying bookmarks. Default is 0.
     chatty : bool
@@ -487,12 +487,12 @@ class BukuDb:
     """
 
     def __init__(self, json=False, field_filter=0, chatty=False, dbfile=None, colorize=True):
-        """Database initialization API
+        """Database initialization API.
 
         Parameters
         ----------
         json : bool, optional
-            True if results should be printed in json format else False
+            True if results should be printed in json format else False.
         field_filter : int, optional
             Indicates format for displaying bookmarks. Default is 0.
         chatty : bool, optional
@@ -509,17 +509,17 @@ class BukuDb:
 
     @staticmethod
     def get_default_dbdir():
-        """Determine the directory path where dbfile will be stored
+        """Determine the directory path where dbfile will be stored.
 
         If the platform is Windows, use %APPDATA%
         else if $XDG_DATA_HOME is defined, use it
         else if $HOME exists, use it
-        else use the current directory
+        else use the current directory.
 
         Returns
         -------
         str
-            Path to database file
+            Path to database file.
         """
 
         data_home = os.environ.get('XDG_DATA_HOME')
@@ -546,12 +546,12 @@ class BukuDb:
         Parameters
         ----------
         dbfile : str, optional
-            Custom database file path (including filename)
+            Custom database file path (including filename).
 
         Returns
         -------
         tuple
-            (connection, cursor)
+            (connection, cursor).
         """
 
         if not dbfile:
@@ -609,12 +609,12 @@ class BukuDb:
         return (conn, cur)
 
     def get_rec_all(self):
-        """Get all the bookmarks in the database
+        """Get all the bookmarks in the database.
 
         Returns
         -------
         list
-            A list of tuples representing bookmark records
+            A list of tuples representing bookmark records.
         """
 
         self.cur.execute('SELECT * FROM bookmarks')
@@ -626,12 +626,12 @@ class BukuDb:
         Parameters
         ----------
         index : int
-            DB index of bookmark record
+            DB index of bookmark record.
 
         Returns
         -------
         tuple or None
-            Bookmark data, or None if index is not found
+            Bookmark data, or None if index is not found.
         """
 
         self.cur.execute('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', (index,))
@@ -639,17 +639,17 @@ class BukuDb:
         return resultset[0] if resultset else None
 
     def get_rec_id(self, url):
-        """Check if URL already exists in DB
+        """Check if URL already exists in DB.
 
         Parameters
         ----------
         url : str
-            A URL to search for in the DB
+            A URL to search for in the DB.
 
         Returns
         -------
         int
-            DB index, or -1 if URL not found in DB
+            DB index, or -1 if URL not found in DB.
         """
 
         self.cur.execute('SELECT id FROM bookmarks WHERE URL = ? LIMIT 1', (url,))
@@ -657,12 +657,12 @@ class BukuDb:
         return resultset[0][0] if resultset else -1
 
     def get_max_id(self):
-        """Fetch the ID of the last record
+        """Fetch the ID of the last record.
 
         Returns
         -------
         int
-            ID of the record if any record exists, else -1
+            ID of the record if any record exists, else -1.
         """
 
         self.cur.execute('SELECT MAX(id) from bookmarks')
@@ -670,12 +670,12 @@ class BukuDb:
         return -1 if resultset[0][0] is None else resultset[0][0]
 
     def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0, delay_commit=False):
-        """Add a new bookmark
+        """Add a new bookmark.
 
         Parameters
         ----------
         url : str
-            URL to bookmark
+            URL to bookmark.
         title_in :str, optional
             Title to add manually. Default is None.
         tags_in : str, optional
@@ -693,7 +693,7 @@ class BukuDb:
         Returns
         -------
         int
-            DB index of new bookmark on success, -1 on failure
+            DB index of new bookmark on success, -1 on failure.
         """
 
         # Return error for empty URL
@@ -750,14 +750,14 @@ class BukuDb:
             return -1
 
     def append_tag_at_index(self, index, tags_in, delay_commit=False):
-        """Append tags to bookmark tagset at index
+        """Append tags to bookmark tagset at index.
 
         Parameters
         ----------
         index : int
             DB index of the record. 0 indicates all records.
         tags_in : str
-            Comma-separated tags to add manually
+            Comma-separated tags to add manually.
         delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
@@ -765,7 +765,7 @@ class BukuDb:
         Returns
         -------
         bool
-            True on success, False on failuree
+            True on success, False on failure.
         """
 
         if index == 0:
@@ -795,14 +795,14 @@ class BukuDb:
         return True
 
     def delete_tag_at_index(self, index, tags_in, delay_commit=False):
-        """Delete tags from bookmark tagset at index
+        """Delete tags from bookmark tagset at index.
 
         Parameters
         ----------
         index : int
             DB index of bookmark record. 0 indicates all records.
         tags_in : str
-            Comma-separated tags to delete manually
+            Comma-separated tags to delete manually.
         delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
@@ -810,7 +810,7 @@ class BukuDb:
         Returns
         -------
         bool
-            True on success, False on failure
+            True on success, False on failure.
         """
 
         tags_to_delete = tags_in.strip(DELIM).split(DELIM)
@@ -860,7 +860,7 @@ class BukuDb:
         return True
 
     def update_rec(self, index, url=None, title_in=None, tags_in=None, desc=None, immutable=-1, threads=4):
-        """Update an existing record at index
+        """Update an existing record at index.
 
         Update all records if index is 0 and url is not specified.
         URL is an exception because URLs are unique in DB.
@@ -870,15 +870,15 @@ class BukuDb:
         index : int
             DB index of record. 0 indicates all records.
         url : str, optional
-            Bookmark address
+            Bookmark address.
         title_in : str, optional
             Title to add manually.
         tags_in : str, optional
             Comma-separated tags to add manually. Must start and end with comma.
             Prefix with '+,' to append to current tags.
-            Prefix with '-,' to delete from current tags
+            Prefix with '-,' to delete from current tags.
         desc : str, optional
-            Description of bookmark
+            Description of bookmark.
         immutable : int, optional
             Diable title fetch from web if 1. Default is -1.
         threads : int, optional
@@ -887,7 +887,7 @@ class BukuDb:
         Returns
         -------
         bool
-            True on success, False on Failure
+            True on success, False on Failure.
         """
 
         arguments = []
@@ -1077,13 +1077,13 @@ class BukuDb:
         cond.acquire()
 
         def refresh(count, cond):
-            """Inner function to fetch titles and update records
+            """Inner function to fetch titles and update records.
 
             Parameters
             ----------
             count : int
                 Dummy input to adhere to convention.
-            cond : threading condition object
+            cond : threading condition object.
             """
 
             count = 0
@@ -1153,19 +1153,19 @@ class BukuDb:
         return True
 
     def edit_update_rec(self, index, immutable=-1):
-        """Edit in editor and update a record
+        """Edit in editor and update a record.
 
         Parameters
         ----------
         index : int
-            DB index of the record
+            DB index of the record.
         immutable : int, optional
             Diable title fetch from web if 1. Default is -1.
 
         Returns
         -------
         bool
-            True if updated, else False
+            True if updated, else False.
         """
 
         editor = get_system_editor()
@@ -1189,12 +1189,12 @@ class BukuDb:
         return False
 
     def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
-        """Search DB for entries where tags, URL, or title fields match keywords
+        """Search DB for entries where tags, URL, or title fields match keywords.
 
         Parameters
         ----------
         keywords : list of str
-            Keywords to search
+            Keywords to search.
         all_keywords : bool, optional
             True to return records matching ALL keywords.
             False (default value) to return records matching ANY keyword.
@@ -1206,7 +1206,7 @@ class BukuDb:
         Returns
         -------
         list or None
-            List of search results, or None if no matches
+            List of search results, or None if no matches.
         """
         if not keywords:
             return None
@@ -1271,7 +1271,7 @@ class BukuDb:
         return self.cur.fetchall()
 
     def search_by_tag(self, tags):
-        """Search bookmarks for entries with given tags
+        """Search bookmarks for entries with given tags.
 
         Parameters
         ----------
@@ -1285,7 +1285,7 @@ class BukuDb:
         Returns
         -------
         list or None
-            List of search results, or None if no matches
+            List of search results, or None if no matches.
         """
 
         # do not allow combination of search logics
@@ -1316,7 +1316,7 @@ class BukuDb:
         Parameters
         ----------
         index : int
-            DB index of deleted entry
+            DB index of deleted entry.
         delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
@@ -1343,7 +1343,7 @@ class BukuDb:
                     print('Index %d moved to %d' % (row[0], index))
 
     def delete_rec(self, index, low=0, high=0, is_range=False, delay_commit=False):
-        """Delete a single record or remove the table if index is None
+        """Delete a single record or remove the table if index is None.
 
         Parameters
         ----------
@@ -1434,7 +1434,7 @@ class BukuDb:
         Returns
         -------
         bool
-            True on success, False on failure
+            True on success, False on failure.
         """
         resp = read_in('Delete the search results? (y/n): ')
         if resp != 'y':
@@ -1455,7 +1455,7 @@ class BukuDb:
         return True
 
     def delete_rec_all(self, delay_commit=False):
-        """Removes all records in the Bookmarks table
+        """Removes all records in the Bookmarks table.
 
         Parameters
         ----------
@@ -1466,7 +1466,7 @@ class BukuDb:
         Returns
         -------
         bool
-            True on success, False on failure
+            True on success, False on failure.
         """
 
         try:
@@ -1479,12 +1479,12 @@ class BukuDb:
             return False
 
     def cleardb(self):
-        """Drops the bookmark table if it exists
+        """Drops the bookmark table if it exists.
 
         Returns
         -------
         bool
-            True on success, False on failure
+            True on success, False on failure.
         """
 
         resp = read_in('Remove ALL bookmarks? (y/n): ')
@@ -1498,9 +1498,9 @@ class BukuDb:
         return True
 
     def print_rec(self, index=0, low=0, high=0, is_range=False):
-        """Print bookmark details at index or all bookmarks if index is 0
+        """Print bookmark details at index or all bookmarks if index is 0.
 
-        A negative index behaves like tail, if title is blank show "Untitled"
+        A negative index behaves like tail, if title is blank show "Untitled".
 
         Parameters
         -----------
@@ -1602,13 +1602,13 @@ class BukuDb:
             print(format_json(resultset, field_filter=self.field_filter))
 
     def get_tag_all(self):
-        """Get list of tags in DB
+        """Get list of tags in DB.
 
         Returns
         -------
         tuple
             (list of unique tags sorted alphabetically,
-             dictionary of {tag: usage_count})
+             dictionary of {tag: usage_count}).
         """
 
         tags = []
@@ -1635,7 +1635,7 @@ class BukuDb:
         return unique_tags, dic
 
     def suggest_similar_tag(self, tagstr):
-        """Show list of tags those go together in DB
+        """Show list of tags those go together in DB.
 
         Parameters
         ----------
@@ -1645,7 +1645,7 @@ class BukuDb:
         Returns
         -------
         str
-            DELIM separated string of tags
+            DELIM separated string of tags.
         """
 
         tags = tagstr.split(',')
@@ -1846,7 +1846,7 @@ class BukuDb:
         return update_count
 
     def browse_by_index(self, index=0, low=0, high=0, is_range=False):
-        """Open URL at index or range of indies in browser
+        """Open URL at index or range of indies in browser.
 
         Parameters
         ----------
@@ -2327,7 +2327,7 @@ class BukuDb:
         index : int, optional (if URL is provided)
             DB index of the bookmark with the URL to shorten. Default is 0.
         url : str, optional (if index is provided)
-            URL to shorten
+            URL to shorten.
         shorten : bool, optional
             True to shorten, False to expand. Default is False.
 
@@ -2427,7 +2427,7 @@ class BukuDb:
 
 
 class ExtendedArgumentParser(argparse.ArgumentParser):
-    """Extend classic argument parser"""
+    """Extend classic argument parser."""
 
     @staticmethod
     def program_info(file=sys.stdout):
@@ -2610,7 +2610,7 @@ def is_nongeneric_url(url):
     Returns
     -------
     bool
-        True if URL is a nongeneric URL, False otherwise.
+        True if URL is a non-generic URL, False otherwise.
     """
 
     ignored_prefix = ['place:', 'file://', 'apt:']
@@ -2730,7 +2730,7 @@ def network_handler(url, http_head=False):
     Returns
     -------
     tuple
-        (title, recognized mime, bad url)
+        (title, recognized mime, bad url).
     """
 
     page_title = None
@@ -2864,7 +2864,7 @@ def prep_tag_search(tags):
     tuple
         (list of formatted tags to search,
          a string indicating query search operator (either OR or AND),
-         a regex string of tags or None if ' - ' delimiter not in tags)
+         a regex string of tags or None if ' - ' delimiter not in tags).
     """
 
     excluded_tags = None
@@ -2892,7 +2892,7 @@ def gen_auto_tag():
     Returns
     -------
     str
-        New tag as YYYYMonDD
+        New tag as YYYYMonDD.
     """
 
     import calendar as cal
@@ -3188,7 +3188,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
 def print_single_rec(row, idx=0):  # NOQA
     """Print a single DB record.
 
-    Handles both search results and individual record
+    Handles both search results and individual record.
 
     Parameters
     ----------
@@ -3297,7 +3297,7 @@ def is_int(string):
 
 
 def browse(url):
-    """Duplicate stdin, stdout and open URL in default browser
+    """Duplicate stdin, stdout and open URL in default browser.
 
     .. note:: Duplicates stdin and stdout in order to
               suppress showing errors on the terminal.
@@ -3418,7 +3418,7 @@ def read_in(msg):
     Parameters
     ----------
     msg : str
-        String to pass to to input()
+        String to pass to to input().
     """
 
     disable_sigint_handler()
@@ -3443,7 +3443,7 @@ def sigint_handler(signum, frame):
     ----------
     signum : int
         Signal number.
-    frame : frame object or None
+    frame : frame object or None.
     """
 
     global interrupted
@@ -3472,13 +3472,13 @@ def enable_sigint_handler():
 
 
 def get_system_editor():
-    """Returns default system editor is $EDITOR is set"""
+    """Returns default system editor is $EDITOR is set."""
 
     return os.environ.get('EDITOR', 'none')
 
 
 def is_editor_valid(editor):
-    """Check if the editor string is valid
+    """Check if the editor string is valid.
 
     Parameters
     ----------
@@ -3503,7 +3503,7 @@ def is_editor_valid(editor):
 
 
 def to_temp_file_content(url, title_in, tags_in, desc):
-    """Generate temporary file content string
+    """Generate temporary file content string.
 
     Parameters
     ----------
@@ -3556,7 +3556,7 @@ def parse_temp_file_content(content):
     Parameters
     ----------
     content : str
-        String of content
+        String of content.
 
     Returns
     -------
@@ -3608,7 +3608,7 @@ def parse_temp_file_content(content):
 
 
 def edit_rec(editor, url, title_in, tags_in, desc):
-    """Edit a bookmark record
+    """Edit a bookmark record.
 
     Parameters
     ----------
