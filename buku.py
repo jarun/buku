@@ -3868,7 +3868,7 @@ POSITIONAL ARGUMENTS:
                          search bookmarks by tags
                          use ',' to find entries matching ANY tag
                          use '+' to find entries matching ALL tags
-                         excludes entries matching tags following ' - '
+                         excludes entries with tags after ' - '
                          list all tags, if no search keywords''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', action='store_true', help=HIDE)
@@ -3883,10 +3883,8 @@ POSITIONAL ARGUMENTS:
 
     crypto_grp = argparser.add_argument_group(
         title='ENCRYPTION OPTIONS',
-        description='''    -l, --lock [N]       encrypt DB file with N (> 0, default 8)
-                         hash iterations to generate key
-    -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
-                         hash iterations to generate key''')
+        description='''    -l, --lock [N]       encrypt DB in N (default 8) # iterations
+    -k, --unlock [N]     decrypt DB in N (default 8) # iterations''')
     addarg = crypto_grp.add_argument
     addarg('-k', '--unlock', nargs='?', type=int, const=8, help=HIDE)
     addarg('-l', '--lock', nargs='?', type=int, const=8, help=HIDE)

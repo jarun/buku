@@ -188,14 +188,12 @@ SEARCH OPTIONS:
                            search bookmarks by tags
                            use ',' to find entries matching ANY tag
                            use '+' to find entries matching ALL tags
-                           excludes entries matching tags following ' - '
+                           excludes entries with tags after ' - '
                            list all tags, if no search keywords
 
 ENCRYPTION OPTIONS:
-      -l, --lock [N]       encrypt DB file with N (> 0, default 8)
-                           hash iterations to generate key
-      -k, --unlock [N]     decrypt DB file with N (> 0, default 8)
-                           hash iterations to generate key
+      -l, --lock [N]       encrypt DB in N (default 8) # iterations
+      -k, --unlock [N]     decrypt DB in N (default 8) # iterations
 
 POWER TOYS:
       --ai                 auto-import from Firefox and Chrome
