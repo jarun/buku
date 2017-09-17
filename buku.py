@@ -1981,7 +1981,6 @@ class BukuDb:
             return False
 
         if filepath.endswith('.md'):
-            outfp.write('List of buku bookmarks:\n\n')
             for row in resultset:
                 if row[2] == '':
                     out = '- [Untitled](' + row[1] + ')\n'
