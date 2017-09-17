@@ -299,11 +299,13 @@ PROMPT KEYS:
 
         $ buku -e bookmarks.html --tag tag 1, tag 2
         $ buku -e bookmarks.md --tag tag 1, tag 2
+        $ buku -e bookmarks.db --tag tag 1, tag 2
     All bookmarks are exported if --tag is not specified.
 10. **Import** bookmarks from HTML and markdown:
 
         $ buku -i bookmarks.html
         $ buku -i bookmarks.md
+        $ buku -i bookmarks.db
 11. **Delete only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c
