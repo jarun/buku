@@ -15,7 +15,7 @@ args=(
     '(--colors)--colors[set output colors in 5-letter string]:color string'
     '(-d --delete)'{-d,--delete}'[delete bookmark]'
     '(--deep)--deep[search matching substrings]'
-    '(-e --export)'{-e,--export}'[export bookmarks]:html output file'
+    '(-e --export)'{-e,--export}'[export bookmarks]:html/md/db output file'
     '(--expand)--expand[expand a tny.im shortened URL]:index/shorturl'
     '(-f --format)'{-f,--format}'[limit fields in print and Json output]:value'
     '(-h --help)'{-h,--help}'[show help]'

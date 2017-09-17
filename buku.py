@@ -501,11 +501,11 @@ class BukuDb:
             Indicates whether color should be used in output. Default is True.
         """
 
-        self.conn, self.cur = BukuDb.initdb(dbfile)
         self.json = json
         self.field_filter = field_filter
         self.chatty = chatty
         self.colorize = colorize
+        self.conn, self.cur = BukuDb.initdb(dbfile, self.chatty)
 
     @staticmethod
     def get_default_dbdir():
@@ -537,7 +537,7 @@ class BukuDb:
         return os.path.join(data_home, 'buku')
 
     @staticmethod
-    def initdb(dbfile=None):
+    def initdb(dbfile=None, chatty=False):
         """Initialize the database connection.
 
         Create DB file and/or bookmarks table if they don't exist.
@@ -547,6 +547,8 @@ class BukuDb:
         ----------
         dbfile : str, optional
             Custom database file path (including filename).
+        chatty : bool
+            If True, shows informative message on DB creation.
 
         Returns
         -------
@@ -580,7 +582,7 @@ class BukuDb:
         elif db_exists and enc_exists:
             logerr('Both encrypted and flat DB files exist!')
             sys.exit(1)
-        else:
+        elif chatty:
             # not db_exists and not enc_exists
             print('DB file is being created at %s.\nYou should encrypt it.' % dbfile)
 
@@ -1918,6 +1920,8 @@ class BukuDb:
     def exportdb(self, filepath, taglist=None):
         """Export DB bookmarks to file.
 
+        If destination file name ends with '.db', bookmarks are
+        exported to a Buku database file.
         If destination file name ends with '.md', bookmarks are
         exported to a markdown file. Otherwise, bookmarks are
         exported to a Firefox bookmarks.html formatted file.
@@ -1966,13 +1970,26 @@ class BukuDb:
         self.cur.execute(query, arguments)
         resultset = self.cur.fetchall()
         if not resultset:
-            print('No bookmarks exported')
+            print('No records found')
             return False
 
         if os.path.exists(filepath):
             resp = read_in(filepath + ' exists. Overwrite? (y/n): ')
             if resp != 'y':
                 return False
+
+            if filepath.endswith('.db'):
+                os.remove(filepath)
+
+        if filepath.endswith('.db'):
+            outdb = BukuDb(dbfile=filepath)
+            qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
+            for row in resultset:
+                outdb.cur.execute(qry, (row[1], row[2], row[3], row[4], row[5]))
+
+            outdb.conn.commit()
+            outdb.close()
+            return True
 
         try:
             outfp = open(filepath, mode='w', encoding='utf-8')
@@ -2409,6 +2426,17 @@ class BukuDb:
 
         if to_commit:
             self.conn.commit()
+
+    def close(self):
+        """Close a DB connection."""
+
+        if self.conn is not None:
+            try:
+                self.cur.close()
+                self.conn.close()
+            except Exception:
+                # ignore errors here, we're closing down
+                pass
 
     def close_quit(self, exitval=0):
         """Close a DB connection and exit.
@@ -3873,6 +3901,7 @@ POSITIONAL ARGUMENTS:
     -e, --export file    export bookmarks in Firefox format html
                          export markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
+                         export buku DB, if file ends with '.db'
                          use --tag to export only specific tags
     -i, --import file    import Firefox or Chrome bookmarks html
                          import markdown, if file ends with '.md'
