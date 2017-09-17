@@ -77,7 +77,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - Auto-import looks in the default installation path and default user profile.
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
   - Folder names are automatically imported as tags if --tacit is used.
-  - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used.
+  - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used in html or markdown import.
 .PP
 .IP 10. 4
 \fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
@@ -193,10 +193,7 @@ Markdown format: [title](url), 1 entry per line.
 .BI \-i " " \--import " file"
 Import bookmarks exported from Firefox or Google Chrome as HTML.
 .I file
-is considered Markdown (compliant with --export format) if it has '.md' extension.
-.TP
-.BI \-m " " \--merge " file"
-Add bookmarks from another buku database file.
+is considered Markdown (compliant with --export format) if it has '.md' extension or another buku database if the extension is '.db'.
 .TP
 .BI \-p " " \--print " [...]"
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. A negative value (introduced for convenience) behaves like the tail utility, e.g., -n shows the details of the last n bookmarks.

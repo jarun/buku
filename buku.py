@@ -2220,6 +2220,7 @@ class BukuDb:
 
         Supports Firefox, Google Chrome, and IE exported html bookmarks.
         Supports markdown files with extension '.md'.
+        Supports importing bookmarks from another Buku database file.
 
         Parameters
         ----------
@@ -2236,6 +2237,9 @@ class BukuDb:
         bool
             True on success, False on failure.
         """
+
+        if filepath.endswith('.db'):
+            return self.mergedb(filepath)
 
         if not tacit:
             newtag = gen_auto_tag()
@@ -3873,7 +3877,7 @@ POSITIONAL ARGUMENTS:
                          use --tag to export only specific tags
     -i, --import file    import Firefox or Chrome bookmarks html
                          import markdown, if file ends with '.md'
-    -m, --merge file     add bookmarks from another buku DB file
+                         import buku DB, if file ends with '.db'
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
                          -n shows the last n results (like tail)
@@ -3901,7 +3905,6 @@ POSITIONAL ARGUMENTS:
     addarg('--ai', action='store_true', help=HIDE)
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
-    addarg('-m', '--merge', nargs=1, help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
@@ -4257,10 +4260,6 @@ POSITIONAL ARGUMENTS:
     # Import bookmarks from browser
     if args.ai:
         bdb.auto_import_from_browser()
-
-    # Merge a database file and exit
-    if args.merge is not None:
-        bdb.mergedb(args.merge[0])
 
     # Open URL in browser
     if args.open is not None:

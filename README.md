@@ -205,7 +205,7 @@ POWER TOYS:
                            use --tag to export only specific tags
       -i, --import file    import Firefox or Chrome bookmarks html
                            import markdown, if file ends with '.md'
-      -m, --merge file     add bookmarks from another buku DB file
+                           import buku DB, if file ends with '.db'
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
                            -n shows the last n results (like tail)
