@@ -1,3 +1,14 @@
+Buku 3.4
+2017-09-18
+
+What's in?
+- Export bookmarks (including specific tags) to Buku DB file using `--export`
+- Option `--import` can merge Buku DB files now, option `--merge` is retired
+- Option `--suggest` now works at prompt as well
+- Auto-import issue when Firefox is not installed fixed
+
+-------------------------------------------------------------------------------
+
 Buku 3.3.1
 2017-09-11
 

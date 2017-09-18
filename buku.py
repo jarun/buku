@@ -39,7 +39,7 @@ import urllib3
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
-__version__ = '3.3.1'
+__version__ = '3.4'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -3900,7 +3900,7 @@ POSITIONAL ARGUMENTS:
                          export markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
                          export buku DB, if file ends with '.db'
-                         use --tag to export only specific tags
+                         use --tag to export specific tags
     -i, --import file    import Firefox or Chrome bookmarks html
                          import markdown, if file ends with '.md'
                          import buku DB, if file ends with '.db'

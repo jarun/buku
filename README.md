@@ -200,8 +200,8 @@ POWER TOYS:
       -e, --export file    export bookmarks in Firefox format html
                            export markdown, if file ends with '.md'
                            format: [title](url), 1 entry per line
-                           use --tag to export only specific tags
                            export buku DB, if file ends with '.db'
+                           use --tag to export specific tags
       -i, --import file    import Firefox or Chrome bookmarks html
                            import markdown, if file ends with '.md'
                            import buku DB, if file ends with '.db'
