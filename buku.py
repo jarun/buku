@@ -70,8 +70,8 @@ COLORMAP = {k: '\x1b[%sm' % v for k, v in {
     'x': '0', 'X': '1', 'y': '7', 'Y': '7;1', 'z': '2',
 }.items()}
 
-# Disguise as Firefox on Ubuntu
-USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0'
+# Disguise as elinks on Linux
+USER_AGENT = 'ELinks/0.12pre6 (textmode; Linux 4.4.0-89-generic x86_64; 199x55-2)'
 myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
 
