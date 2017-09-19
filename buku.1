@@ -421,11 +421,13 @@ Please consult the manual of your terminal emulator as well as \fIhttps://en.wik
 .IP
 .B buku -w
 .br
+.B buku -w 'gedit -w'
+.br
 .B buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
 .EE
 .PP
 .IP "" 4
-The first command picks editor from the environment variable \fIEDITOR\fR. The second command will open macvim with option -f and the URL and tags populated in template.
+The first command picks editor from the environment variable \fIEDITOR\fR. The second command opens gedit in blocking mode. The third command opens macvim with option -f and the URL and tags populated in template.
 .PP
 .IP 2. 4
 \fBAdd\fR a bookmark with \fBtags\fR 'search engine' and 'privacy', \fBcomment\fR 'Search engine with perks', \fBfetch page title\fR from the web:

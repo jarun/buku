@@ -51,6 +51,8 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
   - [Cmdline options](#cmdline-options)
   - [Colors](#colors)
 - [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+  - [Editor integration](#editor-integration)
 - [Collaborators](#collaborators)
 - [Related projects](#related-projects)
 - [In the Press](#in-the-press)
@@ -261,8 +263,9 @@ PROMPT KEYS:
 1. **Edit and add** a bookmark from editor:
 
         $ buku -w
+        $ buku -w 'gedit -w'
         $ buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
-    The first command picks editor from the environment variable `EDITOR`. The second command will open macvim with option -f and the URL and tags populated in template.
+    The first command picks editor from the environment variable `EDITOR`. The second command opens gedit in blocking mode. The third command opens macvim with option -f and the URL and tags populated in template.
 2. **Add** a bookmark with **tags** `search engine` and `privacy`, **comment** `Search engine with perks`, **fetch page title** from the web:
 
         $ buku -a https://ddg.gg search engine, privacy -c Search engine with perks
@@ -410,6 +413,12 @@ PROMPT KEYS:
 
         $ buku -h
         $ man buku
+
+### Troubleshooting
+
+#### Editor integration
+
+You may encounter issues with GUI editors which maintain only one instance by default and return immediately from other instances. Use the appropriate editor option to block the caller when a new document is opened. See issue [#210](https://github.com/jarun/Buku/issues/210) for gedit.
 
 ### Collaborators
 
