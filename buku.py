@@ -3219,6 +3219,21 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
                 break
 
 
+def print_rec_with_filter(records, field_filter):
+    """Print records filtered by field.
+
+    User determines which fields in the records to display
+    by using the --format option.
+
+    Parameters
+    ----------
+    records : list or sqlit3 cursor
+    """
+    record1 = (1, 'http://url1.com', 'title1', ',tag1,')
+    print('%s\t%s' % (record1[0], record1[1]))
+    record2 = (4, 'http://url4.com', 'title4', ',tag1,tag2,')
+    print('%s\t%s' % (record2[0], record2[1]))    
+
 def print_single_rec(row, idx=0):  # NOQA
     """Print a single DB record.
 

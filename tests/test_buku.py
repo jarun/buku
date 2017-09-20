@@ -106,6 +106,43 @@ def test_parse_tags(keywords, exp_res):
     res = buku.parse_tags(keywords)
     assert res == exp_res
 
+@pytest.mark.parametrize(
+    'records, field_filter, exp_res',
+    [
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (4, 'http://url4.com', 'title4', ',tag1,tag2,')],
+            1,
+            ['1\thttp://url1.com', '4\thttp://url4.com']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (4, 'http://url4.com', 'title4', ',tag1,tag2,')],
+            2,
+            ['1\thttp://url1.com', '4\thttp://url4.com']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (4, 'http://url4.com', 'title4', ',tag1,tag2,')],
+            3,
+            ['1\thttp://url1.com', '4\thttp://url4.com']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (4, 'http://url4.com', 'title4', ',tag1,tag2,')],
+            4,
+            ['1\thttp://url1.com', '4\thttp://url4.com']
+        ]                        
+    ]
+)
+def test_print_rec_with_filter(records, field_filter, exp_res):
+    """test func."""
+    with mock.patch('buku.print', create=True) as m_print:
+        import buku
+        buku.print_rec_with_filter(records, field_filter)
+        for res in exp_res:
+            m_print.assert_any_call(res)
+
 
 @pytest.mark.parametrize(
     'taglist, exp_res',
