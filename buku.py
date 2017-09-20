@@ -2088,7 +2088,7 @@ class BukuDb:
 
         roots = data['roots']
         for entry in roots:
-            # Needed to skip sync_transaction_version key from roots
+            # Needed to skip 'sync_transaction_version' key from roots
             if isinstance(roots[entry], str):
                 continue
             for item in self.traverse_bm_folder(roots[entry]['children'], unique_tag, roots[entry]['name'], add_parent_folder_as_tag):
