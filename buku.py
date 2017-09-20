@@ -2568,6 +2568,7 @@ def get_firefox_profile_name(path):
 
     try:
         for name in os.listdir(path):
+            # can be in the format nnnnnn.default or nnnnnn.default-nnnnnn...
             if '.default' in name and os.path.isdir(os.path.join(path, name)):
                 logdbg(name)
                 return name
