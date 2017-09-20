@@ -2570,7 +2570,7 @@ def get_firefox_profile_name(path):
     profile_path = os.path.join(path, 'profiles.ini')
     if os.path.exists(profile_path):
         config = ConfigParser()
-        config_data = config.read(profile_path)
+        config.read(profile_path)
         profiles_names = [section for section in config.sections() if section.startswith('Profile')]
         if not profiles_names:
             return None
