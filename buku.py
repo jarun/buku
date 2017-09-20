@@ -3229,10 +3229,18 @@ def print_rec_with_filter(records, field_filter):
     ----------
     records : list or sqlit3 cursor
     """
-    record1 = (1, 'http://url1.com', 'title1', ',tag1,')
-    print('%s\t%s' % (record1[0], record1[1]))
-    record2 = (4, 'http://url4.com', 'title4', ',tag1,tag2,')
-    print('%s\t%s' % (record2[0], record2[1]))    
+    if field_filter == 1:
+        for row in records:
+            print('%s\t%s' % (row[0], row[1]))
+    elif field_filter == 2:
+        for row in records:
+            print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
+    elif field_filter == 3:
+        for row in records:
+            print('%s\t%s' % (row[0], row[2]))
+    elif field_filter == 4:
+        for row in records:
+            print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))   
 
 def print_single_rec(row, idx=0):  # NOQA
     """Print a single DB record.
