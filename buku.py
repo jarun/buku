@@ -2567,9 +2567,10 @@ def get_firefox_profile_name(path):
     """
     from configparser import ConfigParser
 
-    if os.path.exists(path) and os.path.isfile(path):
+    profile_path = os.path.join(path, 'profiles.ini')
+    if os.path.exists(profile_path):
         config = ConfigParser()
-        config_data = config.read(path)
+        config_data = config.read(profile_path)
         profiles_names = [section for section in config.sections() if section.startswith('Profile')]
         if not profiles_names:
             return None
@@ -2584,7 +2585,7 @@ def get_firefox_profile_name(path):
             # There is no default profile
             return None
     else:
-        logerr("get_firefox_profile_name(): `path' is not a file")
+        logerr("get_firefox_profile_name(): `path' does not exist")
         return None
 
 
