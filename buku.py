@@ -2186,7 +2186,7 @@ class BukuDb:
             username = os.getlogin()
             GC_BM_DB_PATH = 'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
 
-            DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
+            DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/'.format(username)
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
             if profile:
                 FF_BM_DB_PATH = os.path.join(DEFAULT_FF_FOLDER, '{}/places.sqlite'.format(profile))
@@ -2582,6 +2582,7 @@ def get_firefox_profile_name(path):
                     return profile_path
             except NoOptionError:
                 continue
+
             # There is no default profile
             return None
     else:
