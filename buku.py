@@ -2565,7 +2565,7 @@ def get_firefox_profile_name(path):
     profile : str
         Firefox profile name.
     """
-    from configparser import ConfigParser
+    from configparser import ConfigParser, NoOptionError
 
     profile_path = os.path.join(path, 'profiles.ini')
     if os.path.exists(profile_path):
@@ -2580,7 +2580,7 @@ def get_firefox_profile_name(path):
                 if config.getboolean(name, 'default'):
                     profile_path = config.get(name, 'path')
                     return profile_path
-            except configparser.NoOptionError:
+            except NoOptionError:
                 continue
             # There is no default profile
             return None
