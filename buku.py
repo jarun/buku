@@ -4171,8 +4171,10 @@ POSITIONAL ARGUMENTS:
             oneshot = True
             update_search_results = True
 
-        if not args.json:
+        if not args.json and not args.format:
             prompt(bdb, search_results, oneshot, args.deep)
+        elif not args.json:
+            print_rec_with_filter(search_results, field_filter=args.format)
         else:
             # Printing in Json format is non-interactive
             print(format_json(search_results, field_filter=args.format))
