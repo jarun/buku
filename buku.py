@@ -2174,14 +2174,14 @@ class BukuDb:
             DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
             if profile:
-                FF_BM_DB_PATH = '~/.mozilla/firefox/{}.default/places.sqlite'.format(profile)
+                FF_BM_DB_PATH = '~/.mozilla/firefox/{}/places.sqlite'.format(profile)
         elif sys.platform == 'darwin':
             GC_BM_DB_PATH = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
 
             DEFAULT_FF_FOLDER = os.path.expanduser('~/Library/Application Support/Firefox')
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
             if profile:
-                FF_BM_DB_PATH = '~/Library/Application Support/Firefox/{}.default/places.sqlite'.format(profile)
+                FF_BM_DB_PATH = '~/Library/Application Support/Firefox/{}/places.sqlite'.format(profile)
         elif sys.platform == 'win32':
             username = os.getlogin()
             GC_BM_DB_PATH = 'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
@@ -2189,7 +2189,7 @@ class BukuDb:
             DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
             if profile:
-                FF_BM_DB_PATH = os.path.join(DEFAULT_FF_FOLDER, '{}.default/places.sqlite'.format(profile))
+                FF_BM_DB_PATH = os.path.join(DEFAULT_FF_FOLDER, '{}/places.sqlite'.format(profile))
         else:
             logerr('Buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
@@ -2567,12 +2567,14 @@ def get_firefox_profile_name(path):
     """
 
     try:
-        names = os.listdir(path)
-        profile = [name[:-8] for name in names if name.endswith('.default')][0]
+        for name in os.listdir(path):
+            if '.default' in name and os.path.isdir(os.path.join(path, name)):
+                logdbg(name)
+                return name
     except FileNotFoundError:
-        profile = None
+        pass
 
-    return profile
+    return None
 
 
 def walk(root):
