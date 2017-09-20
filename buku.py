@@ -2565,17 +2565,27 @@ def get_firefox_profile_name(path):
     profile : str
         Firefox profile name.
     """
+    from configparser import ConfigParser
 
-    try:
-        for name in os.listdir(path):
-            # can be in the format nnnnnn.default or nnnnnn.default-nnnnnn...
-            if '.default' in name and os.path.isdir(os.path.join(path, name)):
-                logdbg(name)
-                return name
-    except FileNotFoundError:
-        pass
-
-    return None
+    if os.path.exists(path) and os.path.isfile(path):
+        config = ConfigParser()
+        config_data = config.read(path)
+        profiles_names = [section for section in config.sections() if section.startswith('Profile')]
+        if not profiles_names:
+            return None
+        for name in profiles_names:
+            try:
+                # If profile is default
+                if config.getboolean(name, 'default'):
+                    profile_path = config.get(name, 'path')
+                    return profile_path
+            except configparser.NoOptionError:
+                continue
+            # There is no default profile
+            return None
+    else:
+        logerr("get_firefox_profile_name(): `path' is not a file")
+        return None
 
 
 def walk(root):
