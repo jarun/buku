@@ -2088,6 +2088,9 @@ class BukuDb:
 
         roots = data['roots']
         for entry in roots:
+            # Needed to skip 'sync_transaction_version' key from roots
+            if isinstance(roots[entry], str):
+                continue
             for item in self.traverse_bm_folder(roots[entry]['children'], unique_tag, roots[entry]['name'], add_parent_folder_as_tag):
                 self.add_rec(*item)
 
@@ -2186,7 +2189,7 @@ class BukuDb:
             username = os.getlogin()
             GC_BM_DB_PATH = 'C:/Users/{}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'.format(username)
 
-            DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/Profiles'.format(username)
+            DEFAULT_FF_FOLDER = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/'.format(username)
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
             if profile:
                 FF_BM_DB_PATH = os.path.join(DEFAULT_FF_FOLDER, '{}/places.sqlite'.format(profile))
@@ -2565,17 +2568,29 @@ def get_firefox_profile_name(path):
     profile : str
         Firefox profile name.
     """
+    from configparser import ConfigParser, NoOptionError
 
-    try:
-        for name in os.listdir(path):
-            # can be in the format nnnnnn.default or nnnnnn.default-nnnnnn...
-            if '.default' in name and os.path.isdir(os.path.join(path, name)):
-                logdbg(name)
-                return name
-    except FileNotFoundError:
-        pass
+    profile_path = os.path.join(path, 'profiles.ini')
+    if os.path.exists(profile_path):
+        config = ConfigParser()
+        config.read(profile_path)
+        profiles_names = [section for section in config.sections() if section.startswith('Profile')]
+        if not profiles_names:
+            return None
+        for name in profiles_names:
+            try:
+                # If profile is default
+                if config.getboolean(name, 'default'):
+                    profile_path = config.get(name, 'path')
+                    return profile_path
+            except NoOptionError:
+                continue
 
-    return None
+            # There is no default profile
+            return None
+    else:
+        logdbg('get_firefox_profile_name(): {} does not exist'.format(path))
+        return None
 
 
 def walk(root):
