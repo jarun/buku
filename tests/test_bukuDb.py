@@ -1128,12 +1128,10 @@ def test_browse_by_index(low, high, index, is_range, empty_database):
 
 @pytest.fixture()
 def bookmark_folder(tmpdir):
+    # database
     zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
     tmp_zip = tmpdir.join('bookmarks.zip')
-    with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
-        shutil.copyfileobj(response, out_file)
-    zip_obj = zipfile.ZipFile(tmp_zip.strpath)
-    zip_obj.extractall(path=tmpdir.strpath)
+    extract_all_from_zip_url(zip_url=zip_url, tmp_zip, tmpdir)
     return tmpdir
 
 @pytest.fixture()
@@ -1200,6 +1198,20 @@ def test_load_firefox_database(firefox_db, add_pt):
 
 
 # Helper functions for testcases
+
+
+def extract_all_from_zip_url(zip_url, tmp_zip, folder):
+    """extra all files in zip from zip url.
+
+    Args:
+        zip_url (str): URL of zip file.
+        zip_filename: Temporary zip file to save from url.
+        folder: Extract all files inside this folder.
+    """
+    with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)
+    zip_obj = zipfile.ZipFile(tmp_zip.strpath)
+    zip_obj.extractall(path=folder)
 
 
 def split_and_test_membership(a, b):
