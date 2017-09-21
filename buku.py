@@ -1561,17 +1561,11 @@ class BukuDb:
                 return
 
             if not self.json:
-                for row in results:
-                    if self.field_filter == 0:
+                if self.field_filter == 0:
+                    for row in results:
                         print_single_rec(row)
-                    elif self.field_filter == 1:
-                        print('%s\t%s' % (row[0], row[1]))
-                    elif self.field_filter == 2:
-                        print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-                    elif self.field_filter == 3:
-                        print('%s\t%s' % (row[0], row[2]))
-                    elif self.field_filter == 4:
-                        print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
+                else:
+                    print_rec_with_filter(results, self.field_filter)
             else:
                 print(format_json(results, True, self.field_filter))
 
@@ -1588,18 +1582,8 @@ class BukuDb:
             if self.field_filter == 0:
                 for row in resultset:
                     print_single_rec(row)
-            elif self.field_filter == 1:
-                for row in resultset:
-                    print('%s\t%s' % (row[0], row[1]))
-            elif self.field_filter == 2:
-                for row in resultset:
-                    print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-            elif self.field_filter == 3:
-                for row in resultset:
-                    print('%s\t%s' % (row[0], row[2]))
-            elif self.field_filter == 4:
-                for row in resultset:
-                    print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
+            else:
+                print_rec_with_filter(resultset, self.field_filter)
         else:
             print(format_json(resultset, field_filter=self.field_filter))
 
@@ -3227,8 +3211,12 @@ def print_rec_with_filter(records, field_filter):
 
     Parameters
     ----------
-    records : list or sqlit3 cursor
+    records : list or sqlite3.Cursor object
+        List of bookmark records to print
+    field_filter : int
+        Integer indicating which fields to print.        
     """
+
     if field_filter == 1:
         for row in records:
             print('%s\t%s' % (row[0], row[1]))
@@ -3241,6 +3229,18 @@ def print_rec_with_filter(records, field_filter):
     elif field_filter == 4:
         for row in records:
             print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))   
+    elif field_filter == 10:
+        for row in records:
+            print(row[1])
+    elif field_filter == 20:
+        for row in records:
+            print('%s\t%s' % (row[1], row[3][1:-1]))
+    elif field_filter == 30:
+        for row in records:
+            print(row[2])
+    elif field_filter == 40:
+        for row in records:
+            print('%s\t%s\t%s' % (row[1], row[2], row[3][1:-1]))
 
 def print_single_rec(row, idx=0):  # NOQA
     """Print a single DB record.
@@ -3935,7 +3935,7 @@ POSITIONAL ARGUMENTS:
                          -n shows the last n results (like tail)
     -f, --format N       limit fields in -p or Json search output
                          N=1: URL, N=2: URL and tag, N=3: title,
-                         N=4: URL, title and tag
+                         N=4: URL, title and tag.
     -j, --json           Json formatted output for -p and search
     --colors COLORS      set output colors in five-letter string
     --nc                 disable color output
