@@ -1132,6 +1132,10 @@ def bookmark_folder(tmpdir):
     zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
     tmp_zip = tmpdir.join('bookmarks.zip')
     extract_all_from_zip_url(zip_url=zip_url, tmp_zip, tmpdir)
+    # expected res
+    zip_url = 'https://github.com/jarun/Buku/files/1321193/bookmarks_res.zip'
+    tmp_zip = tmpdir.join('bookmarks_res.zip')
+    extract_all_from_zip_url(zip_url=zip_url, tmp_zip, tmpdir)
     return tmpdir
 
 @pytest.fixture()
@@ -1140,20 +1144,19 @@ def chrome_db(bookmark_folder):
     tmpdir = bookmark_folder
 
     json_file = [x.strpath for x in tmpdir.listdir() if x.basename == 'Bookmarks'][0]
-    return json_file
+    res_pickle_file = [
+        x.strpath for x in tmpdir.listdir() if x.basename == '25491522_res.pickle'][0]
+    res_nopt_pickle_file = [
+        x.strpath for x in tmpdir.listdir() if x.basename == '25491522_res_nopt.pickle'][0]
+    return json_file, res_pickle_file, res_nopt_pickle_file
 
 
 @pytest.mark.parametrize('add_pt', [True, False])
 def test_load_chrome_database(chrome_db, add_pt):
     """test method."""
     # compatibility
-    json_file = chrome_db
-
-    script_folder = os.path.dirname(os.path.abspath(__file__))
-    if add_pt:
-        res_pickle_file = os.path.join(script_folder, '25491522_res.pickle')
-    else:
-        res_pickle_file = os.path.join(script_folder, '25491522_res_nopt.pickle')
+    json_file = chrome_db[0]
+    res_pickle_file = chrome_db[1] if add_pt else chrome_db[2]
     with open(res_pickle_file, 'rb') as f:
         res_pickle = pickle.load(f)
     # init
@@ -1172,19 +1175,19 @@ def firefox_db(bookmark_folder):
     tmpdir = bookmark_folder
 
     ff_db_path = [x.strpath for x in tmpdir.listdir() if x.basename == 'places.sqlite'][0]
-    return ff_db_path
+    res_pickle_file = [
+        x.strpath for x in tmpdir.listdir() if x.basename == 'firefox_res.pickle'][0]
+    res_nopt_pickle_file = [
+        x.strpath for x in tmpdir.listdir() if x.basename == 'firefox_res.pickle'][0]
+    return ff_db_path, res_pickle_file, res_nopt_pickle_file
 
 
 @pytest.mark.parametrize('add_pt', [True, False])
 def test_load_firefox_database(firefox_db, add_pt):
     # compatibility
-    ff_db_path = firefox_db
+    ff_db_path = firefox_db[0]
 
-    script_folder = os.path.dirname(os.path.abspath(__file__))
-    if add_pt:
-        res_pickle_file = os.path.join(script_folder, 'firefox_res.pickle')
-    else:
-        res_pickle_file = os.path.join(script_folder, 'firefox_res_nopt.pickle')
+    res_pickle_file = firefox_db[1] if add_pt else firefox_db[2]
     with open(res_pickle_file, 'rb') as f:
         res_pickle = pickle.load(f)
     # init
