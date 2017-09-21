@@ -1139,7 +1139,7 @@ def bookmark_folder(tmpdir):
 @pytest.fixture()
 def chrome_db(bookmark_folder):
     # compatibility
-    tmpdir = bookmark_dir
+    tmpdir = bookmark_folder
 
     json_file = [x.strpath for x in tmpdir.listdir() if x.basename == 'Bookmarks'][0]
     return json_file
@@ -1171,7 +1171,7 @@ def test_load_chrome_database(chrome_db, add_pt):
 @pytest.fixture()
 def firefox_db(bookmark_folder):
     # compatibility
-    tmpdir = bookmark_dir
+    tmpdir = bookmark_folder
 
     ff_db_path = [x.strpath for x in tmpdir.listdir() if x.basename == 'places.sqlite'][0]
     return ff_db_path
