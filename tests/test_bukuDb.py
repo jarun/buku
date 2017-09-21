@@ -1178,7 +1178,7 @@ def firefox_db(bookmark_folder):
     res_pickle_file = [
         x.strpath for x in tmpdir.listdir() if x.basename == 'firefox_res.pickle'][0]
     res_nopt_pickle_file = [
-        x.strpath for x in tmpdir.listdir() if x.basename == 'firefox_res.pickle'][0]
+        x.strpath for x in tmpdir.listdir() if x.basename == 'firefox_res_nopt.pickle'][0]
     return ff_db_path, res_pickle_file, res_nopt_pickle_file
 
 
