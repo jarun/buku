@@ -2589,7 +2589,7 @@ def get_firefox_profile_name(path):
             # There is no default profile
             return None
     else:
-        logdbg('get_firefox_profile_name(): `path\' {} does not exist'.format(path))
+        logdbg('get_firefox_profile_name(): {} does not exist'.format(path))
         return None
 
 
