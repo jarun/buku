@@ -1161,6 +1161,40 @@ def test_load_chrome_database(chrome_db, add_pt):
     assert call_args_list_dict == res_pickle
 
 
+@pytest.fixture()
+def firefox_db(tmpdir):
+    zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
+    tmp_zip = tmpdir.join('bookmarks.zip')
+    with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)
+    zip_obj = zipfile.ZipFile(tmp_zip.strpath)
+    zip_obj.extractall(path=tmpdir.strpath)
+    ff_db_path = [x.strpath for x in tmpdir.listdir() if x.basename == 'places.sqlite'][0]
+    return ff_db_path
+
+
+@pytest.mark.parametrize('add_pt', [True, False])
+def test_load_firefox_database(firefox_db, add_pt):
+    # compatibility
+    ff_db_path = firefox_db
+
+    script_folder = os.path.dirname(os.path.abspath(__file__))
+    if add_pt:
+        res_pickle_file = os.path.join(script_folder, 'firefox_res.pickle')
+    else:
+        res_pickle_file = os.path.join(script_folder, 'firefox_res_nopt.pickle')
+    with open(res_pickle_file, 'rb') as f:
+        res_pickle = pickle.load(f)
+    # init
+    import buku
+    bdb = buku.BukuDb()
+    bdb.add_rec = mock.Mock()
+    bdb.load_firefox_database(ff_db_path, None, add_pt)
+    call_args_list_dict = dict(bdb.add_rec.call_args_list)
+    # test
+    assert call_args_list_dict == res_pickle
+
+
 # Helper functions for testcases
 
 
