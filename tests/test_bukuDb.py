@@ -1131,11 +1131,11 @@ def bookmark_folder(tmpdir):
     # database
     zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
     tmp_zip = tmpdir.join('bookmarks.zip')
-    extract_all_from_zip_url(zip_url=zip_url, tmp_zip, tmpdir)
+    extract_all_from_zip_url(zip_url, tmp_zip, tmpdir)
     # expected res
     zip_url = 'https://github.com/jarun/Buku/files/1321193/bookmarks_res.zip'
     tmp_zip = tmpdir.join('bookmarks_res.zip')
-    extract_all_from_zip_url(zip_url=zip_url, tmp_zip, tmpdir)
+    extract_all_from_zip_url(zip_url, tmp_zip, tmpdir)
     return tmpdir
 
 @pytest.fixture()
