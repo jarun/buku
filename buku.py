@@ -3214,7 +3214,7 @@ def print_rec_with_filter(records, field_filter):
     records : list or sqlite3.Cursor object
         List of bookmark records to print
     field_filter : int
-        Integer indicating which fields to print.        
+        Integer indicating which fields to print.
     """
 
     if field_filter == 1:
@@ -3228,7 +3228,7 @@ def print_rec_with_filter(records, field_filter):
             print('%s\t%s' % (row[0], row[2]))
     elif field_filter == 4:
         for row in records:
-            print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))   
+            print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
     elif field_filter == 10:
         for row in records:
             print(row[1])
