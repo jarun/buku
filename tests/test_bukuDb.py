@@ -1127,13 +1127,20 @@ def test_browse_by_index(low, high, index, is_range, empty_database):
 
 
 @pytest.fixture()
-def chrome_db(tmpdir):
+def bookmark_folder(tmpdir):
     zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
     tmp_zip = tmpdir.join('bookmarks.zip')
     with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
         shutil.copyfileobj(response, out_file)
     zip_obj = zipfile.ZipFile(tmp_zip.strpath)
     zip_obj.extractall(path=tmpdir.strpath)
+    return tmpdir
+
+@pytest.fixture()
+def chrome_db(bookmark_folder):
+    # compatibility
+    tmpdir = bookmark_dir
+
     json_file = [x.strpath for x in tmpdir.listdir() if x.basename == 'Bookmarks'][0]
     return json_file
 
@@ -1162,13 +1169,10 @@ def test_load_chrome_database(chrome_db, add_pt):
 
 
 @pytest.fixture()
-def firefox_db(tmpdir):
-    zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
-    tmp_zip = tmpdir.join('bookmarks.zip')
-    with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
-        shutil.copyfileobj(response, out_file)
-    zip_obj = zipfile.ZipFile(tmp_zip.strpath)
-    zip_obj.extractall(path=tmpdir.strpath)
+def firefox_db(bookmark_folder):
+    # compatibility
+    tmpdir = bookmark_dir
+
     ff_db_path = [x.strpath for x in tmpdir.listdir() if x.basename == 'places.sqlite'][0]
     return ff_db_path
 
