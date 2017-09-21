@@ -1561,11 +1561,7 @@ class BukuDb:
                 return
 
             if not self.json:
-                if self.field_filter == 0:
-                    for row in results:
-                        print_single_rec(row)
-                else:
-                    print_rec_with_filter(results, self.field_filter)
+                print_rec_with_filter(results, self.field_filter)
             else:
                 print(format_json(results, True, self.field_filter))
 
@@ -1579,11 +1575,7 @@ class BukuDb:
             return
 
         if not self.json:
-            if self.field_filter == 0:
-                for row in resultset:
-                    print_single_rec(row)
-            else:
-                print_rec_with_filter(resultset, self.field_filter)
+            print_rec_with_filter(resultset, self.field_filter)
         else:
             print(format_json(resultset, field_filter=self.field_filter))
 
@@ -3203,7 +3195,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
                 break
 
 
-def print_rec_with_filter(records, field_filter):
+def print_rec_with_filter(records, field_filter=0):
     """Print records filtered by field.
 
     User determines which fields in the records to display
@@ -3217,7 +3209,10 @@ def print_rec_with_filter(records, field_filter):
         Integer indicating which fields to print.
     """
 
-    if field_filter == 1:
+    if field_filter == 0:
+        for row in records:
+            print_single_rec(row)
+    elif field_filter == 1:
         for row in records:
             print('%s\t%s' % (row[0], row[1]))
     elif field_filter == 2:
