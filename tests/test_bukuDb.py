@@ -4,9 +4,13 @@
 #
 import math
 import os
+import pickle
 import re
+import shutil
 import sqlite3
 import sys
+import urllib
+import zipfile
 from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
@@ -1121,7 +1125,96 @@ def test_browse_by_index(low, high, index, is_range, empty_database):
             raise ValueError
         bdb.delete_rec_all()
 
+
+@pytest.fixture()
+def bookmark_folder(tmpdir):
+    # database
+    zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
+    tmp_zip = tmpdir.join('bookmarks.zip')
+    extract_all_from_zip_url(zip_url, tmp_zip, tmpdir)
+    # expected res
+    zip_url = 'https://github.com/jarun/Buku/files/1321193/bookmarks_res.zip'
+    tmp_zip = tmpdir.join('bookmarks_res.zip')
+    extract_all_from_zip_url(zip_url, tmp_zip, tmpdir)
+    return tmpdir
+
+@pytest.fixture()
+def chrome_db(bookmark_folder):
+    # compatibility
+    tmpdir = bookmark_folder
+
+    json_file = [x.strpath for x in tmpdir.listdir() if x.basename == 'Bookmarks'][0]
+    res_pickle_file = [
+        x.strpath for x in tmpdir.listdir() if x.basename == '25491522_res.pickle'][0]
+    res_nopt_pickle_file = [
+        x.strpath for x in tmpdir.listdir() if x.basename == '25491522_res_nopt.pickle'][0]
+    return json_file, res_pickle_file, res_nopt_pickle_file
+
+
+@pytest.mark.parametrize('add_pt', [True, False])
+def test_load_chrome_database(chrome_db, add_pt):
+    """test method."""
+    # compatibility
+    json_file = chrome_db[0]
+    res_pickle_file = chrome_db[1] if add_pt else chrome_db[2]
+    with open(res_pickle_file, 'rb') as f:
+        res_pickle = pickle.load(f)
+    # init
+    import buku
+    bdb = buku.BukuDb()
+    bdb.add_rec = mock.Mock()
+    bdb.load_chrome_database(json_file, None, add_pt)
+    call_args_list_dict = dict(bdb.add_rec.call_args_list)
+    # test
+    assert call_args_list_dict == res_pickle
+
+
+@pytest.fixture()
+def firefox_db(bookmark_folder):
+    # compatibility
+    tmpdir = bookmark_folder
+
+    ff_db_path = [x.strpath for x in tmpdir.listdir() if x.basename == 'places.sqlite'][0]
+    res_pickle_file = [
+        x.strpath for x in tmpdir.listdir() if x.basename == 'firefox_res.pickle'][0]
+    res_nopt_pickle_file = [
+        x.strpath for x in tmpdir.listdir() if x.basename == 'firefox_res_nopt.pickle'][0]
+    return ff_db_path, res_pickle_file, res_nopt_pickle_file
+
+
+@pytest.mark.parametrize('add_pt', [True, False])
+def test_load_firefox_database(firefox_db, add_pt):
+    # compatibility
+    ff_db_path = firefox_db[0]
+
+    res_pickle_file = firefox_db[1] if add_pt else firefox_db[2]
+    with open(res_pickle_file, 'rb') as f:
+        res_pickle = pickle.load(f)
+    # init
+    import buku
+    bdb = buku.BukuDb()
+    bdb.add_rec = mock.Mock()
+    bdb.load_firefox_database(ff_db_path, None, add_pt)
+    call_args_list_dict = dict(bdb.add_rec.call_args_list)
+    # test
+    assert call_args_list_dict == res_pickle
+
+
 # Helper functions for testcases
+
+
+def extract_all_from_zip_url(zip_url, tmp_zip, folder):
+    """extra all files in zip from zip url.
+
+    Args:
+        zip_url (str): URL of zip file.
+        zip_filename: Temporary zip file to save from url.
+        folder: Extract all files inside this folder.
+    """
+    with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)
+    zip_obj = zipfile.ZipFile(tmp_zip.strpath)
+    zip_obj.extractall(path=folder.strpath)
 
 
 def split_and_test_membership(a, b):
