@@ -2,7 +2,6 @@
 #
 # Unit test cases for buku
 #
-import json
 import math
 import os
 import pickle
