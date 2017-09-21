@@ -213,7 +213,7 @@ POWER TOYS:
       -f, --format N       limit fields in -p or Json search output
                            N=1: URL, N=2: URL and tag, N=3: title,
                            N=4: URL, title and tag. To omit DB index,
-                           use 10, 20, 30, 40 instead of 1, 2, 3, 4.
+                           use N0, e.g, 10, 20, 30, 40.
       -j, --json           Json formatted output for -p and search
       --colors COLORS      set output colors in five-letter string
       --nc                 disable color output
