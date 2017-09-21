@@ -2,8 +2,10 @@
 #
 # Unit test cases for buku
 #
+import json
 import math
 import os
+import pickle
 import re
 import sqlite3
 import sys
@@ -1120,6 +1122,24 @@ def test_browse_by_index(low, high, index, is_range, empty_database):
         else:
             raise ValueError
         bdb.delete_rec_all()
+
+
+def test_load_chrome_database():
+    """test method."""
+    script_folder = os.path.dirname(os.path.abspath(__file__))
+    json_file = os.path.join(script_folder, '25491522.json')
+    res_pickle_file = os.path.join(script_folder, '25491522_res.pickle')
+    with open(res_pickle_file, 'rb') as f:
+        res_pickle = pickle.load(f)
+    # init
+    import buku
+    bdb = buku.BukuDb()
+    bdb.add_rec = mock.Mock()
+    bdb.load_chrome_database(json_file, None, True)
+    call_args_list_dict = dict(bdb.add_rec.call_args_list)
+    # test
+    assert call_args_list_dict == res_pickle
+
 
 # Helper functions for testcases
 
