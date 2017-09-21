@@ -3958,7 +3958,7 @@ POSITIONAL ARGUMENTS:
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
-    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
+    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4, 10, 20, 30, 40}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--colors', dest='colorstr', type=argparser.is_colorstr,
            default=colorstr_env if colorstr_env else 'oKlxm', metavar='COLORS', help=HIDE)
