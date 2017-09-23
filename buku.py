@@ -3971,8 +3971,7 @@ POSITIONAL ARGUMENTS:
     addarg('-p', '--print', nargs='*', help=HIDE)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4, 10, 20, 30, 40}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
-    addarg('--colors', dest='colorstr', type=argparser.is_colorstr,
-           default=colorstr_env if colorstr_env else 'oKlxm', metavar='COLORS', help=HIDE)
+    addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
@@ -4002,19 +4001,28 @@ POSITIONAL ARGUMENTS:
         argparser.print_help(sys.stdout)
         sys.exit(0)
 
+    # By default, Buku uses ANSI colors. As Windows does not really use them,
+    # we'd better check for known working console emulators first. Currently,
+    # only ConEmu is supported. If the user does not use ConEmu, colors are
+    # disabled unless --colors is specified.
+    if sys.platform == 'win32' and os.environ.get('ConemuDir') is None:
+        if args.colorstr is None:
+            args.nc = True
+
     # Handle color output preference
     if args.nc:
         logging.basicConfig(format='[%(levelname)s] %(message)s')
     else:
         # Set colors
-        ID = setcolors(args.colorstr)[0] + '%d. ' + COLORMAP['x']
+        colorstr = args.colorstr if args.colorstr else 'oKlxm'
+        ID = setcolors(colorstr)[0] + '%d. ' + COLORMAP['x']
         ID_DB_dim = COLORMAP['z'] + '[%s]\n' + COLORMAP['x']
-        ID_str = ID + setcolors(args.colorstr)[1] + '%s ' + COLORMAP['x'] + ID_DB_dim
-        ID_DB_str = ID + setcolors(args.colorstr)[1] + '%s' + COLORMAP['x']
+        ID_str = ID + setcolors(colorstr)[1] + '%s ' + COLORMAP['x'] + ID_DB_dim
+        ID_DB_str = ID + setcolors(colorstr)[1] + '%s' + COLORMAP['x']
         MUTE_str = '%s \x1b[2m(L)\x1b[0m\n'
-        URL_str = COLORMAP['j'] + '   > ' + setcolors(args.colorstr)[2] + '%s\n' + COLORMAP['x']
-        DESC_str = COLORMAP['j'] + '   + ' + setcolors(args.colorstr)[3] + '%s\n' + COLORMAP['x']
-        TAG_str = COLORMAP['j'] + '   # ' + setcolors(args.colorstr)[4] + '%s\n' + COLORMAP['x']
+        URL_str = COLORMAP['j'] + '   > ' + setcolors(colorstr)[2] + '%s\n' + COLORMAP['x']
+        DESC_str = COLORMAP['j'] + '   + ' + setcolors(colorstr)[3] + '%s\n' + COLORMAP['x']
+        TAG_str = COLORMAP['j'] + '   # ' + setcolors(colorstr)[4] + '%s\n' + COLORMAP['x']
 
         # Enable color in logs
         setup_logger(logger)
