@@ -1561,17 +1561,7 @@ class BukuDb:
                 return
 
             if not self.json:
-                for row in results:
-                    if self.field_filter == 0:
-                        print_single_rec(row)
-                    elif self.field_filter == 1:
-                        print('%s\t%s' % (row[0], row[1]))
-                    elif self.field_filter == 2:
-                        print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-                    elif self.field_filter == 3:
-                        print('%s\t%s' % (row[0], row[2]))
-                    elif self.field_filter == 4:
-                        print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
+                print_rec_with_filter(results, self.field_filter)
             else:
                 print(format_json(results, True, self.field_filter))
 
@@ -1585,21 +1575,7 @@ class BukuDb:
             return
 
         if not self.json:
-            if self.field_filter == 0:
-                for row in resultset:
-                    print_single_rec(row)
-            elif self.field_filter == 1:
-                for row in resultset:
-                    print('%s\t%s' % (row[0], row[1]))
-            elif self.field_filter == 2:
-                for row in resultset:
-                    print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-            elif self.field_filter == 3:
-                for row in resultset:
-                    print('%s\t%s' % (row[0], row[2]))
-            elif self.field_filter == 4:
-                for row in resultset:
-                    print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
+            print_rec_with_filter(resultset, self.field_filter)
         else:
             print(format_json(resultset, field_filter=self.field_filter))
 
@@ -3234,6 +3210,48 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
                 break
 
 
+def print_rec_with_filter(records, field_filter=0):
+    """Print records filtered by field.
+
+    User determines which fields in the records to display
+    by using the --format option.
+
+    Parameters
+    ----------
+    records : list or sqlite3.Cursor object
+        List of bookmark records to print
+    field_filter : int
+        Integer indicating which fields to print.
+    """
+
+    if field_filter == 0:
+        for row in records:
+            print_single_rec(row)
+    elif field_filter == 1:
+        for row in records:
+            print('%s\t%s' % (row[0], row[1]))
+    elif field_filter == 2:
+        for row in records:
+            print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
+    elif field_filter == 3:
+        for row in records:
+            print('%s\t%s' % (row[0], row[2]))
+    elif field_filter == 4:
+        for row in records:
+            print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
+    elif field_filter == 10:
+        for row in records:
+            print(row[1])
+    elif field_filter == 20:
+        for row in records:
+            print('%s\t%s' % (row[1], row[3][1:-1]))
+    elif field_filter == 30:
+        for row in records:
+            print(row[2])
+    elif field_filter == 40:
+        for row in records:
+            print('%s\t%s\t%s' % (row[1], row[2], row[3][1:-1]))
+
 def print_single_rec(row, idx=0):  # NOQA
     """Print a single DB record.
 
@@ -3927,7 +3945,8 @@ POSITIONAL ARGUMENTS:
                          -n shows the last n results (like tail)
     -f, --format N       limit fields in -p or Json search output
                          N=1: URL, N=2: URL and tag, N=3: title,
-                         N=4: URL, title and tag
+                         N=4: URL, title and tag. To omit DB index,
+                         use N0, e.g., 10, 20, 30, 40.
     -j, --json           Json formatted output for -p and search
     --colors COLORS      set output colors in five-letter string
     --nc                 disable color output
@@ -3950,7 +3969,7 @@ POSITIONAL ARGUMENTS:
     addarg('-e', '--export', nargs=1, help=HIDE)
     addarg('-i', '--import', nargs=1, dest='importfile', help=HIDE)
     addarg('-p', '--print', nargs='*', help=HIDE)
-    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4}, help=HIDE)
+    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4, 10, 20, 30, 40}, help=HIDE)
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--colors', dest='colorstr', type=argparser.is_colorstr,
            default=colorstr_env if colorstr_env else 'oKlxm', metavar='COLORS', help=HIDE)
@@ -4163,8 +4182,10 @@ POSITIONAL ARGUMENTS:
             oneshot = True
             update_search_results = True
 
-        if not args.json:
+        if not args.json and not args.format:
             prompt(bdb, search_results, oneshot, args.deep)
+        elif not args.json:
+            print_rec_with_filter(search_results, field_filter=args.format)
         else:
             # Printing in Json format is non-interactive
             print(format_json(search_results, field_filter=args.format))

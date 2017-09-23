@@ -108,6 +108,68 @@ def test_parse_tags(keywords, exp_res):
 
 
 @pytest.mark.parametrize(
+    'records, field_filter, exp_res',
+    [
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            1,
+            ['1\thttp://url1.com', '2\thttp://url2.com']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            2,
+            ['1\thttp://url1.com\ttag1', '2\thttp://url2.com\ttag1,tag2']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            3,
+            ['1\ttitle1', '2\ttitle2']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            4,
+            ['1\thttp://url1.com\ttitle1\ttag1', '2\thttp://url2.com\ttitle2\ttag1,tag2']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            10,
+            ['http://url1.com', 'http://url2.com']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            20,
+            ['http://url1.com\ttag1', 'http://url2.com\ttag1,tag2']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            30,
+            ['title1', 'title2']
+        ],
+        [
+            [(1, 'http://url1.com', 'title1', ',tag1,'),
+             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            40,
+            ['http://url1.com\ttitle1\ttag1', 'http://url2.com\ttitle2\ttag1,tag2']
+        ]
+    ]
+)
+def test_print_rec_with_filter(records, field_filter, exp_res):
+    """test func."""
+    with mock.patch('buku.print', create=True) as m_print:
+        import buku
+        buku.print_rec_with_filter(records, field_filter)
+        for res in exp_res:
+            m_print.assert_any_call(res)
+
+
+@pytest.mark.parametrize(
     'taglist, exp_res',
     [
         [
