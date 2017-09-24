@@ -4014,7 +4014,14 @@ POSITIONAL ARGUMENTS:
         logging.basicConfig(format='[%(levelname)s] %(message)s')
     else:
         # Set colors
-        colorstr = args.colorstr if args.colorstr else 'oKlxm'
+        if colorstr_env is not None:
+            # Someone set BUKU_COLORS.
+            colorstr = colorstr_env
+        elif args.colorstr is not None:
+            colorstr = args.colorstr
+        else:
+            colorstr = 'oKlxm'
+
         ID = setcolors(colorstr)[0] + '%d. ' + COLORMAP['x']
         ID_DB_dim = COLORMAP['z'] + '[%s]\n' + COLORMAP['x']
         ID_str = ID + setcolors(colorstr)[1] + '%s ' + COLORMAP['x'] + ID_DB_dim
