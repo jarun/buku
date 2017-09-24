@@ -4004,9 +4004,9 @@ POSITIONAL ARGUMENTS:
     # By default, Buku uses ANSI colors. As Windows does not really use them,
     # we'd better check for known working console emulators first. Currently,
     # only ConEmu is supported. If the user does not use ConEmu, colors are
-    # disabled unless --colors is specified.
+    # disabled unless --colors or %BUKU_COLORS% is specified.
     if sys.platform == 'win32' and os.environ.get('ConemuDir') is None:
-        if args.colorstr is None:
+        if args.colorstr is None and colorstr_env is not None:
             args.nc = True
 
     # Handle color output preference
