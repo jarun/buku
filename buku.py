@@ -70,8 +70,7 @@ COLORMAP = {k: '\x1b[%sm' % v for k, v in {
     'x': '0', 'X': '1', 'y': '7', 'Y': '7;1', 'z': '2',
 }.items()}
 
-# Disguise as elinks on Linux
-USER_AGENT = 'ELinks/0.12pre6 (textmode; Linux 4.4.0-89-generic x86_64; 199x55-2)'
+USER_AGENT = 'Buku/{} (textmode; Linux 4.4.0-96-generic x86_64; 1024x768)'.format(__version__)
 myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
 
