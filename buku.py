@@ -2775,7 +2775,7 @@ def network_handler(url, http_head=False):
         http_handler = get_PoolManager()
 
         while True:
-            resp = http_handler.request(method, url, timeout=40)
+            resp = http_handler.request_encode_url(method, url, timeout=40)
 
             if resp.status == 200:
                 if method == 'GET':
@@ -2789,13 +2789,13 @@ def network_handler(url, http_head=False):
                 logdbg('Received status 403: retrying...')
                 # Remove trailing /
                 url = url[:-1]
-                resp.release_conn()
+                resp.close()
                 continue
             else:
                 logerr('[%s] %s', resp.status, resp.reason)
 
             if resp:
-                resp.release_conn()
+                resp.close()
 
             break
     except Exception as e:
