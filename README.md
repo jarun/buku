@@ -32,7 +32,7 @@ For GUI integration (or to sync bookmarks with your favourite bookmark managemen
 
 We have one of the best documentation around. You can start with the [Examples](#examples). *Buku* is too busy to track you - no hidden history, obsolete records, usage analytics or homing. To learn more on how it works or to contribute to the project, please refer to the wiki page on [Operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
 
-There are several [projects](#related-projects) based on `buku`, including a browser plug-in.
+There are several [projects based on `buku`](#related-projects), including a browser plug-in.
 
 PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) for a list of TODOs. Visit the [wiki](https://github.com/jarun/Buku/wiki) for guidelines.
 
