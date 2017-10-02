@@ -267,47 +267,47 @@ PROMPT KEYS:
 
 1. **Edit and add** a bookmark from editor:
 
-        $ buku -w
-        $ buku -w 'gedit -w'
-        $ buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
+       $ buku -w
+       $ buku -w 'gedit -w'
+       $ buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
     The first command picks editor from the environment variable `EDITOR`. The second command opens gedit in blocking mode. The third command opens macvim with option -f and the URL and tags populated in template.
 2. **Add** a bookmark with **tags** `search engine` and `privacy`, **comment** `Search engine with perks`, **fetch page title** from the web:
 
-        $ buku -a https://ddg.gg search engine, privacy -c Search engine with perks
-        336. DuckDuckGo
-        > https://ddg.gg
-        + Alternative search engine with perks
-        # privacy,search engine
+       $ buku -a https://ddg.gg search engine, privacy -c Search engine with perks
+       336. DuckDuckGo
+       > https://ddg.gg
+       + Alternative search engine with perks
+       # privacy,search engine
     where, >: url, +: comment, #: tags
 3. **Add** a bookmark with tags `search engine` & `privacy` and **immutable custom title** `DDG`:
 
-        $ buku -a https://ddg.gg search engine, privacy --title 'DDG' --immutable 1
-        336. DDG (L)
-        > https://ddg.gg
-        # privacy,search engine
+       $ buku -a https://ddg.gg search engine, privacy --title 'DDG' --immutable 1
+       336. DDG (L)
+       > https://ddg.gg
+       # privacy,search engine
     Note that URL must precede tags.
 4. **Add** a bookmark **without a title** (works for update too):
 
-        $ buku -a https://ddg.gg search engine, privacy --title
+       $ buku -a https://ddg.gg search engine, privacy --title
 5. **Edit and update** a bookmark from editor:
 
-        $ buku -w 15012014
+       $ buku -w 15012014
     This will open the existing bookmark's details in the editor for modifications. Environment variable `EDITOR` must be set.
 6. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
-        $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Private search engine
+       $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Private search engine
 7. **Fetch and update only title** for bookmark at 15012014:
 
-        $ buku -u 15012014
+       $ buku -u 15012014
 8. **Update only comment** for bookmark at 15012014:
 
-        $ buku -u 15012014 -c this is a new comment
+       $ buku -u 15012014 -c this is a new comment
     Applies to --url, --title and --tag too.
 9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML and markdown:
 
-        $ buku -e bookmarks.html --tag tag 1, tag 2
-        $ buku -e bookmarks.md --tag tag 1, tag 2
-        $ buku -e bookmarks.db --tag tag 1, tag 2
+       $ buku -e bookmarks.html --tag tag 1, tag 2
+       $ buku -e bookmarks.md --tag tag 1, tag 2
+       $ buku -e bookmarks.db --tag tag 1, tag 2
     All bookmarks are exported if --tag is not specified.
 10. **Import** bookmarks from HTML and markdown:
 
