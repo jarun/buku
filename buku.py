@@ -1160,6 +1160,7 @@ class BukuDb:
         ----------
         index : int
             DB index of the record.
+            Last record, if index is -1.
         immutable : int, optional
             Diable title fetch from web if 1. Default is -1.
 
@@ -1173,6 +1174,13 @@ class BukuDb:
         if editor == 'none':
             logerr('EDITOR must be set to use index with -w')
             return False
+
+        if (index == -1):
+            # Edit the last records
+            index = self.get_max_id()
+            if index == -1:
+                logerr('Empty database')
+                return False
 
         rec = self.get_rec_by_id(index)
         if not rec:
@@ -3846,7 +3854,8 @@ POSITIONAL ARGUMENTS:
                          - otherwise refresh all titles
     -w, --write [editor|index]
                          open editor to edit a fresh bookmark
-                         to update by index, EDITOR must be set
+                         edit last bookmark, if index=-1
+                         to specify index, EDITOR must be set
     -d, --delete [...]   remove bookmarks from DB
                          accepts indices or a single range
                          if no arguments:

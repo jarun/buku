@@ -160,7 +160,8 @@ GENERAL OPTIONS:
                            - otherwise refresh all titles
       -w, --write [editor|index]
                            open editor to edit a fresh bookmark
-                           to update by index, EDITOR must be set
+                           edit last bookmark, if index=-1
+                           to specify index, EDITOR must be set
       -d, --delete [...]   remove bookmarks from DB
                            accepts indices or a single range
                            if no arguments:
