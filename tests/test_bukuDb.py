@@ -1075,7 +1075,7 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
     'get_system_editor_retval, index, exp_res',
     [
         ['none', 0, False],
-        ['nano', -1, False],
+        ['nano', -2, False],
     ]
 )
 def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp_res):
