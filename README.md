@@ -448,9 +448,10 @@ Copyright © 2015-2017 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 
 ### In the Press
 
-- [One Thing Well](http://onethingwell.org/post/144952807044/buku)
-- [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
-- [Make Tech Easier](https://www.maketecheasier.com/manage-browser-bookmarks-ubuntu-command-line/)
-- [LinuxUser Magazine 01/2017 Issue](http://www.linux-community.de/LU/2017/01/Das-Beste-aus-zwei-Welten)
 - [2daygeek](http://www.2daygeek.com/buku-command-line-bookmark-manager-linux/)
+- [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
 - [LinOxide](https://linoxide.com/linux-how-to/buku-browser-bookmarks-linux/)
+- [LinuxUser Magazine 01/2017 Issue](http://www.linux-community.de/LU/2017/01/Das-Beste-aus-zwei-Welten)
+- [Make Tech Easier](https://www.maketecheasier.com/manage-browser-bookmarks-ubuntu-command-line/)
+- [One Thing Well](http://onethingwell.org/post/144952807044/buku)
+- [ulno.net](https://ulno.net/blog/2017-07-19/of-bookmarks-tags-and-browsers/)
