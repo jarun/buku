@@ -3231,33 +3231,37 @@ def print_rec_with_filter(records, field_filter=0):
         Integer indicating which fields to print.
     """
 
-    if field_filter == 0:
-        for row in records:
-            print_single_rec(row)
-    elif field_filter == 1:
-        for row in records:
-            print('%s\t%s' % (row[0], row[1]))
-    elif field_filter == 2:
-        for row in records:
-            print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-    elif field_filter == 3:
-        for row in records:
-            print('%s\t%s' % (row[0], row[2]))
-    elif field_filter == 4:
-        for row in records:
-            print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
-    elif field_filter == 10:
-        for row in records:
-            print(row[1])
-    elif field_filter == 20:
-        for row in records:
-            print('%s\t%s' % (row[1], row[3][1:-1]))
-    elif field_filter == 30:
-        for row in records:
-            print(row[2])
-    elif field_filter == 40:
-        for row in records:
-            print('%s\t%s\t%s' % (row[1], row[2], row[3][1:-1]))
+    try:
+        if field_filter == 0:
+            for row in records:
+                print_single_rec(row)
+        elif field_filter == 1:
+            for row in records:
+                print('%s\t%s' % (row[0], row[1]))
+        elif field_filter == 2:
+            for row in records:
+                print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
+        elif field_filter == 3:
+            for row in records:
+                print('%s\t%s' % (row[0], row[2]))
+        elif field_filter == 4:
+            for row in records:
+                print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
+        elif field_filter == 10:
+            for row in records:
+                print(row[1])
+        elif field_filter == 20:
+            for row in records:
+                print('%s\t%s' % (row[1], row[3][1:-1]))
+        elif field_filter == 30:
+            for row in records:
+                print(row[2])
+        elif field_filter == 40:
+            for row in records:
+                print('%s\t%s\t%s' % (row[1], row[2], row[3][1:-1]))
+    except BrokenPipeError:
+        sys.stdout = os.fdopen(1)
+        sys.exit(1)
 
 def print_single_rec(row, idx=0):  # NOQA
     """Print a single DB record.
@@ -3293,8 +3297,11 @@ def print_single_rec(row, idx=0):  # NOQA
     if row[3] != DELIM:
         str_list.append(TAG_str % (row[3][1:-1]))
 
-    print(''.join(str_list))
-
+    try:
+        print(''.join(str_list))
+    except BrokenPipeError:
+        sys.stdout = os.fdopen(1)
+        sys.exit(1)
 
 def format_json(resultset, single_record=False, field_filter=0):
     """Return results in json format.
