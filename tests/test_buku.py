@@ -22,8 +22,8 @@ only_python_3_5 = pytest.mark.skipif(
         ['http://examplecom.', True],
         ['http://.example.com', True],
         ['http://example.com.', True],
-        ['about:newtab', False],
-        ['chrome://version/', False],
+        ['about:newtab', True],
+        ['chrome://version/', True],
     ]
 )
 def test_is_bad_url(url, exp_res):
