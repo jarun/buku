@@ -22,8 +22,8 @@ only_python_3_5 = pytest.mark.skipif(
         ['http://examplecom.', True],
         ['http://.example.com', True],
         ['http://example.com.', True],
-        ['about:newtab', True],
-        ['chrome://version/', True],
+        ['about:newtab', False],
+        ['chrome://version/', False],
     ]
 )
 def test_is_bad_url(url, exp_res):
@@ -545,8 +545,8 @@ def test_sigint_handler(capsys):
         ['http://example.com.', ('', 0, 1)],
         ['http://example.com', ('Example Domain', 0, 0)],
         ['http://example.com/page1.txt', (('', 1, 0))],
-        ['about:new_page', (('', 1, 0))],
-        ['chrome://version/', (('', 1, 0))],
+        ['about:new_page', (('', 0, 1))],
+        ['chrome://version/', (('', 0, 1))],
     ]
 )
 def test_network_handler_with_url(url, exp_res):
