@@ -2651,7 +2651,7 @@ def is_nongeneric_url(url):
         True if URL is a non-generic URL, False otherwise.
     """
 
-    ignored_prefix = ['place:', 'file://', 'apt:', 'about:', 'chrome://]
+    ignored_prefix = ['place:', 'file://', 'apt:', 'about:', 'chrome://']
 
     for prefix in ignored_prefix:
         if url.startswith(prefix):
