@@ -36,7 +36,7 @@ import sys
 import threading
 import time
 import urllib3
-from urllib3.exception import LocationParseError
+from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
