@@ -2615,7 +2615,7 @@ def is_bad_url(url):
     try:
         netloc = parse_url(url).netloc
     except LocationParseError as e:
-        logerr('%s, URL: %s', (e, url))
+        logerr('%s, URL: %s', e, url)
         return True
     if not netloc:
         # Try of prepend '//' and get netloc
