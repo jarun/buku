@@ -36,6 +36,7 @@ import sys
 import threading
 import time
 import urllib3
+from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
@@ -2611,7 +2612,11 @@ def is_bad_url(url):
     """
 
     # Get the netloc token
-    netloc = parse_url(url).netloc
+    try:
+        netloc = parse_url(url).netloc
+    except LocationParseError as e:
+        logerr('%s, URL: %s', (e, url))
+        return True
     if not netloc:
         # Try of prepend '//' and get netloc
         netloc = parse_url('//' + url).netloc
@@ -2645,7 +2650,13 @@ def is_nongeneric_url(url):
         True if URL is a non-generic URL, False otherwise.
     """
 
-    ignored_prefix = ['place:', 'file://', 'apt:']
+    ignored_prefix = [
+        'about:',
+        'apt:',
+        'chrome://',
+        'file://',
+        'place:',
+    ]
 
     for prefix in ignored_prefix:
         if url.startswith(prefix):
@@ -2767,7 +2778,7 @@ def network_handler(url, http_head=False):
 
     page_title = None
 
-    if is_bad_url(url):
+    if is_nongeneric_url(url) or is_bad_url(url):
         return ('', 0, 1)
 
     if is_ignored_mime(url) or http_head:
