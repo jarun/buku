@@ -2878,20 +2878,14 @@ def parse_tags(keywords=[]):
     if tags == DELIM:
         return tags
 
-    orig_tags = tags.strip(DELIM).split(DELIM)
+    # original tags in lower case
+    orig_tags = tags.lower().strip(DELIM).split(DELIM)
 
-    # Add unique tags in lower case
-    unique_tags = []
-    for tag in orig_tags:
-        tag = tag.lower()
-        if tag not in unique_tags:
-            unique_tags += (tag, )
-
-    # Sort the tags
-    sorted_tags = sorted(unique_tags)
+    # Create list of unique tags and sort
+    unique_tags = sorted(set(orig_tags))
 
     # Wrap with delimiter
-    return delim_wrap(DELIM.join(sorted_tags))
+    return delim_wrap(DELIM.join(unique_tags))
 
 
 def prep_tag_search(tags):
