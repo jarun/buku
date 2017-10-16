@@ -39,8 +39,9 @@ import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 import webbrowser
+from mako.template import Template
 
-__version__ = '3.4'
+__version__ = '3.4 questor'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -1975,6 +1976,22 @@ class BukuDb:
             outdb.close()
             return True
 
+        if filepath.endswith('.tmpl'):
+            templateContent = ""
+            with open('template.tmpl', 'r') as fp:
+                templateContent = fp.read()
+            data = {}
+            data["resultset"] = resultset
+            renderContent = Template(templateContent).render(**data)
+            renderpath = filepath.rsplit(".", 1)[0] + ".html"
+            try:
+                outfp = open(renderpath, mode='w', encoding='utf-8')
+            except Exception as e:
+                logerr(e)
+                return False
+            outfp.write(renderContent)
+            outfp.close()
+            return True
         try:
             outfp = open(filepath, mode='w', encoding='utf-8')
         except Exception as e:
@@ -3960,6 +3977,7 @@ POSITIONAL ARGUMENTS:
         description='''    --ai                 auto-import from Firefox and Chrome
     -e, --export file    export bookmarks in Firefox format html
                          export markdown, if file ends with '.md'
+						 export templated html on '.tmpl' extension
                          format: [title](url), 1 entry per line
                          export buku DB, if file ends with '.db'
                          use --tag to export specific tags
