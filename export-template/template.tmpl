@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+<title>Buku Exported List</title>
+
+<link rel="stylesheet" href="css/uikit.min.css">
+<link rel="stylesheet" href="css/filtrify.css">
+<script src="js/jquery-1.7.1.min.js"></script>
+<script src="js/uikit.min.js"></script>
+<script src="js/filtrify.js"></script>
+
+<style>
+div#placeHolder {
+    margin-top:   50px;
+    margin-left: 100px;
+}
+</style>
+
+<script type="text/javascript">
+    $(function() {
+        $.filtrify("container", "placeHolder");
+    });
+</script>
+</head>
+<body>
+
+<div id="placeHolder"></div>
+
+## row[1] is URL
+## row[2] is metadata
+## row[3] is tags
+## row[4] is desc
+## row[5] is flags
+
+<table class="uk-table">
+<caption>Your Bookmarks</caption>
+<thead>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+</thead>
+<tbody id="container">
+    % for row in resultset:
+        <tr data-genre="${row[3][1:-1]}"><th><a href="${row[1]}">${row[2]}</a></th></tr>
+    % endfor
+</tbody>
+</table>
+
+</body>
