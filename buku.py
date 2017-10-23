@@ -1574,7 +1574,8 @@ class BukuDb:
         for index in tagset:
             try:
                 tags.append(delim_wrap(unique_tags[int(index) - 1]))
-            except:
+            except Exception as e:
+                logerr(e)
                 continue
 
         return parse_tags(tags)
@@ -1724,7 +1725,8 @@ class BukuDb:
 
         try:
             self.conn.commit()
-        except:
+        except Exception as e:
+            logerr(e)
             return -1
 
         return update_count
