@@ -17,7 +17,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Open bookmarks and search results in browser
   * Manual encryption support
   * Auto-import Firefox and Google Chrome bookmarks
-  * Import/export bookmarks from/to HTML or Markdown
+  * Import/export bookmarks from/to (templated) HTML or Markdown 
   * Shorten and expand URLs
   * Smart tag management using redirection (>>, >, <<)
   * Portable, merge-able database to sync between systems
@@ -190,7 +190,7 @@ has extension '.md'.
 .br
 Markdown format: [title](url), 1 entry per line. A buku database is generated if
 .I file
-has extension '.db'.
+has extension '.db'. If extension is '.tmpl' a templated html is generated.
 .TP
 .BI \-i " " \--import " file"
 Import bookmarks exported from Firefox or Google Chrome as HTML.
