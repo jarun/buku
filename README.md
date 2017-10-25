@@ -89,13 +89,14 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 | Encryption | cryptography |
 | Import browser exported html | beautifulsoup4 |
 | Shorten URL, check latest release | requests |
+| Template export | mako |
 
 To install package dependencies using pip3, run:
 
-    $ sudo pip3 install urllib3 cryptography beautifulsoup4 requests
+    $ sudo pip3 install urllib3 cryptography beautifulsoup4 requests mako
 or on Ubuntu:
 
-    $ sudo apt-get install python3-urllib3 python3-cryptography python3-bs4 python3-requests
+    $ sudo apt-get install python3-urllib3 python3-cryptography python3-bs4 python3-requests python3-mako
 
 #### From a package manager
 
@@ -209,6 +210,8 @@ POWER TOYS:
                            format: [title](url), 1 entry per line
                            export buku DB, if file ends with '.db'
                            use --tag to export specific tags
+                           export templated html, if file ends with
+                           '.tmpl' using mako template language
       -i, --import file    import Firefox or Chrome bookmarks html
                            import markdown, if file ends with '.md'
                            import buku DB, if file ends with '.db'
