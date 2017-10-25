@@ -575,6 +575,15 @@ class TestBukuDb(unittest.TestCase):
             elif title == "test":
                 self.assertEqual(from_db[3], parse_tags(["test,tes,est,__04"]))
 
+    def test_tnyfy_url(self):
+        # shorten a well-known url
+        shorturl = self.bdb.tnyfy_url(url='https://www.google.com', shorten=True)
+        self.assertEqual(shorturl, 'http://tny.im/yt')
+
+        # expand a well-known short url
+        url = self.bdb.tnyfy_url(url='http://tny.im/yt', shorten=False)
+        self.assertEqual(url, 'https://www.google.com')
+
     # def test_browse_by_index(self):
         # self.fail()
 
