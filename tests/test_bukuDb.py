@@ -159,7 +159,6 @@ class TestBukuDb(unittest.TestCase):
 
         # TODO: tags should be passed to the api as a sequence...
 
-
     def test_suggest_tags(self):
         for bookmark in self.bookmarks:
             self.bdb.add_rec(*bookmark)
