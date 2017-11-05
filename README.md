@@ -443,6 +443,7 @@ Copyright © 2015-2017 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 - [bukubrow](https://github.com/SamHH/bukubrow), WebExtension for browser integration
 - [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli frontend
 - [buku_run](https://github.com/carnager/buku_run), rofi frontend
+- [pinku](https://github.com/mosegontar/pinku), A Pinboard-to-Buku importation utility
 
 <a href="http://buku.readthedocs.io/en/stable/?badge=stable"><img src="https://img.shields.io/badge/docs-stable-brightgreen.svg?maxAge=2592000" alt="Stable Docs" /></a>
 
