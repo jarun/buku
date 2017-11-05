@@ -1537,41 +1537,36 @@ class BukuDb:
             return tagstr
 
         qry = 'SELECT DISTINCT tags FROM bookmarks WHERE tags LIKE ?'
-        tagset = []
-        unique_tags = []
+        tagset = set()
         for tag in tags:
             if tag == '':
                 continue
 
             self.cur.execute(qry, ('%' + delim_wrap(tag) + '%',))
             results = self.cur.fetchall()
-            if results:
-                for row in results:
-                    tagset += row[0].strip(DELIM).split(DELIM)
+            for row in results:
+                # update tagset with unique tags in row
+                tagset |= set(row[0].strip(DELIM).split(DELIM))
 
-        if len(tagset):
-            for tag in tagset:
-                if tag not in tags and tag not in unique_tags:
-                    unique_tags += (tag, )
+        # remove user supplied tags from tagset
+        tagset.difference_update(tags)
 
-        if not len(unique_tags):
+        if not len(tagset):
             return tagstr
 
-        unique_tags = sorted(unique_tags)
+        unique_tags = sorted(tagset)
+
         print('similar tags:\n')
-        count = 0
-        for tag in unique_tags:
+        for count, tag in enumerate(unique_tags):
             print('%d. %s' % (count + 1, unique_tags[count]))
-            count += 1
 
-        resp = input('\nselect: ')
+        selected_tags = input('\nselect: ').split()
         print()
-        if not resp:
+        if not selected_tags:
             return tagstr
 
-        tagset = resp.split()
         tags = [tagstr]
-        for index in tagset:
+        for index in selected_tags:
             try:
                 tags.append(delim_wrap(unique_tags[int(index) - 1]))
             except Exception as e:

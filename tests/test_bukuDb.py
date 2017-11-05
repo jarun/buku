@@ -159,6 +159,23 @@ class TestBukuDb(unittest.TestCase):
 
         # TODO: tags should be passed to the api as a sequence...
 
+
+    def test_suggest_tags(self):
+        for bookmark in self.bookmarks:
+            self.bdb.add_rec(*bookmark)
+
+        tagstr = ',test,old,'
+        with mock.patch('builtins.input', return_value='1 2 3'):
+            expected_results = ',es,est,news,old,test,'
+            suggested_results = self.bdb.suggest_similar_tag(tagstr)
+            self.assertEqual(expected_results, suggested_results)
+
+        # returns user supplied tags if none are in the DB
+        tagstr = ',uniquetag1,uniquetag2,'
+        expected_results = tagstr
+        suggested_results = self.bdb.suggest_similar_tag(tagstr)
+        self.assertEqual(expected_results, suggested_results)
+
     # @unittest.skip('skipping')
     def test_update_rec(self):
         old_values = self.bookmarks[0]
