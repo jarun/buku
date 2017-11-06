@@ -2049,9 +2049,11 @@ class BukuDb:
         """
 
         FF_BM_DB_PATH = None
+        CB_BM_DB_PATH = None
 
         if sys.platform.startswith('linux'):
             GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
+            CB_BM_DB_PATH = '~/.config/chromium/Default/Bookmarks'
 
             DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
@@ -2096,6 +2098,19 @@ class BukuDb:
                 self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception:
             print('Could not import bookmarks from google-chrome')
+
+        try:
+            if self.chatty:
+                resp = input('Import bookmarks from chromium? (y/n): ')
+            if resp == 'y':
+                bookmarks_database = os.path.expanduser(CB_BM_DB_PATH)
+                if not CB_BM_DB_PATH:
+                    raise FileNotFoundError
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
+                self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+        except Exception:
+            print('Could not import bookmarks from chromium')
 
         try:
             if self.chatty:
