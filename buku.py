@@ -3962,13 +3962,13 @@ POSITIONAL ARGUMENTS:
 
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
-        description='''    --ai                 auto-import from Firefox and Chrome
-    -e, --export file    export bookmarks in Firefox format html
+        description='''    --ai                 auto-import from Firefox/Chrome/Chromium
+    -e, --export file    export bookmarks to Firefox format html
                          export markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
                          export buku DB, if file ends with '.db'
                          use --tag to export specific tags
-    -i, --import file    import Firefox or Chrome bookmarks html
+    -i, --import file    import bookmarks html in Firefox format
                          import markdown, if file ends with '.md'
                          import buku DB, if file ends with '.db'
     -p, --print [...]    show record details by indices, ranges

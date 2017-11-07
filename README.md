@@ -70,7 +70,7 @@ PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) f
 - Continuous search with on the fly mode switch
 - Open bookmarks and search results in browser
 - Manual encryption support
-- Auto-import Firefox and Google Chrome bookmarks
+- Auto-import from Firefox, Google Chrome and Chromium
 - Import/export bookmarks from/to HTML or Markdown
 - Shorten and expand URLs
 - Smart tag management using redirection (>>, >, <<)
@@ -203,13 +203,13 @@ ENCRYPTION OPTIONS:
       -k, --unlock [N]     decrypt DB in N (default 8) # iterations
 
 POWER TOYS:
-      --ai                 auto-import from Firefox and Chrome
-      -e, --export file    export bookmarks in Firefox format html
+      --ai                 auto-import from Firefox/Chrome/Chromium
+      -e, --export file    export bookmarks to Firefox format html
                            export markdown, if file ends with '.md'
                            format: [title](url), 1 entry per line
                            export buku DB, if file ends with '.db'
                            use --tag to export specific tags
-      -i, --import file    import Firefox or Chrome bookmarks html
+      -i, --import file    import bookmarks html in Firefox format
                            import markdown, if file ends with '.md'
                            import buku DB, if file ends with '.db'
       -p, --print [...]    show record details by indices, ranges

@@ -16,7 +16,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Continuous search with on the fly mode switch
   * Open bookmarks and search results in browser
   * Manual encryption support
-  * Auto-import Firefox and Google Chrome bookmarks
+  * Auto-import from Firefox, Google Chrome and Chromium
   * Import/export bookmarks from/to HTML or Markdown
   * Shorten and expand URLs
   * Smart tag management using redirection (>>, >, <<)
@@ -181,7 +181,7 @@ Decrypt (unlock) the DB file with
 .SH POWER OPTIONS
 .TP
 .BI \--ai
-Auto-import bookmarks from Firefox and Google Chrome.
+Auto-import bookmarks from Firefox, Google Chrome and Chromium browsers.
 .TP
 .BI \-e " " \--export " file"
 Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags. Markdown is used if
@@ -193,7 +193,7 @@ Markdown format: [title](url), 1 entry per line. A buku database is generated if
 has extension '.db'.
 .TP
 .BI \-i " " \--import " file"
-Import bookmarks exported from Firefox or Google Chrome as HTML.
+Import bookmarks from Firefox bookmarks formatted html.
 .I file
 is considered Markdown (compliant with --export format) if it has '.md' extension or another buku database if the extension is '.db'.
 .TP
