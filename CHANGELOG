@@ -1,3 +1,19 @@
+Buku 3.5
+2017-11-10
+
+What's in?
+- Buku now has its own user agent
+- Search works with field filters
+- Edit the last record with `-w=-1` (useful when adding bookmark from GUI)a
+- Support for Chromium browser
+- Colors disabled by default on cmd (Windows), option `--colors` has to be used
+- Get default Firefox profile name from profiles.ini
+- Bash scriptlet to autogen records for testing
+- Some optimization in add record and suggest tags
+- A fresh utility Pinku to import Pinboard bookmarks to Buku
+
+-------------------------------------------------------------------------------
+
 Buku 3.4
 2017-09-18
 

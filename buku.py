@@ -40,7 +40,7 @@ from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
-__version__ = '3.4'
+__version__ = '3.5'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
