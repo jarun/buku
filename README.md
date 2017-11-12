@@ -34,7 +34,7 @@ We have one of the best documentation around. You can start with the [Examples](
 
 There are several [projects based on `buku`](#related-projects), including a browser plug-in.
 
-PRs are welcome. Please visit [#174](https://github.com/jarun/Buku/issues/174) for a list of TODOs. Visit the [wiki](https://github.com/jarun/Buku/wiki) for guidelines.
+PRs are welcome. Please visit [#233](https://github.com/jarun/Buku/issues/233) for a list of TODOs. Visit the [wiki](https://github.com/jarun/Buku/wiki) for guidelines.
 
 <p align="center">
 <a href="https://saythanks.io/to/jarun"><img src="https://img.shields.io/badge/say-thanks!-ff69b4.svg" /></a>
