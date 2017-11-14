@@ -4167,7 +4167,7 @@ POSITIONAL ARGUMENTS:
             else:
                 edit_aborted = True
 
-        if edit_aborted == False:
+        if edit_aborted is False:
             if args.suggest:
                 tags = bdb.suggest_similar_tag(tags)
             bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
