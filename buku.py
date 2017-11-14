@@ -4158,15 +4158,19 @@ POSITIONAL ARGUMENTS:
             tags = parse_tags(keywords[1:])
 
         url = args.add[0]
+        edit_aborted = False
 
         if args.write and not is_int(args.write):
             result = edit_rec(args.write, url, title_in, tags, desc_in)
             if result is not None:
                 url, title_in, tags, desc_in = result
+            else:
+                edit_aborted = True
 
-        if args.suggest:
-            tags = bdb.suggest_similar_tag(tags)
-        bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
+        if edit_aborted == False:
+            if args.suggest:
+                tags = bdb.suggest_similar_tag(tags)
+            bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
     # Enable browser output in case of a text based browser
     if os.getenv('BROWSER') in ['elinks', 'links', 'lynx', 'w3m', 'links2']:
