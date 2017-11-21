@@ -2058,6 +2058,14 @@ class BukuDb:
             profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
             if profile:
                 FF_BM_DB_PATH = '~/.mozilla/firefox/{}/places.sqlite'.format(profile)
+        elif sys.platform.startswith('freebsd'):
+            GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
+            CB_BM_DB_PATH = '~/.config/chromium/Default/Bookmarks'
+
+            DEFAULT_FF_FOLDER = os.path.expanduser('~/.mozilla/firefox')
+            profile = get_firefox_profile_name(DEFAULT_FF_FOLDER)
+            if profile:
+                FF_BM_DB_PATH = '~/.mozilla/firefox/{}/places.sqlite'.format(profile)
         elif sys.platform == 'darwin':
             GC_BM_DB_PATH = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             CB_BM_DB_PATH = '~/Library/Application Support/Chromium/Default/Bookmarks'
