@@ -101,7 +101,7 @@ or on Ubuntu:
 
 - [AUR](https://aur.archlinux.org/packages/buku/)
 - [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1)
-- [FreeBSD](https://www.freshports.org/www/py-buku/) (pkg install www/py-buku)
+- [FreeBSD](https://www.freshports.org/www/py-buku/) (`pkg install www/py-buku`)
 - [Homebrew](http://braumeister.org/formula/buku)
 - [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`sudo nix-env -i buku`)
 - [PyPi](https://pypi.python.org/pypi/buku/) (`sudo pip3 install buku`)
