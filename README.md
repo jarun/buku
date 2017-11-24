@@ -105,13 +105,15 @@ or on Ubuntu:
 - [Homebrew](http://braumeister.org/formula/buku)
 - [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`sudo nix-env -i buku`)
 - [PyPi](https://pypi.python.org/pypi/buku/) (`sudo pip3 install buku`)
-- [Ubuntu](http://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
+- [Ubuntu](https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
 - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
 - [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`sudo xbps-install -S buku`)
 
 #### Release packages
 
-Packages for Arch Linux, CentOS, Fedora and Ubuntu are available with the [latest stable release](https://github.com/jarun/Buku/releases/latest).
+Packages for Arch Linux, CentOS, Debian, Fedora and Ubuntu are available with the [latest stable release](https://github.com/jarun/Buku/releases/latest).
+
+NOTE: CentOS may not have the python3-beautifulsoup4 package in the repos. Install it using pip3.
 
 #### From source
 

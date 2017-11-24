@@ -26,18 +26,18 @@ packages:
       - python3-urllib3
       - python3
 # centos no beautifulsoup4
-#  centos7.3:
-#    builddeps:
-#      - make
-#    deps:
+  centos7.3:
+    builddeps:
+      - make
+    deps:
 #      - python-beautifulsoup4
-#      - python-cryptography
-#      - python-requests
-#      - python-urllib3
-#      - python
-#    commands:
-#      pre:
-#        - yum install epel-release
+      - python-cryptography
+      - python-requests
+      - python-urllib3
+      - python
+    commands:
+      pre:
+        - yum install epel-release
   ubuntu16.04:
     builddeps:
       - make
