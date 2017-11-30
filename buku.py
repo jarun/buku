@@ -35,6 +35,7 @@ import sqlite3
 import sys
 import threading
 import time
+import datetime
 import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
@@ -1946,7 +1947,10 @@ class BukuDb:
                 if add_parent_folder_as_tag:
                     tags += folder_name
                 if unique_tag:
-                    tags += DELIM + unique_tag
+                    if callable(unique_tag):
+                        tags += DELIM + unique_tag(item)
+                    else:
+                        tags += DELIM + unique_tag
                 yield (item['url'], item['name'], parse_tags([tags]), None, 0, True)
 
     def load_chrome_database(self, path, unique_tag, add_parent_folder_as_tag):
@@ -1964,6 +1968,35 @@ class BukuDb:
 
         with open(path, 'r') as datafile:
             data = json.load(datafile)
+
+        def getFiletime(dtms):
+            """Gets datetime from chrome bookmark date_added"""
+            #FROM: https://stackoverflow.com/questions/19074423/how-to-parse-the-date-added-field-in-chrome-bookmarks-file
+            seconds, micros = divmod(dtms, 1000000)
+            days, seconds = divmod(seconds, 86400)
+
+            return datetime.datetime(1601, 1, 1) + datetime.timedelta(days, seconds, micros)
+
+
+        def make_tag(data):
+            """Makes tag from information in bookmark
+
+            Currently returns date YYYY_MM_DD from date_added and video if
+            youtube.com or vimeo.com is in url
+            """
+            date_added = getFiletime(int(data["date_added"]))
+            date_tag =  date_added.strftime("%Y_%m_%d").lower()
+            tags = [date_tag]
+            if "youtube.com" in data["url"] or "vimeo.com" in data["url"]:
+                tags.append("video")
+                #print ("URL", data["url"], "youtube.com" in data["url"],
+                        #"vimeo.com" in data["url"])
+            return DELIM.join(tags)
+
+
+        unique_tag = make_tag
+
+
 
         roots = data['roots']
         for entry in roots:
