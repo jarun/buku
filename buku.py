@@ -3450,27 +3450,32 @@ def browse(url):
 def check_upstream_release():
     """Check and report the latest upstream release version."""
 
-    proxies = {
-        'https': os.environ.get('https_proxy'),
-    }
+    global myproxy
+
+    if myproxy is None:
+        gen_headers()
+
+    if myproxy:
+        http_handler = urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders)
+    else:
+        http_handler = urllib3.PoolManager(num_pools=1, headers={'User-Agent': USER_AGENT})
 
     try:
-        r = requests.get(
-                         'https://api.github.com/repos/jarun/buku/releases?per_page=1',
-                         proxies=proxies
-                        )
+        r = http_handler.request('GET', 'https://api.github.com/repos/jarun/buku/releases?per_page=1', headers={'User-Agent': USER_AGENT})
     except Exception as e:
         logerr(e)
         return
 
-    if r.status_code != 200:
-        logerr('[%s] %s', r.status_code, r.reason)
-    else:
-        latest = r.json()[0]['tag_name']
+    if r.status == 200:
+        latest = json.loads(r.data.decode(errors='replace'))[0]['tag_name']
         if latest == 'v' + __version__:
             print('This is the latest release')
         else:
             print('Latest upstream release is %s' % latest)
+    else:
+        logerr('[%s] %s', r.status, r.reason)
+
+    http_handler.clear()
 
 
 def regexp(expr, item):
