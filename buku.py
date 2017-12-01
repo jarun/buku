@@ -29,7 +29,6 @@ try:
     readline
 except ImportError:
     pass
-import requests
 import signal
 import sqlite3
 import sys
@@ -2253,6 +2252,8 @@ class BukuDb:
             Shortened url on success, None on failure.
         """
 
+        global myproxy
+
         if not index and not url:
             logerr('Either a valid DB index or URL required')
             return None
@@ -2265,10 +2266,6 @@ class BukuDb:
 
             url = results[0][0]
 
-        proxies = {
-            'https': os.environ.get('https_proxy'),
-        }
-
         from urllib.parse import quote_plus as qp
 
         urlbase = 'https://tny.im/yourls-api.php?action='
@@ -2277,22 +2274,25 @@ class BukuDb:
         else:
             _u = urlbase + 'expand&format=simple&shorturl=' + qp(url)
 
+        if myproxy is None:
+            gen_headers()
+
+        if myproxy:
+            manager = urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders)
+        else:
+            manager = urllib3.PoolManager(num_pools=1, headers={'User-Agent': USER_AGENT})
+
         try:
-            r = requests.post(_u,
-                              headers={
-                                       'content-type': 'application/json',
-                                       'User-Agent': USER_AGENT
-                                      },
-                              proxies=proxies)
+            r = manager.request('POST', _u, headers={'content-type': 'application/json', 'User-Agent': USER_AGENT})
         except Exception as e:
             logerr(e)
             return None
 
-        if r.status_code != 200:
-            logerr('[%s] %s', r.status_code, r.reason)
+        if r.status != 200:
+            logerr('[%s] %s', r.status, r.reason)
             return None
 
-        return r.text
+        return r.data.decode(errors='replace')
 
     def fixtags(self):
         """Undocumented API to fix tags set in earlier versions.
@@ -2801,10 +2801,10 @@ def network_handler(url, http_head=False):
         gen_headers()
 
     try:
-        http_handler = get_PoolManager()
+        manager = get_PoolManager()
 
         while True:
-            resp = http_handler.request_encode_url(method, url, timeout=40)
+            resp = manager.request(method, url, timeout=40)
 
             if resp.status == 200:
                 if method == 'GET':
@@ -2830,8 +2830,8 @@ def network_handler(url, http_head=False):
     except Exception as e:
         logerr('network_handler(): %s', e)
     finally:
-        if http_handler:
-            http_handler.clear()
+        if manager:
+            manager.clear()
         if method == 'HEAD':
             return ('', 1, 0)
         if page_title is None:
@@ -3456,12 +3456,12 @@ def check_upstream_release():
         gen_headers()
 
     if myproxy:
-        http_handler = urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders)
+        manager = urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders)
     else:
-        http_handler = urllib3.PoolManager(num_pools=1, headers={'User-Agent': USER_AGENT})
+        manager = urllib3.PoolManager(num_pools=1, headers={'User-Agent': USER_AGENT})
 
     try:
-        r = http_handler.request('GET', 'https://api.github.com/repos/jarun/buku/releases?per_page=1', headers={'User-Agent': USER_AGENT})
+        r = manager.request('GET', 'https://api.github.com/repos/jarun/buku/releases?per_page=1', headers={'User-Agent': USER_AGENT})
     except Exception as e:
         logerr(e)
         return
@@ -3475,7 +3475,7 @@ def check_upstream_release():
     else:
         logerr('[%s] %s', r.status, r.reason)
 
-    http_handler.clear()
+    manager.clear()
 
 
 def regexp(expr, item):
