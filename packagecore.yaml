@@ -12,7 +12,6 @@ packages:
       - make
     deps:
       - python-urllib3
-      - python-requests
       - python-cryptography
       - python-beautifulsoup4
       - python
@@ -22,7 +21,6 @@ packages:
     deps:
       - python3-beautifulsoup4
       - python3-cryptography
-      - python3-requests
       - python3-urllib3
       - python3
 # centos no beautifulsoup4
@@ -32,7 +30,6 @@ packages:
     deps:
 #      - python-beautifulsoup4
       - python-cryptography
-      - python-requests
       - python-urllib3
       - python
     commands:
@@ -43,7 +40,6 @@ packages:
       - make
     deps:
       - python3-urllib3
-      - python3-requests
       - python3-cryptography
       - python3-bs4
       - python3
@@ -52,7 +48,6 @@ packages:
       - make
     deps:
       - python3-urllib3
-      - python3-requests
       - python3-cryptography
       - python3-bs4
       - python3
@@ -61,7 +56,6 @@ packages:
       - make
     deps:
       - python3-urllib3
-      - python3-requests
       - python3-cryptography
       - python3-bs4
       - python3

@@ -38,7 +38,6 @@ setup(
         'HTTP': ['urllib3'],
         'CRYPTO': ['cryptography'],
         'HTML': ['beautifulsoup4'],
-        'REQUESTS': ['requests'],
         'tests': tests_require,
     },
     test_suite='tests',

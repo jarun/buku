@@ -88,14 +88,13 @@ PRs are welcome. Please visit [#233](https://github.com/jarun/Buku/issues/233) f
 | HTTP(S) | urllib3 |
 | Encryption | cryptography |
 | Import browser exported html | beautifulsoup4 |
-| Shorten URL, check latest release | requests |
 
 To install package dependencies using pip3, run:
 
-    $ sudo pip3 install urllib3 cryptography beautifulsoup4 requests
+    $ sudo pip3 install urllib3 cryptography beautifulsoup4
 or on Ubuntu:
 
-    $ sudo apt-get install python3-urllib3 python3-cryptography python3-bs4 python3-requests
+    $ sudo apt-get install python3-urllib3 python3-cryptography python3-bs4
 
 #### From a package manager
 
