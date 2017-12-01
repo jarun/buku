@@ -2292,6 +2292,8 @@ class BukuDb:
             logerr('[%s] %s', r.status, r.reason)
             return None
 
+        manager.clear()
+
         return r.data.decode(errors='replace')
 
     def fixtags(self):
