@@ -3,7 +3,7 @@
 <p align="center">
 <a href="https://github.com/jarun/Buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg?maxAge=600" alt="Latest release" /></a>
 <a href="https://aur.archlinux.org/packages/buku"><img src="https://img.shields.io/aur/version/buku.svg?maxAge=600" alt="AUR" /></a>
-<a href="http://braumeister.org/formula/buku"><img src="https://img.shields.io/homebrew/v/buku.svg?maxAge=600" alt="Homebrew" /></a>
+<a href="http://formulae.brew.sh/formula/buku"><img src="https://img.shields.io/homebrew/v/buku.svg?maxAge=600" alt="Homebrew" /></a>
 <a href="https://pypi.python.org/pypi/buku"><img src="https://img.shields.io/pypi/v/buku.svg?maxAge=600" alt="PyPI" /></a>
 <a href="https://packages.debian.org/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/debian-9+-blue.svg?maxAge=2592000" alt="Debian Stretch+" /></a>
 <a href="https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/ubuntu-17.04+-blue.svg?maxAge=2592000" alt="Ubuntu Zesty+" /></a>
@@ -101,7 +101,7 @@ or on Ubuntu:
 - [AUR](https://aur.archlinux.org/packages/buku/)
 - [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1)
 - [FreeBSD](https://www.freshports.org/www/py-buku/) (`pkg install www/py-buku`)
-- [Homebrew](http://braumeister.org/formula/buku)
+- [Homebrew](http://formulae.brew.sh/formula/buku)
 - [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`sudo nix-env -i buku`)
 - [PyPi](https://pypi.python.org/pypi/buku/) (`sudo pip3 install buku`)
 - [Ubuntu](https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
