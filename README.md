@@ -84,7 +84,7 @@ PRs are welcome. Please visit [#233](https://github.com/jarun/Buku/issues/233) f
 
 | Feature | Dependency |
 | --- | --- |
-| Scripting language | Python 3.3+ |
+| Scripting language | Python 3.4+ |
 | HTTP(S) | urllib3 |
 | Encryption | cryptography |
 | Import browser exported html | beautifulsoup4 |

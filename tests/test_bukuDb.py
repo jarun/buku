@@ -1236,7 +1236,7 @@ def extract_all_from_zip_url(zip_url, tmp_zip, folder):
         zip_filename: Temporary zip file to save from url.
         folder: Extract all files inside this folder.
     """
-    with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
+    with urllib.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
         shutil.copyfileobj(response, out_file)
     zip_obj = zipfile.ZipFile(tmp_zip.strpath)
     zip_obj.extractall(path=folder.strpath)

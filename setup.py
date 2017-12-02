@@ -5,8 +5,8 @@ import sys
 
 from setuptools import setup
 
-if sys.version_info < (3, 3):
-    print('ERROR: Buku requires at least Python 3.3 to run.')
+if sys.version_info < (3, 4):
+    print('ERROR: Buku requires at least Python 3.4 to run.')
     sys.exit(1)
 
 with open('buku.py', encoding='utf-8') as f:
@@ -52,9 +52,9 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet :: WWW/HTTP :: Indexing/Search',
         'Topic :: Utilities'
     ]
