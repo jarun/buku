@@ -16,7 +16,7 @@ with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
 tests_require = [
-    'pytest-cov', 'pytest-catchlog', 'hypothesis>=3.7.0', 'pytest>=3.1.2', 'py>=1.4.33',
+    'pytest-cov', 'pytest-catchlog', 'hypothesis>=3.7.0', 'pytest>=3.1.2', 'py>=1.5.0',
     'beautifulsoup4==4.6.0', 'flake8>=3.4.1', 'pylint>=1.7.2'
 ],
 
