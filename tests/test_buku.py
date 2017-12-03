@@ -1,6 +1,7 @@
 """test module."""
 from itertools import product
 from unittest import mock
+import json
 import os
 import signal
 import sys
@@ -291,7 +292,6 @@ def test_browse(url, opened_url, platform):
         m_webbrowser.open.assert_called_once_with(opened_url, new=2)
 
 
-@unittest.skip('skipping')
 @only_python_3_5
 @pytest.mark.parametrize(
     'status_code, latest_release',
@@ -300,16 +300,18 @@ def test_browse(url, opened_url, platform):
 def test_check_upstream_release(status_code, latest_release):
     """test func."""
     resp = mock.Mock()
-    resp.status_code = status_code
-    with mock.patch('buku.requests') as m_requests, \
+    resp.status = status_code
+    m_manager = mock.Mock()
+    m_manager.request.return_value = resp
+    with mock.patch('buku.urllib3') as m_urllib3, \
             mock.patch('buku.print') as m_print:
         import buku
         if latest_release:
             latest_version = 'v{}'.format(buku.__version__)
         else:
             latest_version = 'v0'
-        resp.json.return_value = [{'tag_name': latest_version}]
-        m_requests.get.return_value = resp
+        m_urllib3.PoolManager.return_value = m_manager
+        resp.data.decode.return_value = json.dumps([{'tag_name': latest_version}])
         buku.check_upstream_release()
         if status_code != 200:
             return
