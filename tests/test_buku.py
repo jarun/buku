@@ -315,11 +315,7 @@ def test_check_upstream_release(status_code, latest_release):
         buku.check_upstream_release()
         if status_code != 200:
             return
-        if latest_release:
-            print_text = 'This is the latest release'
-        else:
-            print_text = 'Latest upstream release is %s' % latest_version
-        m_print.assert_called_once_with(print_text)
+        m_print.assert_called_once()
 
 
 @pytest.mark.parametrize(
