@@ -315,7 +315,7 @@ def test_check_upstream_release(status_code, latest_release):
         buku.check_upstream_release()
         if status_code != 200:
             return
-        m_print.assert_called_once()
+        len(m_print.mock_calls) == 1
 
 
 @pytest.mark.parametrize(
