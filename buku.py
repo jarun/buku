@@ -1198,7 +1198,7 @@ class BukuDb:
         # do not allow combination of search logics
         if ' + ' in tags and ',' in tags:
             logerr("Cannot use both '+' and ',' in same search")
-            return
+            return None
 
         tags, search_operator, excluded_tags = prep_tag_search(tags)
 
@@ -1421,6 +1421,11 @@ class BukuDb:
             A range is passed using low and high arguments.
             An index is ignored if is_range is True (use dummy index).
             Default is False.
+
+        Returns
+        -------
+        bool
+            True on success, False on failure.
         """
 
         if (index < 0):
@@ -1452,7 +1457,7 @@ class BukuDb:
                     resultset = self.cur.execute(query, (low, high))
             except IndexError:
                 logerr('Index out of range')
-                return
+                return False
         elif index != 0:  # Show record at index
             try:
                 query = 'SELECT * FROM bookmarks WHERE id = ? LIMIT 1'
@@ -1460,29 +1465,31 @@ class BukuDb:
                 results = self.cur.fetchall()
                 if not results:
                     logerr('No matching index %d', index)
-                    return
+                    return False
             except IndexError:
                 logerr('No matching index %d', index)
-                return
+                return False
 
             if not self.json:
                 print_rec_with_filter(results, self.field_filter)
             else:
                 print(format_json(results, True, self.field_filter))
 
-            return
+            return True
         else:  # Show all entries
             self.cur.execute('SELECT * FROM bookmarks')
             resultset = self.cur.fetchall()
 
         if not resultset:
             logerr('0 records')
-            return
+            return True
 
         if not self.json:
             print_rec_with_filter(resultset, self.field_filter)
         else:
             print(format_json(resultset, field_filter=self.field_filter))
+
+        return True
 
     def get_tag_all(self):
         """Get list of tags in DB.
@@ -2981,6 +2988,8 @@ def edit_at_prompt(obj, nav, suggest=False):
             tags = obj.suggest_similar_tag(tags)
         obj.add_rec(url, title, tags, desc)
 
+    return
+
 
 def taglist_subprompt(obj, noninteractive=False):
     """Additional prompt to show unique tag list.
@@ -3014,7 +3023,7 @@ def taglist_subprompt(obj, noninteractive=False):
                 print()
 
             if noninteractive:
-                return
+                break
 
         try:
             nav = read_in(promptmsg)
@@ -3042,6 +3051,8 @@ def taglist_subprompt(obj, noninteractive=False):
         else:
             print('Invalid input')
             new_results = False
+
+    return ''
 
 
 def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, suggest=False):
