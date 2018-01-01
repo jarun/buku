@@ -15,14 +15,6 @@ packages:
       - python-cryptography
       - python-beautifulsoup4
       - python
-  fedora26:
-    builddeps:
-      - make
-    deps:
-      - python3-beautifulsoup4
-      - python3-cryptography
-      - python3-urllib3
-      - python3
 # centos no beautifulsoup4
   centos7.3:
     builddeps:
@@ -35,6 +27,30 @@ packages:
     commands:
       pre:
         - yum install epel-release
+  debian9:
+    builddeps:
+      - make
+    deps:
+      - python3-urllib3
+      - python3-cryptography
+      - python3-bs4
+      - python3
+  fedora26:
+    builddeps:
+      - make
+    deps:
+      - python3-beautifulsoup4
+      - python3-cryptography
+      - python3-urllib3
+      - python3
+  opensuse42.3
+    builddeps:
+      - make
+    deps:
+      - python3-beautifulsoup4
+      - python3-cryptography
+      - python3-urllib3
+      - python3
   ubuntu16.04:
     builddeps:
       - make
@@ -44,14 +60,6 @@ packages:
       - python3-bs4
       - python3
   ubuntu17.10:
-    builddeps:
-      - make
-    deps:
-      - python3-urllib3
-      - python3-cryptography
-      - python3-bs4
-      - python3
-  debian9:
     builddeps:
       - make
     deps:

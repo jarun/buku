@@ -113,7 +113,7 @@ or on Ubuntu:
 
 #### Release packages
 
-Packages for Arch Linux, CentOS, Debian, Fedora and Ubuntu are available with the [latest stable release](https://github.com/jarun/Buku/releases/latest).
+Packages for Arch Linux, CentOS, Debian, Fedora, openSUSE Leap and Ubuntu are available with the [latest stable release](https://github.com/jarun/Buku/releases/latest).
 
 NOTE: CentOS may not have the python3-beautifulsoup4 package in the repos. Install it using pip3.
 
