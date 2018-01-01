@@ -2,7 +2,7 @@
 #
 # Bookmark management utility
 #
-# Copyright © 2015-2017 Arun Prakash Jana <engineerarun@gmail.com>
+# Copyright © 2015-2018 Arun Prakash Jana <engineerarun@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
-__version__ = '3.5'
+__version__ = '3.6'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -2384,7 +2384,7 @@ SYMBOLS:
       #                    tags
 
 Version %s
-Copyright © 2015-2017 %s
+Copyright © 2015-2018 %s
 License: %s
 Webpage: https://github.com/jarun/Buku
 ''' % (__version__, __author__, __license__))

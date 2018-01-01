@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Buku'
-copyright = '2017, Arun Prakash Jana'
+copyright = '2018, Arun Prakash Jana'
 author = 'Arun Prakash Jana'
 
 # The version info for the project you're documenting, acts as replacement for
