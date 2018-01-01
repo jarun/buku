@@ -5,7 +5,7 @@ What's in?
 - Skip bookmark addition if edit is aborted
 - Use urllib3 for handling http connections everywhere
 - Fix auto-import on FreeBSD
-- Generate package for openSUSE Leap 42.3
+- Generate packages for openSUSE Leap 42.3, Fedora 27
 
 -------------------------------------------------------------------------------
 
