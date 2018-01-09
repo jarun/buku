@@ -20,7 +20,7 @@ packages:
     builddeps:
       - make
     deps:
-#      - python-beautifulsoup4
+#     - python-beautifulsoup4
       - python-cryptography
       - python-urllib3
       - python
@@ -43,14 +43,14 @@ packages:
       - python3-cryptography
       - python3-urllib3
       - python3
-  fedora27:
-    builddeps:
-      - make
-    deps:
-      - python3-beautifulsoup4
-      - python3-cryptography
-      - python3-urllib3
-      - python3
+# fedora27:
+#   builddeps:
+#     - make
+#   deps:
+#     - python3-beautifulsoup4
+#     - python3-cryptography
+#     - python3-urllib3
+#     - python3
   opensuse42.3:
     builddeps:
       - make
