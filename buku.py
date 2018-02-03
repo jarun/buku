@@ -2056,7 +2056,7 @@ class BukuDb:
 
         FF_BM_DB_PATH = None
 
-        if sys.platform.startswith('linux') or sys.platform.startswith('freebsd'):
+        if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
             GC_BM_DB_PATH = '~/.config/google-chrome/Default/Bookmarks'
             CB_BM_DB_PATH = '~/.config/chromium/Default/Bookmarks'
 
