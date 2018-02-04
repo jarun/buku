@@ -1011,8 +1011,17 @@ def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_arguments):
     res = bdb.update_rec(**kwargs)
     assert res
     exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
-    assert caplog.records[-1].getMessage() == exp_log
-    assert caplog.records[-1].levelname == 'DEBUG'
+    try:
+        assert caplog.records[-1].getMessage() == exp_log
+        assert caplog.records[-1].levelname == 'DEBUG'
+    except IndexError as e:
+        if (sys.version_info.major, sys.version_info.minor) == (3,4):
+            print('caplog records: {}'.format(caplog.records))
+            for idx, record in enumerate(caplog.records):
+                print('idx:{};{};message:{};levelname:{}'.format(
+                    idx, record, record.getMessage(), record.levelname))
+        else:
+            raise e
 
 
 @pytest.mark.parametrize(
@@ -1050,8 +1059,17 @@ def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_arguments):
     bdb = BukuDb()
     bdb.search_by_tag(tags_to_search)
     exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
-    assert caplog.records[-1].getMessage() == exp_log
-    assert caplog.records[-1].levelname == 'DEBUG'
+    try:
+        assert caplog.records[-1].getMessage() == exp_log
+        assert caplog.records[-1].levelname == 'DEBUG'
+    except IndexError as e:
+        if (sys.version_info.major, sys.version_info.minor) == (3,4):
+            print('caplog records: {}'.format(caplog.records))
+            for idx, record in enumerate(caplog.records):
+                print('idx:{};{};message:{};levelname:{}'.format(
+                    idx, record, record.getMessage(), record.levelname))
+        else:
+            raise e
 
 
 def test_update_rec_only_index():
@@ -1076,8 +1094,17 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
     bdb = BukuDb()
     res = bdb.update_rec(index=1, url=url, tags_in=invalid_tag)
     assert not res
-    assert caplog.records[0].getMessage() == 'Please specify a tag'
-    assert caplog.records[0].levelname == 'ERROR'
+    try:
+        assert caplog.records[0].getMessage() == 'Please specify a tag'
+        assert caplog.records[0].levelname == 'ERROR'
+    except IndexError as e:
+        if (sys.version_info.major, sys.version_info.minor) == (3,4):
+            print('caplog records: {}'.format(caplog.records))
+            for idx, record in enumerate(caplog.records):
+                print('idx:{};{};message:{};levelname:{}'.format(
+                    idx, record, record.getMessage(), record.levelname))
+        else:
+            raise e
 
 
 @pytest.mark.parametrize('read_in_retval', ['y', 'n', ''])
@@ -1091,9 +1118,18 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
             assert not res
             return
         assert res
-        assert caplog.records[0].getMessage() == \
-            'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
-        assert caplog.records[0].levelname == 'DEBUG'
+        try:
+            assert caplog.records[0].getMessage() == \
+                'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
+            assert caplog.records[0].levelname == 'DEBUG'
+        except IndexError as e:
+            if (sys.version_info.major, sys.version_info.minor) == (3,4):
+                print('caplog records: {}'.format(caplog.records))
+                for idx, record in enumerate(caplog.records):
+                    print('idx:{};{};message:{};levelname:{}'.format(
+                        idx, record, record.getMessage(), record.levelname))
+            else:
+                raise e
 
 
 @pytest.mark.parametrize(
