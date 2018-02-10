@@ -262,6 +262,7 @@ PROMPT KEYS:
     g [taglist id|range ...] [>>|>|<<] record id|range [...]
                            append, set, remove (all or specific) tags
     w [editor|id]          edit and add or update a bookmark
+    c id                   copy url at search result index to clipboard
     ?                      show this help
     q, ^D, double Enter    exit buku
 ```

@@ -29,8 +29,11 @@ try:
     readline
 except ImportError:
     pass
+import shutil
 import signal
 import sqlite3
+import subprocess
+from subprocess import Popen, PIPE, DEVNULL
 import sys
 import threading
 import time
@@ -2413,6 +2416,7 @@ PROMPT KEYS:
     g [taglist id|range ...] [>>|>|<<] record id|range [...]
                            append, set, remove (all or specific) tags
     w [editor|id]          edit and add or update a bookmark
+    c id                   copy url at search result index to clipboard
     ?                      show this help
     q, ^D, double Enter    exit buku
 
@@ -3044,9 +3048,7 @@ def taglist_subprompt(obj, noninteractive=False):
         elif nav == 't':
             new_results = True
         elif (nav == 'q' or nav == 'd' or nav == '?' or
-              nav.startswith('s ') or nav.startswith('S ') or nav.startswith('r ') or
-              nav.startswith('t ') or nav.startswith('o ') or nav.startswith('p ') or
-              nav.startswith('g ')) or nav == 'w' or nav.startswith('w '):
+              nav.startswith(('s ', 'S ', 'r ', 't ', 'o ', 'p ', 'g ', 'w ', 'c ')) or nav == 'w'):
             return nav
         else:
             print('Invalid input')
@@ -3206,6 +3208,36 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
                         print('Invalid input')
             except ValueError:
                 print('Invalid input')
+            continue
+
+        # Copy URL to clipboard
+        if nav.startswith('c ') and nav[2:].isdigit():
+            index = int(nav[2:]) - 1
+            if index < 0 or index >= count:
+                print('No matching index %s' % nav)
+                continue
+
+            try:
+                # try copying the url to clipboard using native utilities
+                if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
+                    if shutil.which('xsel') is None:
+                        raise FileNotFoundError
+                    copier_params = ['xsel', '-b', '-i']
+                elif sys.platform == 'darwin':
+                    copier_params = ['pbcopy']
+                elif sys.platform == 'win32':
+                    copier_params = ['clip']
+                else:
+                    copier_params = []
+
+                if not copier_params:
+                    print('operating system not identified')
+                else:
+                    Popen(copier_params, stdin=PIPE, stdout=DEVNULL, stderr=DEVNULL).communicate(results[index][1].encode('utf-8'))
+            except FileNotFoundError:
+                print('xsel missing')
+            except Exception as e:
+                print(e)
             continue
 
         # Nothing to browse if there are no results
@@ -3745,7 +3777,6 @@ def edit_rec(editor, url, title_in, tags_in, desc):
     """
 
     import tempfile
-    import subprocess
 
     temp_file_content = to_temp_file_content(url, title_in, tags_in, desc)
 
