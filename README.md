@@ -98,6 +98,8 @@ or on Ubuntu:
 
     $ sudo apt-get install python3-urllib3 python3-cryptography python3-bs4
 
+To copy url to clipboard at the prompt, `Buku` uses `xsel` on Linux, `pbcopy` (default installed) on OS X and `clip` (default installed) on Windows.
+
 #### From a package manager
 
 - [AUR](https://aur.archlinux.org/packages/buku/)
