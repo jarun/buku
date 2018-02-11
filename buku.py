@@ -3216,28 +3216,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
             if index < 0 or index >= count:
                 print('No matching index %s' % nav)
                 continue
-
-            try:
-                # try copying the url to clipboard using native utilities
-                if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
-                    if shutil.which('xsel') is None:
-                        raise FileNotFoundError
-                    copier_params = ['xsel', '-b', '-i']
-                elif sys.platform == 'darwin':
-                    copier_params = ['pbcopy']
-                elif sys.platform == 'win32':
-                    copier_params = ['clip']
-                else:
-                    copier_params = []
-
-                if not copier_params:
-                    print('operating system not identified')
-                else:
-                    Popen(copier_params, stdin=PIPE, stdout=DEVNULL, stderr=DEVNULL).communicate(results[index][1].encode('utf-8'))
-            except FileNotFoundError:
-                print('xsel missing')
-            except Exception as e:
-                print(e)
+            copy_to_clipboard(content=results[index][1].encode('utf-8'))
             continue
 
         # Nothing to browse if there are no results
@@ -3276,6 +3255,37 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
             else:
                 print('Invalid input')
                 break
+
+
+def copy_to_clipboard(content):
+    """Copy content to clipboard
+
+    Parameters
+    ----------
+    content : str
+        Content to be copied to clipboard
+    """
+    try:
+        # try copying the url to clipboard using native utilities
+        if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
+            if shutil.which('xsel') is None:
+                raise FileNotFoundError
+            copier_params = ['xsel', '-b', '-i']
+        elif sys.platform == 'darwin':
+            copier_params = ['pbcopy']
+        elif sys.platform == 'win32':
+            copier_params = ['clip']
+        else:
+            copier_params = []
+
+        if not copier_params:
+            print('operating system not identified')
+        else:
+            Popen(copier_params, stdin=PIPE, stdout=DEVNULL, stderr=DEVNULL).communicate(content)
+    except FileNotFoundError:
+        print('xsel missing')
+    except Exception as e:
+        print(e)
 
 
 def print_rec_with_filter(records, field_filter=0):
