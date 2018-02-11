@@ -673,3 +673,36 @@ def test_import_html_and_new_tag():
     html_soup = BeautifulSoup(html_text, 'html.parser')
     res = list(import_html(html_soup, False, 'tag3'))
     assert res[0] == exp_res
+
+
+@pytest.mark.parametrize(
+    'platform, params',
+    [
+        ['linux', ['xsel', '-b', '-i']],
+        ['freebsd', ['xsel', '-b', '-i']],
+        ['openbsd', ['xsel', '-b', '-i']],
+        ['darwin', ['pbcopy']],
+        ['win32', ['clip']],
+        ['random', None],
+    ],
+)
+def test_copy_to_clipboard(platform, params):
+    # m_popen = mock.Mock()
+    content = mock.Mock()
+    m_popen_retval = mock.Mock()
+    platform_recognized = \
+        platform.startswith(('linux', 'freebsd', 'openbsd')) \
+        or platform in ('darwin', 'win32')
+    with mock.patch('buku.sys') as m_sys, \
+            mock.patch('buku.Popen', return_value=m_popen_retval) as m_popen, \
+            mock.patch('buku.shutil.which', return_value=True):
+        m_sys.platform = platform
+        from buku import copy_to_clipboard
+        import subprocess
+        copy_to_clipboard(content)
+        if platform_recognized:
+            m_popen.assert_called_once_with(
+                params, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            m_popen_retval.communicate.assert_called_once_with(content)
+        else:
+            m_popen.assert_not_called()
