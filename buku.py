@@ -1133,10 +1133,11 @@ class BukuDb:
               'desc REGEXP ?) ')
         qargs = []
 
+        case_statement = lambda x: "CASE WHEN " + x + " THEN 1 ELSE 0 END"
         if regex:
             q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             for token in keywords:
-                q0 += wrap_in_case_statement(q2) + ' + '
+                q0 += case_statement(q2) + ' + '
                 qargs += (token, token, token, token,)
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         elif all_keywords:
@@ -1161,10 +1162,10 @@ class BukuDb:
             q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             for token in keywords:
                 if deep:
-                    q0 += wrap_in_case_statement(q1) + ' + '
+                    q0 += case_statement(q1) + ' + '
                 else:
                     token = '\\b' + token.rstrip('/') + '\\b'
-                    q0 += wrap_in_case_statement(q2) + ' + '
+                    q0 += case_statement(q2) + ' + '
                 qargs += (token, token, token, token,)
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         else:
@@ -2963,22 +2964,6 @@ def prep_tag_search(tags):
     tags = [delim_wrap(t.strip()) for t in tags.split(tag_delim)]
 
     return tags, search_operator, excluded_tags
-
-def wrap_in_case_statement(fragment):
-    """Wraps SQL fragment in CASE statements.
-
-    Parameters
-    ----------
-    fragment : str
-        An SQL fragment
-
-    Returns
-    -------
-    str
-        SQL case statement containing the fragment.
-    """
-
-    return "CASE WHEN " + fragment + " THEN 1 ELSE 0 END"
 
 def gen_auto_tag():
     """Generate a tag in Year-Month-Date format.
