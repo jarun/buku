@@ -1205,17 +1205,32 @@ class BukuDb:
 
         tags, search_operator, excluded_tags = prep_tag_search(tags)
 
-        query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
-        for tag in tags[1:]:
-            query += "{} tags LIKE '%' || ? || '%' ".format(search_operator)
-        if excluded_tags:
-            tags.append(excluded_tags)
-            query = query.replace('WHERE tags', 'WHERE (tags')
-            query += ') AND tags NOT REGEXP ? '
-        query += 'ORDER BY id ASC'
+        if search_operator == 'AND':
+            query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
+            for tag in tags[1:]:
+                query += "{} tags LIKE '%' || ? || '%' ".format(search_operator)
+
+            if excluded_tags:
+                tags.append(excluded_tags)
+                query = query.replace('WHERE tags', 'WHERE (tags')
+                query += ') AND tags NOT REGEXP ? '
+            query += 'ORDER BY id ASC'
+
+        else:
+            query = "SELECT id, url, metadata, tags, desc,"
+            case_statement = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
+            query += ' %s ' % case_statement
+            #" FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
+            for tag in tags[1:]:
+                query += ' + ' + case_statement
+            query += ' score FROM bookmarks WHERE score > 0'
+
+            if excluded_tags:
+                tags.append(excluded_tags)
+                query += ' AND tags NOT REGEXP ? '
+            query += ' ORDER BY score DESC'
 
         logdbg('query: "%s", args: %s', query, tags)
-
         self.cur.execute(query, tuple(tags, ))
         return self.cur.fetchall()
 
