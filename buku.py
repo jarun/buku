@@ -1121,7 +1121,6 @@ class BukuDb:
         if not keywords:
             return None
 
-        q0 = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE '
         # Deep query string
         q1 = ("(tags LIKE ('%' || ? || '%') OR "
               "URL LIKE ('%' || ? || '%') OR "
@@ -1135,10 +1134,11 @@ class BukuDb:
         qargs = []
 
         if regex:
+            q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             for token in keywords:
-                q0 += q2 + 'OR '
+                q0 += wrap_in_case_statement(q2) + ' + '
                 qargs += (token, token, token, token,)
-            q0 = q0[:-3]
+            q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         elif all_keywords:
             if len(keywords) == 1 and keywords[0] == 'blank':
                 q0 = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ? "
@@ -1146,6 +1146,7 @@ class BukuDb:
             elif len(keywords) == 1 and keywords[0] == 'immutable':
                 q0 = 'SELECT * FROM bookmarks WHERE flags & 1 == 1 '
             else:
+                q0 = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE '
                 for token in keywords:
                     if deep:
                         q0 += q1 + 'AND '
@@ -1155,21 +1156,21 @@ class BukuDb:
 
                     qargs += (token, token, token, token,)
                 q0 = q0[:-4]
+            q0 += 'ORDER BY id ASC'
         elif not all_keywords:
+            q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             for token in keywords:
                 if deep:
-                    q0 += q1 + 'OR '
+                    q0 += wrap_in_case_statement(q1) + ' + '
                 else:
                     token = '\\b' + token.rstrip('/') + '\\b'
-                    q0 += q2 + 'OR '
-
+                    q0 += wrap_in_case_statement(q2) + ' + '
                 qargs += (token, token, token, token,)
-            q0 = q0[:-3]
+            q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         else:
             logerr('Invalid search option')
             return None
 
-        q0 += 'ORDER BY id ASC'
         logdbg('query: "%s", args: %s', q0, qargs)
 
         try:
@@ -2963,6 +2964,8 @@ def prep_tag_search(tags):
 
     return tags, search_operator, excluded_tags
 
+def wrap_in_case_statement(clause):
+    return "CASE WHEN " + clause + " THEN 1 ELSE 0 END"
 
 def gen_auto_tag():
     """Generate a tag in Year-Month-Date format.
