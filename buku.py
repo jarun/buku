@@ -2978,7 +2978,7 @@ def wrap_in_case_statement(fragment):
         SQL case statement containing the fragment.
     """
 
-    return "CASE WHEN " + clause + " THEN 1 ELSE 0 END"
+    return "CASE WHEN " + fragment + " THEN 1 ELSE 0 END"
 
 def gen_auto_tag():
     """Generate a tag in Year-Month-Date format.
