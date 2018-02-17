@@ -2964,7 +2964,20 @@ def prep_tag_search(tags):
 
     return tags, search_operator, excluded_tags
 
-def wrap_in_case_statement(clause):
+def wrap_in_case_statement(fragment):
+    """Wraps SQL fragment in CASE statements.
+
+    Parameters
+    ----------
+    fragment : str
+        An SQL fragment
+
+    Returns
+    -------
+    str
+        SQL case statement containing the fragment.
+    """
+
     return "CASE WHEN " + clause + " THEN 1 ELSE 0 END"
 
 def gen_auto_tag():
