@@ -309,7 +309,8 @@ class TestBukuDb(unittest.TestCase):
             # search for bookmarks matching ANY of the supplied tags
             results = self.bdb.search_by_tag('test, old')
             # Expect a list of five-element tuples containing all bookmark data
-            # db index, URL, title, tags, description
+            # db index, URL, title, tags, description, ordered by records with
+            # the most number of matches.
             expected = [
                 (4, 'https://newbookmark.com', 'New Bookmark',
                  parse_tags([',test,old,new,']),
