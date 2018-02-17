@@ -1219,11 +1219,11 @@ class BukuDb:
 
         else:
             query = "SELECT id, url, metadata, tags, desc FROM (SELECT *, "
-            case_select = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
-            query +=  case_select
+            case_statement = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
+            query += case_statement
 
             for tag in tags[1:]:
-                query += ' + ' + case_select
+                query += ' + ' + case_statement
 
             query += ' AS score FROM bookmarks WHERE score > 0'
 
