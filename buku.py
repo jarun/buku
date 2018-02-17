@@ -1217,18 +1217,20 @@ class BukuDb:
             query += 'ORDER BY id ASC'
 
         else:
-            query = "SELECT id, url, metadata, tags, desc,"
-            case_statement = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
-            query += ' %s ' % case_statement
-            #" FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
+            query = "SELECT id, url, metadata, tags, desc FROM (SELECT *, "
+            case_select = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
+            query +=  case_select
+
             for tag in tags[1:]:
-                query += ' + ' + case_statement
-            query += ' score FROM bookmarks WHERE score > 0'
+                query += ' + ' + case_select
+
+            query += ' AS score FROM bookmarks WHERE score > 0'
 
             if excluded_tags:
                 tags.append(excluded_tags)
                 query += ' AND tags NOT REGEXP ? '
-            query += ' ORDER BY score DESC'
+
+            query += ' ORDER BY score DESC)'
 
         logdbg('query: "%s", args: %s', query, tags)
         self.cur.execute(query, tuple(tags, ))
