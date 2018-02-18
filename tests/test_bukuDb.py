@@ -309,17 +309,18 @@ class TestBukuDb(unittest.TestCase):
             # search for bookmarks matching ANY of the supplied tags
             results = self.bdb.search_by_tag('test, old')
             # Expect a list of five-element tuples containing all bookmark data
-            # db index, URL, title, tags, description
+            # db index, URL, title, tags, description, ordered by records with
+            # the most number of matches.
             expected = [
+                (4, 'https://newbookmark.com', 'New Bookmark',
+                 parse_tags([',test,old,new,']),
+                 'additional bookmark to test multiple tag search'),
                 (1, 'http://slashdot.org', 'SLASHDOT',
                  parse_tags([',news,old,']),
                  "News for old nerds, stuff that doesn't matter"),
                 (3, 'https://test.com:8080', 'test',
                  parse_tags([',test,tes,est,es,']),
-                 "a case for replace_tag test"),
-                (4, 'https://newbookmark.com', 'New Bookmark',
-                 parse_tags([',test,old,new,']),
-                 'additional bookmark to test multiple tag search')
+                 "a case for replace_tag test")
             ]
             self.assertEqual(results, expected)
 
@@ -405,12 +406,12 @@ class TestBukuDb(unittest.TestCase):
             # Expect a list of five-element tuples containing all bookmark data
             # db index, URL, title, tags, description
             expected = [
+                (4, 'https://newbookmark.com', 'New Bookmark',
+                 parse_tags([',test,old,new,']),
+                 'additional bookmark to test multiple tag search'),
                 (1, 'http://slashdot.org', 'SLASHDOT',
                  parse_tags([',news,old,']),
                  "News for old nerds, stuff that doesn't matter"),
-                (4, 'https://newbookmark.com', 'New Bookmark',
-                 parse_tags([',test,old,new,']),
-                 'additional bookmark to test multiple tag search')
             ]
             self.assertEqual(results, expected)
 

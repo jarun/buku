@@ -1121,7 +1121,6 @@ class BukuDb:
         if not keywords:
             return None
 
-        q0 = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE '
         # Deep query string
         q1 = ("(tags LIKE ('%' || ? || '%') OR "
               "URL LIKE ('%' || ? || '%') OR "
@@ -1134,11 +1133,13 @@ class BukuDb:
               'desc REGEXP ?) ')
         qargs = []
 
+        case_statement = lambda x: "CASE WHEN " + x + " THEN 1 ELSE 0 END"
         if regex:
+            q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             for token in keywords:
-                q0 += q2 + 'OR '
+                q0 += case_statement(q2) + ' + '
                 qargs += (token, token, token, token,)
-            q0 = q0[:-3]
+            q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         elif all_keywords:
             if len(keywords) == 1 and keywords[0] == 'blank':
                 q0 = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ? "
@@ -1146,6 +1147,7 @@ class BukuDb:
             elif len(keywords) == 1 and keywords[0] == 'immutable':
                 q0 = 'SELECT * FROM bookmarks WHERE flags & 1 == 1 '
             else:
+                q0 = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE '
                 for token in keywords:
                     if deep:
                         q0 += q1 + 'AND '
@@ -1155,21 +1157,21 @@ class BukuDb:
 
                     qargs += (token, token, token, token,)
                 q0 = q0[:-4]
+            q0 += 'ORDER BY id ASC'
         elif not all_keywords:
+            q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             for token in keywords:
                 if deep:
-                    q0 += q1 + 'OR '
+                    q0 += case_statement(q1) + ' + '
                 else:
                     token = '\\b' + token.rstrip('/') + '\\b'
-                    q0 += q2 + 'OR '
-
+                    q0 += case_statement(q2) + ' + '
                 qargs += (token, token, token, token,)
-            q0 = q0[:-3]
+            q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         else:
             logerr('Invalid search option')
             return None
 
-        q0 += 'ORDER BY id ASC'
         logdbg('query: "%s", args: %s', q0, qargs)
 
         try:
@@ -1205,17 +1207,34 @@ class BukuDb:
 
         tags, search_operator, excluded_tags = prep_tag_search(tags)
 
-        query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
-        for tag in tags[1:]:
-            query += "{} tags LIKE '%' || ? || '%' ".format(search_operator)
-        if excluded_tags:
-            tags.append(excluded_tags)
-            query = query.replace('WHERE tags', 'WHERE (tags')
-            query += ') AND tags NOT REGEXP ? '
-        query += 'ORDER BY id ASC'
+        if search_operator == 'AND':
+            query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
+            for tag in tags[1:]:
+                query += "{} tags LIKE '%' || ? || '%' ".format(search_operator)
+
+            if excluded_tags:
+                tags.append(excluded_tags)
+                query = query.replace('WHERE tags', 'WHERE (tags')
+                query += ') AND tags NOT REGEXP ? '
+            query += 'ORDER BY id ASC'
+
+        else:
+            query = "SELECT id, url, metadata, tags, desc FROM (SELECT *, "
+            case_statement = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
+            query += case_statement
+
+            for tag in tags[1:]:
+                query += ' + ' + case_statement
+
+            query += ' AS score FROM bookmarks WHERE score > 0'
+
+            if excluded_tags:
+                tags.append(excluded_tags)
+                query += ' AND tags NOT REGEXP ? '
+
+            query += ' ORDER BY score DESC)'
 
         logdbg('query: "%s", args: %s', query, tags)
-
         self.cur.execute(query, tuple(tags, ))
         return self.cur.fetchall()
 
@@ -2945,7 +2964,6 @@ def prep_tag_search(tags):
     tags = [delim_wrap(t.strip()) for t in tags.split(tag_delim)]
 
     return tags, search_operator, excluded_tags
-
 
 def gen_auto_tag():
     """Generate a tag in Year-Month-Date format.
