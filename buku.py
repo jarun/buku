@@ -1133,7 +1133,7 @@ class BukuDb:
               'desc REGEXP ?) ')
         qargs = []
 
-        case_statement = lambda x: "CASE WHEN " + x + " THEN 1 ELSE 0 END"
+        case_statement = lambda x: 'CASE WHEN ' + x + ' THEN 1 ELSE 0 END'
         if regex:
             q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             for token in keywords:
@@ -1219,7 +1219,7 @@ class BukuDb:
             query += 'ORDER BY id ASC'
 
         else:
-            query = "SELECT id, url, metadata, tags, desc FROM (SELECT *, "
+            query = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             case_statement = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
             query += case_statement
 
