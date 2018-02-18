@@ -3062,14 +3062,21 @@ def taglist_subprompt(obj, noninteractive=False):
 
         if is_int(nav) and int(nav) > 0 and int(nav) < count:
             return 't ' + unique_tags[int(nav) - 1]
+        elif nav == 't':
+            new_results = True
+        elif (nav in ('d', 'w', 'q') or
+              nav.startswith(('s ', 'S ', 'r ', 't ', 'o ', 'p ', 'g ', 'w ', 'c '))):
+            return nav
+        elif nav == 'O':
+            browse.override_text_browser = not browse.override_text_browser
+            print('text browser override toggled')
+            new_results = False
+        elif nav == '?':
+            ExtendedArgumentParser.prompt_help(sys.stdout)
+            new_results = False
         elif is_int(nav):
             print('No matching index %s' % nav)
             new_results = False
-        elif nav == 't':
-            new_results = True
-        elif (nav == 'q' or nav == 'd' or nav == '?' or nav == 'O' or
-              nav.startswith(('s ', 'S ', 'r ', 't ', 'o ', 'p ', 'g ', 'w ', 'c ')) or nav == 'w'):
-            return nav
         else:
             print('Invalid input')
             new_results = False
