@@ -265,6 +265,7 @@ PROMPT KEYS:
                            append, set, remove (all or specific) tags
     w [editor|id]          edit and add or update a bookmark
     c id                   copy url at search result index to clipboard
+    O                      toggle try to open in a GUI browser
     ?                      show this help
     q, ^D, double Enter    exit buku
 ```

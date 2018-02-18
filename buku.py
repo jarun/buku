@@ -76,6 +76,7 @@ COLORMAP = {k: '\x1b[%sm' % v for k, v in {
 USER_AGENT = 'Buku/{} (textmode; Linux x86_64; 1024x768)'.format(__version__)
 myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
+text_browsers = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
 
 # Set up logging
 logger = logging.getLogger()
@@ -2436,6 +2437,7 @@ PROMPT KEYS:
                            append, set, remove (all or specific) tags
     w [editor|id]          edit and add or update a bookmark
     c id                   copy url at search result index to clipboard
+    O                      toggle try to open in a GUI browser
     ?                      show this help
     q, ^D, double Enter    exit buku
 
@@ -3065,7 +3067,7 @@ def taglist_subprompt(obj, noninteractive=False):
             new_results = False
         elif nav == 't':
             new_results = True
-        elif (nav == 'q' or nav == 'd' or nav == '?' or
+        elif (nav == 'q' or nav == 'd' or nav == '?' or nav == 'O' or
               nav.startswith(('s ', 'S ', 'r ', 't ', 'o ', 'p ', 'g ', 'w ', 'c ')) or nav == 'w'):
             return nav
         else:
@@ -3174,6 +3176,12 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
             else:
                 print('deep search off')
 
+            continue
+
+        # Toggle GUI browser with 'O'
+        if nav == 'O':
+            browse.override_text_browser = not browse.override_text_browser
+            print('text browser override toggled')
             continue
 
         # Show help with '?'
@@ -3482,6 +3490,8 @@ def browse(url):
     suppress_browser_output : bool
         True if a text based browser is detected.
         Must be initialized (as applicable) to use the API.
+    override_text_browser : bool
+        If True, tries to open links in a GUI based browser.
     """
 
     if not parse_url(url).scheme:
@@ -3491,6 +3501,17 @@ def browse(url):
         # will happen for https-only websites
         logerr('scheme missing in URI, trying http')
         url = 'http://' + url
+
+    browser = webbrowser.get()
+    if browse.override_text_browser:
+        browser_output = browse.suppress_browser_output
+        for name in [b for b in webbrowser._tryorder if b not in text_browsers]:
+            browser = webbrowser.get(name)
+            logdbg(browser)
+
+            # Found a GUI browser, suppress browser output
+            browse.suppress_browser_output = True
+            break
 
     if browse.suppress_browser_output:
         _stderr = os.dup(2)
@@ -3502,7 +3523,7 @@ def browse(url):
         os.dup2(fd, 1)
     try:
         if sys.platform != 'win32':
-            webbrowser.open(url, new=2)
+            browser.open(url, new=2)
         else:
             # On Windows, the webbrowser module does not fork.
             # Use threads instead.
@@ -3518,6 +3539,9 @@ def browse(url):
             os.close(fd)
             os.dup2(_stderr, 2)
             os.dup2(_stdout, 1)
+
+    if browse.override_text_browser:
+        browse.suppress_browser_output = browser_output
 
 
 def check_upstream_release():
@@ -4250,10 +4274,13 @@ POSITIONAL ARGUMENTS:
             bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
 
     # Enable browser output in case of a text based browser
-    if os.getenv('BROWSER') in ['elinks', 'links', 'lynx', 'w3m', 'links2']:
+    if os.getenv('BROWSER') in text_browsers:
         browse.suppress_browser_output = False
     else:
         browse.suppress_browser_output = True
+
+    # Overriding text browsers is disabled by default
+    browse.override_text_browser = False
 
     # Search record
     search_results = None
