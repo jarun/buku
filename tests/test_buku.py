@@ -284,13 +284,19 @@ def test_is_int(string, exp_res):
 def test_browse(url, opened_url, platform):
     """test func."""
     with mock.patch('buku.webbrowser') as m_webbrowser, \
-            mock.patch('buku.sys') as m_sys:
+            mock.patch('buku.sys') as m_sys, \
+            mock.patch('buku.os'):
         m_sys.platform = platform
+        get_func_retval = mock.Mock()
+        m_webbrowser.get.return_value = get_func_retval
         import buku
         buku.browse.suppress_browser_output = True
         buku.browse.override_text_browser = False
         buku.browse(url)
-        m_webbrowser.open.assert_called_once_with(opened_url, new=2)
+        if platform == 'win32':
+            m_webbrowser.open.assert_called_once_with(opened_url, new=2)
+        else:
+            get_func_retval.open.assert_called_once_with(opened_url, new=2)
 
 
 @only_python_3_5
