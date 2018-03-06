@@ -1,7 +1,7 @@
 name: buku
 maintainer: Arun Prakash Jana <engineerarun@gmail.com>
 license: GPLv3
-summary: Powerful command-line bookmark manager.
+summary: Command-line bookmark manager with browser integration.
 homepage: https://github.com/jarun/Buku
 commands:
   install:

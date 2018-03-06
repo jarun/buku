@@ -23,7 +23,7 @@ tests_require = [
 setup(
     name='buku',
     version=version,
-    description='Powerful command-line bookmark manager.',
+    description='Command-line bookmark manager with browser integration.',
     long_description=long_description,
     author='Arun Prakash Jana',
     author_email='engineerarun@gmail.com',

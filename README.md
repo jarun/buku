@@ -153,7 +153,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 ```
 usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
 
-Powerful command-line bookmark manager.
+Command-line bookmark manager with browser integration.
 
 POSITIONAL ARGUMENTS:
       KEYWORD              search keywords
