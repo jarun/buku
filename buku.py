@@ -4046,11 +4046,11 @@ POSITIONAL ARGUMENTS:
                          excludes entries with tags after ' - '
                          list all tags, if no search keywords''')
     addarg = search_grp.add_argument
-    addarg('-s', '--sany', action='store_true', help=HIDE)
-    addarg('-S', '--sall', action='store_true', help=HIDE)
-    addarg('-r', '--sreg', action='store_true', help=HIDE)
+    addarg('-s', '--sany', nargs='*', help=HIDE)
+    addarg('-S', '--sall', nargs='*', help=HIDE)
+    addarg('-r', '--sreg', nargs='*', help=HIDE)
     addarg('--deep', action='store_true', help=HIDE)
-    addarg('-t', '--stag', action='store_true', help=HIDE)
+    addarg('-t', '--stag', nargs='*', help=HIDE)
 
     # ------------------------
     # ENCRYPTION OPTIONS GROUP
@@ -4262,7 +4262,7 @@ POSITIONAL ARGUMENTS:
             else:
                 keywords = args.add + [DELIM] + tags_in
 
-        if len(keywords) > 1:
+        if len(keywords) > 1:  # args.add is URL followed by optional tags
             tags = parse_tags(keywords[1:])
 
         url = args.add[0]
@@ -4294,29 +4294,39 @@ POSITIONAL ARGUMENTS:
     search_opted = True
     update_search_results = False
 
-    if args.sany:
-        # Search URLs, titles, tags for any keyword
-        search_results = bdb.searchdb(args.keywords, False, args.deep)
-    elif args.sall:
-        # Search URLs, titles, tags with all keywords
-        search_results = bdb.searchdb(args.keywords, True, args.deep)
-    elif args.sreg:
-        # Run a regular expression search
-        search_results = bdb.searchdb(args.keywords, regex=True)
-    elif args.stag:
-        # Search bookmarks by tag
-        if args.keywords:
-            search_results = bdb.search_by_tag(' '.join(args.keywords))
+    if args.sany is not None:
+        if len(args.sany):
+            # Search URLs, titles, tags for any keyword
+            search_results = bdb.searchdb(args.sany, False, args.deep)
+        else:
+            logerr('no keyword')
+    elif args.sall is not None:
+        if len(args.sall):
+            # Search URLs, titles, tags with all keywords
+            search_results = bdb.searchdb(args.sall, True, args.deep)
+        else:
+            logerr('no keyword')
+    elif args.sreg is not None:
+        if len(args.sreg):
+            # Run a regular expression search
+            search_results = bdb.searchdb(args.sreg, regex=True)
+        else:
+            logerr('no expression')
+    elif args.stag is not None:
+        if len(args.stag):
+            # Search bookmarks by tag
+            search_results = bdb.search_by_tag(' '.join(args.stag))
         else:
             # Use sub prompt to list all tags
             prompt(bdb, None, args.np, subprompt=True, suggest=args.suggest)
-    elif args.keywords:
+    elif len(args.keywords):
+        # Search URLs, titles, tags for any keyword
         search_results = bdb.searchdb(args.keywords, False, args.deep)
     else:
         search_opted = False
 
     # Add cmdline search options to readline history
-    if search_opted and args.keywords:
+    if search_opted and len(args.keywords):
         try:
             readline.add_history(' '.join(args.keywords))
         except Exception:
