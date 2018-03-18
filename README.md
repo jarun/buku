@@ -6,6 +6,7 @@
 <a href="http://formulae.brew.sh/formula/buku"><img src="https://img.shields.io/homebrew/v/buku.svg?maxAge=600" alt="Homebrew" /></a>
 <a href="https://pypi.python.org/pypi/buku"><img src="https://img.shields.io/pypi/v/buku.svg?maxAge=600" alt="PyPI" /></a>
 <a href="https://packages.debian.org/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/debian-9+-blue.svg?maxAge=2592000" alt="Debian Stretch+" /></a>
+<a href="https://apps.fedoraproject.org/packages/buku"><img src="https://img.shields.io/badge/fedora-27+-blue.svg?maxAge=2592000" alt="Fedora 27+" /></a>
 <a href="https://software.opensuse.org/search?q=buku"><img src="https://img.shields.io/badge/opensuse%20leap-15.0+-blue.svg?maxAge=2592000" alt="openSUSE Leap 15.0+" /></a>
 <a href="https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/ubuntu-17.04+-blue.svg?maxAge=2592000" alt="Ubuntu Zesty+" /></a>
 </p>
@@ -104,6 +105,7 @@ To copy url to clipboard at the prompt, `Buku` uses `xsel` on Linux, `pbcopy` (d
 
 - [AUR](https://aur.archlinux.org/packages/buku/)
 - [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1)
+- [Fedora](https://apps.fedoraproject.org/packages/buku) (`dnf install buku`)
 - [FreeBSD](https://www.freshports.org/www/py-buku/) (`pkg install www/py-buku`)
 - [Gentoo](https://packages.gentoo.org/packages/www-misc/buku) (`emerge buku`)
 - [Homebrew](http://formulae.brew.sh/formula/buku)
