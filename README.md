@@ -31,11 +31,11 @@
 
 For GUI integration (or to sync bookmarks with your favourite bookmark management service), refer to the wiki page on [System integration](https://github.com/jarun/Buku/wiki/System-integration). If you prefer the terminal, thanks to the [shell completion](#shell-completion) scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
 
-We have one of the best documentation around. You can start with the [Examples](#examples). *Buku* is too busy to track you - no hidden history, obsolete records, usage analytics or homing. To learn more on how it works or to contribute to the project, please refer to the wiki page on [Operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
+We have one of the best documentation around. You can start with the [Examples](#examples). *Buku* is too busy to track you - no hidden history, obsolete records, usage analytics or homing. To learn more on how it works or to contribute to the project, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
 
 There are several [projects based on `buku`](#related-projects), including a browser plug-in.
 
-PRs are welcome. Please visit [#233](https://github.com/jarun/Buku/issues/233) for a list of TODOs. Visit the [wiki](https://github.com/jarun/Buku/wiki) for guidelines.
+We need contributors. We are a small friendly team and would be more than happy to help. Please visit [#233](https://github.com/jarun/Buku/issues/251) for a list of TODOs. Visit the [wiki](https://github.com/jarun/Buku/wiki) for PR guidelines.
 
 *Love smart and efficient terminal utilities? Explore my repositories. Buy me a cup of coffee if they help you.*
 
