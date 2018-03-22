@@ -1241,6 +1241,26 @@ class BukuDb:
         self.cur.execute(query, tuple(tags, ))
         return self.cur.fetchall()
 
+
+    def search_any_keyword_and_filter_by_tags(self, sany, deep, stag):
+        """Search bookmarks for entries with any kewords while
+        filtering out entries with matching tags.
+
+                   Parameters
+                   ----------
+                   args : argParse.namespace
+                       Contains the argument necessary to run searchdb
+                       and search_by_tag
+
+                   Returns
+                   -------
+                   list or None
+                       List of search results, or None if no matches.
+            """
+        sany_results = self.searchdb(sany, False, deep)
+        stag_results = self.search_by_tag(''.join(stag))
+        return list(set(sany_results) & set(stag_results))
+
     def compactdb(self, index, delay_commit=False):
         """When an entry at index is deleted, move the
         last entry in DB to index, if index is lesser.
@@ -4320,7 +4340,12 @@ POSITIONAL ARGUMENTS:
     search_opted = True
     update_search_results = False
 
-    if args.sany is not None:
+    if args.stag is not None and args.sany is not None:
+        # Search URLs, title, tags for any keyword while
+        # filtering out matching tags
+        search_results = bdb.search_any_keyword_and_filter_by_tags(args.sany, args.deep, args.stag)
+
+    elif args.sany is not None:
         if len(args.sany):
             # Search URLs, titles, tags for any keyword
             search_results = bdb.searchdb(args.sany, False, args.deep)
@@ -4338,6 +4363,7 @@ POSITIONAL ARGUMENTS:
             search_results = bdb.searchdb(args.sreg, regex=True)
         else:
             logerr('no expression')
+
     elif args.stag is not None:
         if len(args.stag):
             # Search bookmarks by tag
