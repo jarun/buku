@@ -262,25 +262,35 @@ class TestBukuDb(unittest.TestCase):
             self.bdb.add_rec(*bookmark)
 
         with mock.patch('buku.prompt'):
-            expected = [(1,
-                         'http://slashdot.org',
-                         'SLASHDOT',
-                         ',news,old,',
-                         "News for old nerds, stuff that doesn't matter")]
+            expected = [(3,
+                         'https://test.com:8080',
+                         'test',
+                         ',es,est,tes,test,',
+                         'a case for replace_tag test')]
             results = self.bdb.search_any_keyword_and_filter_by_tags(
                 ['News', 'case'],
                 False,
                 ['est'],
             )
-            self.assertEqual(expected, results)
-
-            expected = []
+            self.assertIn(expected[0], results)
+            expected = [(3,
+                         'https://test.com:8080',
+                         'test',
+                         ',es,est,tes,test,',
+                         'a case for replace_tag test'),
+                        (2,
+                         'http://www.zażółćgęśląjaźń.pl/',
+                         'ZAŻÓŁĆ',
+                         ',gęślą,jaźń,zażółć,',
+                         'Testing UTF-8, zażółć gęślą jaźń.')]
             results = self.bdb.search_any_keyword_and_filter_by_tags(
                 ['UTF-8', 'case'],
                 False,
                 'jaźń, test',
             )
-            self.assertEqual(expected, results)
+            self.assertIn(expected[0], results)
+            self.assertIn(expected[1], results)
+
 
     def test_search_by_multiple_tags_search_any(self):
         # adding bookmarks

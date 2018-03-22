@@ -1257,7 +1257,7 @@ class BukuDb:
             """
         sany_results = self.searchdb(sany, False, deep)
         stag_results = self.search_by_tag(''.join(stag))
-        return list(set(sany_results) - set(stag_results))
+        return list(set(sany_results) & set(stag_results))
 
     def compactdb(self, index, delay_commit=False):
         """When an entry at index is deleted, move the
