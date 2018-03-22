@@ -1201,12 +1201,14 @@ class BukuDb:
             List of search results, or None if no matches.
         """
 
-        # do not allow combination of search logics
-        if ' + ' in tags and ',' in tags:
+        tags, search_operator, excluded_tags = prep_tag_search(tags)
+        if search_operator is None:
             logerr("Cannot use both '+' and ',' in same search")
             return None
 
-        tags, search_operator, excluded_tags = prep_tag_search(tags)
+        logdbg('tags: %s', tags)
+        logdbg('search_operator: %s', search_operator)
+        logdbg('excluded_tags: %s', excluded_tags)
 
         if search_operator == 'AND':
             query = "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
@@ -2949,6 +2951,22 @@ def prep_tag_search(tags):
          a regex string of tags or None if ' - ' delimiter not in tags).
     """
 
+    exclude_only = False
+
+    # tags may begin with `- ` if only exclusion list is provided
+    if tags.startswith('- '):
+        tags = ' ' + tags
+        exclude_only = True
+
+    # tags may start with `+ ` etc., tricky test case
+    if tags.startswith(('+ ', ', ')):
+        tags = tags[2:]
+
+    # tags may end with ` -` etc., tricky test case
+    if tags.endswith((' -', ' +', ' ,')):
+        tags = tags[:-2]
+
+    # tag exclusion list can be separated by comma (,), so split it first
     excluded_tags = None
     if ' - ' in tags:
         tags, excluded_tags = tags.split(' - ', 1)
@@ -2957,13 +2975,21 @@ def prep_tag_search(tags):
         # join with pipe to construct regex string
         excluded_tags = '|'.join(excluded_taglist)
 
-    search_operator = 'OR'
-    tag_delim = ','
-    if ' + ' in tags:
-        search_operator = 'AND'
-        tag_delim = ' + '
+    if exclude_only:
+        search_operator = 'OR'
+        tags = ['']
+    else:
+        # do not allow combination of search logics in tag inclusion list
+        if ' + ' in tags and ',' in tags:
+            return None, None, None
 
-    tags = [delim_wrap(t.strip()) for t in tags.split(tag_delim)]
+        search_operator = 'OR'
+        tag_delim = ','
+        if ' + ' in tags:
+            search_operator = 'AND'
+            tag_delim = ' + '
+
+        tags = [delim_wrap(t.strip()) for t in tags.split(tag_delim)]
 
     return tags, search_operator, excluded_tags
 

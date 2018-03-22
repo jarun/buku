@@ -365,9 +365,9 @@ PROMPT KEYS:
 20. **Search** for bookmarks matching **ALL** of the tags `kernel`, `debugging`, `general kernel concepts`:
 
         $ buku --stag kernel + debugging + general kernel concepts
-21. **Search** for bookmarks matching both the tags `kernel` and `debugging`, but **excluding** bookmarks matching the tag `general kernel concepts`:
+21. **Search** for bookmarks matching both the tags `kernel` and `debugging`, but **excluding** bookmarks matching the tags `general kernel concepts` and `books`:
 
-        $ buku --stag kernel + debugging - general kernel concepts
+        $ buku --stag kernel + debugging - general kernel concepts, books
 22. List **all unique tags** alphabetically:
 
         $ buku --stag
