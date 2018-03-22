@@ -1241,25 +1241,37 @@ class BukuDb:
         self.cur.execute(query, tuple(tags, ))
         return self.cur.fetchall()
 
+    def search_keywords_and_filter_by_tags(self, keywords, all_keywords, deep, regex, stag):
+        """Search bookmarks for entries with keywords and specified
+        criteria while filtering out entries with matching tags.
 
-    def search_any_keyword_and_filter_by_tags(self, sany, deep, stag):
-        """Search bookmarks for entries with any kewords while
-        filtering out entries with matching tags.
+        Parameters
+        ----------
+        keywords : list of str
+            Keywords to search.
+        all_keywords : bool, optional
+            True to return records matching ALL keywords.
+            False to return records matching ANY keyword.
+        deep : bool, optional
+            True to search for matching substrings.
+        regex : bool, optional
+            Match a regular expression if True.
+        tags : str
+            String of tags to search for.
+            Retrieves entries matching ANY tag if tags are
+            delimited with ','.
+            Retrieves entries matching ALL tags if tags are
+            delimited with '+'.
 
-                   Parameters
-                   ----------
-                   args : argParse.namespace
-                       Contains the argument necessary to run searchdb
-                       and search_by_tag
+        Returns
+        -------
+        list or None
+            List of search results, or None if no matches.
+        """
 
-                   Returns
-                   -------
-                   list or None
-                       List of search results, or None if no matches.
-            """
-        sany_results = self.searchdb(sany, False, deep)
+        keyword_results = self.searchdb(keywords, all_keywords, deep, regex)
         stag_results = self.search_by_tag(''.join(stag))
-        return list(set(sany_results) & set(stag_results))
+        return list(set(keyword_results) & set(stag_results))
 
     def compactdb(self, index, delay_commit=False):
         """When an entry at index is deleted, move the
@@ -4339,31 +4351,45 @@ POSITIONAL ARGUMENTS:
     search_results = None
     search_opted = True
     update_search_results = False
+    tags_search = True if (args.stag is not None and len(args.stag)) else False
 
-    if args.stag is not None and args.sany is not None:
-        # Search URLs, title, tags for any keyword while
-        # filtering out matching tags
-        search_results = bdb.search_any_keyword_and_filter_by_tags(args.sany, args.deep, args.stag)
-
-    elif args.sany is not None:
+    if args.sany is not None:
         if len(args.sany):
-            # Search URLs, titles, tags for any keyword
-            search_results = bdb.searchdb(args.sany, False, args.deep)
+            # Apply tag filtering, if opted
+            if tags_search:
+                search_results = bdb.search_keywords_and_filter_by_tags(args.sany, False, args.deep, False, args.stag)
+            else:
+                # Search URLs, titles, tags for any keyword
+                search_results = bdb.searchdb(args.sany, False, args.deep)
         else:
             logerr('no keyword')
     elif args.sall is not None:
         if len(args.sall):
-            # Search URLs, titles, tags with all keywords
-            search_results = bdb.searchdb(args.sall, True, args.deep)
+            # Apply tag filtering, if opted
+            if tags_search:
+                search_results = bdb.search_keywords_and_filter_by_tags(args.sall, True, args.deep, False, args.stag)
+            else:
+                # Search URLs, titles, tags with all keywords
+                search_results = bdb.searchdb(args.sall, True, args.deep)
         else:
             logerr('no keyword')
     elif args.sreg is not None:
         if len(args.sreg):
-            # Run a regular expression search
-            search_results = bdb.searchdb(args.sreg, regex=True)
+            # Apply tag filtering, if opted
+            if tags_search:
+                search_results = bdb.search_keywords_and_filter_by_tags(args.sreg, False, False, True, args.stag)
+            else:
+                # Run a regular expression search
+                search_results = bdb.searchdb(args.sreg, regex=True)
         else:
             logerr('no expression')
-
+    elif len(args.keywords):
+        # Apply tag filtering, if opted
+        if tags_search:
+            search_results = bdb.search_keywords_and_filter_by_tags(args.keywords, False, args.deep, False, args.stag)
+        else:
+            # Search URLs, titles, tags for any keyword
+            search_results = bdb.searchdb(args.keywords, False, args.deep)
     elif args.stag is not None:
         if len(args.stag):
             # Search bookmarks by tag
@@ -4371,9 +4397,6 @@ POSITIONAL ARGUMENTS:
         else:
             # Use sub prompt to list all tags
             prompt(bdb, None, args.np, subprompt=True, suggest=args.suggest)
-    elif len(args.keywords):
-        # Search URLs, titles, tags for any keyword
-        search_results = bdb.searchdb(args.keywords, False, args.deep)
     else:
         search_opted = False
 
