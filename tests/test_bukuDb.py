@@ -256,6 +256,64 @@ class TestBukuDb(unittest.TestCase):
         self.assertEqual(from_db[2], "Google")
 
     # @unittest.skip('skipping')
+    def test_search_any_keyword_and_filter_by_tags(self):
+        # adding bookmark
+        for bookmark in self.bookmarks:
+            self.bdb.add_rec(*bookmark)
+
+        with mock.patch('buku.prompt'):
+            expected = [(1,
+                         'http://slashdot.org',
+                         'SLASHDOT',
+                         ',news,old,',
+                         "News for old nerds, stuff that doesn't matter")]
+            results = self.bdb.search_any_keyword_and_filter_by_tags(
+                ['News', 'case'],
+                False,
+                ['est'],
+            )
+            self.assertEqual(expected, results)
+
+            expected = []
+            results = self.bdb.search_any_keyword_and_filter_by_tags(
+                ['UTF-8', 'case'],
+                False,
+                'jaźń, test',
+            )
+            self.assertEqual(expected, results)
+
+    def test_search_by_multiple_tags_search_any(self):
+        # adding bookmarks
+        for bookmark in self.bookmarks:
+            self.bdb.add_rec(*bookmark)
+
+        new_bookmark = ['https://newbookmark.com',
+                        'New Bookmark',
+                        parse_tags(['test,old,new']),
+                        'additional bookmark to test multiple tag search']
+
+        self.bdb.add_rec(*new_bookmark)
+
+        with mock.patch('buku.prompt'):
+            # search for bookmarks matching ANY of the supplied tags
+            results = self.bdb.search_by_tag('test, old')
+            # Expect a list of five-element tuples containing all bookmark data
+            # db index, URL, title, tags, description, ordered by records with
+            # the most number of matches.
+            expected = [
+                (4, 'https://newbookmark.com', 'New Bookmark',
+                 parse_tags([',test,old,new,']),
+                 'additional bookmark to test multiple tag search'),
+                (1, 'http://slashdot.org', 'SLASHDOT',
+                 parse_tags([',news,old,']),
+                 "News for old nerds, stuff that doesn't matter"),
+                (3, 'https://test.com:8080', 'test',
+                 parse_tags([',test,tes,est,es,']),
+                 "a case for replace_tag test")
+            ]
+            self.assertEqual(results, expected)
+
+    # @unittest.skip('skipping')
     def test_searchdb(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -602,7 +660,7 @@ class TestBukuDb(unittest.TestCase):
         self.assertEqual(url, 'https://www.google.com')
 
     # def test_browse_by_index(self):
-        # self.fail()
+    # self.fail()
 
     # @unittest.skip('skipping')
     def test_close_quit(self):
@@ -618,7 +676,8 @@ class TestBukuDb(unittest.TestCase):
             self.assertEqual(err.args[0], 1)
 
     # def test_import_bookmark(self):
-        # self.fail()
+    # self.fail()
+
 
 @given(
     index=st.integers(min_value=-10, max_value=10),
@@ -697,8 +756,10 @@ def test_compactdb(setup):
     bdb.compactdb(2)
 
     # asserting bookmarks have correct indices
-    assert bdb.get_rec_by_id(1) == (1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter", 0)
-    assert bdb.get_rec_by_id(2) == (2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
+    assert bdb.get_rec_by_id(1) == (
+        1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter", 0)
+    assert bdb.get_rec_by_id(2) == (
+        2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
     assert bdb.get_rec_by_id(3) is None
 
 
@@ -1066,7 +1127,7 @@ def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_arguments):
         assert caplog.records[-1].levelname == 'DEBUG'
     except IndexError as e:
         # TODO: fix test
-        if (sys.version_info.major, sys.version_info.minor) in [(3,4), (3, 5), (3, 6)]:
+        if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6)]:
             print('caplog records: {}'.format(caplog.records))
             for idx, record in enumerate(caplog.records):
                 print('idx:{};{};message:{};levelname:{}'.format(
@@ -1101,7 +1162,7 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
         assert caplog.records[0].getMessage() == 'Please specify a tag'
         assert caplog.records[0].levelname == 'ERROR'
     except IndexError as e:
-        if (sys.version_info.major, sys.version_info.minor) == (3,4):
+        if (sys.version_info.major, sys.version_info.minor) == (3, 4):
             print('caplog records: {}'.format(caplog.records))
             for idx, record in enumerate(caplog.records):
                 print('idx:{};{};message:{};levelname:{}'.format(
@@ -1123,7 +1184,7 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
         assert res
         try:
             assert caplog.records[0].getMessage() == \
-                'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
+                   'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
             assert caplog.records[0].levelname == 'DEBUG'
         except IndexError as e:
             # TODO: fix test
@@ -1202,6 +1263,7 @@ def bookmark_folder(tmpdir):
     tmp_zip = tmpdir.join('bookmarks_res.zip')
     extract_all_from_zip_url(zip_url, tmp_zip, tmpdir)
     return tmpdir
+
 
 @pytest.fixture()
 def chrome_db(bookmark_folder):
