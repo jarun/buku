@@ -25,6 +25,14 @@ else:
     tests_require.append('pytest>=3.4.2')
 
 
+server_require = [
+    'Flask-API>=0.6.9',
+    'Flask-Bootstrap>=3.3.7.1',
+    'Flask>=0.12',
+    'requests>=2.18.4',
+    'Werkzeug>=0.11.15',
+]
+
 setup(
     name='buku',
     version=version,
@@ -37,13 +45,14 @@ setup(
     platforms=['any'],
     py_modules=['buku'],
     entry_points={
-        'console_scripts': ['buku=buku:main']
+        'console_scripts': ['buku=buku:main', 'buku-api=api.server:cli']
     },
     extras_require={
         'HTTP': ['urllib3'],
         'CRYPTO': ['cryptography'],
         'HTML': ['beautifulsoup4'],
         'tests': tests_require,
+        'server': server_require,
     },
     test_suite='tests',
     tests_require=tests_require,
