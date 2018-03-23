@@ -1,19 +1,25 @@
 #!/usr/bin/env python
 from buku import BukuDb
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask.cli import FlaskGroup
 from flask_api import status
+from flask_bootstrap import Bootstrap
 import click
-import response
 import flask
 
+import response
 
 def get_tags():
+    """get tags."""
     tags = getattr(flask.g, 'bukudb', BukuDb()).get_tag_all()
     result = {
         'tags': tags[0]
     }
-    return jsonify(result)
+    if request.path.startswith('/api/'):
+        res = jsonify(result)
+    else:
+        res = render_template('buku_api/tags.html', result=result)
+    return res
 
 
 def update_tag(tag):
@@ -28,6 +34,8 @@ def update_tag(tag):
 
 
 def bookmarks():
+    """Bookmarks."""
+    res = None
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
     if request.method == 'GET':
         all_bookmarks = bukudb.get_rec_all()
@@ -42,24 +50,37 @@ def bookmarks():
                 'description': bookmark[4]
             }
             result['bookmarks'].append(result_bookmark)
-        return jsonify(result)
+        if request.path.startswith('/api/'):
+            res = jsonify(result)
+        else:
+            if request.args.getlist('tag'):
+                tags = request.args.getlist('tag')
+                result['bookmarks'] = [
+                    x for x in result['bookmarks']
+                    if set(tags).issubset(set(x['tags']))
+                ]
+            res = render_template(
+                'buku_api/bookmarks.html', result=result)
     elif request.method == 'POST':
         result_flag = bukudb.add_rec(
             request.form['url'], request.form['title'], request.form['tags'], request.form['description'])
-        if result_flag:
-            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
-                   {'ContentType': 'application/json'}
-        else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+        res = [
+            jsonify(response.response_template['success']), status.HTTP_200_OK,
+            {'ContentType': 'application/json'}
+        ] if result_flag else [
+            jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST,
+            {'ContentType': 'application/json'}
+        ]
     elif request.method == 'DELETE':
         result_flag = bukudb.cleardb()
-        if result_flag:
-            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
-                   {'ContentType': 'application/json'}
-        else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+        res = [
+            jsonify(response.response_template['success']), status.HTTP_200_OK,
+            {'ContentType': 'application/json'}
+        ] if result_flag else [
+            jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST,
+            {'ContentType': 'application/json'}
+        ]
+    return res
 
 
 def refresh_bookmarks():
@@ -267,12 +288,15 @@ def create_app(config_filename=None):
         """Shell context definition."""
         return {'app': app, 'bukudb': bukudb}
 
+    Bootstrap(app)
     # routing
     app.add_url_rule('/api/tags', 'get_tags', get_tags, methods=['GET'])
+    app.add_url_rule('/tags', 'get_tags-html', get_tags, methods=['GET'])
     app.add_url_rule('/api/tags/<tag>', 'update_tag', update_tag, methods=['PUT'])
     app.add_url_rule('/api/bookmarks', 'bookmarks', bookmarks, methods=['GET', 'POST', 'DELETE'])
+    app.add_url_rule('/bookmarks', 'bookmarks-html', bookmarks, methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmarks', refresh_bookmarks, methods=['POST'])
-    app.add_url_rule('/api/bookmarks/<id>', 'bookmark_api', refresh_bookmarks, methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule('/api/bookmarks/<id>', 'bookmark_api', bookmark_api, methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/<id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
     app.add_url_rule('/api/bookmarks/<id>/long', 'get_long_url', get_long_url, methods=['GET'])
@@ -280,6 +304,7 @@ def create_app(config_filename=None):
         '/api/bookmarks/<starting_id>/<ending_id>',
         'bookmark_range_operations', bookmark_range_operations, methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/search', 'search_bookmarks', search_bookmarks, methods=['GET', 'DELETE'])
+    app.add_url_rule('/', 'index', lambda: render_template('buku_api/index.html'))
     return app
 
 
