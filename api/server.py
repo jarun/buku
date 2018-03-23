@@ -186,7 +186,7 @@ def bookmark_range_operations(starting_id, ending_id):
         }
         for i in range(starting_id, ending_id + 1, 1):
             bookmark = getattr(flask.g, 'bukudb').get_rec_by_id(i)
-            bookmarks[i] = {
+            result['bookmarks'][i] = {
                 'url': bookmark[1],
                 'title': bookmark[2],
                 'tags': list([_f for _f in bookmark[3].split(',') if _f]),
