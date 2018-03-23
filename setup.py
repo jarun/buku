@@ -3,7 +3,7 @@
 import re
 import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 if sys.version_info < (3, 4):
     print('ERROR: Buku requires at least Python 3.4 to run.')
@@ -44,6 +44,8 @@ setup(
     license='GPLv3',
     platforms=['any'],
     py_modules=['buku'],
+    packages=find_packages(),
+    include_package_data=True,
     entry_points={
         'console_scripts': ['buku=buku:main', 'buku-api=api.server:cli']
     },
