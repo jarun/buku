@@ -1,0 +1,21 @@
+{% extends "buku_api/base.html" %}
+
+{% block content %}
+<div class="container">
+  <div style="padding-top: 70px;">
+    <table class="table" style="table-layout: fixed; width: 100%">
+      <caption>Tags table.</caption>
+      <thead> <tr> <th>Entry</th> </tr> </thead>
+      <tbody>
+        {% for item in result.tags %}
+        <tr> <td style="overflow-wrap: break-word;">
+          <a href="{{url_for('bookmarks-html', tag=item)}}">{{item}}</a>
+        </td> <tr>
+        {% else %}
+        <tr> <td>No entry Found</td> </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
