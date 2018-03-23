@@ -7,7 +7,10 @@ from flask_bootstrap import Bootstrap
 import click
 import flask
 
-import response
+try:
+    import response
+except ModuleNotFoundError:
+    from . import response
 
 def get_tags():
     """get tags."""
