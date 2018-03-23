@@ -1309,6 +1309,27 @@ def test_load_firefox_database(firefox_db, add_pt):
     assert call_args_list_dict == res_pickle
 
 
+@pytest.mark.parametrize(
+    'keyword_results, stag_results, exp_res',
+    [
+        ([], [], []),
+        (['item1'], ['item1', 'item2'], ['item1']),
+        (['item2'], ['item1'], []),
+    ]
+)
+def test_search_keywords_and_filter_by_tags(keyword_results, stag_results, exp_res):
+    """test method."""
+    # init
+    import buku
+    bdb = buku.BukuDb()
+    bdb.searchdb = mock.Mock(return_value=keyword_results)
+    bdb.search_by_tag = mock.Mock(return_value=stag_results)
+    # test
+    res = bdb.search_keywords_and_filter_by_tags(
+        mock.Mock(), mock.Mock(), mock.Mock(), mock.Mock(), [])
+    assert exp_res == res
+
+
 # Helper functions for testcases
 
 
