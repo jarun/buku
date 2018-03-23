@@ -47,7 +47,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     entry_points={
-        'console_scripts': ['buku=buku:main', 'buku-api=api.server:cli']
+        'console_scripts': ['buku=buku:main', 'bukuserver=bukuserver.server:cli']
     },
     extras_require={
         'HTTP': ['urllib3'],
