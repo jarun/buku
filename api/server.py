@@ -43,8 +43,8 @@ def bookmarks():
             result['bookmarks'].append(result_bookmark)
         return jsonify(result)
     elif request.method == 'POST':
-        result_flag = getattr(flask.g, 'bukudb').add_rec(request.form['url'], request.form['title'],
-                                     request.form['tags'], request.form['description'])
+        result_flag = getattr(flask.g, 'bukudb').add_rec(
+            request.form['url'], request.form['title'], request.form['tags'], request.form['description'])
         if result_flag:
             return jsonify(response.response_template['success']), status.HTTP_200_OK, \
                    {'ContentType': 'application/json'}
@@ -94,8 +94,8 @@ def bookmark_api(id):
             return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                    {'ContentType': 'application/json'}
     elif request.method == 'PUT':
-        result_flag = getattr(flask.g, 'bukudb').update_rec(id, request.form['url'], request.form.get('title'),
-                                        request.form['tags'], request.form['description'])
+        result_flag = getattr(flask.g, 'bukudb').update_rec(
+            id, request.form['url'], request.form.get('title'), request.form['tags'], request.form['description'])
         if result_flag:
             return jsonify(response.response_template['success']), status.HTTP_200_OK, \
                    {'ContentType': 'application/json'}
@@ -204,8 +204,8 @@ def bookmark_range_operations(starting_id, ending_id):
     elif request.method == 'PUT':
         for i in range(starting_id, ending_id + 1, 1):
             updated_bookmark = request.form[str(i)]
-            result_flag = getattr(flask.g, 'bukudb').update_rec(i, updated_bookmark['url'], updated_bookmark['title'],
-                                            updated_bookmark['tags'], updated_bookmark['description'])
+            result_flag = getattr(flask.g, 'bukudb').update_rec(
+                i, updated_bookmark['url'], updated_bookmark['title'], updated_bookmark['tags'], updated_bookmark['description'])
 
             if result_flag is False:
                 return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
@@ -273,7 +273,9 @@ def create_app(config_filename=None):
     app.add_url_rule('/api/bookmarks/<id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
     app.add_url_rule('/api/bookmarks/<id>/long', 'get_long_url', get_long_url, methods=['GET'])
-    app.add_url_rule('/api/bookmarks/<starting_id>/<ending_id>', 'bookmark_range_operations', bookmark_range_operations, methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule(
+        '/api/bookmarks/<starting_id>/<ending_id>',
+        'bookmark_range_operations', bookmark_range_operations, methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/search', 'search_bookmarks', search_bookmarks, methods=['GET', 'DELETE'])
     return app
 
