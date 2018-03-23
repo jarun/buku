@@ -1,10 +1,10 @@
 appdirs==1.4.3
 beautifulsoup4==4.5.3
-buku==2.9
+buku>=2.9
 cffi==1.9.1
 click==6.7
-cryptography==1.7.2
 Flask==0.12
+requests==2.18.4
 Flask-API==0.6.9
 idna==2.5
 itsdangerous==0.24
