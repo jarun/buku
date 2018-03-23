@@ -256,6 +256,7 @@ def create_app(config_filename=None):
     """create app."""
     app = Flask(__name__)
     bukudb = BukuDb()
+    app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
 
     @app.shell_context_processor
