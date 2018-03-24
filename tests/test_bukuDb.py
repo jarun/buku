@@ -1349,7 +1349,6 @@ def test_exclude_results_from_search(search_results, exclude_results, exp_res):
     res = bdb.exclude_results_from_search(
         search_results, [], True)
     assert exp_res == res
-    pass
 
 
 # Helper functions for testcases
