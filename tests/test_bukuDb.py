@@ -1330,6 +1330,28 @@ def test_search_keywords_and_filter_by_tags(keyword_results, stag_results, exp_r
     assert exp_res == res
 
 
+@pytest.mark.parametrize(
+    'search_results, exclude_results, exp_res',
+    [
+        ([], [], []),
+        (['item1', 'item2'], ['item2'], ['item1']),
+        (['item2'], ['item1'], ['item2']),
+        (['item1', 'item2'], ['item1', 'item2'], []),
+    ]
+)
+def test_exclude_results_from_search(search_results, exclude_results, exp_res):
+    """test method."""
+    # init
+    import buku
+    bdb = buku.BukuDb()
+    bdb.searchdb = mock.Mock(return_value=exclude_results)
+    # test
+    res = bdb.exclude_results_from_search(
+        search_results, [], True)
+    assert exp_res == res
+    pass
+
+
 # Helper functions for testcases
 
 

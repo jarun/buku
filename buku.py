@@ -1273,6 +1273,24 @@ class BukuDb:
         stag_results = self.search_by_tag(''.join(stag))
         return list(set(keyword_results) & set(stag_results))
 
+    def exclude_results_from_search(self, search_results, without, deep):
+        """Excludes records that match keyword search using without parameters
+
+                Parameters
+                ----------
+                search_results : list
+                    List of search results
+                without : list of str
+                    Keywords to search.
+                deep : bool, optional
+                    True to search for matching substrings.
+                Returns
+                -------
+                list or None
+                    List of search results, or None if no matches.
+                """
+        return list(set(search_results) - set(self.searchdb(without, False, deep)))
+
     def compactdb(self, index, delay_commit=False):
         """When an entry at index is deleted, move the
         last entry in DB to index, if index is lesser.
@@ -4095,6 +4113,8 @@ POSITIONAL ARGUMENTS:
                          special keywords -
                          "blank": entries with empty title/tag
                          "immutable": entries with locked title
+    -W, --without        combine with keyword search to exclude
+                         records
     --deep               match substrings ('pen' matches 'opens')
     -r, --sreg           run a regex search
     -t, --stag [tag [,|+] ...] [- tag, ...]
@@ -4109,6 +4129,7 @@ POSITIONAL ARGUMENTS:
     addarg('-r', '--sreg', nargs='*', help=HIDE)
     addarg('--deep', action='store_true', help=HIDE)
     addarg('-t', '--stag', nargs='*', help=HIDE)
+    addarg('-W', '--without', nargs='*', help=HIDE)
 
     # ------------------------
     # ENCRYPTION OPTIONS GROUP
@@ -4352,6 +4373,7 @@ POSITIONAL ARGUMENTS:
     search_opted = True
     update_search_results = False
     tags_search = True if (args.stag is not None and len(args.stag)) else False
+    exclude_results = True if (args.without is not None and len(args.without)) else False
 
     if args.sany is not None:
         if len(args.sany):
@@ -4361,6 +4383,8 @@ POSITIONAL ARGUMENTS:
             else:
                 # Search URLs, titles, tags for any keyword
                 search_results = bdb.searchdb(args.sany, False, args.deep)
+                if exclude_results:
+                    search_results = bdb.exclude_results_from_search(search_results, args.without, args.deep)
         else:
             logerr('no keyword')
     elif args.sall is not None:
@@ -4371,8 +4395,18 @@ POSITIONAL ARGUMENTS:
             else:
                 # Search URLs, titles, tags with all keywords
                 search_results = bdb.searchdb(args.sall, True, args.deep)
+                if exclude_results:
+                    search_results = bdb.exclude_results_from_search(search_results, args.without, args.deep)
         else:
             logerr('no keyword')
+
+    elif args.without is not None:
+        logerr("HELLLLLOOOO!!!")
+        logerr(search_results)
+        if len(args.without) and len(search_results):
+            exclude_results = bdb.search_keywords_and_filter_by_tags(args.without, True, args.deep, False, None)
+            search_results = list(set(search_results) - set(exclude_results))
+
     elif args.sreg is not None:
         if len(args.sreg):
             # Apply tag filtering, if opted
