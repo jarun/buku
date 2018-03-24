@@ -60,7 +60,7 @@ def bookmarks():
                     if set(tags).issubset(set(x['tags']))
                 ]
             res = render_template(
-                'bukueserver/bookmarks.html', result=result)
+                'bukuserver/bookmarks.html', result=result)
     elif request.method == 'POST':
         result_flag = bukudb.add_rec(
             request.form['url'], request.form['title'], request.form['tags'], request.form['description'])
