@@ -4401,8 +4401,6 @@ POSITIONAL ARGUMENTS:
             logerr('no keyword')
 
     elif args.without is not None:
-        logerr("HELLLLLOOOO!!!")
-        logerr(search_results)
         if len(args.without) and len(search_results):
             exclude_results = bdb.search_keywords_and_filter_by_tags(args.without, True, args.deep, False, None)
             search_results = list(set(search_results) - set(exclude_results))
