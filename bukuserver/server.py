@@ -7,7 +7,10 @@ from flask_bootstrap import Bootstrap
 import click
 import flask
 
-from . import response
+try:
+    from . import response
+except ImportError:
+    from bukuserver import response
 
 def get_tags():
     """get tags."""
