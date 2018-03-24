@@ -31,6 +31,7 @@ server_require = [
     'Flask>=0.12',
     'requests>=2.18.4',
     'Werkzeug>=0.11.15',
+    'click>=6.7',
 ]
 
 setup(

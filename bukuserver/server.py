@@ -21,7 +21,7 @@ def get_tags():
     if request.path.startswith('/api/'):
         res = jsonify(result)
     else:
-        res = render_template('buku_api/tags.html', result=result)
+        res = render_template('bukuserver/tags.html', result=result)
     return res
 
 
@@ -63,7 +63,7 @@ def bookmarks():
                     if set(tags).issubset(set(x['tags']))
                 ]
             res = render_template(
-                'buku_api/bookmarks.html', result=result)
+                'bukueserver/bookmarks.html', result=result)
     elif request.method == 'POST':
         result_flag = bukudb.add_rec(
             request.form['url'], request.form['title'], request.form['tags'], request.form['description'])
@@ -307,7 +307,7 @@ def create_app(config_filename=None):
         '/api/bookmarks/<starting_id>/<ending_id>',
         'bookmark_range_operations', bookmark_range_operations, methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/search', 'search_bookmarks', search_bookmarks, methods=['GET', 'DELETE'])
-    app.add_url_rule('/', 'index', lambda: render_template('buku_api/index.html'))
+    app.add_url_rule('/', 'index', lambda: render_template('bukuserver/index.html'))
     return app
 
 
