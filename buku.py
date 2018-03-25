@@ -4107,16 +4107,16 @@ POSITIONAL ARGUMENTS:
 
     search_grp = argparser.add_argument_group(
         title='SEARCH OPTIONS',
-        description='''    -s, --sany           find records with ANY matching keyword
+        description='''    -s, --sany [...]     find records with ANY matching keyword
                          this is the default search option
-    -S, --sall           find records matching ALL the keywords
+    -S, --sall [...]     find records matching ALL the keywords
                          special keywords -
                          "blank": entries with empty title/tag
                          "immutable": entries with locked title
-    -W, --without        combine with keyword search to exclude
+    -W, --without [...]  combine with keyword search to exclude
                          records
     --deep               match substrings ('pen' matches 'opens')
-    -r, --sreg           run a regex search
+    -r, --sreg [...]     run a regex search
     -t, --stag [tag [,|+] ...] [- tag, ...]
                          search bookmarks by tags
                          use ',' to find entries matching ANY tag
