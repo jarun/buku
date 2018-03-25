@@ -4114,7 +4114,7 @@ POSITIONAL ARGUMENTS:
                          special keywords -
                          "blank": entries with empty title/tag
                          "immutable": entries with locked title
-    -W, --without [...]  combine with keyword search to exclude
+    -x, --exclude [...]  combine with keyword search to exclude
                          records
     --deep               match substrings ('pen' matches 'opens')
     -r, --sreg [...]     run a regex search
@@ -4130,7 +4130,7 @@ POSITIONAL ARGUMENTS:
     addarg('-r', '--sreg', nargs='*', help=HIDE)
     addarg('--deep', action='store_true', help=HIDE)
     addarg('-t', '--stag', nargs='*', help=HIDE)
-    addarg('-W', '--without', nargs='*', help=HIDE)
+    addarg('-x', '--exclude', nargs='*', help=HIDE)
 
     # ------------------------
     # ENCRYPTION OPTIONS GROUP
@@ -4374,7 +4374,7 @@ POSITIONAL ARGUMENTS:
     search_opted = True
     update_search_results = False
     tags_search = True if (args.stag is not None and len(args.stag)) else False
-    exclude_results = True if (args.without is not None and len(args.without)) else False
+    exclude_results = True if (args.exclude is not None and len(args.exclude)) else False
 
     if args.sany is not None:
         if len(args.sany):
@@ -4385,7 +4385,7 @@ POSITIONAL ARGUMENTS:
                 # Search URLs, titles, tags for any keyword
                 search_results = bdb.searchdb(args.sany, False, args.deep)
                 if exclude_results:
-                    search_results = bdb.exclude_results_from_search(search_results, args.without, args.deep)
+                    search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
         else:
             logerr('no keyword')
     elif args.sall is not None:
@@ -4397,13 +4397,13 @@ POSITIONAL ARGUMENTS:
                 # Search URLs, titles, tags with all keywords
                 search_results = bdb.searchdb(args.sall, True, args.deep)
                 if exclude_results:
-                    search_results = bdb.exclude_results_from_search(search_results, args.without, args.deep)
+                    search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
         else:
             logerr('no keyword')
 
-    elif args.without is not None:
-        if len(args.without) and len(search_results):
-            exclude_results = bdb.search_keywords_and_filter_by_tags(args.without, True, args.deep, False, None)
+    elif args.exclude is not None:
+        if len(args.exclude) and len(search_results):
+            exclude_results = bdb.search_keywords_and_filter_by_tags(args.exclude, True, args.deep, False, None)
             search_results = list(set(search_results) - set(exclude_results))
 
     elif args.sreg is not None:
