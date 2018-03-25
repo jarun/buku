@@ -1289,6 +1289,7 @@ class BukuDb:
                 list or None
                     List of search results, or None if no matches.
                 """
+
         return list(set(search_results) - set(self.searchdb(without, False, deep)))
 
     def compactdb(self, index, delay_commit=False):
