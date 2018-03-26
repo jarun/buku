@@ -194,14 +194,14 @@ EDIT OPTIONS:
                            N=0: mutable (default), N=1: immutable
 
 SEARCH OPTIONS:
-      -s, --sany           find records with ANY matching keyword
+      -s, --sany [...]     find records with ANY matching keyword
                            this is the default search option
-      -S, --sall           find records matching ALL the keywords
+      -S, --sall [...]     find records matching ALL the keywords
                            special keywords -
                            "blank": entries with empty title/tag
                            "immutable": entries with locked title
       --deep               match substrings ('pen' matches 'opens')
-      -r, --sreg           run a regex search
+      -r, --sreg expr      run a regex search
       -t, --stag [tag [,|+] ...] [- tag, ...]
                            search bookmarks by tags
                            use ',' to find entries matching ANY tag

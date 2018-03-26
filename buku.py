@@ -4117,7 +4117,7 @@ POSITIONAL ARGUMENTS:
                          "blank": entries with empty title/tag
                          "immutable": entries with locked title
     --deep               match substrings ('pen' matches 'opens')
-    -r, --sreg [...]     run a regex search
+    -r, --sreg expr      run a regex search
     -t, --stag [tag [,|+] ...] [- tag, ...]
                          search bookmarks by tags
                          use ',' to find entries matching ANY tag
