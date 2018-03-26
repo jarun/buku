@@ -1277,19 +1277,20 @@ class BukuDb:
     def exclude_results_from_search(self, search_results, without, deep):
         """Excludes records that match keyword search using without parameters
 
-                Parameters
-                ----------
-                search_results : list
-                    List of search results
-                without : list of str
-                    Keywords to search.
-                deep : bool, optional
-                    True to search for matching substrings.
-                Returns
-                -------
-                list or None
-                    List of search results, or None if no matches.
-                """
+        Parameters
+        ----------
+        search_results : list
+            List of search results
+        without : list of str
+            Keywords to search.
+        deep : bool, optional
+            True to search for matching substrings.
+
+        Returns
+        -------
+        list or None
+            List of search results, or None if no matches.
+        """
 
         return list(set(search_results) - set(self.searchdb(without, False, deep)))
 
