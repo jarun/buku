@@ -32,14 +32,14 @@ def get_tags():
 
 
 def update_tag(tag):
+    res = None
     if request.method == 'PUT':
         result_flag = getattr(flask.g, 'bukudb', BukuDb()).replace_tag(tag, request.form.getlist('tags'))
         if result_flag:
-            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
         else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+    return res
 
 
 def chunks(l, n):
@@ -80,8 +80,8 @@ def bookmarks():
                     x for x in result['bookmarks']
                     if set(tags).issubset(set(x['tags']))
                 ]
-            current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks']))) 
-            current_app.logger.debug('per page:{}'.format(per_page)) 
+            current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks'])))
+            current_app.logger.debug('per page:{}'.format(per_page))
             pagination_total = len(result['bookmarks'])
             bms = list(chunks(result['bookmarks'], per_page))
             result['bookmarks'] = bms[page-1]
@@ -117,19 +117,20 @@ def bookmarks():
 
 
 def refresh_bookmarks():
+    res = None
     if request.method == 'POST':
         print(request.form['index'])
         print(request.form['threads'])
         result_flag = getattr(flask.g, 'bukudb', BukuDb()).refreshdb(request.form['index'], request.form['threads'])
         if result_flag:
-            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
         else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+    return res
 
 
 def bookmark_api(id):
+    res = None
     try:
         id = int(id)
     except ValueError:
@@ -153,19 +154,17 @@ def bookmark_api(id):
         result_flag = bukudb.update_rec(
             id, request.form['url'], request.form.get('title'), request.form['tags'], request.form['description'])
         if result_flag:
-            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
         else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+
     else:
         result_flag = bukudb.delete_rec(id)
         if result_flag:
-            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
         else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+    return res
 
 
 def refresh_bookmark(id):
@@ -174,14 +173,14 @@ def refresh_bookmark(id):
     except ValueError:
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                {'ContentType': 'application/json'}
+    res = None
     if request.method == 'POST':
         result_flag = getattr(flask.g, 'bukudb', BukuDb()).refreshdb(id, request.form['threads'])
         if result_flag:
-            return jsonify(response.response_template['success']), status.HTTP_200_OK, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
         else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+    return res
 
 
 def get_tiny_url(id):
@@ -190,17 +189,17 @@ def get_tiny_url(id):
     except ValueError:
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                {'ContentType': 'application/json'}
-
+    res = None
     if request.method == 'GET':
         shortened_url = getattr(flask.g, 'bukudb', BukuDb()).tnyfy_url(id)
         if shortened_url is not None:
             result = {
                 'url': shortened_url
             }
-            return jsonify(result)
+            res = jsonify(result)
         else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+    return res
 
 
 def get_long_url(id):
@@ -210,16 +209,17 @@ def get_long_url(id):
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                {'ContentType': 'application/json'}
 
+    res = None
     if request.method == 'GET':
         bookmark = getattr(flask.g, 'bukudb', BukuDb()).get_rec_by_id(id)
         if bookmark is not None:
             result = {
                 'url': bookmark[1],
             }
-            return jsonify(result)
+            res = jsonify(result)
         else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+    return res
 
 
 def bookmark_range_operations(starting_id, ending_id):
@@ -230,6 +230,7 @@ def bookmark_range_operations(starting_id, ending_id):
     except ValueError:
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                {'ContentType': 'application/json'}
+    res = None
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
     max_id = bukudb.get_max_id()
     if starting_id > max_id or ending_id > max_id:
@@ -248,15 +249,14 @@ def bookmark_range_operations(starting_id, ending_id):
                 'tags': list([_f for _f in bookmark[3].split(',') if _f]),
                 'description': bookmark[4]
             }
-        return jsonify(result)
+        res = jsonify(result)
     elif request.method == 'DELETE':
         for i in range(starting_id, ending_id + 1, 1):
             result_flag = bukudb.delete_rec(i)
             if result_flag is False:
                 return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                        {'ContentType': 'application/json'}
-        return jsonify(response.response_template['success']), status.HTTP_200_OK, \
-               {'ContentType': 'application/json'}
+        res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
     elif request.method == 'PUT':
         for i in range(starting_id, ending_id + 1, 1):
             updated_bookmark = request.form[str(i)]
@@ -266,8 +266,9 @@ def bookmark_range_operations(starting_id, ending_id):
             if result_flag is False:
                 return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                        {'ContentType': 'application/json'}
-        return jsonify(response.response_template['success']), status.HTTP_200_OK, \
+        res = jsonify(response.response_template['success']), status.HTTP_200_OK, \
                {'ContentType': 'application/json'}
+    return res
 
 
 def search_bookmarks():
@@ -286,6 +287,7 @@ def search_bookmarks():
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
     found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
 
+    res = None
     if request.method == 'GET':
         if bookmarks is not None:
             for bookmark in found_bookmarks:
@@ -297,16 +299,16 @@ def search_bookmarks():
                     'description': bookmark[4]
                 }
                 results['bookmarks'].append(result_bookmark)
-        return jsonify(results)
+        res = jsonify(results)
     elif request.method == 'DELETE':
         if found_bookmarks is not None:
             for bookmark in found_bookmarks:
                 result_flag = bukudb.delete_rec(bookmark[0])
                 if result_flag is False:
-                    return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                           {'ContentType': 'application/json'}
-        return jsonify(response.response_template['success']), status.HTTP_200_OK, \
-               {'ContentType': 'application/json'}
+                    res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+        if res is None:
+            res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
+    return res
 
 
 def create_app(config_filename=None):
