@@ -1,9 +1,12 @@
 #!/usr/bin/env python
+import os
+
 from buku import BukuDb
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, current_app
 from flask.cli import FlaskGroup
 from flask_api import status
 from flask_bootstrap import Bootstrap
+from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
 import click
 import flask
 
@@ -11,6 +14,9 @@ try:
     from . import response
 except ImportError:
     from bukuserver import response
+
+
+DEFAULT_PER_PAGE = 10
 
 def get_tags():
     """get tags."""
@@ -36,10 +42,22 @@ def update_tag(tag):
                    {'ContentType': 'application/json'}
 
 
+def chunks(l, n):
+    n = max(1, n)
+    return (l[i:i+n] for i in range(0, len(l), n))
+
+
 def bookmarks():
     """Bookmarks."""
     res = None
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
+    page = request.args.get(get_page_parameter(), type=int, default=1)
+    per_page = request.args.get(
+        get_per_page_parameter(),
+        type=int,
+        default=int(
+            current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
+    )
     if request.method == 'GET':
         all_bookmarks = bukudb.get_rec_all()
         result = {
@@ -62,8 +80,20 @@ def bookmarks():
                     x for x in result['bookmarks']
                     if set(tags).issubset(set(x['tags']))
                 ]
+            current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks']))) 
+            current_app.logger.debug('per page:{}'.format(per_page)) 
+            pagination_total = len(result['bookmarks'])
+            bms = list(chunks(result['bookmarks'], per_page))
+            result['bookmarks'] = bms[page-1]
+            pagination = Pagination(
+                page=page, total=pagination_total, per_page=per_page,
+                search=False, record_name='bookmarks', bs_version=3
+            )
             res = render_template(
-                'bukuserver/bookmarks.html', result=result)
+                'bukuserver/bookmarks.html',
+                result=result,
+                pagination=pagination
+            )
     elif request.method == 'POST':
         result_flag = bukudb.add_rec(
             request.form['url'], request.form['title'], request.form['tags'], request.form['description'])
@@ -282,6 +312,8 @@ def search_bookmarks():
 def create_app(config_filename=None):
     """create app."""
     app = Flask(__name__)
+    app.config['BUKUSERVER_PER_PAGE'] = os.getenv(
+        'BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE)
     bukudb = BukuDb()
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)

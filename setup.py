@@ -26,12 +26,14 @@ else:
 
 
 server_require = [
+    'click>=6.7',
     'Flask-API>=0.6.9',
     'Flask-Bootstrap>=3.3.7.1',
+    'flask-paginate>=0.5.1',
     'Flask>=0.12',
     'requests>=2.18.4',
     'Werkzeug>=0.11.15',
-    'click>=6.7',
+
 ]
 
 setup(
