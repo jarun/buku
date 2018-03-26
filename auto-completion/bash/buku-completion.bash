@@ -47,6 +47,7 @@ _buku () {
         -V
         -v --version
         -w --write
+        -x --exclude
         -z --debug
     )
     opts_with_arg=(
@@ -64,6 +65,7 @@ _buku () {
         --shorten
         --threads
         --url
+        -x --exclude
     )
 
     # Do not complete non option names

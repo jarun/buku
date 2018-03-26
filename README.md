@@ -208,6 +208,7 @@ SEARCH OPTIONS:
                            use '+' to find entries matching ALL tags
                            excludes entries with tags after ' - '
                            list all tags, if no search keywords
+      -x, --exclude [...]  omit records matching specified keywords
 
 ENCRYPTION OPTIONS:
       -l, --lock [N]       encrypt DB in N (default 8) # iterations
@@ -365,9 +366,9 @@ PROMPT KEYS:
 20. **Search** for bookmarks matching **ALL** of the tags `kernel`, `debugging`, `general kernel concepts`:
 
         $ buku --stag kernel + debugging + general kernel concepts
-21. **Search** for bookmarks matching any of the keywords `hello` or `world`, matching both the tags `kernel` and `debugging`, but **excluding** the tags `general kernel concepts` and `books`:
+21. **Search** for bookmarks matching any of the keywords `hello` or `world`, excluding the keywords `real` and `life`, matching both the tags `kernel` and `debugging`, but **excluding** the tags `general kernel concepts` and `books`:
 
-        $ buku hello world --stag kernel + debugging - general kernel concepts, books
+        $ buku hello world --exclude real life --stag 'kernel + debugging - general kernel concepts, books'
 22. List **all unique tags** alphabetically:
 
         $ buku --stag

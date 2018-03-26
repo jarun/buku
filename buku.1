@@ -70,7 +70,9 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - --deep : match \fBsubstrings\fR (`match` matches `rematched`) in URL, title and tags.
   - --sreg : match a regular expression (ignores --deep).
   - --stag : search bookmarks by tags, or list all tags alphabetically with usage count (if no arguments). Delimit the list of tags in the query with `,` to search for bookmarks that match ANY of the listed tags. Delimit tags with `+` to search for bookmarks that match ALL of the listed tags. Note that `,` and `+` cannot be used together in the same search. Exclude bookmarks matching certain tags from the results by using ` - ` followed by the tags. Note that the ` - ` operator and the ` + ` delimiter must be space separated: ` - ` instead of `-` and ` + ` instead of `+`. This is to distinguish them from hyphenated tags (e.g., `some-tag-name`) and tags with '+'s (e.g., `some+tag+name`).
-  - Search results are indexed serially. This index is different from actual database index of a bookmark record which is shown within '[]' after the title.
+  - Search for keywords along with tag filtering is possible. Two searches are issued (one for keywords and another for tags) and the intersection of the 2 sets is returned as the resultset.
+  - Search results are indexed incrementally. This index is different from actual database index of a bookmark record which is shown within '[]' after the title.
+  - Results for \fIany\fR keyword matches are ordered by the number of keyword matches - results matching more keywords (\fImatch score\fR) will appear earlier in the list. Results having the same number of matches will be ranked by their record DB index. If only one keyword is searched, results will be ordered by DB index, since all matching records will have the same \fImatch score\fR.
 .PP
 .IP 9. 4
 \fBImport\fR:
@@ -167,6 +169,9 @@ NOTE: Cannot combine ',' and '+' in the same search
 Use ' - ' to exclude bookmarks that match the tags that follow. (Note that the '-' operator must be space separated).
 .br
 List all tags alphabetically, if no arguments. The usage count (number of bookmarks having the tag) is shown within first brackets.
+.TP
+.BI \-x " " \--exclude " keyword [...]"
+Exclude bookmarks matching the specified keywords. Works with --sany, --sall, --sreg and --stag.
 .SH ENCRYPTION OPTIONS
 .TP
 .BI \-l " " \--lock " [N]"
@@ -628,11 +633,11 @@ The last index is moved to the deleted index to keep the DB compact.
 .EE
 .PP
 .IP 21. 4
-\fBSearch\fR for bookmarks matching any of the keywords 'hello' or 'world', matching both the tags `kernel` and `debugging`, but \fBexcluding\fR the tags 'general kernel concepts' and 'books':
+\fBSearch\fR for bookmarks matching any of the keywords 'hello' or 'world', excluding the keywords 'real' and 'life', matching both the tags 'kernel' and 'debugging', but \fBexcluding\fR the tags 'general kernel concepts' and 'books':
 .PP
 .EX
 .IP
-.B buku hello world --stag kernel + debugging - general kernel concepts, books
+.B buku hello world --exclude real life --stag 'kernel + debugging - general kernel concepts, books'
 .IP 22. 4
 List \fBall unique tags\fR alphabetically:
 .PP

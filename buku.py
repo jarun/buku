@@ -1201,6 +1201,7 @@ class BukuDb:
             List of search results, or None if no matches.
         """
 
+        logdbg(tags)
         tags, search_operator, excluded_tags = prep_tag_search(tags)
         if search_operator is None:
             logerr("Cannot use both '+' and ',' in same search")
@@ -4114,8 +4115,6 @@ POSITIONAL ARGUMENTS:
                          special keywords -
                          "blank": entries with empty title/tag
                          "immutable": entries with locked title
-    -x, --exclude [...]  combine with keyword search to exclude
-                         records
     --deep               match substrings ('pen' matches 'opens')
     -r, --sreg [...]     run a regex search
     -t, --stag [tag [,|+] ...] [- tag, ...]
@@ -4123,7 +4122,8 @@ POSITIONAL ARGUMENTS:
                          use ',' to find entries matching ANY tag
                          use '+' to find entries matching ALL tags
                          excludes entries with tags after ' - '
-                         list all tags, if no search keywords''')
+                         list all tags, if no search keywords
+    -x, --exclude [...]  omit records matching specified keywords''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', nargs='*', help=HIDE)
     addarg('-S', '--sall', nargs='*', help=HIDE)
@@ -4378,58 +4378,69 @@ POSITIONAL ARGUMENTS:
 
     if args.sany is not None:
         if len(args.sany):
+            logdbg('args.sany')
             # Apply tag filtering, if opted
             if tags_search:
                 search_results = bdb.search_keywords_and_filter_by_tags(args.sany, False, args.deep, False, args.stag)
             else:
                 # Search URLs, titles, tags for any keyword
                 search_results = bdb.searchdb(args.sany, False, args.deep)
-                if exclude_results:
-                    search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
+
+            if exclude_results:
+                search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
         else:
             logerr('no keyword')
     elif args.sall is not None:
         if len(args.sall):
+            logdbg('args.sall')
             # Apply tag filtering, if opted
             if tags_search:
                 search_results = bdb.search_keywords_and_filter_by_tags(args.sall, True, args.deep, False, args.stag)
             else:
                 # Search URLs, titles, tags with all keywords
                 search_results = bdb.searchdb(args.sall, True, args.deep)
-                if exclude_results:
-                    search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
+
+            if exclude_results:
+                search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
         else:
             logerr('no keyword')
-
-    elif args.exclude is not None:
-        if len(args.exclude) and len(search_results):
-            exclude_results = bdb.search_keywords_and_filter_by_tags(args.exclude, True, args.deep, False, None)
-            search_results = list(set(search_results) - set(exclude_results))
-
     elif args.sreg is not None:
         if len(args.sreg):
+            logdbg('args.sreg')
             # Apply tag filtering, if opted
             if tags_search:
                 search_results = bdb.search_keywords_and_filter_by_tags(args.sreg, False, False, True, args.stag)
             else:
                 # Run a regular expression search
                 search_results = bdb.searchdb(args.sreg, regex=True)
+
+            if exclude_results:
+                search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
         else:
             logerr('no expression')
     elif len(args.keywords):
+        logdbg('args.keywords')
         # Apply tag filtering, if opted
         if tags_search:
             search_results = bdb.search_keywords_and_filter_by_tags(args.keywords, False, args.deep, False, args.stag)
         else:
             # Search URLs, titles, tags for any keyword
             search_results = bdb.searchdb(args.keywords, False, args.deep)
+
+        if exclude_results:
+            search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
     elif args.stag is not None:
         if len(args.stag):
+            logdbg('args.stag')
             # Search bookmarks by tag
             search_results = bdb.search_by_tag(' '.join(args.stag))
+            if exclude_results:
+                search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
         else:
             # Use sub prompt to list all tags
             prompt(bdb, None, args.np, subprompt=True, suggest=args.suggest)
+    elif args.exclude is not None:
+        logerr('no search criteria to exclude results from')
     else:
         search_opted = False
 
