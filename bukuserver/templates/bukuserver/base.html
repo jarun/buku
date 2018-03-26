@@ -2,6 +2,11 @@
 {% block title %}Buku Api{% endblock %}
 {% block html_attribs %} lang="en"{% endblock %}
 
+{% block styles %}
+{{super()}}
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+{% endblock %}
+
 {% block navbar %}
 <nav class="navbar navbar-inverse navbar-fixed-top">
   <div class="container">
@@ -12,7 +17,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#">Buku Api</a>
+      <a class="navbar-brand" href="#">Buku Server</a>
     </div>
     <div id="navbar" class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
