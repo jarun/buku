@@ -272,20 +272,35 @@ def bookmark_range_operations(starting_id, ending_id):
 
 
 def search_bookmarks():
-    keywords = request.form.getlist('keywords')
-    all_keywords = request.form.get('all_keywords')
-    deep = request.form.get('deep')
-    regex = request.form.get('regex')
-    all_keywords = False if all_keywords is None else all_keywords
-    deep = False if deep is None else deep
-    regex = False if regex is None else regex
-    all_keywords = all_keywords if type(all_keywords) == bool else all_keywords.lower() == 'true'
-    deep = deep if type(deep) == bool else deep.lower() == 'true'
-    regex = regex if type(regex) == bool else regex.lower() == 'true'
+    arg_obj = request.form if request.method == 'DELETE' else request.args
+    keywords = arg_obj.getlist('keywords')
+    all_keywords = arg_obj.get('all_keywords')
+    deep = arg_obj.get('deep')
+    regex = arg_obj.get('regex')
+    is_api_request_path = request.path.startswith('/api/')
+    # api request is more strict
+    if is_api_request_path:
+        all_keywords = False if all_keywords is None else all_keywords
+        deep = False if deep is None else deep
+        regex = False if regex is None else regex
+        all_keywords = \
+            all_keywords if type(all_keywords) == bool else all_keywords.lower() == 'true'
+        deep = \
+            deep if type(deep) == bool else deep.lower() == 'true'
+        regex = \
+            regex if type(regex) == bool else regex.lower() == 'true'
 
     results = {'bookmarks': []}
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
     found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
+    found_bookmarks = [] if found_bookmarks is None else found_bookmarks
+    page = request.args.get(get_page_parameter(), type=int, default=1)
+    per_page = request.args.get(
+        get_per_page_parameter(),
+        type=int,
+        default=int(
+            current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
+    )
 
     res = None
     if request.method == 'GET':
@@ -299,7 +314,18 @@ def search_bookmarks():
                     'description': bookmark[4]
                 }
                 results['bookmarks'].append(result_bookmark)
-        res = jsonify(results)
+        current_app.logger.debug('total bookmarks:{}'.format(len(results['bookmarks'])))
+        if is_api_request_path:
+            res = jsonify(results)
+        else:
+            pagination_total = len(results['bookmarks'])
+            bms = list(chunks(results['bookmarks'], per_page))
+            results['bookmarks'] = bms[page-1]
+            pagination = Pagination(
+                page=page, total=pagination_total, per_page=per_page,
+                search=False, record_name='bookmarks', bs_version=3
+            )
+            res = render_template('bukuserver/search.html', results=results, pagination=pagination)
     elif request.method == 'DELETE':
         if found_bookmarks is not None:
             for bookmark in found_bookmarks:
@@ -341,6 +367,7 @@ def create_app(config_filename=None):
         '/api/bookmarks/<starting_id>/<ending_id>',
         'bookmark_range_operations', bookmark_range_operations, methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/search', 'search_bookmarks', search_bookmarks, methods=['GET', 'DELETE'])
+    app.add_url_rule('/bookmarks/search', 'search_bookmarks-html', search_bookmarks, methods=['GET'])
     app.add_url_rule('/', 'index', lambda: render_template('bukuserver/index.html'))
     return app
 
