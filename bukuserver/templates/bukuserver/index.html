@@ -9,6 +9,9 @@
       <a class="btn btn-lg btn-success" href="{{url_for('bookmarks-html')}}" role="button">Bookmarks</a>
       <a class="btn btn-lg btn-success" href="{{url_for('get_tags-html')}}" role="button">Tags</a>
     </p>
+    <div class=" col-md-4 col-md-offset-4">
+      {{show_bookmarks_search_form()}}
+    </div>
   </div>
 </div>
 {% endblock %}

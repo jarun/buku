@@ -1,33 +1,11 @@
 {% extends "bukuserver/base.html" %}
 
-{% macro show_bookmarks(bookmarks) %}
-<div style="padding-top: 70px;">
-  <table class="table" style="table-layout: fixed; width: 100%">
-    <caption>Bookmark table.</caption>
-    <thead> <tr> <th>Entry</th> </tr> </thead>
-    <tbody>
-      {% for item in bookmarks %}
-      <tr> <td style="overflow-wrap: break-word;">
-        <h3><a href="{{item.url}}">{{item.title}}</a></h3>
-        <p><a href="{{item.url}}">{{item.url}}</a></p>
-        <p>{{item.description}}</p>
-        <p>
-          {% for tag in item.tags %}
-          <a class="btn btn-default" href="{{url_for('bookmarks-html', tag=tag)}}" role="button">{{tag}}</a>
-          {% endfor %}
-        </p>
-      </td> <tr>
-      {% else %}
-      <tr> <td>No entry Found</td> </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endmacro %}
-
 {% block content %}
 <div class="container">
-  {{show_bookmarks(result.bookmarks)}}
+  <div style="padding-top: 70px;">
+    {{show_bookmarks_search_form()}}
+  </div>
+  {{show_bookmarks(result.bookmarks)}} 
   {{pagination.links}}
 </div>
 

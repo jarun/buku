@@ -290,7 +290,7 @@ def search_bookmarks():
         regex = \
             regex if type(regex) == bool else regex.lower() == 'true'
 
-    results = {'bookmarks': []}
+    result = {'bookmarks': []}
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
     found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
     found_bookmarks = [] if found_bookmarks is None else found_bookmarks
@@ -313,19 +313,19 @@ def search_bookmarks():
                     'tags': list([_f for _f in bookmark[3].split(',') if _f]),
                     'description': bookmark[4]
                 }
-                results['bookmarks'].append(result_bookmark)
-        current_app.logger.debug('total bookmarks:{}'.format(len(results['bookmarks'])))
+                result['bookmarks'].append(result_bookmark)
+        current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks'])))
         if is_api_request_path:
-            res = jsonify(results)
+            res = jsonify(result)
         else:
-            pagination_total = len(results['bookmarks'])
-            bms = list(chunks(results['bookmarks'], per_page))
-            results['bookmarks'] = bms[page-1]
+            pagination_total = len(result['bookmarks'])
+            bms = list(chunks(result['bookmarks'], per_page))
+            result['bookmarks'] = bms[page-1]
             pagination = Pagination(
                 page=page, total=pagination_total, per_page=per_page,
                 search=False, record_name='bookmarks', bs_version=3
             )
-            res = render_template('bukuserver/search.html', results=results, pagination=pagination)
+            res = render_template('bukuserver/bookmarks.html', result=result, pagination=pagination)
     elif request.method == 'DELETE':
         if found_bookmarks is not None:
             for bookmark in found_bookmarks:
