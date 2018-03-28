@@ -1,4 +1,17 @@
-Buku 3.6
+Buku v3.7
+2018-03-28
+
+What's in?
+- Exclude keywords in search (keyword filtering)
+- Search and filter by tags
+- Order search results by number of keyword matches
+- Copy URL to clipboard
+- Prompt shortcut 'O' to override text browsers
+- New official packagers: Fedora, Gentoo, OpenBSD, openSUSE
+
+-------------------------------------------------------------------------------
+
+Buku v3.6
 2018-01-09
 
 What's in?
@@ -9,7 +22,7 @@ What's in?
 
 -------------------------------------------------------------------------------
 
-Buku 3.5
+Buku v3.5
 2017-11-10
 
 What's in?
@@ -25,7 +38,7 @@ What's in?
 
 -------------------------------------------------------------------------------
 
-Buku 3.4
+Buku v3.4
 2017-09-18
 
 What's in?
@@ -36,7 +49,7 @@ What's in?
 
 -------------------------------------------------------------------------------
 
-Buku 3.3.1
+Buku v3.3.1
 2017-09-11
 
 This is for all purposes the same as v3.3. We had to re-upload a new version to
@@ -46,7 +59,7 @@ The tagline is changed to - `Powerful command-line bookmark manager.`
 
 -------------------------------------------------------------------------------
 
-Buku 3.3
+Buku v3.3
 2017-09-11
 
 What's in?
@@ -61,7 +74,7 @@ What's in?
 
 -------------------------------------------------------------------------------
 
-Buku 3.2
+Buku v3.2
 2017-08-03
 
 What's in?
@@ -71,7 +84,7 @@ What's in?
 
 -------------------------------------------------------------------------------
 
-Buku 3.1
+Buku v3.1
 2017-06-30
 
 What's in?
@@ -83,7 +96,7 @@ What's in?
 
 -------------------------------------------------------------------------------
 
-Buku 3.0
+Buku v3.0
 2017-04-26
 
 What's in?
@@ -105,7 +118,7 @@ What's in?
 
 -------------------------------------------------------------------------------
 
-Buku 2.9
+Buku v2.9
 2017-02-20
 
 Modifications
@@ -121,7 +134,7 @@ Modifications
 
 -------------------------------------------------------------------------------
 
-Buku 2.8
+Buku v2.8
 2017-01-11
 
 Modifications
@@ -139,7 +152,7 @@ Modifications
 
 -------------------------------------------------------------------------------
 
-Buku 2.7
+Buku v2.7
 2016-11-30
 
 Modifications
@@ -287,7 +300,7 @@ To begin with, 2.0 is a significant release with respect to options. `Buku` now 
 
 -------------------------------------------------------------------------------
 
-Buku 1.9
+Buku v1.9
 2016-04-23
 
 Modifications
@@ -314,7 +327,7 @@ Modifications
 
 -------------------------------------------------------------------------------
 
-Buku 1.8
+Buku v1.8
 2016-03-26
 
 Modifications
@@ -344,7 +357,7 @@ Modifications
 
 -------------------------------------------------------------------------------
 
-Buku 1.7
+Buku v1.7
 2016-03-15
 
 Modifications
@@ -355,7 +368,7 @@ Modifications
 
 -------------------------------------------------------------------------------
 
-Buku 1.6
+Buku v1.6
 2016-01-22
 
 Modifications
@@ -364,7 +377,7 @@ Modifications
 
 -------------------------------------------------------------------------------
 
-Buku 1.5
+Buku v1.5
 2015-12-20
 
 Modifications

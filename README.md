@@ -35,7 +35,7 @@ We have one of the best documentation around. You can start with the [Examples](
 
 There are several [projects based on `buku`](#related-projects), including a browser plug-in.
 
-We need contributors. We are a small friendly team and would be more than happy to help. Please visit [#233](https://github.com/jarun/Buku/issues/251) for a list of TODOs. Visit the [wiki](https://github.com/jarun/Buku/wiki) for PR guidelines.
+We need contributors. We are a small friendly team and would be more than happy to help. Please visit the [ToDo List](https://github.com/jarun/Buku/issues/251) for identified tasks. Visit the [wiki](https://github.com/jarun/Buku/wiki) for PR guidelines.
 
 *Love smart and efficient terminal utilities? Explore my repositories. Buy me a cup of coffee if they help you.*
 
