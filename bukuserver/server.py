@@ -85,7 +85,12 @@ def bookmarks():
             current_app.logger.debug('per page:{}'.format(per_page))
             pagination_total = len(result['bookmarks'])
             bms = list(chunks(result['bookmarks'], per_page))
-            result['bookmarks'] = bms[page-1]
+            try:
+                result['bookmarks'] = bms[page-1]
+            except IndexError as err:
+                current_app.logger.debug('{}:{}, result bookmarks:{}, page:{}'.format(
+                    type(err), err, len(result['bookmarks']), page
+                ))
             pagination = Pagination(
                 page=page, total=pagination_total, per_page=per_page,
                 search=False, record_name='bookmarks', bs_version=3
