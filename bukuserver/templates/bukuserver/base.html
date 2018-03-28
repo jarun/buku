@@ -27,7 +27,7 @@
       </ul>
       <form class="navbar-form navbar-right" action="{{url_for('search_bookmarks-html')}}" method="GET">
         <div class="form-group">
-          <input type="text" class="form-control" id="inputKeywords" placeholder="Search bookmark" name="keywords">
+          <input type="text" class="form-control" id="inputKeywords" placeholder="Search bookmark" name="keywords-0">
         </div>
         <button type="submit" class="btn btn-default">Search</button>
       </form>
@@ -72,16 +72,18 @@
 </table>
 {% endmacro %}
 
-{% macro show_bookmarks_search_form() %}
-<form action="{{url_for('search_bookmarks-html')}}" method="GET">
+{% macro show_bookmarks_search_form(checkbox_class=None) %}
+<form class="form-horizontal" action="{{url_for('search_bookmarks-html')}}" method="GET">
   <div class="form-group">
-    <label for="">Bookmark keyword</label>
-    <input type="text" class="form-control" id="inputKeywords" placeholder="Keywords" name="keywords">
+    {{search_bookmarks_form.keywords.label}}
+    {% for entry in search_bookmarks_form.keywords %}
+      {{ entry() }}
+    {% endfor %}
   </div>
-  <div class="text-left">
-    <div class="checkbox"> <label> <input type="checkbox" name="all_keywords"> Match all keyword </label> </div>
-    <div class="checkbox"> <label> <input type="checkbox" name="deep"> Deep search</label> </div>
-    <div class="checkbox"> <label> <input type="checkbox" name="regex"> Regex search </label> </div>
+  <div class="{{checkbox_class}}">
+    <div class="form-group"> {{search_bookmarks_form.all_keywords()}} {{search_bookmarks_form.all_keywords.label}} </div>
+    <div class="form-group"> {{search_bookmarks_form.deep()}} {{search_bookmarks_form.deep.label}} </div>
+    <div class="form-group"> {{search_bookmarks_form.regex()}} {{search_bookmarks_form.regex.label}} </div>
   </div>
   <button type="submit" class="btn btn-default">Search</button>
 </form>

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Server module."""
 import os
 
 from buku import BukuDb
@@ -11,9 +12,9 @@ import click
 import flask
 
 try:
-    from . import response
+    from . import response, forms
 except ImportError:
-    from bukuserver import response
+    from bukuserver import response, forms
 
 
 DEFAULT_PER_PAGE = 10
@@ -92,7 +93,8 @@ def bookmarks():
             res = render_template(
                 'bukuserver/bookmarks.html',
                 result=result,
-                pagination=pagination
+                pagination=pagination,
+                search_bookmarks_form=forms.SearchBookmarksForm(),
             )
     elif request.method == 'POST':
         result_flag = bukudb.add_rec(
@@ -273,13 +275,14 @@ def bookmark_range_operations(starting_id, ending_id):
 
 def search_bookmarks():
     arg_obj = request.form if request.method == 'DELETE' else request.args
-    keywords = arg_obj.getlist('keywords')
-    all_keywords = arg_obj.get('all_keywords')
-    deep = arg_obj.get('deep')
-    regex = arg_obj.get('regex')
+    search_bookmarks_form = forms.SearchBookmarksForm(request.args)
     is_api_request_path = request.path.startswith('/api/')
-    # api request is more strict
     if is_api_request_path:
+        keywords = arg_obj.getlist('keywords')
+        all_keywords = arg_obj.get('all_keywords')
+        deep = arg_obj.get('deep')
+        regex = arg_obj.get('regex')
+        # api request is more strict
         all_keywords = False if all_keywords is None else all_keywords
         deep = False if deep is None else deep
         regex = False if regex is None else regex
@@ -289,6 +292,11 @@ def search_bookmarks():
             deep if type(deep) == bool else deep.lower() == 'true'
         regex = \
             regex if type(regex) == bool else regex.lower() == 'true'
+    else:
+        keywords = search_bookmarks_form.keywords.data
+        all_keywords = search_bookmarks_form.all_keywords.data
+        deep = search_bookmarks_form.deep.data
+        regex = search_bookmarks_form.regex.data
 
     result = {'bookmarks': []}
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
@@ -325,7 +333,10 @@ def search_bookmarks():
                 page=page, total=pagination_total, per_page=per_page,
                 search=False, record_name='bookmarks', bs_version=3
             )
-            res = render_template('bukuserver/bookmarks.html', result=result, pagination=pagination)
+            res = render_template(
+                'bukuserver/bookmarks.html',
+                result=result, pagination=pagination,
+                search_bookmarks_form=search_bookmarks_form)
     elif request.method == 'DELETE':
         if found_bookmarks is not None:
             for bookmark in found_bookmarks:
@@ -342,6 +353,7 @@ def create_app(config_filename=None):
     app = Flask(__name__)
     app.config['BUKUSERVER_PER_PAGE'] = os.getenv(
         'BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE)
+    app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SERVER_SECRET_KEY') or os.urandom(24)
     bukudb = BukuDb()
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
@@ -368,7 +380,8 @@ def create_app(config_filename=None):
         'bookmark_range_operations', bookmark_range_operations, methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/search', 'search_bookmarks', search_bookmarks, methods=['GET', 'DELETE'])
     app.add_url_rule('/bookmarks/search', 'search_bookmarks-html', search_bookmarks, methods=['GET'])
-    app.add_url_rule('/', 'index', lambda: render_template('bukuserver/index.html'))
+    app.add_url_rule('/', 'index', lambda: render_template(
+        'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
     return app
 
 
