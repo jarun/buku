@@ -1,5 +1,7 @@
+"""Forms module."""
+# pylint: disable=too-few-public-methods
 from flask_wtf import FlaskForm
-from wtforms import StringField, FieldList, validators, BooleanField
+from wtforms import StringField, FieldList, BooleanField
 
 
 class SearchBookmarksForm(FlaskForm):
