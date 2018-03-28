@@ -1968,6 +1968,15 @@ class BukuDb:
                     out = '- [' + row[2] + '](' + row[1] + ')\n'
                 outfp.write(out)
                 count += 1
+
+        elif filepath.endswith('.org'):
+            for row in resultset:
+                if row[2] == '':
+                    out = '* [[Untitled][{}]\n'.format(row[1])
+                else:
+                    out = '* [[{}][{}]]\n'.format(row[1], row[2])
+                outfp.write(out)
+                count += 1
         else:
             outfp.write('<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
                         '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
