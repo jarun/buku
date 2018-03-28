@@ -94,28 +94,28 @@ We need contributors. We are a small friendly team and would be more than happy 
 
 To install package dependencies using pip3, run:
 
-    $ sudo pip3 install urllib3 cryptography beautifulsoup4
+    # pip3 install urllib3 cryptography beautifulsoup4
 or on Ubuntu:
 
-    $ sudo apt-get install python3-urllib3 python3-cryptography python3-bs4
+    # apt-get install python3-urllib3 python3-cryptography python3-bs4
 
 To copy url to clipboard at the prompt, `Buku` uses `xsel` on Linux, `pbcopy` (default installed) on OS X and `clip` (default installed) on Windows.
 
 #### From a package manager
 
-- [AUR](https://aur.archlinux.org/packages/buku/)
-- [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1)
+- [AUR](https://aur.archlinux.org/packages/buku/) (`pacman -S buku`)
+- [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1) (`apt-get install buku`)
 - [Fedora](https://apps.fedoraproject.org/packages/buku) (`dnf install buku`)
 - [FreeBSD](https://www.freshports.org/www/py-buku/) (`pkg install www/py-buku`)
 - [Gentoo](https://packages.gentoo.org/packages/www-misc/buku) (`emerge buku`)
-- [Homebrew](http://formulae.brew.sh/formula/buku)
-- [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`sudo nix-env -i buku`)
+- [Homebrew](http://formulae.brew.sh/formula/buku) (`brew install buku`)
+- [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`nix-env -i buku`)
 - [OpenBSD](https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/buku/) (`pkg_add buku`)
-- [openSUSE](https://software.opensuse.org/search?q=buku)
-- [PyPi](https://pypi.python.org/pypi/buku/) (`sudo pip3 install buku`)
-- [Ubuntu](https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
-- [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
-- [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`sudo xbps-install -S buku`)
+- [openSUSE](https://software.opensuse.org/search?q=buku) (`zypper in python3-buku`)
+- [PyPi](https://pypi.python.org/pypi/buku/) (`pip3 install buku`)
+- [Ubuntu](https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1) (`apt-get install buku`)
+- [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/) (`apt-get install buku`)
+- [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`xbps-install -S buku`)
 
 #### Release packages
 
