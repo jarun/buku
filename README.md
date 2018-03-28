@@ -56,6 +56,7 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/i
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
+  - [Webserver options](#webserver-options)
   - [Colors](#colors)
 - [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
@@ -80,6 +81,7 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/i
 - Portable, merge-able database to sync between systems
 - Multithreaded full DB refresh
 - Shell completion scripts, man page with handy examples
+- View your bookmark from browser
 
 ### Installation
 
@@ -273,6 +275,15 @@ PROMPT KEYS:
     ?                      show this help
     q, ^D, double Enter    exit buku
 ```
+
+#### Webserver options
+
+Your bookmark on buku can be accesed through browser. To run the server on host 0.0.0.1  on port 5001, run following command:
+
+      $ bukuserver run --host 0.0.0.1 --port 5001
+
+See more option on `bukuserver run --help` and `bukuserver --help`
+
 
 #### Colors
 
