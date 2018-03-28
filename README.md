@@ -111,7 +111,7 @@ To copy url to clipboard at the prompt, `Buku` uses `xsel` on Linux, `pbcopy` (d
 - [Homebrew](http://formulae.brew.sh/formula/buku)
 - [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`sudo nix-env -i buku`)
 - [OpenBSD](https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/buku/) (`pkg_add buku`)
-- [openSUSE](https://software.opensuse.org/search?q=buku)
+- [openSUSE](https://software.opensuse.org/search?q=buku) (`zypper in python3-buku`)
 - [PyPi](https://pypi.python.org/pypi/buku/) (`sudo pip3 install buku`)
 - [Ubuntu](https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1)
 - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/)
