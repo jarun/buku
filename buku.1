@@ -17,7 +17,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Open bookmarks and search results in browser
   * Manual encryption support
   * Auto-import from Firefox, Google Chrome and Chromium
-  * Import/export bookmarks from/to HTML or Markdown
+  * Import/export bookmarks from/to HTML, Markdown or Orgfile
   * Shorten and expand URLs
   * Smart tag management using redirection (>>, >, <<)
   * Portable, merge-able database to sync between systems
@@ -79,7 +79,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - Auto-import looks in the default installation path and default user profile.
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
   - Folder names are automatically imported as tags if --tacit is used.
-  - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used in html or markdown import.
+  - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used in html, markdown or orgfile import.
 .PP
 .IP 10. 4
 \fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
@@ -193,14 +193,18 @@ Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export
 .I file
 has extension '.md'.
 .br
-Markdown format: [title](url), 1 entry per line. A buku database is generated if
+Markdown format: [title](url), 1 entry per line. Orgfile is used if
+.I file
+has extension '.org'
+.br
+Orgfile format: * [[url][title]], 1 entry per line. A buku database is generated if
 .I file
 has extension '.db'.
 .TP
 .BI \-i " " \--import " file"
 Import bookmarks from Firefox bookmarks formatted html.
 .I file
-is considered Markdown (compliant with --export format) if it has '.md' extension or another buku database if the extension is '.db'.
+is considered Markdown (compliant with --export format) if it has '.md' extension, orgfile if the extension is '.org' or another buku database if the extension is '.db'.
 .TP
 .BI \-p " " \--print " [...]"
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. A negative value (introduced for convenience) behaves like the tail utility, e.g., -n shows the details of the last n bookmarks.
@@ -511,7 +515,7 @@ This will open the existing bookmark's details in the editor for modifications. 
 Applies to --url, --title and --tag too.
 .PP
 .IP 9. 4
-\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML and markdown:
+\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML, markdown or orgfile:
 .PP
 .EX
 .IP
@@ -526,7 +530,7 @@ Applies to --url, --title and --tag too.
 All bookmarks are exported if --tag is not specified.
 .PP
 .IP 10. 4
-\fBImport\fR bookmarks from HTML and markdown:
+\fBImport\fR bookmarks from HTML, markdown or orgfile:
 .PP
 .EX
 .IP

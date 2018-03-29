@@ -1886,7 +1886,10 @@ class BukuDb:
         If destination file name ends with '.db', bookmarks are
         exported to a Buku database file.
         If destination file name ends with '.md', bookmarks are
-        exported to a markdown file. Otherwise, bookmarks are
+        exported to a markdown file.
+        If destination file name ends with '.org' bookmarks are
+        exported to a org file.
+        Otherwise, bookmarks are
         exported to a Firefox bookmarks.html formatted file.
 
         Parameters
@@ -1966,6 +1969,15 @@ class BukuDb:
                     out = '- [Untitled](' + row[1] + ')\n'
                 else:
                     out = '- [' + row[2] + '](' + row[1] + ')\n'
+                outfp.write(out)
+                count += 1
+
+        elif filepath.endswith('.org'):
+            for row in resultset:
+                if row[2] == '':
+                    out = '* [[{}][Untitled]]\n'.format(row[1])
+                else:
+                    out = '* [[{}][{}]]\n'.format(row[1], row[2])
                 outfp.write(out)
                 count += 1
         else:
@@ -2215,7 +2227,7 @@ class BukuDb:
         """Import bookmarks from a html or a markdown file.
 
         Supports Firefox, Google Chrome, and IE exported html bookmarks.
-        Supports markdown files with extension '.md'.
+        Supports markdown files with extension '.md, .org'.
         Supports importing bookmarks from another Buku database file.
 
         Parameters
@@ -2247,6 +2259,11 @@ class BukuDb:
                 self.add_rec(*item)
 
             self.conn.commit()
+
+        elif filepath.endswith('org'):
+            for item in import_org(filepath=filepath, newtag=newtag):
+                self.add_rec(*item)
+
         else:
             try:
                 import bs4
@@ -2624,6 +2641,45 @@ def import_md(filepath, newtag):
                     title = line[title_start_delim + 1:index]
                     # Parse url
                     url = line[index + 2:index + 2 + url_end_delim]
+                    if (is_nongeneric_url(url)):
+                        continue
+
+                    yield (
+                        url, title, delim_wrap(newtag)
+                        if newtag else None, None, 0, True
+                    )
+
+def import_org(filepath, newtag):
+    """Parse bookmark org file.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to org file.
+    newtag : str
+        New tag for bookmarks in org file.
+
+    Returns
+    -------
+    tuple
+        Parsed result.
+    """
+    with open(filepath, mode='r', encoding='utf-8') as infp:
+        # Supported markdown format: * [[url][title]]
+        # Find position of url end, title start delimiter combo
+        for line in infp:
+            index = line.find('][')
+            if index != -1:
+                # Find url start delimiter
+                url_start_delim = line[:index].find('[[')
+                # Reverse find title end delimiter
+                title_end_delim = line[index + 2:].rfind(']]')
+
+                if url_start_delim != -1 and title_end_delim > 0:
+                    # Parse title
+                    title = line[index + 2: index + 2 + title_end_delim]
+                    # Parse url
+                    url = line[url_start_delim + 2:index]
                     if (is_nongeneric_url(url)):
                         continue
 
@@ -4155,10 +4211,13 @@ POSITIONAL ARGUMENTS:
     -e, --export file    export bookmarks to Firefox format html
                          export markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
+                         export orgfile, if file ends with '.org'
+                         format: *[[url][title]], 1 entry per line
                          export buku DB, if file ends with '.db'
                          use --tag to export specific tags
     -i, --import file    import bookmarks html in Firefox format
                          import markdown, if file ends with '.md'
+                         import orgfile, if file ends with '.org'
                          import buku DB, if file ends with '.db'
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
