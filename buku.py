@@ -1153,7 +1153,7 @@ class BukuDb:
                     if deep:
                         q0 += q1 + 'AND '
                     else:
-                        token = '\\b' + token.rstrip('/') + '\\b'
+                        token = '\\b' + re.escape(token.rstrip('/')) + '\\b'
                         q0 += q2 + 'AND '
 
                     qargs += (token, token, token, token,)
@@ -1165,7 +1165,7 @@ class BukuDb:
                 if deep:
                     q0 += case_statement(q1) + ' + '
                 else:
-                    token = '\\b' + token.rstrip('/') + '\\b'
+                    token = '\\b' + re.escape(token.rstrip('/')) + '\\b'
                     q0 += case_statement(q2) + ' + '
                 qargs += (token, token, token, token,)
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
