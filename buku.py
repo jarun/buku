@@ -2261,8 +2261,8 @@ class BukuDb:
             self.conn.commit()
 
         elif filepath.endswith('org'):
-             for item in import_org(filepath=filepath, newtag=newtag):
-                 self.add_rec(*item)
+            for item in import_org(filepath=filepath, newtag=newtag):
+                self.add_rec(*item)
 
         else:
             try:
