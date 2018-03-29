@@ -27,15 +27,15 @@
 
 `buku` is a powerful bookmark manager written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with browser integration. Hence, `Buku` (after my son's nickname, meaning *close to the heart* in my language).
 
-`buku` fetches the title of a bookmarked web page and stores it along with any additional comments and tags. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once.
+`buku` fetches the title of a bookmarked url and stores it along with any user-provided comments and tags. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once. There's an Easter egg to revisit random forgotten bookmarks too!
 
-For GUI integration (or to sync bookmarks with your favourite bookmark management service), refer to the wiki page on [System integration](https://github.com/jarun/Buku/wiki/System-integration). If you prefer the terminal, thanks to the [shell completion](#shell-completion) scripts, you don't need to memorize any of the options. There's an Easter egg to revisit random forgotten bookmarks too.
+For GUI and browser integration (or to sync bookmarks with your favourite bookmark management service), refer to the wiki page on [System integration](https://github.com/jarun/Buku/wiki/System-integration). If you prefer the terminal, the [shell completion](#shell-completion) scripts can be handy.
 
-We have one of the best documentation around. You can start with the [Examples](#examples). *Buku* is too busy to track you - no hidden history, obsolete records, usage analytics or homing. To learn more on how it works or to contribute to the project, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
+We have one of the best documentation around. You can start with the [Examples](#examples). *Buku* is too busy to track you - no hidden history, obsolete records, usage analytics or homing. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
 
 There are several [projects based on `buku`](#related-projects), including a browser plug-in.
 
-We need contributors. We are a small friendly team and would be more than happy to help. Please visit the [ToDo List](https://github.com/jarun/Buku/issues/251) for identified tasks. Visit the [wiki](https://github.com/jarun/Buku/wiki) for PR guidelines.
+Contributions are welcome! There's a rolling [ToDo List](https://github.com/jarun/Buku/issues/251) with identified tasks. Please follow the [PR guidelines](https://github.com/jarun/Buku/wiki/PR-guidelines).
 
 *Love smart and efficient terminal utilities? Explore my repositories. Buy me a cup of coffee if they help you.*
 
