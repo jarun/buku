@@ -4211,10 +4211,13 @@ POSITIONAL ARGUMENTS:
     -e, --export file    export bookmarks to Firefox format html
                          export markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
+                         export orgfile, if file ends with '.org'
+                         format: *[[url][title]], 1 entry per line
                          export buku DB, if file ends with '.db'
                          use --tag to export specific tags
     -i, --import file    import bookmarks html in Firefox format
                          import markdown, if file ends with '.md'
+                         import orgfile, if file ends with '.org'
                          import buku DB, if file ends with '.db'
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
