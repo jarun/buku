@@ -197,14 +197,14 @@ Markdown format: [title](url), 1 entry per line. Orgfile is used if
 .I file
 has extension '.org'
 .br
-Org file format: * [[url][title]], 1 entry per line. A buku database is generated if
+Orgfile format: * [[url][title]], 1 entry per line. A buku database is generated if
 .I file
 has extension '.db'.
 .TP
 .BI \-i " " \--import " file"
 Import bookmarks from Firefox bookmarks formatted html.
 .I file
-is considered Markdown (compliant with --export format) if it has '.md' extension, '.org' extension or another buku database if the extension is '.db'.
+is considered Markdown (compliant with --export format) if it has '.md' extension, orgfile if the extension is '.org' or another buku database if the extension is '.db'.
 .TP
 .BI \-p " " \--print " [...]"
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. A negative value (introduced for convenience) behaves like the tail utility, e.g., -n shows the details of the last n bookmarks.
