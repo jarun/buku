@@ -3080,7 +3080,7 @@ def prep_tag_search(tags):
     if ' - ' in tags:
         tags, excluded_tags = tags.split(' - ', 1)
 
-        excluded_taglist = [delim_wrap(t.strip()) for t in excluded_tags.split(',')]
+        excluded_taglist = [delim_wrap(re.escape(t.strip())) for t in excluded_tags.split(',')]
         # join with pipe to construct regex string
         excluded_tags = '|'.join(excluded_taglist)
 
