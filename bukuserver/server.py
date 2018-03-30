@@ -1,15 +1,26 @@
 #!/usr/bin/env python
+# pylint: disable=wrong-import-order, ungrouped-imports
 """Server module."""
 import os
 
 from buku import BukuDb
-from flask import Flask, jsonify, request, render_template, current_app
 from flask.cli import FlaskGroup
 from flask_api import status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
+from markupsafe import Markup
 import click
 import flask
+from flask import (
+    current_app,
+    flash,
+    Flask,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 
 try:
     from . import response, forms
@@ -59,6 +70,7 @@ def bookmarks():
         default=int(
             current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
     )
+    create_bookmarks_form = forms.CreateBookmarksForm()
     if request.method == 'GET':
         all_bookmarks = bukudb.get_rec_all()
         result = {
@@ -100,17 +112,31 @@ def bookmarks():
                 result=result,
                 pagination=pagination,
                 search_bookmarks_form=forms.SearchBookmarksForm(),
+                create_bookmarks_form=create_bookmarks_form,
             )
     elif request.method == 'POST':
+        url_data = create_bookmarks_form.url.data
         result_flag = bukudb.add_rec(
-            request.form['url'], request.form['title'], request.form['tags'], request.form['description'])
-        res = [
-            jsonify(response.response_template['success']), status.HTTP_200_OK,
-            {'ContentType': 'application/json'}
-        ] if result_flag else [
-            jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST,
-            {'ContentType': 'application/json'}
-        ]
+            url_data,
+            create_bookmarks_form.title.data,
+            create_bookmarks_form.tags.data,
+            create_bookmarks_form.description.data
+        )
+        if request.path.startswith('/api/'):
+            res = [
+                jsonify(response.response_template['success']), status.HTTP_200_OK,
+                {'ContentType': 'application/json'}
+            ] if result_flag != -1 else [
+                jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST,
+                {'ContentType': 'application/json'}
+            ]
+        else:
+            bm_text = '[<a href="{0}">{0}</a>]'.format(url_data)
+            if result_flag != -1:
+                flash(Markup('Success creating bookmark {}.'.format(bm_text)), 'success')
+            else:
+                flash(Markup('Failed creating bookmark {}.'.format(bm_text)), 'danger')
+            return redirect(url_for('bookmarks-html'))
     elif request.method == 'DELETE':
         result_flag = bukudb.cleardb()
         res = [

@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block navbar %}
+{{super()}}
 <nav class="navbar navbar-inverse navbar-fixed-top">
   <div class="container">
     <div class="navbar-header">
@@ -37,17 +38,18 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-  {%- with messages = get_flashed_messages(with_categories=True) %}
-  {%- if messages %}
-    <div class="row">
-      <div class="col-md-12">
-        {{utils.flashed_messages(messages)}}
-      </div>
-    </div>
-  {%- endif %}
-  {%- endwith %}
+  <div class="container">{{show_flash_message()}}</div>
 {%- endblock %}
+
+{% macro show_flash_message() %}
+{%- with messages = get_flashed_messages(with_categories=True) %}
+{%- if messages %}
+  {% for category, message in messages %}
+    <div class="alert alert-{{category}}">{{message}} </div>
+  {% endfor %}
+{%- endif %}
+{%- endwith %}
+{% endmacro %}
 
 {% macro show_bookmarks(bookmarks) %}
 <table class="table" style="table-layout: fixed; width: 100%">
