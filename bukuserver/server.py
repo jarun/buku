@@ -372,7 +372,9 @@ def search_bookmarks():
             res = render_template(
                 'bukuserver/bookmarks.html',
                 result=result, pagination=pagination,
-                search_bookmarks_form=search_bookmarks_form)
+                search_bookmarks_form=search_bookmarks_form,
+                create_bookmarks_form=forms.CreateBookmarksForm(),
+            )
     elif request.method == 'DELETE':
         if found_bookmarks is not None:
             for bookmark in found_bookmarks:
