@@ -12,6 +12,7 @@ from markupsafe import Markup
 import click
 import flask
 from flask import (
+    abort,
     current_app,
     flash,
     Flask,
@@ -45,12 +46,22 @@ def get_tags():
 
 def update_tag(tag):
     res = None
-    if request.method == 'PUT':
-        result_flag = getattr(flask.g, 'bukudb', BukuDb()).replace_tag(tag, request.form.getlist('tags'))
-        if result_flag:
+    if request.method in ('PUT', 'POST'):
+        new_tags = request.form.getlist('tags')
+        result_flag = getattr(flask.g, 'bukudb', BukuDb()).replace_tag(tag, new_tags)
+        op_text = 'replace tag [{}] with [{}]'.format(tag, ', '.join(new_tags))
+        if request.method == 'PUT' and result_flag and request.path.startswith('/api/'):
             res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
-        else:
+        elif request.method == 'PUT' and request.path.startswith('/api/'):
             res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+        elif request.method == 'POST' and result_flag:
+            flash(Markup('Success {}'.format(op_text)), 'success')
+            res = redirect(url_for('get_tags-html'))
+        elif request.method == 'POST':
+            flash(Markup('Failed {}'.format(op_text)), 'danger')
+            res = redirect(url_for('get_tags-html'))
+        else:
+            abort(400, description="Unknown Condition")
     return res
 
 
@@ -406,6 +417,7 @@ def create_app(config_filename=None):
     app.add_url_rule('/api/tags', 'get_tags', get_tags, methods=['GET'])
     app.add_url_rule('/tags', 'get_tags-html', get_tags, methods=['GET'])
     app.add_url_rule('/api/tags/<tag>', 'update_tag', update_tag, methods=['PUT'])
+    app.add_url_rule('/tags/<tag>', 'update_tag-html', update_tag, methods=['POST'])
     app.add_url_rule('/api/bookmarks', 'bookmarks', bookmarks, methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/bookmarks', 'bookmarks-html', bookmarks, methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmarks', refresh_bookmarks, methods=['POST'])
