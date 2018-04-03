@@ -95,7 +95,7 @@ def bookmarks():
                 'description': bookmark[4]
             }
             if not request.path.startswith('/api/'):
-                result_bookmark['id'] = bookmark [0]
+                result_bookmark['id'] = bookmark[0]
             result['bookmarks'].append(result_bookmark)
         if request.path.startswith('/api/'):
             res = jsonify(result)
