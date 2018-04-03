@@ -94,6 +94,8 @@ def bookmarks():
                 'tags': list([_f for _f in bookmark[3].split(',') if _f]),
                 'description': bookmark[4]
             }
+            if not request.path.startswith('/api/'):
+                result_bookmark['id'] = bookmark [0]
             result['bookmarks'].append(result_bookmark)
         if request.path.startswith('/api/'):
             res = jsonify(result)
@@ -181,6 +183,8 @@ def bookmark_api(id):
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                {'ContentType': 'application/json'}
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
+    bookmark_form = forms.CreateBookmarksForm()
+    is_html_post_request = request.method == 'POST' and not request.path.startswith('/api/')
     if request.method == 'GET':
         bookmark = bukudb.get_rec_by_id(id)
         if bookmark is not None:
@@ -190,18 +194,40 @@ def bookmark_api(id):
                 'tags': list([_f for _f in bookmark[3].split(',') if _f]),
                 'description': bookmark[4]
             }
-            return jsonify(result)
+            if request.path.startswith('/api/'):
+                res = jsonify(result)
+            else:
+                bookmark_form.url.data = result['url']
+                bookmark_form.title.data = result['title']
+                bookmark_form.tags.data = bookmark[3]
+                bookmark_form.description.data = result['description']
+                res = render_template(
+                    'bukuserver/bookmark_edit.html',
+                    result=result,
+                    bookmark_form=bookmark_form,
+                    bookmark_id=bookmark[0]
+                )
         else:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
+            res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                    {'ContentType': 'application/json'}
-    elif request.method == 'PUT':
-        result_flag = bukudb.update_rec(
-            id, request.form['url'], request.form.get('title'), request.form['tags'], request.form['description'])
-        if result_flag:
-            res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
+    elif request.method == 'PUT' or is_html_post_request:
+        if request.method == 'PUT':
+            result_flag = bukudb.update_rec(
+                id, request.form['url'], request.form.get('title'), request.form['tags'], request.form['description'])
+            if result_flag and not is_html_post_request:
+                res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
+            elif not result_flag and not is_html_post_request:
+                res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
+        elif is_html_post_request:
+            result_flag = bukudb.update_rec(
+                id, bookmark_form.url.data, bookmark_form.title.data, bookmark_form.tags.data, bookmark_form.description.data)
+            if result_flag:
+                flash(Markup('Success edit bookmark, id:{}'.format(id)), 'success')
+            else:
+                flash(Markup('Failed edit bookmark, id:{}'.format(id)), 'danger')
+            res = redirect(url_for('bookmarks-html'))
         else:
-            res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, {'ContentType': 'application/json'}
-
+            abort(400, description="Unknown Condition")
     else:
         result_flag = bukudb.delete_rec(id)
         if result_flag:
@@ -422,6 +448,7 @@ def create_app(config_filename=None):
     app.add_url_rule('/bookmarks', 'bookmarks-html', bookmarks, methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmarks', refresh_bookmarks, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>', 'bookmark_api', bookmark_api, methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule('/bookmarks/<id>', 'bookmark_api-html', bookmark_api, methods=['GET', 'POST'])
     app.add_url_rule('/api/bookmarks/<id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
     app.add_url_rule('/api/bookmarks/<id>/long', 'get_long_url', get_long_url, methods=['GET'])

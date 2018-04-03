@@ -1,0 +1,14 @@
+{% extends "bukuserver/base.html" %}
+
+{% block content %}
+<div class="container">
+<h1  style="padding-top: 70px;">Edit Bookmarks</h1>
+<form method="POST" action="{{url_for('bookmark_api-html', id=bookmark_id)}}">
+  <div class="form-group"> {{ bookmark_form.title.label }} {{ bookmark_form.title(class_="form-control") }} </div>
+  <div class="form-group"> {{ bookmark_form.url.label }} {{ bookmark_form.url(class_="form-control") }} </div>
+  <div class="form-group"> {{ bookmark_form.tags.label }} {{ bookmark_form.tags(class_="form-control") }} </div>
+  <div class="form-group"> {{ bookmark_form.description.label }} {{ bookmark_form.description(class_="form-control") }} </div>
+  <button type="submit" class="btn btn-default">Save</button>
+</form>
+</div>
+{% endblock %}
