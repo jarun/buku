@@ -53,7 +53,7 @@ We need contributors. We are a small friendly team and would be more than happy 
   - [Release packages](#release-packages)
   - [From source](#from-source)
   - [Running standalone](#running-standalone)
-  - [Install server](#bukuserver)
+  - [Install server](#install-server)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
