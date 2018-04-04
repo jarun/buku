@@ -16,9 +16,14 @@ with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
 tests_require = [
-    'pytest-cov', 'hypothesis>=3.7.0', 'pytest>=3.4.2', 'py>=1.5.0',
+    'pytest-cov', 'hypothesis>=3.7.0', 'py>=1.5.0',
     'beautifulsoup4>=4.6.0', 'flake8>=3.4.1', 'pylint>=1.7.2'
-],
+]
+if sys.version_info.major == 3 and sys.version_info.minor == 6:
+    tests_require.append('pytest>=3.4.2,!=3.5.0')
+else:
+    tests_require.append('pytest>=3.4.2')
+
 
 setup(
     name='buku',
