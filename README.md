@@ -53,7 +53,7 @@ We need contributors. We are a small friendly team and would be more than happy 
   - [Release packages](#release-packages)
   - [From source](#from-source)
   - [Running standalone](#running-standalone)
-  - [Install server side](#bukuserver)
+  - [Install server](#bukuserver)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
@@ -144,7 +144,8 @@ To remove, run:
 
     $ chmod +x buku.py
     $ ./buku.py
-#### Install server side
+    
+#### Install server
 You need to have some packages before you install `bukuserver` on your server. So be sure to have `python3`, `python3-pip` , `python3-dev`, `libffi-dev` packages from your distribution.
 ##### Connect to @rachmadaniHaryono/Buku repository.
 Make this steps to do it:
