@@ -1,0 +1,40 @@
+{% extends "bukuserver/base.html" %}
+
+{% block content %}
+<div class="container">
+  <br/>
+  <h1  style="padding-top: 70px;">Bookmarks</h1>
+  {{show_flash_message()}}
+  <div>
+    <div class="col-sm-6">
+      <h2> Search Bookmarks</h2>
+      {{show_bookmarks_search_form()}}
+    </div>
+    <div class="col-sm-6">
+      <h2> Create Bookmarks</h2>
+      <form class="form-horizontal" action="{{url_for('bookmarks-html')}}" method="POST">
+        <div class="form-group">
+          {{create_bookmarks_form.url.label(class_="control-label col-sm-3")}}
+          {{create_bookmarks_form.url}}
+        </div>
+        <div class="form-group">
+          {{create_bookmarks_form.title.label(class_="control-label col-sm-3")}}
+          {{create_bookmarks_form.title}}
+        </div>
+        <div class="form-group">
+          {{create_bookmarks_form.tags.label(class_="control-label col-sm-3")}}
+          {{create_bookmarks_form.tags}}
+        </div>
+        <div class="form-group">
+          {{create_bookmarks_form.description.label(class_="control-label col-sm-3")}}
+          {{create_bookmarks_form.description}}
+        </div>
+        <button type="submit" class="btn btn-default">Create</button>
+      </form>
+    </div>
+  </div>
+  {{show_bookmarks(result.bookmarks)}}
+  {{pagination.links}}
+</div>
+
+{% endblock %}

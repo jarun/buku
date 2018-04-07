@@ -3,7 +3,7 @@
 import re
 import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 if sys.version_info < (3, 4):
     print('ERROR: Buku requires at least Python 3.4 to run.')
@@ -25,6 +25,17 @@ else:
     tests_require.append('pytest>=3.4.2')
 
 
+server_require = [
+    'click>=6.7',
+    'Flask-API>=0.6.9',
+    'Flask-Bootstrap>=3.3.7.1',
+    'flask-paginate>=0.5.1',
+    'Flask-WTF>=0.14.2',
+    'Flask>=0.12',
+    'requests>=2.18.4',
+    'Werkzeug>=0.11.15',
+]
+
 setup(
     name='buku',
     version=version,
@@ -36,14 +47,17 @@ setup(
     license='GPLv3',
     platforms=['any'],
     py_modules=['buku'],
+    packages=find_packages(),
+    include_package_data=True,
     entry_points={
-        'console_scripts': ['buku=buku:main']
+        'console_scripts': ['buku=buku:main', 'bukuserver=bukuserver.server:cli']
     },
     extras_require={
         'HTTP': ['urllib3'],
         'CRYPTO': ['cryptography'],
         'HTML': ['beautifulsoup4'],
         'tests': tests_require,
+        'server': server_require,
     },
     test_suite='tests',
     tests_require=tests_require,
