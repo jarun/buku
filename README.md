@@ -53,6 +53,7 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/i
   - [Release packages](#release-packages)
   - [From source](#from-source)
   - [Running standalone](#running-standalone)
+  - [Install server](#install-server)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
@@ -143,7 +144,62 @@ To remove, run:
 
     $ chmod +x buku.py
     $ ./buku.py
-
+    
+#### Install server
+You need to have some packages before you install `bukuserver` on your server. So be sure to have `python3`, `python3-pip` , `python3-dev`, `libffi-dev` packages from your distribution.
+##### Connect to @rachmadaniHaryono/Buku repository.
+Make this steps to do it:
+```
+git clone https://github.com/rachmadaniHaryono/Buku.git
+cd Buku/
+git remote add rachmadaniHaryono https://github.com/rachmadaniHaryono/Buku.git
+git checkout -b rachmadaniHaryono/Buku
+git checkout -b rh-server rachmadaniHaryono/feature/server
+```
+`git show` should show you something like this:
+```
+commit 068e7ed83e354133cdd2c37aa6f24b6ea567d94e (HEAD -> rh-server, rachmadaniHaryono/feature/server, origin/feature/server)
+```
+##### Installing PIP, virtualenv and dependencies
+```
+$ python3 -m pip install --user --upgrade pip
+$ python3 -m pip install --user virtualenv
+$ python3 -m virtualenv env
+$ source env/bin/activate
+(env) $ pip install appdirs
+(env) $ pip install beautifulsoup4
+(env) $ pip install buku
+(env) $ pip install requests
+(env) $ pip install cffi
+(env) $ pip install click
+(env) $ pip install Flask
+(env) $ pip install Flask-API
+(env) $ pip install idna
+(env) $ pip install packaging
+(env) $ pip install pyasn1
+(env) $ pip install pycparser
+(env) $ pip install six
+(env) $ pip install urllib3
+```
+#### Installing buku and bukuserver from PIP
+```
+(env) $ pip install -e .
+(env) $ pip install -e .[server]
+```
+### Run bukuserver
+```
+bukuserver run
+```
+If you need to use some server in local network (LAN) use `--host` parameter like this:
+```
+bukuserver run --host 0.0.0.0
+```
+### Access to bukuserver from browser
+To the browser fill `hostname/IP:5000` like:
+```
+192.168.1.100:5000
+mybukuserver:5000
+```
 ### Shell completion
 
 Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/Buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
