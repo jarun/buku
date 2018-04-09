@@ -6,25 +6,25 @@ $ python3 -m pip install --user --upgrade pip
 $ python3 -m pip install --user virtualenv
 $ python3 -m virtualenv env
 $ source env/bin/activate
-(env) $ pip install appdirs
-(env) $ pip install beautifulsoup4
-(env) $ pip install buku
-(env) $ pip install requests
-(env) $ pip install cffi
-(env) $ pip install click
-(env) $ pip install Flask
-(env) $ pip install Flask-API
-(env) $ pip install idna
-(env) $ pip install packaging
-(env) $ pip install pyasn1
-(env) $ pip install pycparser
-(env) $ pip install six
-(env) $ pip install urllib3
+$ pip install appdirs
+$ pip install beautifulsoup4
+$ pip install buku
+$ pip install requests
+$ pip install cffi
+$ pip install click
+$ pip install Flask
+$ pip install Flask-API
+$ pip install idna
+$ pip install packaging
+$ pip install pyasn1
+$ pip install pycparser
+$ pip install six
+$ pip install urllib3
 ```
 #### Installing buku and bukuserver from PIP
 ```
-(env) $ pip install -e .
-(env) $ pip install -e .[server]
+$ pip install -e .
+$ pip install -e .[server]
 ```
 
 #### Webserver options
