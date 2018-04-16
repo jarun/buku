@@ -2029,7 +2029,8 @@ class BukuDb:
 
         for item in sublist:
             if item['type'] == 'folder':
-                for i in self.traverse_bm_folder(item['children'], unique_tag, item['name'], add_parent_folder_as_tag):
+                next_folder_name = folder_name + ',' + item['name']
+                for i in self.traverse_bm_folder(item['children'], unique_tag, next_folder_name, add_parent_folder_as_tag):
                     yield (i)
             elif item['type'] == 'url':
                 try:
@@ -2110,8 +2111,13 @@ class BukuDb:
 
             if add_parent_folder_as_tag:
                 # add folder name
-                res = cur.execute('SELECT title FROM moz_bookmarks WHERE id={}'.format(row[1]))
-                bookmark_tags.append(res.fetchone()[0])
+                parent_id = row[1]
+                while parent_id:
+                    res = cur.execute('SELECT title,parent FROM moz_bookmarks WHERE id={}'.format(parent_id))
+                    parent = res.fetchone()
+                    if parent:
+                        title, parent_id = parent
+                        bookmark_tags.append(title)
 
             if unique_tag:
                 # add timestamp tag
