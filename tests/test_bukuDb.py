@@ -4,7 +4,6 @@
 #
 import math
 import os
-import pickle
 import re
 import shutil
 import sqlite3
