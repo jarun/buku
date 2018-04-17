@@ -1,0 +1,39 @@
+? !!python/tuple ['http://voyagerlive.org/', Voyager, ',', null, 0, true]
+: {}
+? !!python/tuple ['http://wiki.ubuntu.com/', Ubuntu Wiki (community-edited website),
+  ',', null, 0, true]
+: {}
+? !!python/tuple ['http://www.debian.org/', Debian (Ubuntu is based on Debian), ',',
+  null, 0, true]
+: {}
+? !!python/tuple ['http://www.ubuntu.com/', Ubuntu, ',', null, 0, true]
+: {}
+? !!python/tuple ['https://addons.mozilla.org/fr/firefox/addon/adblock-plus/', Adblock
+    Plus, ',', null, 0, true]
+: {}
+? !!python/tuple ['https://addons.mozilla.org/fr/firefox/addon/searchpreview/', SearchPreview,
+  ',', null, 0, true]
+: {}
+? !!python/tuple ['https://addons.mozilla.org/fr/firefox/language-tools/', Language
+    Tools, ',', null, 0, true]
+: {}
+? !!python/tuple ['https://answers.launchpad.net/ubuntu/+addquestion', Make a Support
+    Request to the Ubuntu Community, ',', null, 0, true]
+: {}
+? !!python/tuple ['https://one.ubuntu.com/', Ubuntu One - The personal cloud that
+    brings your digital life together, ',', null, 0, true]
+: {}
+? !!python/tuple ['https://www.google.com/', Google, ',', null, 0, true]
+: {}
+? !!python/tuple ['https://www.mozilla.org/en-US/about/', About Us, ',', null, 0,
+  true]
+: {}
+? !!python/tuple ['https://www.mozilla.org/en-US/contribute/', Get Involved, ',',
+  null, 0, true]
+: {}
+? !!python/tuple ['https://www.mozilla.org/en-US/firefox/customize/', Customize Firefox,
+  ',', null, 0, true]
+: {}
+? !!python/tuple ['https://www.mozilla.org/en-US/firefox/help/', Help and Tutorials,
+  ',', null, 0, true]
+: {}
