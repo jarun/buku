@@ -20,6 +20,7 @@ from hypothesis import strategies as st
 from unittest import mock as mock
 import pytest
 import unittest
+import yaml
 
 from buku import BukuDb, parse_tags, prompt
 
@@ -1253,11 +1254,10 @@ def chrome_db(bookmark_folder):
     tmpdir = bookmark_folder
 
     json_file = [x.strpath for x in tmpdir.listdir() if x.basename == 'Bookmarks'][0]
-    res_pickle_file = [
-        x.strpath for x in tmpdir.listdir() if x.basename == '25491522_res.pickle'][0]
-    res_nopt_pickle_file = [
-        x.strpath for x in tmpdir.listdir() if x.basename == '25491522_res_nopt.pickle'][0]
-    return json_file, res_pickle_file, res_nopt_pickle_file
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    res_yaml_file = os.path.join(dir_path, 'test_bukuDb', '25491522_res.yaml')
+    res_nopt_yaml_file = os.path.join(dir_path, 'test_bukuDb', '25491522_res_nopt.yaml')
+    return json_file, res_yaml_file, res_nopt_yaml_file
 
 
 @pytest.mark.parametrize('add_pt', [True, False])
@@ -1265,9 +1265,11 @@ def test_load_chrome_database(chrome_db, add_pt):
     """test method."""
     # compatibility
     json_file = chrome_db[0]
-    res_pickle_file = chrome_db[1] if add_pt else chrome_db[2]
-    with open(res_pickle_file, 'rb') as f:
-        res_pickle = pickle.load(f)
+    res_yaml_file = chrome_db[1] if add_pt else chrome_db[2]
+    dump_data = False
+    if not dump_data:
+        with open(res_yaml_file, 'r') as f:
+            res_yaml = yaml.load(f)
     # init
     import buku
     bdb = buku.BukuDb()
@@ -1275,7 +1277,12 @@ def test_load_chrome_database(chrome_db, add_pt):
     bdb.load_chrome_database(json_file, None, add_pt)
     call_args_list_dict = dict(bdb.add_rec.call_args_list)
     # test
-    assert call_args_list_dict == res_pickle
+    if not dump_data:
+        assert call_args_list_dict == res_yaml
+    # dump data for new test
+    if dump_data:
+        with open(res_yaml_file, 'w') as f:
+            yaml.dump(call_args_list_dict, f)
 
 
 @pytest.fixture()
@@ -1284,21 +1291,21 @@ def firefox_db(bookmark_folder):
     tmpdir = bookmark_folder
 
     ff_db_path = [x.strpath for x in tmpdir.listdir() if x.basename == 'places.sqlite'][0]
-    res_pickle_file = [
-        x.strpath for x in tmpdir.listdir() if x.basename == 'firefox_res.pickle'][0]
-    res_nopt_pickle_file = [
-        x.strpath for x in tmpdir.listdir() if x.basename == 'firefox_res_nopt.pickle'][0]
-    return ff_db_path, res_pickle_file, res_nopt_pickle_file
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    res_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res.yaml')
+    res_nopt_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res_nopt.yaml')
+    return ff_db_path, res_yaml_file, res_nopt_yaml_file
 
 
 @pytest.mark.parametrize('add_pt', [True, False])
 def test_load_firefox_database(firefox_db, add_pt):
     # compatibility
     ff_db_path = firefox_db[0]
-
-    res_pickle_file = firefox_db[1] if add_pt else firefox_db[2]
-    with open(res_pickle_file, 'rb') as f:
-        res_pickle = pickle.load(f)
+    dump_data = False
+    res_yaml_file = firefox_db[1] if add_pt else firefox_db[2]
+    if not dump_data:
+        with open(res_yaml_file, 'r') as f:
+            res_yaml = yaml.load(f)
     # init
     import buku
     bdb = buku.BukuDb()
@@ -1306,7 +1313,11 @@ def test_load_firefox_database(firefox_db, add_pt):
     bdb.load_firefox_database(ff_db_path, None, add_pt)
     call_args_list_dict = dict(bdb.add_rec.call_args_list)
     # test
-    assert call_args_list_dict == res_pickle
+    if not dump_data:
+        assert call_args_list_dict == res_yaml
+    if dump_data:
+        with open(res_yaml_file, 'w') as f:
+            yaml.dump(call_args_list_dict, f)
 
 
 @pytest.mark.parametrize(
