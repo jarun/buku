@@ -6,25 +6,11 @@ $ python3 -m pip install --user --upgrade pip
 $ python3 -m pip install --user virtualenv
 $ python3 -m virtualenv env
 $ source env/bin/activate
-$ pip install appdirs
-$ pip install beautifulsoup4
-$ pip install buku
-$ pip install requests
-$ pip install cffi
-$ pip install click
-$ pip install Flask
-$ pip install Flask-API
-$ pip install idna
-$ pip install packaging
-$ pip install pyasn1
-$ pip install pycparser
-$ pip install six
-$ pip install urllib3
+$ pip install -e .[server]
 ```
 #### Installing buku and bukuserver from PIP
 ```
-$ pip install -e .
-$ pip install -e .[server]
+$ pip install -e buku[server]
 ```
 
 #### Webserver options
@@ -39,4 +25,3 @@ See more option on `bukuserver run --help` and `bukuserver --help`
 #### CAUTION
 
 This snapshot of web APIs is indicative. The program APIs are bound to change and if you need these, you may have to adapt the APIs to the current signature/return type etc. We are NOT actively updating these whenever an API changes in the main program.
-
