@@ -2,6 +2,8 @@
 # pylint: disable=wrong-import-order, ungrouped-imports
 """Server module."""
 import os
+from urllib.parse import urlparse
+from collections import Counter
 
 from buku import BukuDb
 from flask.cli import FlaskGroup
@@ -423,6 +425,23 @@ def search_bookmarks():
     return res
 
 
+def view_statistic():
+    bukudb = getattr(flask.g, 'bukudb', BukuDb())
+    all_bookmarks = bukudb.get_rec_all()
+    netloc = [urlparse(x[1]).netloc for x in all_bookmarks]
+    netloc_counter = Counter(netloc)
+    most_common_netlocs = netloc_counter.most_common(12)
+    colors = [
+        "#F7464A", "#46BFBD", "#FDB45C", "#FEDCBA",
+        "#ABCDEF", "#DDDDDD", "#ABCABC", "#4169E1",
+        "#C71585", "#FF4500", "#FEDCBA", "#46BFBD"]
+    most_common_netlocs = [[val[0], val[1], colors[idx]] for idx, val in enumerate(most_common_netlocs)]
+    return render_template(
+        'bukuserver/statistic.html',
+        most_common_netlocs=most_common_netlocs
+    )
+
+
 def create_app(config_filename=None):
     """create app."""
     app = Flask(__name__)
@@ -459,6 +478,7 @@ def create_app(config_filename=None):
     app.add_url_rule('/bookmarks/search', 'search_bookmarks-html', search_bookmarks, methods=['GET'])
     app.add_url_rule('/', 'index', lambda: render_template(
         'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
+    app.add_url_rule('/statistic', 'statistic', view_statistic, methods=['GET'])
     return app
 
 
