@@ -2,8 +2,8 @@
 # pylint: disable=wrong-import-order, ungrouped-imports
 """Server module."""
 import os
-from urllib.parse import urlparse
 from collections import Counter
+from urllib.parse import urlparse
 
 from buku import BukuDb
 from flask.cli import FlaskGroup
@@ -11,6 +11,7 @@ from flask_api import status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
 from markupsafe import Markup
+import arrow
 import click
 import flask
 from flask import (
@@ -32,6 +33,8 @@ except ImportError:
 
 
 DEFAULT_PER_PAGE = 10
+STATISTIC_DATA = None
+
 
 def get_tags():
     """get tags."""
@@ -427,18 +430,37 @@ def search_bookmarks():
 
 def view_statistic():
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
-    all_bookmarks = bukudb.get_rec_all()
-    netloc = [urlparse(x[1]).netloc for x in all_bookmarks]
+    global STATISTIC_DATA
+    statistic_data = STATISTIC_DATA
+    if not statistic_data or request.method == 'POST':
+        all_bookmarks = bukudb.get_rec_all()
+        netloc = [urlparse(x[1]).netloc for x in all_bookmarks]
+        statistic_datetime = arrow.now()
+        STATISTIC_DATA = {
+            'datetime': statistic_datetime,
+            'netloc': netloc,
+        }
+    else:
+        netloc = statistic_data['netloc']
+        statistic_datetime = statistic_data['datetime']
     netloc_counter = Counter(netloc)
-    most_common_netlocs = netloc_counter.most_common(12)
+    unique_netloc_len = len(set(netloc))
     colors = [
         "#F7464A", "#46BFBD", "#FDB45C", "#FEDCBA",
         "#ABCDEF", "#DDDDDD", "#ABCABC", "#4169E1",
         "#C71585", "#FF4500", "#FEDCBA", "#46BFBD"]
+    if unique_netloc_len > len(colors):
+        max_item = len(colors)
+    else:
+        colors = colors[:unique_netloc_len]
+        max_item = unique_netloc_len
+    most_common_netlocs = netloc_counter.most_common(max_item)
     most_common_netlocs = [[val[0], val[1], colors[idx]] for idx, val in enumerate(most_common_netlocs)]
     return render_template(
         'bukuserver/statistic.html',
-        most_common_netlocs=most_common_netlocs
+        most_common_netlocs=most_common_netlocs,
+        datetime=statistic_datetime,
+        datetime_text=statistic_datetime.humanize(arrow.now(), granularity='second'),
     )
 
 
@@ -478,7 +500,7 @@ def create_app(config_filename=None):
     app.add_url_rule('/bookmarks/search', 'search_bookmarks-html', search_bookmarks, methods=['GET'])
     app.add_url_rule('/', 'index', lambda: render_template(
         'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
-    app.add_url_rule('/statistic', 'statistic', view_statistic, methods=['GET'])
+    app.add_url_rule('/statistic', 'statistic', view_statistic, methods=['GET', 'POST'])
     return app
 
 
