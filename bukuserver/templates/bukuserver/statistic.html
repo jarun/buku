@@ -3,7 +3,12 @@
 {% block content %}
 <div class="container">
   <h2 style="padding-top: 70px;">Statistic</h2>
-  <h3>Most common Netloc</h3>
+  <form class="form-inline" action="{{url_for('statistic')}}" method="POST">
+    Data created
+    <span rel="tooltip" title="{{datetime}}">{{datetime_text}}</span>
+    <button type="submit" class="btn btn-default btn-sm">refresh</button>
+  </form>
+  <h3>Most common netloc</h3>
   <div class="col-md-6">
     <canvas id="mostCommonChart" width="500" height="500"></canvas>
   </div>
@@ -17,7 +22,12 @@
       {% for netloc, number, _ in most_common_netlocs %}
       <tr>
         <td>{{loop.index}}</td>
-        <td>{{netloc}}</td>
+        <td>
+          <form action="{{url_for('search_bookmarks-html')}}" method="GET">
+            <input id="inputKeywords" name="keywords-0" type="hidden" value="{{netloc}}">
+            <button type="submit" class="btn btn-default">{{netloc}}</button>
+          </form>
+        </td>
         <td>{{number}}</td>
       </tr>
       {% endfor %}
