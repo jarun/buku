@@ -1,3 +1,18 @@
+#### Install server
+You need to have some packages before you install `bukuserver` on your server. So be sure to have `python3`, `python3-pip` , `python3-dev`, `libffi-dev` packages from your distribution.
+##### Installing PIP, virtualenv and dependencies
+```
+$ python3 -m pip install --user --upgrade pip
+$ python3 -m pip install --user virtualenv
+$ python3 -m virtualenv env
+$ source env/bin/activate
+$ pip install -e .[server]
+```
+#### Installing buku and bukuserver from PIP
+```
+$ pip install -e buku[server]
+```
+
 #### Webserver options
 
 Your bookmark on buku can be accesed through browser. To run the server on host 0.0.0.1  on port 5001, run following command:
