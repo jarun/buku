@@ -26,6 +26,7 @@ else:
 
 
 server_require = [
+    'arrow>=0.12.1',
     'click>=6.7',
     'Flask-API>=0.6.9',
     'Flask-Bootstrap>=3.3.7.1',
