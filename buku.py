@@ -1365,6 +1365,12 @@ class BukuDb:
                 return self.cleardb()
 
             try:
+                if self.chatty:
+                    if self.print_rec(0, low, high, True) is True:
+                        resp = input('Delete these bookmarks? (y/n): ')
+                        if resp != 'y':
+                            return False
+
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
                 print('Index %d-%d: %d deleted' % (low, high, self.cur.rowcount))
@@ -1386,6 +1392,12 @@ class BukuDb:
             return self.cleardb()
         else:  # Remove a single entry
             try:
+                if self.chatty:
+                    if self.print_rec(index) is True:
+                        resp = input('Delete this bookmark? (y/n): ')
+                        if resp != 'y':
+                            return False
+
                 query = 'DELETE FROM bookmarks WHERE id = ?'
                 self.cur.execute(query, (index,))
                 if self.cur.rowcount == 1:
