@@ -35,7 +35,7 @@ We have one of the best documentation around. You can start with the [Examples](
 
 There are several [projects based on `buku`](#related-projects), including a browser plug-in.
 
-Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/issues/251) with identified tasks. Contributions are welcome! Please follow the [PR guidelines](https://github.com/jarun/Buku/wiki/PR-guidelines).
+Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/issues/268) with identified tasks. Contributions are welcome! Please follow the [PR guidelines](https://github.com/jarun/Buku/wiki/PR-guidelines).
 
 *Love smart and efficient terminal utilities? Explore my repositories. Buy me a cup of coffee if they help you.*
 
@@ -446,7 +446,6 @@ You may encounter issues with GUI editors which maintain only one instance by de
 - [Rachmadani Haryono](https://github.com/rachmadaniHaryono)
 - [Johnathan Jenkins](https://github.com/shaggytwodope)
 - [SZ Lin](https://github.com/szlin)
-- [Alex Gontar](https://github.com/mosegontar)
 
 Copyright © 2015-2018 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 <br>
