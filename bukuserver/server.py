@@ -450,15 +450,16 @@ def view_statistic():
         "#ABCDEF", "#DDDDDD", "#ABCABC", "#4169E1",
         "#C71585", "#FF4500", "#FEDCBA", "#46BFBD"]
     if unique_netloc_len > len(colors):
-        max_item = len(colors)
+        max_netloc_item = len(colors)
     else:
         colors = colors[:unique_netloc_len]
-        max_item = unique_netloc_len
-    most_common_netlocs = netloc_counter.most_common(max_item)
+        max_netloc_item = unique_netloc_len
+    most_common_netlocs = netloc_counter.most_common(max_netloc_item)
     most_common_netlocs = [[val[0], val[1], colors[idx]] for idx, val in enumerate(most_common_netlocs)]
     return render_template(
         'bukuserver/statistic.html',
         most_common_netlocs=most_common_netlocs,
+        netloc_counter=netloc_counter,
         datetime=statistic_datetime,
         datetime_text=statistic_datetime.humanize(arrow.now(), granularity='second'),
     )

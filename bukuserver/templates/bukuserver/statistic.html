@@ -13,6 +13,9 @@
     <canvas id="mostCommonChart" width="500" height="500"></canvas>
   </div>
   <div class="col-md-6">
+    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#netlocModal">
+      View all
+    </button>
     <table class="table">
       <tr>
         <th>Rank</th>
@@ -32,6 +35,43 @@
       </tr>
       {% endfor %}
     </table>
+  </div>
+  <div class="modal fade" id="netlocModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Netloc ranking</h4>
+        </div>
+        <div class="modal-body">
+          <table class="table table-condensed">
+            <tr>
+              <th>Rank</th>
+              <th>Netloc</th>
+              <th>Number</th>
+            </tr>
+            {% for netloc, number in netloc_counter.most_common() %}
+              {% if number > 1 %}
+              <tr>
+                <td>{{loop.index}}</td>
+                <td>
+                  {% if netloc %}
+                  <form action="{{url_for('search_bookmarks-html')}}" method="GET">
+                    <input id="inputKeywords" name="keywords-0" type="hidden" value="{{netloc}}">
+                    <button type="submit" class="btn btn-default">{{netloc}}</button>
+                  </form>
+                  {% else %}
+                  <span class="btn btn-default" disabled="disabled">(No Netloc)</span>
+                  {% endif %}
+                </td>
+                <td>{{number}}</td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 <script>
 var ctx = document.getElementById("mostCommonChart").getContext('2d');
