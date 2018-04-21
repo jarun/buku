@@ -166,6 +166,27 @@
         {% for val in most_common_netlocs %} "{{val.0}}", {% endfor %}
       ]
     },
+    options: {
+      'onClick' : function (evt, item) {
+        var value = this.data.labels[item[0]._index];
+        var form = $('<form></form>');
+
+        form.attr("method", "get");
+        form.attr("action", "{{url_for('search_bookmarks-html')}}");
+
+        var field = $('<input></input>');
+
+        field.attr("type", "hidden");
+        field.attr("name", "keywords-0");
+        field.attr("value", value);
+        form.append(field);
+
+        // The form needs to be a part of the document in
+        // order for us to be able to submit it.
+        $(document.body).append(form);
+        form.submit();
+      }
+    }
   });
 
   var tagRankCtx = document.getElementById("mostCommonTagChart").getContext('2d');
