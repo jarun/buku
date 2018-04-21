@@ -27,15 +27,10 @@
         <th>Netloc</th>
         <th>Number</th>
       </tr>
-      {% for netloc, number, _ in most_common_netlocs %}
+      {% for item, number, _ in most_common_netlocs %}
       <tr>
         <td>{{loop.index}}</td>
-        <td>
-          <form action="{{url_for('search_bookmarks-html')}}" method="GET">
-            <input id="inputKeywords" name="keywords-0" type="hidden" value="{{netloc}}">
-            <button type="submit" class="btn btn-default">{{netloc}}</button>
-          </form>
-        </td>
+        <td> <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a> </td>
         <td>{{number}}</td>
       </tr>
       {% endfor %}
@@ -60,16 +55,13 @@
               <th>Netloc</th>
               <th>Number</th>
             </tr>
-            {% for netloc, number in netloc_counter.most_common() %}
+            {% for item, number in netloc_counter.most_common() %}
               {% if number > 1 %}
               <tr>
                 <td>{{loop.index}}</td>
                 <td>
                   {% if netloc %}
-                  <form action="{{url_for('search_bookmarks-html')}}" method="GET">
-                    <input id="inputKeywords" name="keywords-0" type="hidden" value="{{netloc}}">
-                    <button type="submit" class="btn btn-default">{{netloc}}</button>
-                  </form>
+                  <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a>
                   {% else %}
                   <span class="btn btn-default" disabled="disabled">(No Netloc)</span>
                   {% endif %}
@@ -166,6 +158,27 @@
         {% for val in most_common_netlocs %} "{{val.0}}", {% endfor %}
       ]
     },
+    options: {
+      'onClick' : function (evt, item) {
+        var value = this.data.labels[item[0]._index];
+        var form = $('<form></form>');
+
+        form.attr("method", "get");
+        form.attr("action", "{{url_for('search_bookmarks-html')}}");
+
+        var field = $('<input></input>');
+
+        field.attr("type", "hidden");
+        field.attr("name", "keywords-0");
+        field.attr("value", value);
+        form.append(field);
+
+        // The form needs to be a part of the document in
+        // order for us to be able to submit it.
+        $(document.body).append(form);
+        form.submit();
+      }
+    }
   });
 
   var tagRankCtx = document.getElementById("mostCommonTagChart").getContext('2d');
@@ -185,6 +198,13 @@
         {% for val in most_common_tags %} "{{val.0}}", {% endfor %}
       ]
     },
+    options: {
+      'onClick' : function (evt, item) {
+        var tagStr = this.data.labels[item[0]._index];
+        var url = "{{url_for('bookmarks-html')}}?tag=" + tagStr;
+        window.location.href = url;
+      }
+    }
   });
   netlocChart.canvas.parentNode.style.height = '128px';
   </script>
