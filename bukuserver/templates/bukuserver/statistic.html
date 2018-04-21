@@ -185,6 +185,13 @@
         {% for val in most_common_tags %} "{{val.0}}", {% endfor %}
       ]
     },
+    options: {
+      'onClick' : function (evt, item) {
+        var tagStr = this.data.labels[item[0]._index];
+        var url = "{{url_for('bookmarks-html')}}?tag=" + tagStr;
+        window.location.href = url;
+      }
+    }
   });
   netlocChart.canvas.parentNode.style.height = '128px';
   </script>
