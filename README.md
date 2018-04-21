@@ -29,6 +29,8 @@
 
 `buku` fetches the title of a bookmarked url and stores it along with any user-provided comments and tags. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once. There's an Easter egg to revisit random forgotten bookmarks too!
 
+Deployment on a server is also possible, thanks to [bukuserver](https://github.com/jarun/Buku/tree/master/bukuserver), the webserver interface that exposes several features.
+
 For GUI and browser integration (or to sync bookmarks with your favourite bookmark management service), refer to the wiki page on [System integration](https://github.com/jarun/Buku/wiki/System-integration). If you prefer the terminal, the [shell completion](#shell-completion) scripts can be handy.
 
 We have one of the best documentation around. You can start with the [Examples](#examples). *Buku* is too busy to track you - no hidden history, obsolete records, usage analytics or homing. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).

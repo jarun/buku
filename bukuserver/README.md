@@ -6,18 +6,20 @@ $ python3 -m pip install --user --upgrade pip
 $ python3 -m pip install --user virtualenv
 $ python3 -m virtualenv env
 $ source env/bin/activate
-$ pip install -e .[server]
+$ pip3 install -e .[server]
 ```
 #### Installing buku and bukuserver from PIP
 ```
-$ pip install -e buku[server]
+$ pip3 install -e buku
+$ pip3 install -e bukuserver
 ```
 
 #### Webserver options
 
-Your bookmark on buku can be accesed through browser. To run the server on host 0.0.0.1  on port 5001, run following command:
+To run the server on host 127.0.0.1, port 5001, run following command:
 
-      $ bukuserver run --host 0.0.0.1 --port 5001
+      $ bukuserver run --host 127.0.0.1 --port 5001
+Visit `127.0.0.1:5001` in your browser to access your bookmarks.
 
 See more option on `bukuserver run --help` and `bukuserver --help`
 
