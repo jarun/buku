@@ -10,6 +10,7 @@
   </form>
   <h3>Netloc</h3>
 
+  {% if most_common_netlocs %}
   <div class="col-md-6">
     <canvas id="mostCommonChart" width="500" height="500"></canvas>
   </div>
@@ -40,6 +41,9 @@
       {% endfor %}
     </table>
   </div>
+  {% else %}
+  <span> No boookmark found.</span>
+  {% endif %}
 
   {% if show_netloc_table %}
   <div class="modal fade" id="netlocModal" tabindex="-1" role="dialog">
@@ -83,6 +87,7 @@
 
   <h3>Tag</h3>
 
+  {% if most_common_tags %}
   <div class="col-md-6">
     <canvas id="mostCommonTagChart" width="500" height="500"></canvas>
   </div>
@@ -110,6 +115,9 @@
       {% endfor %}
     </table>
   </div>
+  {% else %}
+  <span> No tag found.</span>
+  {% endif %}
 
   {% if show_tag_rank_table %}
   <div class="modal fade" id="tagRankModal" tabindex="-1" role="dialog">
