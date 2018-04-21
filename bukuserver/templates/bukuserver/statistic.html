@@ -1,0 +1,198 @@
+{% extends "bukuserver/base.html" %}
+
+{% block content %}
+<div class="container">
+  <h2 style="padding-top: 70px;">Statistic</h2>
+  <form class="form-inline" action="{{url_for('statistic')}}" method="POST">
+    Data created
+    <span rel="tooltip" title="{{datetime}}">{{datetime_text}}</span>
+    <button type="submit" class="btn btn-default btn-sm">refresh</button>
+  </form>
+  <h3>Netloc</h3>
+
+  {% if most_common_netlocs %}
+  <div class="col-md-6">
+    <canvas id="mostCommonChart" width="500" height="500"></canvas>
+  </div>
+
+  <div class="col-md-6">
+    {% if show_netloc_table %}
+    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#netlocModal">
+      View all
+    </button>
+    {% endif %}
+    <table class="table">
+      <tr>
+        <th>Rank</th>
+        <th>Netloc</th>
+        <th>Number</th>
+      </tr>
+      {% for netloc, number, _ in most_common_netlocs %}
+      <tr>
+        <td>{{loop.index}}</td>
+        <td>
+          <form action="{{url_for('search_bookmarks-html')}}" method="GET">
+            <input id="inputKeywords" name="keywords-0" type="hidden" value="{{netloc}}">
+            <button type="submit" class="btn btn-default">{{netloc}}</button>
+          </form>
+        </td>
+        <td>{{number}}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% else %}
+  <span> No boookmark found.</span>
+  {% endif %}
+
+  {% if show_netloc_table %}
+  <div class="modal fade" id="netlocModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Netloc ranking</h4>
+        </div>
+        <div class="modal-body">
+          <table class="table table-condensed">
+            <tr>
+              <th>Rank</th>
+              <th>Netloc</th>
+              <th>Number</th>
+            </tr>
+            {% for netloc, number in netloc_counter.most_common() %}
+              {% if number > 1 %}
+              <tr>
+                <td>{{loop.index}}</td>
+                <td>
+                  {% if netloc %}
+                  <form action="{{url_for('search_bookmarks-html')}}" method="GET">
+                    <input id="inputKeywords" name="keywords-0" type="hidden" value="{{netloc}}">
+                    <button type="submit" class="btn btn-default">{{netloc}}</button>
+                  </form>
+                  {% else %}
+                  <span class="btn btn-default" disabled="disabled">(No Netloc)</span>
+                  {% endif %}
+                </td>
+                <td>{{number}}</td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <h3>Tag</h3>
+
+  {% if most_common_tags %}
+  <div class="col-md-6">
+    <canvas id="mostCommonTagChart" width="500" height="500"></canvas>
+  </div>
+
+  <div class="col-md-6">
+    {% if show_tag_rank_table %}
+    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#tagRankModal">
+      View all
+    </button>
+    {% endif %}
+    <table class="table">
+      <tr>
+        <th>Rank</th>
+        <th>Tag</th>
+        <th>Number</th>
+      </tr>
+      {% for item, number, _ in most_common_tags %}
+      <tr>
+        <td>{{loop.index}}</td>
+        <td>
+          <a href="{{url_for('bookmarks-html', tag=item)}}">{{item}}</a>
+        </td>
+        <td>{{number}}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% else %}
+  <span> No tag found.</span>
+  {% endif %}
+
+  {% if show_tag_rank_table %}
+  <div class="modal fade" id="tagRankModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Netloc ranking</h4>
+        </div>
+        <div class="modal-body">
+          <table class="table table-condensed">
+            <tr>
+              <th>Rank</th>
+              <th>Tag</th>
+              <th>Number</th>
+            </tr>
+            {% for item, number in tag_counter.most_common() %}
+              <tr>
+                <td>{{loop.index}}</td>
+                <td> <a href="{{url_for('bookmarks-html', tag=item)}}">{{item}}</a> </td>
+                <td>{{number}}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+  var ctx = document.getElementById("mostCommonChart").getContext('2d');
+  var netlocChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      datasets: [{
+        data: [
+          {% for val in most_common_netlocs %} {{val.1}}, {% endfor %}
+        ],
+        backgroundColor: [
+          {% for val in most_common_netlocs %} "{{val.2}}", {% endfor %}
+        ],
+      }],
+      // These labels appear in the legend and in the tooltips when hovering different arcs
+      labels: [
+        {% for val in most_common_netlocs %} "{{val.0}}", {% endfor %}
+      ]
+    },
+  });
+
+  var tagRankCtx = document.getElementById("mostCommonTagChart").getContext('2d');
+  var tagRankChart = new Chart(tagRankCtx, {
+    type: 'pie',
+    data: {
+      datasets: [{
+        data: [
+          {% for val in most_common_tags %} {{val.1}}, {% endfor %}
+        ],
+        backgroundColor: [
+          {% for val in most_common_tags %} "{{val.2}}", {% endfor %}
+        ],
+      }],
+      // These labels appear in the legend and in the tooltips when hovering different arcs
+      labels: [
+        {% for val in most_common_tags %} "{{val.0}}", {% endfor %}
+      ]
+    },
+  });
+  netlocChart.canvas.parentNode.style.height = '128px';
+  </script>
+
+</div>
+{% endblock %}
+
+{% block head %}
+{{super()}}
+<script src="{{url_for('static', filename='bukuserver/js/Chart.min.js')}}"></script>
+{% endblock %}
