@@ -440,16 +440,20 @@ def view_statistic():
         for tags in tag_set:
             tag_items.extend([x.strip() for x in tags.split(',') if x.strip()])
         tag_counter = Counter(tag_items)
+        title_items = [x[2] for x in all_bookmarks]
+        title_counter = Counter(title_items)
         statistic_datetime = arrow.now()
         STATISTIC_DATA = {
             'datetime': statistic_datetime,
             'netloc': netloc,
             'tag_counter': tag_counter,
+            'title_counter': title_counter,
         }
     else:
         netloc = statistic_data['netloc']
         statistic_datetime = statistic_data['datetime']
         tag_counter = statistic_data['tag_counter']
+        title_counter = statistic_data['title_counter']
 
     netloc_counter = Counter(netloc)
     unique_netloc_len = len(set(netloc))
@@ -482,6 +486,19 @@ def view_statistic():
     most_common_tags = [
         [val[0], val[1], tag_colors[idx]] for idx, val in enumerate(most_common_tags)]
 
+    unique_title_len = len(title_counter)
+    show_title_rank_table = False
+    if unique_title_len > len(colors):
+        max_title_item = len(colors)
+        title_colors = colors
+        show_title_rank_table = True
+    else:
+        title_colors = colors[:unique_title_len]
+        max_title_item = unique_title_len
+    most_common_titles = title_counter.most_common(max_title_item)
+    most_common_titles = [
+        [val[0], val[1], title_colors[idx]] for idx, val in enumerate(most_common_titles)]
+
     return render_template(
         'bukuserver/statistic.html',
         most_common_netlocs=most_common_netlocs,
@@ -490,6 +507,9 @@ def view_statistic():
         most_common_tags=most_common_tags,
         tag_counter=tag_counter,
         show_tag_rank_table=show_tag_rank_table,
+        most_common_titles=most_common_titles,
+        title_counter=title_counter,
+        show_title_rank_table=show_title_rank_table,
         datetime=statistic_datetime,
         datetime_text=statistic_datetime.humanize(arrow.now(), granularity='second'),
     )
