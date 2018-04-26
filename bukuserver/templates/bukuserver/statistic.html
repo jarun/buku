@@ -31,7 +31,7 @@
       <tr>
         <td>{{loop.index}}</td>
         <td> <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a> </td>
-        <td>{{number}}</td>
+        <td class="text-right">{{number}}</td>
       </tr>
       {% endfor %}
     </table>
@@ -66,7 +66,7 @@
                   <span class="btn btn-default" disabled="disabled">(No Netloc)</span>
                   {% endif %}
                 </td>
-                <td>{{number}}</td>
+                <td class="text-right">{{number}}</td>
               </tr>
               {% endif %}
             {% endfor %}
@@ -77,7 +77,7 @@
   </div>
   {% endif %}
 
-  <h3>Tag</h3>
+  <h3 class="col-md-12">Tag</h3>
 
   {% if most_common_tags %}
   <div class="col-md-6">
@@ -102,7 +102,7 @@
         <td>
           <a href="{{url_for('bookmarks-html', tag=item)}}">{{item}}</a>
         </td>
-        <td>{{number}}</td>
+        <td class="text-right">{{number}}</td>
       </tr>
       {% endfor %}
     </table>
@@ -130,8 +130,83 @@
               <tr>
                 <td>{{loop.index}}</td>
                 <td> <a href="{{url_for('bookmarks-html', tag=item)}}">{{item}}</a> </td>
-                <td>{{number}}</td>
+                <td class="text-right">{{number}}</td>
               </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <h3 class="col-md-12">Title</h3>
+
+  {% if most_common_titles %}
+  <div class="col-md-6">
+    <canvas id="mostCommonTitleChart" width="500" height="500"></canvas>
+  </div>
+
+  <div class="col-md-6">
+    {% if show_title_rank_table %}
+    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#titleModal">
+      View all
+    </button>
+    {% endif %}
+    <table class="table">
+      <tr>
+        <th>Rank</th>
+        <th>Title</th>
+        <th>Number</th>
+      </tr>
+      {% for item, number, _ in most_common_titles %}
+      <tr>
+        <td>{{loop.index}}</td>
+        <td>
+          {% if item %}
+          <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a>
+          {% else %}
+          (No Title)
+          {% endif %}
+        </td>
+        <td class="text-right">{{number}}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% else %}
+  <span> No Title found.</span>
+  {% endif %}
+
+  {% if show_title_rank_table %}
+  <div class="modal fade" id="titleModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Title ranking</h4>
+        </div>
+        <div class="modal-body">
+          <table class="table table-condensed">
+            <tr>
+              <th>Rank</th>
+              <th>Title</th>
+              <th>Number</th>
+            </tr>
+            {% for item, number in title_counter.most_common() %}
+              {% if number > 1 %}
+              <tr>
+                <td>{{loop.index}}</td>
+                <td style="word-break:break-all;">
+                  {% if item %}
+                  <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a>
+                  {% else %}
+                  <span class="btn btn-default" disabled="disabled">(No Title)</span>
+                  {% endif %}
+                </td>
+                <td class="text-right">{{number}}</td>
+              </tr>
+              {% endif %}
             {% endfor %}
           </table>
         </div>
@@ -206,6 +281,47 @@
       }
     }
   });
+
+  var ctx = document.getElementById("mostCommonTitleChart").getContext('2d');
+  var netlocChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      datasets: [{
+        data: [
+          {% for val in most_common_titles %} {{val.1}}, {% endfor %}
+        ],
+        backgroundColor: [
+          {% for val in most_common_titles %} "{{val.2}}", {% endfor %}
+        ],
+      }],
+      // These labels appear in the legend and in the tooltips when hovering different arcs
+      labels: [
+        {% for val in most_common_titles %} "{{val.0}}", {% endfor %}
+      ]
+    },
+    options: {
+      'onClick' : function (evt, item) {
+        var value = this.data.labels[item[0]._index];
+        var form = $('<form></form>');
+
+        form.attr("method", "get");
+        form.attr("action", "{{url_for('search_bookmarks-html')}}");
+
+        var field = $('<input></input>');
+
+        field.attr("type", "hidden");
+        field.attr("name", "keywords-0");
+        field.attr("value", value);
+        form.append(field);
+
+        // The form needs to be a part of the document in
+        // order for us to be able to submit it.
+        $(document.body).append(form);
+        form.submit();
+      }
+    }
+  });
+
   netlocChart.canvas.parentNode.style.height = '128px';
   </script>
 
