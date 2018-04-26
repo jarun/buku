@@ -31,7 +31,7 @@
       <tr>
         <td>{{loop.index}}</td>
         <td> <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a> </td>
-        <td>{{number}}</td>
+        <td class="text-right">{{number}}</td>
       </tr>
       {% endfor %}
     </table>
@@ -66,7 +66,7 @@
                   <span class="btn btn-default" disabled="disabled">(No Netloc)</span>
                   {% endif %}
                 </td>
-                <td>{{number}}</td>
+                <td class="text-right">{{number}}</td>
               </tr>
               {% endif %}
             {% endfor %}
@@ -102,7 +102,7 @@
         <td>
           <a href="{{url_for('bookmarks-html', tag=item)}}">{{item}}</a>
         </td>
-        <td>{{number}}</td>
+        <td class="text-right">{{number}}</td>
       </tr>
       {% endfor %}
     </table>
@@ -130,7 +130,7 @@
               <tr>
                 <td>{{loop.index}}</td>
                 <td> <a href="{{url_for('bookmarks-html', tag=item)}}">{{item}}</a> </td>
-                <td>{{number}}</td>
+                <td class="text-right">{{number}}</td>
               </tr>
             {% endfor %}
           </table>
@@ -169,7 +169,7 @@
           (No Title)
           {% endif %}
         </td>
-        <td>{{number}}</td>
+        <td class="text-right">{{number}}</td>
       </tr>
       {% endfor %}
     </table>
