@@ -40,6 +40,31 @@ Visit `127.0.0.1:5001` in your browser to access your bookmarks.
 
 See more option on `bukuserver run --help` and `bukuserver --help`
 
+Webserver Env config
+--------------------
+
+Following are available os env config available for bukuserver.
+
++-----------------------+--------------------------------------------------------+
+| Name (without prefix) | Value and description                                  |
++-----------------------+--------------------------------------------------------+
+| PER_PAGE              | v: [`10`]/(positive integer)                           |
+|                       | Bookmark entry per page.                               |
++-----------------------+--------------------------------------------------------+
+
+Note: If any invalid input given, default value will be used
+
+Note: to use it add `BUKUSERVER_` as prefix.
+
+ie to set bukuserver to show 100 item per page run the following command
+
+.. code::
+
+  $ # on linux
+  $ export BUKUSERVER_PER_PAGE=100
+  $ # on windows
+  $ SET BUKUSERVER_PER_PAGE=100
+
 CAUTION
 -------
 
