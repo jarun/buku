@@ -530,6 +530,8 @@ def create_app(config_filename=None):
         """Shell context definition."""
         return {'app': app, 'bukudb': bukudb}
 
+    app.jinja_env.filters['netloc'] = lambda x: urlparse(x).netloc  # pylint: disable=no-member
+
     Bootstrap(app)
     # routing
     app.add_url_rule('/api/tags', 'get_tags', get_tags, methods=['GET'])
