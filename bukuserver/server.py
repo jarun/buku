@@ -521,7 +521,7 @@ def create_app(config_filename=None):
     per_page = int(os.getenv('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
     per_page = per_page if per_page > 0 else DEFAULT_PER_PAGE
     app.config['BUKUSERVER_PER_PAGE'] = per_page
-    app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SERVER_SECRET_KEY') or os.urandom(24)
+    app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
     bukudb = BukuDb()
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)

@@ -45,13 +45,17 @@ Webserver Env config
 
 Following are available os env config available for bukuserver.
 
-+-----------------------+------------------------------+
-| Name (without prefix) | Value and description        |
-+-----------------------+------------------------------+
-| PER_PAGE              | v: [`10`]/(positive integer) |
-|                       |                              |
-|                       | Bookmark entry per page.     |
-+-----------------------+------------------------------+
++-----------------------+--------------------------------+
+| Name (without prefix) | Value and description          |
++-----------------------+--------------------------------+
+| PER_PAGE              | v: [`10`]/(positive integer)   |
+|                       |                                |
+|                       | Bookmark entry per page.       |
++-----------------------+--------------------------------+
+| SECRET_KEY            | v: [(os.urandom(24))]/(string) |
+|                       |                                |
+|                       | Server secret key.             |
++-----------------------+--------------------------------+
 
 Note: If any invalid input given, default value will be used
 
