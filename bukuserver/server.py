@@ -518,8 +518,9 @@ def view_statistic():
 def create_app(config_filename=None):
     """create app."""
     app = Flask(__name__)
-    app.config['BUKUSERVER_PER_PAGE'] = os.getenv(
-        'BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE)
+    per_page = int(os.getenv('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
+    per_page = per_page if per_page > 0 else DEFAULT_PER_PAGE
+    app.config['BUKUSERVER_PER_PAGE'] = per_page
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SERVER_SECRET_KEY') or os.urandom(24)
     bukudb = BukuDb()
     app.app_context().push()
