@@ -33,6 +33,7 @@ except ImportError:
 
 
 DEFAULT_PER_PAGE = 10
+DEFAULT_URL_RENDER_MODE = 'full'
 STATISTIC_DATA = None
 
 
@@ -86,6 +87,7 @@ def bookmarks():
         default=int(
             current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
     )
+    url_render_mode = current_app.config['BUKUSERVER_URL_RENDER_MODE']
     create_bookmarks_form = forms.CreateBookmarksForm()
     if request.method == 'GET':
         all_bookmarks = bukudb.get_rec_all()
@@ -131,6 +133,7 @@ def bookmarks():
                 pagination=pagination,
                 search_bookmarks_form=forms.SearchBookmarksForm(),
                 create_bookmarks_form=create_bookmarks_form,
+                url_render_mode=url_render_mode,
             )
     elif request.method == 'POST':
         url_data = create_bookmarks_form.url.data
@@ -521,6 +524,10 @@ def create_app(config_filename=None):
     per_page = int(os.getenv('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
     per_page = per_page if per_page > 0 else DEFAULT_PER_PAGE
     app.config['BUKUSERVER_PER_PAGE'] = per_page
+    url_render_mode = os.getenv('BUKUSERVER_URL_RENDER_MODE', DEFAULT_URL_RENDER_MODE)
+    if url_render_mode not in ('full', 'netloc'):
+        url_render_mode = DEFAULT_URL_RENDER_MODE
+    app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
     bukudb = BukuDb()
     app.app_context().push()
