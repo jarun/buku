@@ -44,7 +44,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 .IP 5. 4
 \fBTags\fR:
   - Comma (',') is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
-  - Folder names are converted to all-lowercase tags during bookmarks html import.
+  - Parent folder (and subfolder) names are converted to all-lowercase tags during bookmarks html import.
   - Releases prior to v2.7 support both capital and lower cases in tags. From v2.7 all tags are stored in lowercase. An undocumented option --\fIfixtags\fR is introduced to modify the older tags. It also fixes another issue where the same tag appears multiple times in the tagset of a record. Run \fBbuku --fixtags\fR once.
   - Tags can be edited from the prompt very easily using '>>' (append), '>' (overwrite) and '<<' (remove) symbols. The LHS of the operands denotes the indices and ranges of tags to apply (as listed by --tag or key 't' at prompt) and the RHS denotes the actual DB indices and ranges of the bookmarks to apply the change to.
 .PP
@@ -78,7 +78,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 \fBImport\fR:
   - Auto-import looks in the default installation path and default user profile.
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
-  - Folder names are automatically imported as tags if --tacit is used.
+  - Parent folder (and subfolder) names are automatically imported as tags if --tacit is used.
   - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used in html or markdown import.
 .PP
 .IP 10. 4
