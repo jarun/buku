@@ -60,6 +60,7 @@ setup(
         'HTML': ['beautifulsoup4'],
         'tests': tests_require,
         'server': server_require,
+        'packaging': ['twine>=1.11.0']
     },
     test_suite='tests',
     tests_require=tests_require,
