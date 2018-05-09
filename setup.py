@@ -42,6 +42,7 @@ setup(
     version=version,
     description='Command-line bookmark manager with browser integration.',
     long_description=long_description,
+    long_description_content_type="text/markdown",
     author='Arun Prakash Jana',
     author_email='engineerarun@gmail.com',
     url='https://github.com/jarun/Buku',
@@ -59,6 +60,7 @@ setup(
         'HTML': ['beautifulsoup4'],
         'tests': tests_require,
         'server': server_require,
+        'packaging': ['twine>=1.11.0']
     },
     test_suite='tests',
     tests_require=tests_require,
