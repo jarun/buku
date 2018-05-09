@@ -42,6 +42,7 @@ setup(
     version=version,
     description='Command-line bookmark manager with browser integration.',
     long_description=long_description,
+    long_description_content_type="text/markdown",
     author='Arun Prakash Jana',
     author_email='engineerarun@gmail.com',
     url='https://github.com/jarun/Buku',
