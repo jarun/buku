@@ -76,7 +76,7 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/i
 - Open bookmarks and search results in browser
 - Manual encryption support
 - Auto-import from Firefox, Google Chrome and Chromium
-- Import/export bookmarks from/to HTML or Markdown
+- Import/export bookmarks from/to HTML, Markdown or Orgfile
 - Shorten and expand URLs
 - Smart tag management using redirection (>>, >, <<)
 - Portable, merge-able database to sync between systems
@@ -221,10 +221,13 @@ POWER TOYS:
       -e, --export file    export bookmarks to Firefox format html
                            export markdown, if file ends with '.md'
                            format: [title](url), 1 entry per line
+                           export orgfile, if file ends with '.org'
+                           format: *[[url][title]], 1 entry per line
                            export buku DB, if file ends with '.db'
                            use --tag to export specific tags
       -i, --import file    import bookmarks html in Firefox format
                            import markdown, if file ends with '.md'
+                           import orgfile, if file ends with '.org'
                            import buku DB, if file ends with '.db'
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
@@ -320,16 +323,18 @@ PROMPT KEYS:
 
        $ buku -u 15012014 -c this is a new comment
     Applies to --url, --title and --tag too.
-9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML and markdown:
+9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, markdown or orgfile:
 
        $ buku -e bookmarks.html --tag tag 1, tag 2
        $ buku -e bookmarks.md --tag tag 1, tag 2
+       $ buku -e bookmarks.org --tag tag 1, tag 2
        $ buku -e bookmarks.db --tag tag 1, tag 2
     All bookmarks are exported if --tag is not specified.
-10. **Import** bookmarks from HTML and markdown:
+10. **Import** bookmarks from HTML, markdown or orgfile:
 
         $ buku -i bookmarks.html
         $ buku -i bookmarks.md
+        $ buku -i bookmarks.org
         $ buku -i bookmarks.db
 11. **Delete only comment** for bookmark at 15012014:
 
