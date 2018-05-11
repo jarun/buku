@@ -4110,7 +4110,7 @@ def main():
 
     # Setup custom argument parser
     argparser = ExtendedArgumentParser(
-        description='''Command-line bookmark manager with browser integration.
+        description='''Bookmark manager like a text-based mini-web.
 
 POSITIONAL ARGUMENTS:
       KEYWORD              search keywords''',

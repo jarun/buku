@@ -40,7 +40,7 @@ server_require = [
 setup(
     name='buku',
     version=version,
-    description='Command-line bookmark manager with browser integration.',
+    description='Bookmark manager like a text-based mini-web.',
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='Arun Prakash Jana',
