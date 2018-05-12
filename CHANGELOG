@@ -1,3 +1,16 @@
+Buku v3.8
+TBD
+
+What's in?
+- api module is removed and changed into bukuserver
+- bukuserver, a browsable frontend on a local webhost server
+    - flask default cli interface is used instead custom one
+    - handle not only api but also html request
+    - statistic page
+    - CRUD on bookmark
+
+-------------------------------------------------------------------------------
+
 Buku v3.7
 2018-03-28
 
