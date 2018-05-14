@@ -2272,6 +2272,11 @@ class BukuDb:
         else:
             newtag = None
 
+        if not tacit:
+            append_tags_resp = input('Append tags when bookmark exist? (n/y): ')
+        else:
+            append_tags_resp = 'n'
+
         if filepath.endswith('.md'):
             for item in import_md(filepath=filepath, newtag=newtag):
                 self.add_rec(*item)
@@ -2301,8 +2306,10 @@ class BukuDb:
 
             add_parent_folder_as_tag = (resp == 'y')
             for item in import_html(soup, add_parent_folder_as_tag, newtag):
-                self.add_rec(*item)
-
+                add_rec_res = self.add_rec(*item)
+                if add_rec_res == -1 and append_tags_resp == 'y':
+                    rec_id = self.get_rec_id(item[0])
+                    self.append_tag_at_index(rec_id, item[2])
             self.conn.commit()
             infp.close()
 
