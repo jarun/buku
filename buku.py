@@ -2277,15 +2277,11 @@ class BukuDb:
         else:
             append_tags_resp = 'n'
 
+        items = []
         if filepath.endswith('.md'):
-            for item in import_md(filepath=filepath, newtag=newtag):
-                self.add_rec(*item)
-
-            self.conn.commit()
-
+            items = import_md(filepath=filepath, newtag=newtag)
         elif filepath.endswith('org'):
-            for item in import_org(filepath=filepath, newtag=newtag):
-                self.add_rec(*item)
+            items = import_org(filepath=filepath, newtag=newtag)
 
         else:
             try:
@@ -2305,13 +2301,16 @@ class BukuDb:
                 resp = 'y'
 
             add_parent_folder_as_tag = (resp == 'y')
-            for item in import_html(soup, add_parent_folder_as_tag, newtag):
-                add_rec_res = self.add_rec(*item)
-                if add_rec_res == -1 and append_tags_resp == 'y':
-                    rec_id = self.get_rec_id(item[0])
-                    self.append_tag_at_index(rec_id, item[2])
-            self.conn.commit()
+            items = import_html(soup, add_parent_folder_as_tag, newtag)
             infp.close()
+
+        for item in items:
+            add_rec_res = self.add_rec(*item)
+            if add_rec_res == -1 and append_tags_resp == 'y':
+                rec_id = self.get_rec_id(item[0])
+                self.append_tag_at_index(rec_id, item[2])
+
+        self.conn.commit()
 
         if newtag:
             print('\nAuto-generated tag: %s' % newtag)
