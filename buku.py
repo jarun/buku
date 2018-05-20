@@ -2275,7 +2275,7 @@ class BukuDb:
         if not tacit:
             append_tags_resp = input('Append tags when bookmark exist? (n/y): ')
         else:
-            append_tags_resp = 'n'
+            append_tags_resp = 'y'
 
         items = []
         if filepath.endswith('.md'):
