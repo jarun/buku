@@ -1,13 +1,20 @@
 Buku v3.8
-TBD
+2018-05-24
 
 What's in?
-- api module is removed and changed into bukuserver
-- bukuserver, a browsable frontend on a local webhost server
+- A self-hosted http server, bukuserver, that exposes core functionality
+    - browsable frontend on a local webhost server
     - flask default cli interface is used instead custom one
     - handle not only api but also html request
     - statistic page
     - CRUD on bookmark
+    - replaces the earlier api module
+- Import complete folder hierarchy as tags during auto-import
+- Merge tags on import even if bookmark URL exists
+- Orgfile import/export
+- Show bookmarks to be deleted before deletion
+- Merge tags during import if bookmark exists
+- Escape regex metachars in regex input
 
 -------------------------------------------------------------------------------
 

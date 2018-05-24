@@ -42,7 +42,7 @@ from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
-__version__ = '3.7'
+__version__ = '3.8'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -2273,7 +2273,7 @@ class BukuDb:
             newtag = None
 
         if not tacit:
-            append_tags_resp = input('Append tags when bookmark exist? (n/y): ')
+            append_tags_resp = input('Append tags when bookmark exist? (y/n): ')
         else:
             append_tags_resp = 'y'
 
