@@ -69,9 +69,10 @@ ie to set bukuserver to show 100 item per page run the following command
 
 .. code::
 
-  $ # on linux
+  # on linux
   $ export BUKUSERVER_PER_PAGE=100
-  $ # on windows
+
+  # on windows
   $ SET BUKUSERVER_PER_PAGE=100
 
 CAUTION
