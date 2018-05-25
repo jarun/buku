@@ -2458,7 +2458,7 @@ class BukuDb:
             if len(respobj['archived_snapshots']) and respobj['archived_snapshots']['closest']['available'] is True:
                 browse(respobj['archived_snapshots']['closest']['url'])
                 return True
-        except:
+        except Exception:
             pass
         finally:
             manager.clear()
