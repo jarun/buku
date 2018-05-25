@@ -75,31 +75,6 @@ ie to set bukuserver to show 100 item per page run the following command
   # on windows
   $ SET BUKUSERVER_PER_PAGE=100
 
-
-Screenshot
-----------
-
-.. image:: screenshot/bukuserver_index.png
-  :width: 400
-  :alt: Index page
-
-.. image:: screenshot/bukuserver_bookmark1.png
-  :width: 400
-  :alt: bookmark page (1)
-
-.. image:: screenshot/bukuserver_bookmark2.png
-  :width: 400
-  :alt: bookmark page (2)
-
-.. image:: screenshot/bukuserver_bookmark_edit.png
-  :width: 400
-  :alt: bookmark edit page
-
-.. image:: screenshot/bukuserver_tag.png
-  :width: 400
-  :alt: tag page
-
-
 CAUTION
 -------
 
