@@ -1823,7 +1823,7 @@ class BukuDb:
         return update_count
 
     def browse_by_index(self, index=0, low=0, high=0, is_range=False):
-        """Open URL at index or range of indies in browser.
+        """Open URL at index or range of indices in browser.
 
         Parameters
         ----------
@@ -2412,6 +2412,7 @@ class BukuDb:
             r = manager.request('POST', _u, headers={'content-type': 'application/json', 'User-Agent': USER_AGENT})
         except Exception as e:
             logerr(e)
+            manager.clear()
             return None
 
         if r.status != 200:
@@ -2421,6 +2422,48 @@ class BukuDb:
         manager.clear()
 
         return r.data.decode(errors='replace')
+
+    def browse_cached_url(self, arg):
+        """Open URL at index or URL.
+
+        Parameters
+        ----------
+        arg : str
+            Index or url to browse
+
+        Returns
+        -------
+        bool
+            True on success, False on failure.
+        """
+
+        from urllib.parse import quote_plus
+
+        if is_int(arg):
+            rec = self.get_rec_by_id(int(arg))
+            if not rec:
+                logerr('No matching index %d', int(arg))
+                return False
+            else:
+                url = rec[1]
+        else:
+            url = arg
+
+        # Try fetching cached page from  wayback machine
+        api_url = 'https://archive.org/wayback/available/?url=' + quote_plus(url)
+        manager = get_PoolManager()
+        resp = manager.request('GET', api_url)
+        respobj = json.loads(resp.data.decode('utf-8'))
+        try:
+            if len(respobj['archived_snapshots']) and respobj['archived_snapshots']['closest']['available'] is True:
+                browse(respobj['archived_snapshots']['closest']['url'])
+                return True
+        except Exception:
+            pass
+        finally:
+            manager.clear()
+
+        return False
 
     def fixtags(self):
         """Undocumented API to fix tags set in earlier versions.
@@ -4261,6 +4304,7 @@ POSITIONAL ARGUMENTS:
                          delete old tag, if new tag not specified
     --shorten index|URL  fetch shortened url from tny.im service
     --expand index|URL   expand a tny.im shortened url
+    --cached index|URL   browse a cached page from Wayback Machine
     --suggest            show similar tags when adding bookmarks
     --tacit              reduce verbosity
     --threads N          max network connections in full refresh
@@ -4282,6 +4326,7 @@ POSITIONAL ARGUMENTS:
     addarg('--replace', nargs='+', help=HIDE)
     addarg('--shorten', nargs=1, help=HIDE)
     addarg('--expand', nargs=1, help=HIDE)
+    addarg('--cached', nargs=1, help=HIDE)
     addarg('--suggest', action='store_true', help=HIDE)
     addarg('--tacit', action='store_true', help=HIDE)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=HIDE)
@@ -4735,6 +4780,11 @@ POSITIONAL ARGUMENTS:
 
         if url:
             print(url)
+
+    # Try to fetch URL from Wayback Machine
+    if args.cached:
+        if bdb.browse_cached_url(args.cached[0]) is False:
+            logerr('Not cached')
 
     # Report upstream version
     if args.upstream:

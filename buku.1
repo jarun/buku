@@ -18,7 +18,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Manual encryption support
   * Auto-import from Firefox, Google Chrome and Chromium
   * Import/export bookmarks from/to HTML, Markdown or Orgfile
-  * Shorten and expand URLs
+  * Shorten, expand URLs, browse cached page from Wayback Machine
   * Smart tag management using redirection (>>, >, <<)
   * Portable, merge-able database to sync between systems
   * Multithreaded full DB refresh
@@ -269,6 +269,13 @@ Expand the URL at DB
 or an independent
 .I URL
 shortened using tny.im.
+.TP
+.BI \--cached " index|URL"
+Browse the latest cached version of the URL at DB
+.I index
+or an independent
+.I URL
+using the Wayback Machine. Useful for viewing the content of bookmarks which are not live any more.
 .TP
 .BI \--suggest
 Show a list of similar tags to choose from when adding a new bookmark.

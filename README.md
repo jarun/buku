@@ -77,7 +77,7 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/i
 - Manual encryption support
 - Auto-import from Firefox, Google Chrome and Chromium
 - Import/export bookmarks from/to HTML, Markdown or Orgfile
-- Shorten and expand URLs
+- Shorten, expand URLs, browse cached page from Wayback Machine
 - Smart tag management using redirection (>>, >, <<)
 - Portable, merge-able database to sync between systems
 - Multithreaded full DB refresh
@@ -247,6 +247,7 @@ POWER TOYS:
                            delete old tag, if new tag not specified
       --shorten index|URL  fetch shortened url from tny.im service
       --expand index|URL   expand a tny.im shortened url
+      --cached index|URL   browse a cached page from Wayback Machine
       --suggest            show similar tags when adding bookmarks
       --tacit              reduce verbosity
       --threads N          max network connections in full refresh
