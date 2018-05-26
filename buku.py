@@ -919,6 +919,9 @@ class BukuDb:
         except sqlite3.IntegrityError:
             logerr('URL already exists')
             return False
+        except sqlite3.OperationalError as e:
+            logerr(e)
+            return False
 
         return True
 
@@ -1410,6 +1413,9 @@ class BukuDb:
                     return False
             except IndexError:
                 logerr('No matching index %d', index)
+                return False
+            except sqlite3.OperationalError as e:
+                logerr(e)
                 return False
 
         return True
