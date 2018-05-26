@@ -2985,9 +2985,9 @@ def get_PoolManager():
     """
 
     if myproxy:
-        return urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders)
+        return urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders, timeout=15)
 
-    return urllib3.PoolManager(num_pools=1, headers=myheaders)
+    return urllib3.PoolManager(num_pools=1, headers=myheaders, timeout=15)
 
 
 def network_handler(url, http_head=False):
@@ -3023,7 +3023,7 @@ def network_handler(url, http_head=False):
         manager = get_PoolManager()
 
         while True:
-            resp = manager.request(method, url, timeout=40)
+            resp = manager.request(method, url)
 
             if resp.status == 200:
                 if method == 'GET':
