@@ -2433,8 +2433,8 @@ class BukuDb:
 
         Returns
         -------
-        bool
-            True on success, False on failure.
+        str
+            Wayback Machine URL, None if not cached
         """
 
         from urllib.parse import quote_plus
@@ -2443,7 +2443,7 @@ class BukuDb:
             rec = self.get_rec_by_id(int(arg))
             if not rec:
                 logerr('No matching index %d', int(arg))
-                return False
+                return None
             else:
                 url = rec[1]
         else:
@@ -2456,14 +2456,15 @@ class BukuDb:
         respobj = json.loads(resp.data.decode('utf-8'))
         try:
             if len(respobj['archived_snapshots']) and respobj['archived_snapshots']['closest']['available'] is True:
-                browse(respobj['archived_snapshots']['closest']['url'])
-                return True
+                manager.clear()
+                return respobj['archived_snapshots']['closest']['url']
         except Exception:
             pass
         finally:
             manager.clear()
 
-        return False
+        logerr('Uncached')
+        return None
 
     def fixtags(self):
         """Undocumented API to fix tags set in earlier versions.
@@ -4783,8 +4784,9 @@ POSITIONAL ARGUMENTS:
 
     # Try to fetch URL from Wayback Machine
     if args.cached:
-        if bdb.browse_cached_url(args.cached[0]) is False:
-            logerr('Not cached')
+        wbu = bdb.browse_cached_url(args.cached[0])
+        if wbu is not None:
+            browse(wbu)
 
     # Report upstream version
     if args.upstream:
