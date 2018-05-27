@@ -14,6 +14,7 @@ _buku () {
         -a --add
         --ai
         -c --comment
+        --cached
         --colors
         -d --delete
         --deep
@@ -52,6 +53,7 @@ _buku () {
     )
     opts_with_arg=(
         -a --add
+        --cached
         --colors
         -e --export
         --expand

@@ -12,6 +12,7 @@ args=(
     '(-a --add)'{-a,--add}'[add bookmark]:URL tags'
     '(--ai)--ai[auto-import bookmarks]'
     '(-c --comment)'{-c,--comment}'[comment on bookmark]'
+    '(--cached)--cached[visit wayback machine cached version]:index/url'
     '(--colors)--colors[set output colors in 5-letter string]:color string'
     '(-d --delete)'{-d,--delete}'[delete bookmark]'
     '(--deep)--deep[search matching substrings]'

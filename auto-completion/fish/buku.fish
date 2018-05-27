@@ -7,6 +7,7 @@
 complete -c buku -s a -l add     -r --description 'add bookmark'
 complete -c buku -l ai              --description 'auto-import bookmarks'
 complete -c buku -s c -l comment    --description 'comment on bookmark'
+complete -c buku -l cached       -r --description 'visit wayback machine cached version'
 complete -c buku -l colors       -r --description 'set output colors in 5-letter string'
 complete -c buku -s d -l delete     --description 'delete bookmark'
 complete -c buku -l deep            --description 'search matching substrings'
