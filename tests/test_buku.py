@@ -82,11 +82,11 @@ def test_get_PoolManager(m_myproxy):
         res = buku.get_PoolManager()
         if m_myproxy:
             m_ul3.ProxyManager.assert_called_once_with(
-                m_myproxy, num_pools=1, headers=buku.myheaders)
+                m_myproxy, num_pools=1, timeout=15, headers=buku.myheaders)
             assert res == m_ul3.ProxyManager.return_value
         else:
             m_ul3.PoolManager.assert_called_once_with(
-                num_pools=1, headers=buku.myheaders)
+                num_pools=1, timeout=15, headers=buku.myheaders)
             assert res == m_ul3.PoolManager.return_value
 
 
