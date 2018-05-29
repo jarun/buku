@@ -44,11 +44,11 @@ See more option on `bukuserver run --help` and `bukuserver --help`
 
 Following are available os env config available for bukuserver.
 
-| Name (without prefix) and description | Value |
-| --- | --- |
-| PER_PAGE (bookmarks per page) | positive integer [default: 10] |
-| SECRET_KEY (server secret key) | string [default: os.urandom(24)] |
-| URL_RENDER_MODE (url render mode) | `full` or `netloc` [default: `full`] |
+| Name (without prefix) | Description | Value |
+| --- | --- | --- |
+| PER_PAGE | bookmarks per page | positive integer [default: 10] |
+| SECRET_KEY | server secret key | string [default: os.urandom(24)] |
+| URL_RENDER_MODE | url render mode | `full` or `netloc` [default: `full`] |
 
 Note: `BUKUSERVER_` is the common prefix.
 
@@ -62,6 +62,9 @@ $ export BUKUSERVER_PER_PAGE=100
 
 # on windows
 $ SET BUKUSERVER_PER_PAGE=100
+
+# in dockerfile
+ENV BUKUSERVER_PER_PAGE=100
 ```
 
 ### Screenshots
