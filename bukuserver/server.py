@@ -567,7 +567,7 @@ def create_app(config_filename=None):
     return app
 
 
-class CustomFlaskGroup(FlaskGroup):
+class CustomFlaskGroup(FlaskGroup):  # pylint: disable=too-few-public-methods
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.params[0].help = 'Show the program version'
