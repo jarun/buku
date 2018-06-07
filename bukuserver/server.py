@@ -2,10 +2,11 @@
 # pylint: disable=wrong-import-order, ungrouped-imports
 """Server module."""
 import os
+import sys
 from collections import Counter
 from urllib.parse import urlparse
 
-from buku import BukuDb
+from buku import BukuDb, __version__
 from flask.cli import FlaskGroup
 from flask_api import status
 from flask_bootstrap import Bootstrap
@@ -15,6 +16,7 @@ import arrow
 import click
 import flask
 from flask import (
+    __version__ as flask_version,
     abort,
     current_app,
     flash,
@@ -565,7 +567,27 @@ def create_app(config_filename=None):
     return app
 
 
-@click.group(cls=FlaskGroup, create_app=create_app)
+class CustomFlaskGroup(FlaskGroup):  # pylint: disable=too-few-public-methods
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.params[0].help = 'Show the program version'
+        self.params[0].callback = get_custom_version
+
+
+def get_custom_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    message = '%(app_name)s %(app_version)s\nFlask %(version)s\nPython %(python_version)s'
+    click.echo(message % {
+        'app_name': 'Buku',
+        'app_version': __version__,
+        'version': flask_version,
+        'python_version': sys.version,
+    }, color=ctx.color)
+    ctx.exit()
+
+
+@click.group(cls=CustomFlaskGroup, create_app=create_app)
 def cli():
     """This is a management script for the wiki application."""
 
