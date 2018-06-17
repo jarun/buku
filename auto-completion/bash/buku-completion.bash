@@ -27,6 +27,7 @@ _buku () {
         -j --json
         -k --unlock
         -l --lock
+        -n --count
         --nc
         --np
         -o --open
@@ -60,6 +61,7 @@ _buku () {
         -f --format
         -i --import
         --immutable
+        -n --count
         -r --sreg
         --replace
         -s --sany

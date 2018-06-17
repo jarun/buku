@@ -239,6 +239,7 @@ POWER TOYS:
       -j, --json           Json formatted output for -p and search
       --colors COLORS      set output colors in five-letter string
       --nc                 disable color output
+      -n, --count N        show N results per page (default 10)
       --np                 do not show the prompt, run and exit
       -o, --open [...]     browse bookmarks by indices and ranges
                            open a random bookmark, if no arguments
@@ -269,6 +270,7 @@ PROMPT KEYS:
     r expression           run a regex search
     t [...]                search bookmarks by tags or show taglist
                            list index after a tag listing shows records with the tag
+    n                      show next page of search results
     o id|range [...]       browse bookmarks by indices and/or ranges
     p id|range [...]       print bookmarks by indices and/or ranges
     g [taglist id|range ...] [>>|>|<<] record id|range [...]

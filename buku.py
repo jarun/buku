@@ -2577,6 +2577,7 @@ PROMPT KEYS:
     r expression           run a regex search
     t [...]                search bookmarks by tags or show taglist
                            list index after a tag listing shows records with the tag
+    n                      show next page of search results
     o id|range [...]       browse bookmarks by indices and/or ranges
     p id|range [...]       print bookmarks by indices and/or ranges
     g [taglist id|range ...] [>>|>|<<] record id|range [...]
@@ -3286,6 +3287,9 @@ def taglist_subprompt(obj, noninteractive=False):
         elif is_int(nav):
             print('No matching index %s' % nav)
             new_results = False
+        elif nav == 'n':
+            print('No more results')
+            new_results = False
         else:
             print('Invalid input')
             new_results = False
@@ -3293,7 +3297,7 @@ def taglist_subprompt(obj, noninteractive=False):
     return ''
 
 
-def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, suggest=False):
+def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, suggest=False, num=10):
     """Show each matching result from a search and prompt.
 
     Parameters
@@ -3303,13 +3307,15 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
     results : list
         Search result set from a DB query.
     noninteractive : bool, optional
-        If True, does not seek user input. Default is False.
+        If True, does not seek user input. Shows all results. Default is False.
     deep : bool, optional
         Use deep search. Default is False.
     subprompt : bool, optional
         If True, jump directly to subprompt.
     suggest : bool, optional
         If True, suggest similar tags on edit and add bookmark.
+    num : int, optional
+        Number of results to show per page. Default is 10.
     """
 
     if not type(obj) is BukuDb:
@@ -3317,21 +3323,33 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
         return
 
     new_results = True
+    nav = ''
+    cur_index = next_index = 0
 
     while True:
         if not subprompt:
-            if new_results:
-                if results:
-                    count = 0
+            if new_results or nav == 'n':
+                count = 0
 
+                if noninteractive:
                     for row in results:
                         count += 1
                         print_single_rec(row, count)
+                    return
+
+                if results:
+                    total_results = len(results)
+                    cur_index = next_index
+                    if cur_index < total_results:
+                        next_index = min(cur_index + num, total_results)
+                        print()
+                        for row in results[cur_index:next_index]:
+                            count += 1
+                            print_single_rec(row, count)
+                    else:
+                        print('No more results')
                 else:
                     print('0 results')
-
-                if noninteractive:
-                    return
 
             try:
                 nav = read_in(promptmsg)
@@ -3341,6 +3359,10 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
                         # Quit on double enter
                         break
                 nav = nav.strip()
+                # show the next set of results from previous search
+                if nav == 'n':
+                    continue
+
             except EOFError:
                 return
         else:
@@ -3357,24 +3379,28 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
         if nav.startswith('s '):
             results = obj.searchdb(nav[2:].split(), False, deep)
             new_results = True
+            cur_index = next_index = 0
             continue
 
         # search ALL match with new keywords
         if nav.startswith('S '):
             results = obj.searchdb(nav[2:].split(), True, deep)
             new_results = True
+            cur_index = next_index = 0
             continue
 
         # regular expressions search with new keywords
         if nav.startswith('r '):
             results = obj.searchdb(nav[2:].split(), True, regex=True)
             new_results = True
+            cur_index = next_index = 0
             continue
 
         # tag search with new keywords
         if nav.startswith('t '):
             results = obj.search_by_tag(nav[2:])
             new_results = True
+            cur_index = next_index = 0
             continue
 
         # quit with 'q'
@@ -3456,9 +3482,9 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
         if nav.startswith('c ') and nav[2:].isdigit():
             index = int(nav[2:]) - 1
             if index < 0 or index >= count:
-                print('No matching index %s' % nav)
+                print('No matching index')
                 continue
-            copy_to_clipboard(content=results[index][1].encode('utf-8'))
+            copy_to_clipboard(content=results[index + cur_index][1].encode('utf-8'))
             continue
 
         # Nothing to browse if there are no results
@@ -3468,7 +3494,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
 
         # open all results and re-prompt with 'a'
         if nav == 'a':
-            for index in range(0, count):
+            for index in range(cur_index, next_index):
                 browse(results[index][1])
             continue
 
@@ -3479,7 +3505,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
                 if index < 0 or index >= count:
                     print('No matching index %s' % nav)
                     continue
-                browse(results[index][1])
+                browse(results[index + cur_index][1])
             elif '-' in nav:
                 try:
                     vals = [int(x) for x in nav.split('-')]
@@ -3488,7 +3514,7 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
 
                     for _id in range(vals[0]-1, vals[-1]):
                         if 0 <= _id < count:
-                            browse(results[_id][1])
+                            browse(results[_id + cur_index][1])
                         else:
                             print('No matching index %d' % (_id + 1))
                 except ValueError:
@@ -4303,6 +4329,7 @@ POSITIONAL ARGUMENTS:
     -j, --json           Json formatted output for -p and search
     --colors COLORS      set output colors in five-letter string
     --nc                 disable color output
+    -n, --count N        show N results per page (default 10)
     --np                 do not show the prompt, run and exit
     -o, --open [...]     browse bookmarks by indices and ranges
                          open a random bookmark, if no arguments
@@ -4327,6 +4354,7 @@ POSITIONAL ARGUMENTS:
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
+    addarg('-n', '--count', nargs='?', const=10, type=int, default=10, help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--oa', action='store_true', help=HIDE)
@@ -4609,7 +4637,7 @@ POSITIONAL ARGUMENTS:
             update_search_results = True
 
         if not args.json and not args.format:
-            prompt(bdb, search_results, oneshot, args.deep)
+            prompt(bdb, search_results, oneshot, args.deep, num=args.count)
         elif not args.json:
             print_rec_with_filter(search_results, field_filter=args.format)
         else:
