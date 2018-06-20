@@ -1156,7 +1156,12 @@ class BukuDb:
                     if deep:
                         q0 += q1 + 'AND '
                     else:
-                        token = '\\b' + re.escape(token.rstrip('/')) + '\\b'
+                        _pre = _post = ''
+                        if str.isalnum(token[0]):
+                            _pre = '\\b'
+                        if str.isalnum(token[-1]):
+                            _post = '\\b'
+                        token = _pre + re.escape(token.rstrip('/')) + _post
                         q0 += q2 + 'AND '
 
                     qargs += (token, token, token, token,)
@@ -1168,8 +1173,14 @@ class BukuDb:
                 if deep:
                     q0 += case_statement(q1) + ' + '
                 else:
-                    token = '\\b' + re.escape(token.rstrip('/')) + '\\b'
+                    _pre = _post = ''
+                    if str.isalnum(token[0]):
+                        _pre = '\\b'
+                    if str.isalnum(token[-1]):
+                        _post = '\\b'
+                    token = _pre + re.escape(token.rstrip('/')) + _post
                     q0 += case_statement(q2) + ' + '
+
                 qargs += (token, token, token, token,)
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         else:
@@ -1224,7 +1235,6 @@ class BukuDb:
                 query = query.replace('WHERE tags', 'WHERE (tags')
                 query += ') AND tags NOT REGEXP ? '
             query += 'ORDER BY id ASC'
-
         else:
             query = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             case_statement = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
