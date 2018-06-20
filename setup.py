@@ -20,7 +20,7 @@ tests_require = [
     'beautifulsoup4>=4.6.0', 'flake8>=3.4.1', 'pylint>=1.7.2', 'PyYAML>=3.12'
 ]
 if sys.version_info.major == 3 and sys.version_info.minor == 6:
-    tests_require.append('pytest>=3.4.2,!=3.5.0,!=3.5.1,!=3.6.0,!=3.6.1')
+    tests_require.append('pytest>=3.4.2,!=3.5.0,!=3.5.1,!=3.6.0,!=3.6.1,!=3.6.2')
 else:
     tests_require.append('pytest>=3.4.2')
 
