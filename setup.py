@@ -18,7 +18,7 @@ with open('README.md', encoding='utf-8') as f:
 tests_require = [
     'pytest-cov', 'hypothesis>=3.7.0', 'py>=1.5.0',
     'beautifulsoup4>=4.6.0', 'flake8>=3.4.1', 'pylint>=1.7.2', 'PyYAML>=3.12',
-    'pytest>=3.4.2'
+    'pytest>=3.4.2', 'attrs>=17.4.0',
 
 ]
 
