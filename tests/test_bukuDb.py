@@ -305,7 +305,7 @@ class TestBukuDb(unittest.TestCase):
         for i, bookmark in enumerate(self.bookmarks):
             tag_search = get_first_tag(bookmark)
             # search by the domain name for url
-            url_search = re.match('https?://(.*)?\..*', bookmark[0]).group(1)
+            url_search = re.match(r'https?://(.*)?\..*', bookmark[0]).group(1)
             title_search = bookmark[1]
             # Expect a five-tuple containing all bookmark data
             # db index, URL, title, tags, description
