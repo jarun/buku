@@ -6,11 +6,9 @@ import logging
 from flask import flash
 from flask_admin.babel import gettext
 from flask_admin.model import BaseModelView
-from flask_admin import expose
 from flask_wtf import FlaskForm
-from jinja2 import Markup, escape
+from jinja2 import Markup
 import wtforms
-from buku import parse_tags
 
 try:
     from . import forms
@@ -143,9 +141,14 @@ class BookmarkModelView(BaseModelView):
             original_tags = model.tags
             form.populate_obj(model)
             self._on_model_change(form, model, False)
-            self.bukudb.delete_tag_at_index(model.id, parse_tags(original_tags))
+            self.bukudb.delete_tag_at_index(model.id, original_tags)
+            tags_in = model.tags
+            if not tags_in.startswith(','):
+                tags_in = ',{}'.format(tags_in)
+            if not tags_in.endswith(','):
+                tags_in = '{},'.format(tags_in)
             res = self.bukudb.update_rec(
-                model.id, url=model.url, title_in=model.title, tags_in=parse_tags(model.tags),
+                model.id, url=model.url, title_in=model.title, tags_in=tags_in,
                 desc=model.description)
         except Exception as ex:
             if not self.handle_view_exception(ex):
