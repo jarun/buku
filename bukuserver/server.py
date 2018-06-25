@@ -399,7 +399,7 @@ def search_bookmarks():
             res = jsonify(result)
         else:
             pagination_total = len(result['bookmarks'])
-            bms = list(chunks(result['bookmarks'], per_page))
+            bms = list(views.chunks(result['bookmarks'], per_page))
             try:
                 result['bookmarks'] = bms[page-1]
             except IndexError as err:
