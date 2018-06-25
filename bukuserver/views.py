@@ -105,7 +105,6 @@ class BookmarkModelView(BaseModelView):
             bookmarks = list(chunks(all_bookmarks, page_size))[page]
         data = []
         for bookmark in bookmarks:
-            #  data.append(convert_bookmark_dict_to_namedtuple(bookmark))
             bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
             for field in list(BookmarkField):
                 if field == BookmarkField.TAGS:
@@ -122,7 +121,6 @@ class BookmarkModelView(BaseModelView):
 
     def get_one(self, id):
         bookmark = self.model.bukudb.get_rec_by_id(id)
-        #  res = convert_bookmark_dict_to_namedtuple(bookmark)
         bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
         for field in list(BookmarkField):
             if field == BookmarkField.TAGS:
@@ -204,20 +202,6 @@ class TagModelView(BaseModelView):
         tags = self.bukudb.get_tag_all()[1]
         tag_nt = namedtuple('Tag', ['name', 'usage_count'])
         return tag_nt(name=id, usage_count=tags[id])
-
-
-def convert_bookmark_dict_to_namedtuple(bookmark_dict):
-    bookmark = bookmark_dict
-    keys = [x.name.lower() for x in BookmarkField]
-    Bm = namedtuple('Bookmark', keys)
-    result_bookmark = {}
-    for field in list(BookmarkField):
-        if field == BookmarkField.TAGS:
-            result_bookmark[field.name.lower()] = list(
-                [f for f in bookmark[field.value].split(',') if f])
-        else:
-            result_bookmark[field.name.lower()] = bookmark[field.value]
-    return Bm(**result_bookmark)
 
 
 def chunks(l, n):
