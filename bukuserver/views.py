@@ -206,8 +206,7 @@ class TagModelView(BaseModelView):
         res = None
         try:
             self.on_model_delete(model)
-            # TODO: avoid read_in function execution
-            res = self.bukudb.delete_tag_at_index(0, model.name)
+            res = self.bukudb.delete_tag_at_index(0, model.name, chatty=False)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 flash(gettext('Failed to delete record. %(error)s', error=str(ex)), 'error')
