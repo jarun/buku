@@ -5,18 +5,13 @@ import os
 import sys
 from collections import Counter
 from urllib.parse import urlparse
-from collections import namedtuple
-from enum import Enum
 
 from buku import BukuDb, __version__
 from flask.cli import FlaskGroup
 from flask_admin import Admin
-from flask_admin.model import BaseModelView
 from flask_api import status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
-from flask_wtf import FlaskForm
-from jinja2 import Markup as J2Markup
 from markupsafe import Markup
 import arrow
 import click
@@ -35,13 +30,11 @@ from flask import (
 )
 
 try:
-    from . import response, forms
+    from . import response, forms, views
 except ImportError:
-    from bukuserver import response, forms
+    from bukuserver import response, forms, views
 
 
-DEFAULT_PER_PAGE = 10
-DEFAULT_URL_RENDER_MODE = 'full'
 STATISTIC_DATA = None
 
 
@@ -79,111 +72,6 @@ def update_tag(tag):
     return res
 
 
-def chunks(l, n):
-    n = max(1, n)
-    return (l[i:i+n] for i in range(0, len(l), n))
-
-
-class CustomBukuDbModel:
-
-    def __init__(self, bukudb_inst, name):
-        self.bukudb = bukudb_inst
-        self.name = name
-
-    @property
-    def __name__(self):
-        return self.name
-
-
-class BookmarkField(Enum):
-    ID = 0
-    URL = 1
-    TITLE = 2
-    TAGS = 3
-    DESCRIPTION = 4
-
-
-class BookmarkModelView(BaseModelView):
-
-    def _list_entry(self, context, model, name):
-        netloc = urlparse(model.url).netloc
-        if netloc:
-            res = '<img src="http://www.google.com/s2/favicons?domain={}"/>'.format(netloc)
-        else:
-            res = ''
-        res += '<a href="{0.url}">{0.title}</a>'.format(model)
-        if self.url_render_mode == 'netloc':
-            res += ' ({})'.format(netloc)
-        res += '<br/>'
-        if self.url_render_mode is None or self.url_render_mode == 'full':
-            res += '<a href="{0.url}">{0.url}</a>'.format(model)
-            res += '<br/>'
-        for tag in model.tags:
-            res += '<a class="btn btn-default" href="#">{0}</a>'.format(tag)
-        res += '<br/>'
-        res += model.description
-        return J2Markup(res)
-
-    #  column_list = [x.name.lower() for x in BookmarkField] + ['Entry']
-    column_list = ['Entry']
-    #  column_exclude_list = ['description', ]
-    column_formatters = {'Entry': _list_entry,}
-    list_template = 'bukuserver/bookmark_list.html'
-    can_view_details = True
-
-    def __init__(self, *args, **kwargs):
-        self.bukudb = args[0]
-        custom_model = CustomBukuDbModel(args[0], 'bookmark')
-        args = [custom_model, ] + list(args[1:])
-        self.page_size = kwargs.pop('page_size', DEFAULT_PER_PAGE)
-        self.url_render_mode = kwargs.pop('url_render_mode', DEFAULT_URL_RENDER_MODE)
-        super().__init__(*args, **kwargs)
-
-    def scaffold_list_columns(self):
-        return [x.name.lower() for x in BookmarkField]
-
-    def scaffold_sortable_columns(self):
-        return {x:x for x in self.scaffold_list_columns()}
-
-    def scaffold_form(self):
-        return forms.BookmarkForm
-
-    def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
-        bukudb = self.bukudb
-        all_bookmarks = bukudb.get_rec_all()
-        if sort_field:
-            key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
-            all_bookmarks = sorted(all_bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
-        count = len(all_bookmarks)
-        data = []
-        bookmarks = list(chunks(all_bookmarks, page_size))[page]
-        for bookmark in bookmarks:
-            data.append(convert_bookmark_dict_to_namedtuple(bookmark))
-        return count, data
-
-    def get_pk_value(self, model):
-        return model.id
-
-    def get_one(self, id):
-        bookmark = self.model.bukudb.get_rec_by_id(id)
-        res = convert_bookmark_dict_to_namedtuple(bookmark)
-        return res
-
-
-def convert_bookmark_dict_to_namedtuple(bookmark_dict):
-    bookmark = bookmark_dict
-    keys = [x.name.lower() for x in BookmarkField]
-    Bm = namedtuple('Bookmark', keys)
-    result_bookmark = {}
-    for field in list(BookmarkField):
-        if field == BookmarkField.TAGS:
-            result_bookmark[field.name.lower()] = list(
-                [f for f in bookmark[field.value].split(',') if f])
-        else:
-            result_bookmark[field.name.lower()] = bookmark[field.value]
-    return Bm(**result_bookmark)
-
-
 def bookmarks():
     """Bookmarks."""
     res = None
@@ -193,7 +81,7 @@ def bookmarks():
         get_per_page_parameter(),
         type=int,
         default=int(
-            current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
+            current_app.config.get('BUKUSERVER_PER_PAGE', views.DEFAULT_PER_PAGE))
     )
     url_render_mode = current_app.config['BUKUSERVER_URL_RENDER_MODE']
     create_bookmarks_form = forms.BookmarkForm()
@@ -224,7 +112,7 @@ def bookmarks():
             current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks'])))
             current_app.logger.debug('per page:{}'.format(per_page))
             pagination_total = len(result['bookmarks'])
-            bms = list(chunks(result['bookmarks'], per_page))
+            bms = list(views.chunks(result['bookmarks'], per_page))
             try:
                 result['bookmarks'] = bms[page-1]
             except IndexError as err:
@@ -491,7 +379,7 @@ def search_bookmarks():
         get_per_page_parameter(),
         type=int,
         default=int(
-            current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
+            current_app.config.get('BUKUSERVER_PER_PAGE', views.DEFAULT_PER_PAGE))
     )
 
     res = None
@@ -629,12 +517,12 @@ def view_statistic():
 def create_app(config_filename=None):
     """create app."""
     app = Flask(__name__)
-    per_page = int(os.getenv('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
-    per_page = per_page if per_page > 0 else DEFAULT_PER_PAGE
+    per_page = int(os.getenv('BUKUSERVER_PER_PAGE', views.DEFAULT_PER_PAGE))
+    per_page = per_page if per_page > 0 else views.DEFAULT_PER_PAGE
     app.config['BUKUSERVER_PER_PAGE'] = per_page
-    url_render_mode = os.getenv('BUKUSERVER_URL_RENDER_MODE', DEFAULT_URL_RENDER_MODE)
+    url_render_mode = os.getenv('BUKUSERVER_URL_RENDER_MODE', views.DEFAULT_URL_RENDER_MODE)
     if url_render_mode not in ('full', 'netloc'):
-        url_render_mode = DEFAULT_URL_RENDER_MODE
+        url_render_mode = views.DEFAULT_URL_RENDER_MODE
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
     bukudb = BukuDb()
@@ -674,7 +562,7 @@ def create_app(config_filename=None):
         'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
     app.add_url_rule('/statistic', 'statistic', view_statistic, methods=['GET', 'POST'])
 
-    admin.add_view(BookmarkModelView(bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
+    admin.add_view(views.BookmarkModelView(bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
     return app
 
 
