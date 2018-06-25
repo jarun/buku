@@ -218,6 +218,22 @@ class TagModelView(BaseModelView):
             self.after_model_delete(model)
         return res
 
+    def update_model(self, form, model):
+        res = None
+        try:
+            original_name = model.name
+            form.populate_obj(model)
+            self._on_model_change(form, model, False)
+            res = self.bukudb.replace_tag(original_name, [model.name])
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash(gettext('Failed to update record. %(error)s', error=str(ex)), 'error')
+                log.exception('Failed to update record.')
+            return False
+        else:
+            self.after_model_change(form, model, False)
+        return res
+
 
 def chunks(l, n):
     n = max(1, n)
