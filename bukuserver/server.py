@@ -5,12 +5,17 @@ import os
 import sys
 from collections import Counter
 from urllib.parse import urlparse
+from collections import namedtuple
+from enum import Enum
 
 from buku import BukuDb, __version__
 from flask.cli import FlaskGroup
+from flask_admin import Admin, expose
+from flask_admin.model import BaseModelView
 from flask_api import status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
+from flask_wtf import FlaskForm
 from markupsafe import Markup
 import arrow
 import click
@@ -76,6 +81,76 @@ def update_tag(tag):
 def chunks(l, n):
     n = max(1, n)
     return (l[i:i+n] for i in range(0, len(l), n))
+
+
+class CustomBukuDbModel:
+
+    def __init__(self, bukudb_inst, name):
+        self.bukudb = bukudb_inst
+        self.name = name
+
+    @property
+    def __name__(self):
+        return self.name
+
+
+class BookmarkField(Enum):
+    ID = 0
+    URL = 1
+    TITLE = 2
+    TAGS = 3
+    DESCRIPTION = 4
+
+
+class BookmarkModelView(BaseModelView):
+
+    #  column_list = [x.name.lower() for x in BookmarkField] + ['Entry']
+    #  column_list = ['Entry']
+    #  column_exclude_list = ['description', ]
+    list_template = 'bukuserver/bookmark_list.html'
+
+    def __init__(self, *args, **kwargs):
+        self.bukudb = args[0]
+        custom_model = CustomBukuDbModel(args[0], 'bookmark')
+        args = [custom_model, ] + list(args[1:])
+        self.page_size = kwargs.pop('page_size', DEFAULT_PER_PAGE)
+        super().__init__(*args, **kwargs)
+
+    def scaffold_list_columns(self):
+        return [x.name.lower() for x in BookmarkField]
+
+    def scaffold_sortable_columns(self):
+        return {x:x for x in self.scaffold_list_columns()}
+
+    def scaffold_form(self):
+        class CustomForm(FlaskForm):
+            pass
+
+        return CustomForm
+
+    def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
+        bukudb = self.bukudb
+        all_bookmarks = bukudb.get_rec_all()
+        if sort_field:
+            key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
+            all_bookmarks = sorted(all_bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
+        count = len(all_bookmarks)
+        data = []
+        bookmarks = list(chunks(all_bookmarks, page_size))[page]
+        Bm = namedtuple('Bookmark', self.scaffold_list_columns())
+        for bookmark in bookmarks:
+            result_bookmark = {}
+            for field in list(BookmarkField):
+                if field == BookmarkField.TAGS:
+                    result_bookmark[field.name.lower()] = list(
+                        [f for f in bookmark[field.value].split(',') if f])
+                else:
+                    result_bookmark[field.name.lower()] = bookmark[field.value]
+            data.append(Bm(**result_bookmark))
+        return count, data
+
+    def get_pk_value(self, model):
+        return model.id
 
 
 def bookmarks():
@@ -543,6 +618,7 @@ def create_app(config_filename=None):
     app.jinja_env.filters['netloc'] = lambda x: urlparse(x).netloc  # pylint: disable=no-member
 
     Bootstrap(app)
+    admin = Admin(app, name='Buku Server', template_mode='bootstrap3')
     # routing
     #  api
     app.add_url_rule('/api/tags', 'get_tags', get_tags, methods=['GET'])
@@ -566,6 +642,8 @@ def create_app(config_filename=None):
     app.add_url_rule('/', 'index', lambda: render_template(
         'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
     app.add_url_rule('/statistic', 'statistic', view_statistic, methods=['GET', 'POST'])
+
+    admin.add_view(BookmarkModelView(bukudb, 'Bookmarks', page_size=per_page))
     return app
 
 
