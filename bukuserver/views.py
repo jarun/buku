@@ -1,10 +1,11 @@
-from enum import Enum
 from collections import namedtuple
+from enum import Enum
 from urllib.parse import urlparse
 
 from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
 from jinja2 import Markup
+import wtforms
 
 try:
     from . import forms
@@ -127,7 +128,7 @@ class TagModelView(BaseModelView):
 
     def scaffold_form(self):
         class CustomForm(FlaskForm):
-            pass
+            name = wtforms.StringField(validators=[wtforms.validators.required()])
 
         return CustomForm
 
@@ -150,6 +151,11 @@ class TagModelView(BaseModelView):
 
     def get_pk_value(self, model):
         return model.name
+
+    def get_one(self, id):
+        tags = self.bukudb.get_tag_all()[1]
+        tag_nt = namedtuple('Tag', ['name', 'usage_count'])
+        return tag_nt(name=id, usage_count=tags[id])
 
 
 def convert_bookmark_dict_to_namedtuple(bookmark_dict):
