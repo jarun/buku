@@ -3,6 +3,7 @@ from collections import namedtuple
 from urllib.parse import urlparse
 
 from flask_admin.model import BaseModelView
+from flask_wtf import FlaskForm
 from jinja2 import Markup
 
 try:
@@ -99,6 +100,48 @@ class BookmarkModelView(BaseModelView):
         bookmark = self.model.bukudb.get_rec_by_id(id)
         res = convert_bookmark_dict_to_namedtuple(bookmark)
         return res
+
+
+class TagModelView(BaseModelView):
+
+    def __init__(self, *args, **kwargs):
+        self.bukudb = args[0]
+        custom_model = CustomBukuDbModel(args[0], 'tag')
+        args = [custom_model, ] + list(args[1:])
+        self.page_size = kwargs.pop('page_size', DEFAULT_PER_PAGE)
+        super().__init__(*args, **kwargs)
+
+    def scaffold_list_columns(self):
+        return ['name', 'usage_count']
+
+    def scaffold_sortable_columns(self):
+        return {x:x for x in self.scaffold_list_columns()}
+
+    def scaffold_form(self):
+        class CustomForm(FlaskForm):
+            pass
+
+        return CustomForm
+
+    def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
+        bukudb = self.bukudb
+        tags = bukudb.get_tag_all()[1]
+        tags = [(x, y) for x, y in tags.items()]
+        if sort_field == 'usage_count':
+            tags = sorted(tags, key=lambda x: x[1], reverse=sort_desc)
+        elif sort_field == 'name':
+            tags = sorted(tags, key=lambda x: x[0], reverse=sort_desc)
+        count = len(tags)
+        tag_nt = namedtuple('Tag', ['name', 'usage_count'])
+        if page_size:
+            tags = list(chunks(tags, page_size))[page]
+        data = []
+        for name, usage_count in tags:
+            data.append(tag_nt(name=name, usage_count=usage_count))
+        return count, data
+
+    def get_pk_value(self, model):
+        return model.name
 
 
 def convert_bookmark_dict_to_namedtuple(bookmark_dict):

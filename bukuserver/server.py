@@ -562,7 +562,10 @@ def create_app(config_filename=None):
         'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
     app.add_url_rule('/statistic', 'statistic', view_statistic, methods=['GET', 'POST'])
 
-    admin.add_view(views.BookmarkModelView(bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
+    admin.add_view(views.BookmarkModelView(
+        bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
+    admin.add_view(views.TagModelView(
+        bukudb, 'Tags', page_size=per_page))
     return app
 
 
