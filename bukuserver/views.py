@@ -202,6 +202,21 @@ class TagModelView(BaseModelView):
         tag_sns = SimpleNamespace(name=id, usage_count=tags[id])
         return tag_sns
 
+    def delete_model(self, model):
+        res = None
+        try:
+            self.on_model_delete(model)
+            # TODO: avoid read_in function execution
+            res = self.bukudb.delete_tag_at_index(0, model.name)
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash(gettext('Failed to delete record. %(error)s', error=str(ex)), 'error')
+                log.exception('Failed to delete record.')
+            return False
+        else:
+            self.after_model_delete(model)
+        return res
+
 
 def chunks(l, n):
     n = max(1, n)
