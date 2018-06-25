@@ -10,12 +10,13 @@ from enum import Enum
 
 from buku import BukuDb, __version__
 from flask.cli import FlaskGroup
-from flask_admin import Admin, expose
+from flask_admin import Admin
 from flask_admin.model import BaseModelView
 from flask_api import status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
 from flask_wtf import FlaskForm
+from jinja2 import Markup as J2Markup
 from markupsafe import Markup
 import arrow
 import click
@@ -104,9 +105,26 @@ class BookmarkField(Enum):
 
 class BookmarkModelView(BaseModelView):
 
+    def _list_entry(self, context, model, name):
+        netloc = urlparse(model.url).netloc
+        if netloc:
+            res = '<img src="http://www.google.com/s2/favicons?domain={}"/>'.format(netloc)
+        else:
+            res = ''
+        res += '<a href="{0.url}">{0.title}</a>'.format(model)
+        res += '<br/>'
+        res += '<a href="{0.url}">{0.url}</a>'.format(model)
+        res += '<br/>'
+        for tag in model.tags:
+            res += '<a class="btn btn-default" href="#">{0}</a>'.format(tag)
+        res += '<br/>'
+        res += model.description
+        return J2Markup(res)
+
     #  column_list = [x.name.lower() for x in BookmarkField] + ['Entry']
-    #  column_list = ['Entry']
+    column_list = ['Entry']
     #  column_exclude_list = ['description', ]
+    column_formatters = {'Entry': _list_entry,}
     list_template = 'bukuserver/bookmark_list.html'
 
     def __init__(self, *args, **kwargs):
