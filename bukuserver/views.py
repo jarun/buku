@@ -81,7 +81,7 @@ class BookmarkModelView(BaseModelView):
         cls = forms.BookmarkForm
         tags = self.bukudb.get_tag_all()[0]
         tags = zip(tags, tags)
-        cls.tags.kwargs['choices'].extend(tags)
+        cls.tags.kwargs.setdefault('choices', []).extend(tags)
         return cls
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
