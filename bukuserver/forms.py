@@ -11,7 +11,7 @@ class SearchBookmarksForm(FlaskForm):
     regex = wtforms.BooleanField('Regex')
 
 
-class CreateBookmarksForm(FlaskForm):
+class BookmarkForm(FlaskForm):
     url = wtforms.StringField(
         validators=[wtforms.validators.required(), wtforms.validators.URL(require_tld=False)])
     title = wtforms.StringField()

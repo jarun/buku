@@ -145,7 +145,7 @@ class BookmarkModelView(BaseModelView):
         return {x:x for x in self.scaffold_list_columns()}
 
     def scaffold_form(self):
-        return forms.CreateBookmarksForm
+        return forms.BookmarkForm
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
@@ -195,7 +195,7 @@ def bookmarks():
             current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
     )
     url_render_mode = current_app.config['BUKUSERVER_URL_RENDER_MODE']
-    create_bookmarks_form = forms.CreateBookmarksForm()
+    create_bookmarks_form = forms.BookmarkForm()
     if request.method == 'GET':
         all_bookmarks = bukudb.get_rec_all()
         result = {
@@ -298,7 +298,7 @@ def bookmark_api(id):
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                {'ContentType': 'application/json'}
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
-    bookmark_form = forms.CreateBookmarksForm()
+    bookmark_form = forms.BookmarkForm()
     is_html_post_request = request.method == 'POST' and not request.path.startswith('/api/')
     if request.method == 'GET':
         bookmark = bukudb.get_rec_by_id(id)
@@ -525,7 +525,7 @@ def search_bookmarks():
                 'bukuserver/bookmarks.html',
                 result=result, pagination=pagination,
                 search_bookmarks_form=search_bookmarks_form,
-                create_bookmarks_form=forms.CreateBookmarksForm(),
+                create_bookmarks_form=forms.BookmarkForm(),
             )
     elif request.method == 'DELETE':
         if found_bookmarks is not None:
