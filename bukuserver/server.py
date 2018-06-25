@@ -112,8 +112,11 @@ class BookmarkModelView(BaseModelView):
         else:
             res = ''
         res += '<a href="{0.url}">{0.title}</a>'.format(model)
+        if self.url_render_mode == 'netloc':
+            res += ' ({})'.format(netloc)
         res += '<br/>'
-        res += '<a href="{0.url}">{0.url}</a>'.format(model)
+        if self.url_render_mode is None or self.url_render_mode == 'full':
+            res += '<a href="{0.url}">{0.url}</a>'.format(model)
         res += '<br/>'
         for tag in model.tags:
             res += '<a class="btn btn-default" href="#">{0}</a>'.format(tag)
@@ -132,6 +135,7 @@ class BookmarkModelView(BaseModelView):
         custom_model = CustomBukuDbModel(args[0], 'bookmark')
         args = [custom_model, ] + list(args[1:])
         self.page_size = kwargs.pop('page_size', DEFAULT_PER_PAGE)
+        self.url_render_mode = kwargs.pop('url_render_mode', DEFAULT_URL_RENDER_MODE)
         super().__init__(*args, **kwargs)
 
     def scaffold_list_columns(self):
@@ -661,7 +665,7 @@ def create_app(config_filename=None):
         'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
     app.add_url_rule('/statistic', 'statistic', view_statistic, methods=['GET', 'POST'])
 
-    admin.add_view(BookmarkModelView(bukudb, 'Bookmarks', page_size=per_page))
+    admin.add_view(BookmarkModelView(bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
     return app
 
 
