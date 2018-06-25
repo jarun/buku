@@ -11,9 +11,16 @@ class SearchBookmarksForm(FlaskForm):
     regex = wtforms.BooleanField('Regex')
 
 
+class TagsField(wtforms.StringField):
+
+    def __call__(self, **kwargs):
+        #  self.render_kw = {'multiple': 'multiple', 'class': 'select2-multiple'}
+        return super().__call__(**kwargs)
+
+
 class BookmarkForm(FlaskForm):
     url = wtforms.StringField(
         validators=[wtforms.validators.required(), wtforms.validators.URL(require_tld=False)])
     title = wtforms.StringField()
-    tags = wtforms.SelectMultipleField()
+    tags = TagsField()
     description = wtforms.TextAreaField()

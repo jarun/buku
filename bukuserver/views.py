@@ -6,6 +6,7 @@ import logging
 from flask import flash
 from flask_admin.babel import gettext
 from flask_admin.model import BaseModelView
+from flask_admin import expose
 from flask_wtf import FlaskForm
 from jinja2 import Markup, escape
 import wtforms
@@ -58,8 +59,9 @@ class BookmarkModelView(BaseModelView):
         if self.url_render_mode is None or self.url_render_mode == 'full':
             res += '<a href="{0.url}">{0.url}</a>'.format(model)
             res += '<br/>'
-        for tag in model.tags:
-            res += '<a class="btn btn-default" href="#">{0}</a>'.format(tag)
+        for tag in model.tags.split(','):
+            if tag:
+                res += '<a class="btn btn-default" href="#">{0}</a>'.format(tag)
         description = model.description
         if description:
             res += '<br/>'
@@ -70,7 +72,8 @@ class BookmarkModelView(BaseModelView):
     column_list = ['Entry']
     #  column_exclude_list = ['description', ]
     column_formatters = {'Entry': _list_entry,}
-    list_template = 'bukuserver/bookmark_list.html'
+    create_template = 'bukuserver/bookmark_create.html'
+    edit_template = 'bukuserver/bookmark_edit.html'
     can_view_details = True
 
     def __init__(self, *args, **kwargs):
@@ -91,7 +94,7 @@ class BookmarkModelView(BaseModelView):
         cls = forms.BookmarkForm
         tags = self.bukudb.get_tag_all()[0]
         tags = zip(tags, tags)
-        cls.tags.kwargs.setdefault('choices', []).extend(tags)
+        #  cls.tags.kwargs.setdefault('choices', []).extend(tags)
         return cls
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
@@ -108,9 +111,12 @@ class BookmarkModelView(BaseModelView):
             bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
             for field in list(BookmarkField):
                 if field == BookmarkField.TAGS:
-                    setattr(
-                        bm_sns, field.name.lower(),
-                        list(set(x for x in bookmark[field.value].split(',') if x)))
+                    value = bookmark[field.value]
+                    if value.startswith(','):
+                        value = value[1:]
+                    if value.endswith(','):
+                        value = value[:-1]
+                    setattr(bm_sns, field.name.lower(), value)
                 else:
                     setattr(bm_sns, field.name.lower(), bookmark[field.value])
             data.append(bm_sns)
@@ -123,10 +129,13 @@ class BookmarkModelView(BaseModelView):
         bookmark = self.model.bukudb.get_rec_by_id(id)
         bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
         for field in list(BookmarkField):
-            if field == BookmarkField.TAGS:
-                setattr(
-                    bm_sns, field.name.lower(),
-                    list(set(x for x in bookmark[field.value].split(',') if x)))
+            if field == BookmarkField.TAGS and bookmark[field.value].startswith(','):
+                value = bookmark[field.value]
+                if value.startswith(','):
+                    value = value[1:]
+                if value.endswith(','):
+                    value = value[:-1]
+                setattr(bm_sns, field.name.lower(), value)
             else:
                 setattr(bm_sns, field.name.lower(), bookmark[field.value])
         return bm_sns
@@ -148,6 +157,11 @@ class BookmarkModelView(BaseModelView):
             return False
         else:
             self.after_model_change(form, model, False)
+        return res
+
+    @expose('/edit/', methods=('GET', 'POST'))
+    def edit_view(self):
+        res = super().edit_view()
         return res
 
 
@@ -228,6 +242,11 @@ class TagModelView(BaseModelView):
             return False
         else:
             self.after_model_change(form, model, False)
+        return res
+
+
+    def _process_ajax_references(self):
+        res = super()._process_ajax_references()
         return res
 
 
