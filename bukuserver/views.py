@@ -88,7 +88,8 @@ class BookmarkModelView(BaseModelView):
             all_bookmarks = sorted(all_bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
         count = len(all_bookmarks)
         data = []
-        bookmarks = list(chunks(all_bookmarks, page_size))[page]
+        if page_size:
+            bookmarks = list(chunks(all_bookmarks, page_size))[page]
         for bookmark in bookmarks:
             data.append(convert_bookmark_dict_to_namedtuple(bookmark))
         return count, data
