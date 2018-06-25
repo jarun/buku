@@ -117,7 +117,7 @@ class BookmarkModelView(BaseModelView):
         res += '<br/>'
         if self.url_render_mode is None or self.url_render_mode == 'full':
             res += '<a href="{0.url}">{0.url}</a>'.format(model)
-        res += '<br/>'
+            res += '<br/>'
         for tag in model.tags:
             res += '<a class="btn btn-default" href="#">{0}</a>'.format(tag)
         res += '<br/>'
@@ -159,20 +159,31 @@ class BookmarkModelView(BaseModelView):
         count = len(all_bookmarks)
         data = []
         bookmarks = list(chunks(all_bookmarks, page_size))[page]
-        Bm = namedtuple('Bookmark', self.scaffold_list_columns())
         for bookmark in bookmarks:
-            result_bookmark = {}
-            for field in list(BookmarkField):
-                if field == BookmarkField.TAGS:
-                    result_bookmark[field.name.lower()] = list(
-                        [f for f in bookmark[field.value].split(',') if f])
-                else:
-                    result_bookmark[field.name.lower()] = bookmark[field.value]
-            data.append(Bm(**result_bookmark))
+            data.append(convert_bookmark_dict_to_namedtuple(bookmark))
         return count, data
 
     def get_pk_value(self, model):
         return model.id
+
+    def get_one(self, id):
+        bookmark = self.model.bukudb.get_rec_by_id(id)
+        res = convert_bookmark_dict_to_namedtuple(bookmark)
+        return res
+
+
+def convert_bookmark_dict_to_namedtuple(bookmark_dict):
+    bookmark = bookmark_dict
+    keys = [x.name.lower() for x in BookmarkField]
+    Bm = namedtuple('Bookmark', keys)
+    result_bookmark = {}
+    for field in list(BookmarkField):
+        if field == BookmarkField.TAGS:
+            result_bookmark[field.name.lower()] = list(
+                [f for f in bookmark[field.value].split(',') if f])
+        else:
+            result_bookmark[field.name.lower()] = bookmark[field.value]
+    return Bm(**result_bookmark)
 
 
 def bookmarks():
