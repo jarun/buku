@@ -92,9 +92,6 @@ class BookmarkModelView(BaseModelView):
 
     def scaffold_form(self):
         cls = forms.BookmarkForm
-        tags = self.bukudb.get_tag_all()[0]
-        tags = zip(tags, tags)
-        #  cls.tags.kwargs.setdefault('choices', []).extend(tags)
         return cls
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
@@ -157,11 +154,6 @@ class BookmarkModelView(BaseModelView):
             return False
         else:
             self.after_model_change(form, model, False)
-        return res
-
-    @expose('/edit/', methods=('GET', 'POST'))
-    def edit_view(self):
-        res = super().edit_view()
         return res
 
 
@@ -242,11 +234,6 @@ class TagModelView(BaseModelView):
             return False
         else:
             self.after_model_change(form, model, False)
-        return res
-
-
-    def _process_ajax_references(self):
-        res = super()._process_ajax_references()
         return res
 
 
