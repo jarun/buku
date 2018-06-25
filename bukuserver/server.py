@@ -145,10 +145,7 @@ class BookmarkModelView(BaseModelView):
         return {x:x for x in self.scaffold_list_columns()}
 
     def scaffold_form(self):
-        class CustomForm(FlaskForm):
-            pass
-
-        return CustomForm
+        return forms.CreateBookmarksForm
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
