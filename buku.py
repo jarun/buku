@@ -697,7 +697,7 @@ class BukuDb:
 
         return True
 
-    def delete_tag_at_index(self, index, tags_in, delay_commit=False):
+    def delete_tag_at_index(self, index, tags_in, delay_commit=False, chatty=True):
         """Delete tags from bookmark tagset at index.
 
         Parameters
@@ -709,6 +709,8 @@ class BukuDb:
         delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
+        chatty: bool, optional
+            Skip confirmation when set to False.
 
         Returns
         -------
@@ -719,9 +721,10 @@ class BukuDb:
         tags_to_delete = tags_in.strip(DELIM).split(DELIM)
 
         if index == 0:
-            resp = read_in('Delete the tag(s) from ALL bookmarks? (y/n): ')
-            if resp != 'y':
-                return False
+            if chatty:
+                resp = read_in('Delete the tag(s) from ALL bookmarks? (y/n): ')
+                if resp != 'y':
+                    return False
 
             count = 0
             match = "'%' || ? || '%'"
