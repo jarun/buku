@@ -1,10 +1,14 @@
 from collections import namedtuple
 from enum import Enum
 from urllib.parse import urlparse
+import logging
+from types import SimpleNamespace
 
+from flask import flash
+from flask_admin.babel import gettext
 from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
-from jinja2 import Markup
+from jinja2 import Markup, escape
 import wtforms
 
 try:
@@ -15,6 +19,7 @@ except ImportError:
 
 DEFAULT_URL_RENDER_MODE = 'full'
 DEFAULT_PER_PAGE = 10
+log = logging.getLogger("bukuserver.views")
 
 
 class CustomBukuDbModel:
@@ -41,7 +46,9 @@ class BookmarkModelView(BaseModelView):
     def _list_entry(self, context, model, name):
         netloc = urlparse(model.url).netloc
         if netloc:
-            res = '<img src="http://www.google.com/s2/favicons?domain={}"/>'.format(netloc)
+            netloc_tmpl = '<img src="{}{}"/> '
+            res = netloc_tmpl.format(
+                'http://www.google.com/s2/favicons?domain=', netloc)
         else:
             res = ''
         res += '<a href="{0.url}">{0.title}</a>'.format(model)
@@ -53,8 +60,10 @@ class BookmarkModelView(BaseModelView):
             res += '<br/>'
         for tag in model.tags:
             res += '<a class="btn btn-default" href="#">{0}</a>'.format(tag)
-        res += '<br/>'
-        res += model.description
+        description = model.description
+        if description:
+            res += '<br/>'
+            res += description.replace('\n', '<br/>')
         return Markup(res)
 
     #  column_list = [x.name.lower() for x in BookmarkField] + ['Entry']
@@ -92,11 +101,20 @@ class BookmarkModelView(BaseModelView):
             key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
             all_bookmarks = sorted(all_bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
         count = len(all_bookmarks)
-        data = []
         if page_size:
             bookmarks = list(chunks(all_bookmarks, page_size))[page]
+        data = []
         for bookmark in bookmarks:
-            data.append(convert_bookmark_dict_to_namedtuple(bookmark))
+            #  data.append(convert_bookmark_dict_to_namedtuple(bookmark))
+            bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+            for field in list(BookmarkField):
+                if field == BookmarkField.TAGS:
+                    setattr(
+                        bm_sns, field.name.lower(),
+                        list(set(x for x in bookmark[field.value].split(',') if x)))
+                else:
+                    setattr(bm_sns, field.name.lower(), bookmark[field.value])
+            data.append(bm_sns)
         return count, data
 
     def get_pk_value(self, model):
@@ -104,7 +122,37 @@ class BookmarkModelView(BaseModelView):
 
     def get_one(self, id):
         bookmark = self.model.bukudb.get_rec_by_id(id)
-        res = convert_bookmark_dict_to_namedtuple(bookmark)
+        #  res = convert_bookmark_dict_to_namedtuple(bookmark)
+        bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+        for field in list(BookmarkField):
+            if field == BookmarkField.TAGS:
+                setattr(
+                    bm_sns, field.name.lower(),
+                    list(set(x for x in bookmark[field.value].split(',') if x)))
+            else:
+                setattr(bm_sns, field.name.lower(), bookmark[field.value])
+        return bm_sns
+
+    def update_model(self, form, model):
+        res = False
+        try:
+            form.populate_obj(model)
+            self._on_model_change(form, model, False)
+            tags_in = ', '.join(model.tags)
+            if tags_in.startswith(','):
+                tags_in = ',{}'.format(tags_in)
+            if tags_in.endswith(','):
+                tags_in = '{},'.format(tags_in)
+            res = self.bukudb.update_rec(
+                model.id, url=model.url, title_in=model.title, tags_in=tags_in,
+                desc=model.description)
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash(gettext('Failed to update record. %(error)s', error=str(ex)), 'error')
+                log.exception('Failed to update record.')
+            return False
+        else:
+            self.after_model_change(form, model, False)
         return res
 
 
