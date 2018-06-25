@@ -15,5 +15,5 @@ class BookmarkForm(FlaskForm):
     url = wtforms.StringField(
         validators=[wtforms.validators.required(), wtforms.validators.URL(require_tld=False)])
     title = wtforms.StringField()
-    tags = wtforms.StringField()
+    tags = wtforms.SelectMultipleField()
     description = wtforms.TextAreaField()

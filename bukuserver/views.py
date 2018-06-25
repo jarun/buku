@@ -78,7 +78,11 @@ class BookmarkModelView(BaseModelView):
         return {x:x for x in self.scaffold_list_columns()}
 
     def scaffold_form(self):
-        return forms.BookmarkForm
+        cls = forms.BookmarkForm
+        tags = self.bukudb.get_tag_all()[0]
+        tags = zip(tags, tags)
+        cls.tags.kwargs['choices'].extend(tags)
+        return cls
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
