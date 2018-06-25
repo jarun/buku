@@ -9,6 +9,7 @@ from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
 from jinja2 import Markup, escape
 import wtforms
+from buku import parse_tags
 
 try:
     from . import forms
@@ -136,14 +137,9 @@ class BookmarkModelView(BaseModelView):
             original_tags = model.tags
             form.populate_obj(model)
             self._on_model_change(form, model, False)
-            tags_in = ', '.join(model.tags)
-            if tags_in.startswith(','):
-                tags_in = ',{}'.format(tags_in)
-            if tags_in.endswith(','):
-                tags_in = '{},'.format(tags_in)
-            self.bukudb.delete_tag_at_index(model.id, ', '.join(original_tags))
+            self.bukudb.delete_tag_at_index(model.id, parse_tags(original_tags))
             res = self.bukudb.update_rec(
-                model.id, url=model.url, title_in=model.title, tags_in=tags_in,
+                model.id, url=model.url, title_in=model.title, tags_in=parse_tags(model.tags),
                 desc=model.description)
         except Exception as ex:
             if not self.handle_view_exception(ex):
