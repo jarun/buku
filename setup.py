@@ -19,6 +19,8 @@ tests_require = [
     'attrs>=17.4.0',
     'beautifulsoup4>=4.6.0',
     'flake8>=3.4.1',
+    'Flask-Admin==1.5.1',
+    'Flask-WTF==0.14.2',
     'hypothesis>=3.7.0',
     'py>=1.5.0',
     'pylint>=1.7.2',
