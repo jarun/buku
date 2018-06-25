@@ -129,6 +129,7 @@ class BookmarkModelView(BaseModelView):
     #  column_exclude_list = ['description', ]
     column_formatters = {'Entry': _list_entry,}
     list_template = 'bukuserver/bookmark_list.html'
+    can_view_details = True
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
