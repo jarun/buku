@@ -1,8 +1,7 @@
-from collections import namedtuple
 from enum import Enum
+from types import SimpleNamespace
 from urllib.parse import urlparse
 import logging
-from types import SimpleNamespace
 
 from flask import flash
 from flask_admin.babel import gettext
@@ -157,7 +156,6 @@ class BookmarkModelView(BaseModelView):
 class TagModelView(BaseModelView):
 
     can_create = False
-    can_delete = False
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
@@ -187,12 +185,13 @@ class TagModelView(BaseModelView):
         elif sort_field == 'name':
             tags = sorted(tags, key=lambda x: x[0], reverse=sort_desc)
         count = len(tags)
-        tag_nt = namedtuple('Tag', ['name', 'usage_count'])
         if page_size:
             tags = list(chunks(tags, page_size))[page]
         data = []
         for name, usage_count in tags:
-            data.append(tag_nt(name=name, usage_count=usage_count))
+            tag_sns = SimpleNamespace(name=None, usage_count=None)
+            tag_sns.name, tag_sns.usage_count = name, usage_count
+            data.append(tag_sns)
         return count, data
 
     def get_pk_value(self, model):
@@ -200,8 +199,8 @@ class TagModelView(BaseModelView):
 
     def get_one(self, id):
         tags = self.bukudb.get_tag_all()[1]
-        tag_nt = namedtuple('Tag', ['name', 'usage_count'])
-        return tag_nt(name=id, usage_count=tags[id])
+        tag_sns = SimpleNamespace(name=id, usage_count=tags[id])
+        return tag_sns
 
 
 def chunks(l, n):
