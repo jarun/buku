@@ -109,6 +109,9 @@ class BookmarkModelView(BaseModelView):
 
 class TagModelView(BaseModelView):
 
+    can_create = False
+    can_delete = False
+
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
         custom_model = CustomBukuDbModel(args[0], 'tag')
