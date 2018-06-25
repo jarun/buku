@@ -133,6 +133,7 @@ class BookmarkModelView(BaseModelView):
     def update_model(self, form, model):
         res = False
         try:
+            original_tags = model.tags
             form.populate_obj(model)
             self._on_model_change(form, model, False)
             tags_in = ', '.join(model.tags)
@@ -140,6 +141,7 @@ class BookmarkModelView(BaseModelView):
                 tags_in = ',{}'.format(tags_in)
             if tags_in.endswith(','):
                 tags_in = '{},'.format(tags_in)
+            self.bukudb.delete_tag_at_index(model.id, ', '.join(original_tags))
             res = self.bukudb.update_rec(
                 model.id, url=model.url, title_in=model.title, tags_in=tags_in,
                 desc=model.description)
