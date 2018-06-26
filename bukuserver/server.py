@@ -65,8 +65,7 @@ def tag_detail(tag):
         res = dict(name=tag, usage_count=tags[1][tag])
     elif request.method == 'PUT':
         res = None
-        # TODO: catch better tags input
-        new_tags = request.form.getlist('tags')
+        new_tags = request.data.get('tags').split(',')
         result_flag = bukudb.replace_tag(tag, new_tags)
         if result_flag:
             res = response.response_template['success'], status.HTTP_200_OK
