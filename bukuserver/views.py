@@ -187,6 +187,19 @@ class BookmarkModelView(BaseModelView):
             self.after_model_change(form, model, True)
         return model
 
+    def delete_model(self, model):
+        try:
+            self.on_model_delete(model)
+            res = self.bukudb.delete_rec(model.id)
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash(gettext('Failed to delete record. %(error)s', error=str(ex)), 'error')
+                log.exception('Failed to delete record.')
+            return False
+        else:
+            self.after_model_delete(model)
+        return res
+
 
 class TagModelView(BaseModelView):
 
