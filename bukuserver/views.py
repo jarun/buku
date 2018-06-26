@@ -1,5 +1,4 @@
 from collections import Counter
-from enum import Enum
 from types import SimpleNamespace
 from urllib.parse import urlparse
 import logging
@@ -13,8 +12,10 @@ import wtforms
 
 try:
     from . import forms, filters as bs_filters
+    from .filters import BookmarkField, FilterType
 except ImportError:
     from bukuserver import forms, filters as bs_filters
+    from bukuserver.filters import BookmarkField, FilterType
 
 
 DEFAULT_URL_RENDER_MODE = 'full'
@@ -31,14 +32,6 @@ class CustomBukuDbModel:  # pylint: disable=too-few-public-methods
     @property
     def __name__(self):
         return self.name
-
-
-class BookmarkField(Enum):
-    ID = 0
-    URL = 1
-    TITLE = 2
-    TAGS = 3
-    DESCRIPTION = 4
 
 
 class BookmarkModelView(BaseModelView):
@@ -70,13 +63,22 @@ class BookmarkModelView(BaseModelView):
     def _create_ajax_loader(self, name, options):
         pass
 
+    def _apply_filters(self, models, filters):
+        for idx, flt_name, value in filters:
+            flt = self._filters[idx]
+            clean_value = flt.clean(value)
+            models = list(flt.apply(models, clean_value))
+        return models
+
     #  column_list = [x.name.lower() for x in BookmarkField] + ['Entry']
     column_list = ['Entry']
+    column_filters = ['id']
     #  column_exclude_list = ['description', ]
     column_formatters = {'Entry': _list_entry,}
     create_template = 'bukuserver/bookmark_create.html'
     edit_template = 'bukuserver/bookmark_edit.html'
     can_view_details = True
+    details_modal = True
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
@@ -99,9 +101,27 @@ class BookmarkModelView(BaseModelView):
     def scaffold_list_form(self, widget=None, validators=None):
         pass
 
+    def scaffold_filters(self, name):
+        res = []
+        if name == BookmarkField.ID.name.lower():
+            res.extend([
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.GREATER),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.SMALLER),
+            ])
+        elif name in self.scaffold_list_columns():
+            pass
+        else:
+            return super().scaffold_filters(name)
+        return res
+
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
         all_bookmarks = bukudb.get_rec_all()
+        all_bookmarks = self._apply_filters(all_bookmarks, filters)
         if sort_field:
             key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
             all_bookmarks = sorted(all_bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
@@ -270,55 +290,25 @@ class TagModelView(BaseModelView):
     def scaffold_filters(self, name):
         res = []
 
-        def equal_func(query, value, index):
-            return filter(lambda x: x[index] == value, query)
-
-        def not_equal_func(query, value, index):
-            return filter(lambda x: x[index] == value, query)
-
-        def greater_func(query, value, index):
-            return filter(lambda x: x[index] > value, query)
-
-        def smaller_func(query, value, index):
-            return filter(lambda x: x[index] > value, query)
-
-        def in_list_func(query, value, index):
-            return filter(lambda x: x[index] in value, query)
-
-        def not_in_list_func(query, value, index):
-            return filter(lambda x: x[index] not in value, query)
-
         def top_most_common_func(query, value, index):
             counter = Counter(x[index] for x in query)
             most_common = counter.most_common(value)
             most_common_item = [x[0] for x in most_common]
             return filter(lambda x: x[index] in most_common_item, query)
 
-        def top_x_func(query, value, index):
-            items = sorted(set(x[index] for x in query), reverse=True)
-            top_x = items[:value]
-            log.debug(len(items))
-            return filter(lambda x: x[index] in top_x, query)
-
-        def bottom_x_func(query, value, index):
-            items = sorted(set(x[index] for x in query), reverse=False)
-            top_x = items[:value]
-            log.debug(len(items))
-            return filter(lambda x: x[index] in top_x, query)
-
         res.extend([
-            bs_filters.TagBaseFilter(name, 'equals', equal_func),
-            bs_filters.TagBaseFilter(name, 'not equal', not_equal_func),
-            bs_filters.TagBaseFilter(name, 'in list', in_list_func),
-            bs_filters.TagBaseFilter(name, 'not in list', not_in_list_func),
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.EQUAL),
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.IN_LIST),
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
         ])
         if name == 'usage_count':
             res.extend([
-                bs_filters.TagBaseFilter(name, 'greater than', greater_func),
-                bs_filters.TagBaseFilter(name, 'smaller than', smaller_func),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.GREATER),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.SMALLER),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.TOP_X),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.BOTTOM_X),
                 bs_filters.TagBaseFilter(name, 'top most common', top_most_common_func),
-                bs_filters.TagBaseFilter(name, 'top x', top_x_func),
-                bs_filters.TagBaseFilter(name, 'bottom x', bottom_x_func),
             ])
         elif name == 'name':
             pass
