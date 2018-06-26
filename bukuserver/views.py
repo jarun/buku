@@ -5,15 +5,15 @@ import logging
 
 from flask import flash
 from flask_admin.babel import gettext
-from flask_admin.model import BaseModelView
+from flask_admin.model import BaseModelView, filters as fam_filters
 from flask_wtf import FlaskForm
 from jinja2 import Markup
 import wtforms
 
 try:
-    from . import forms
+    from . import forms, filters as bs_filters
 except ImportError:
-    from bukuserver import forms
+    from bukuserver import forms, filters as bs_filters
 
 
 DEFAULT_URL_RENDER_MODE = 'full'
@@ -206,7 +206,15 @@ class TagModelView(BaseModelView):
     def _create_ajax_loader(self, name, options):
         pass
 
+    def _apply_filters(self, models, filters):
+        for idx, flt_name, value in filters:
+            flt = self._filters[idx]
+            clean_value = flt.clean(value)
+            models = list(flt.apply(models, clean_value))
+        return models
+
     can_create = False
+    column_filters = ['name', 'usage_count']
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
@@ -234,12 +242,14 @@ class TagModelView(BaseModelView):
         bukudb = self.bukudb
         tags = bukudb.get_tag_all()[1]
         tags = [(x, y) for x, y in tags.items()]
+        tags = self._apply_filters(tags, filters)
         if sort_field == 'usage_count':
             tags = sorted(tags, key=lambda x: x[1], reverse=sort_desc)
         elif sort_field == 'name':
             tags = sorted(tags, key=lambda x: x[0], reverse=sort_desc)
+        tags = list(tags)
         count = len(tags)
-        if page_size:
+        if page_size and tags:
             tags = list(chunks(tags, page_size))[page]
         data = []
         for name, usage_count in tags:
@@ -255,6 +265,22 @@ class TagModelView(BaseModelView):
         tags = self.bukudb.get_tag_all()[1]
         tag_sns = SimpleNamespace(name=id, usage_count=tags[id])
         return tag_sns
+
+    def scaffold_filters(self, name):
+        res = []
+        if name == 'usage_count':
+            res.extend([
+                bs_filters.TagEqualFilter(name),
+                bs_filters.TagNotEqualFilter(name),
+            ])
+        elif name == 'name':
+            res.extend([
+                bs_filters.TagEqualFilter(name),
+                bs_filters.TagNotEqualFilter(name),
+            ])
+        else:
+            return super().scaffold_filters(name)
+        return res
 
     def delete_model(self, model):
         res = None
