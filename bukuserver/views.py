@@ -21,7 +21,7 @@ DEFAULT_PER_PAGE = 10
 log = logging.getLogger("bukuserver.views")
 
 
-class CustomBukuDbModel:
+class CustomBukuDbModel:  # pylint: disable=too-few-public-methods
 
     def __init__(self, bukudb_inst, name):
         self.bukudb = bukudb_inst
@@ -222,7 +222,7 @@ class TagModelView(BaseModelView):
         return {x:x for x in self.scaffold_list_columns()}
 
     def scaffold_form(self):
-        class CustomForm(FlaskForm):
+        class CustomForm(FlaskForm):  # pylint: disable=too-few-public-methods
             name = wtforms.StringField(validators=[wtforms.validators.required()])
 
         return CustomForm
