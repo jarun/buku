@@ -159,6 +159,28 @@ class BookmarkModelView(BaseModelView):
             self.after_model_change(form, model, False)
         return res
 
+    def create_model(self, form):
+        try:
+            model = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+            form.populate_obj(model)
+            vars(model).pop('id')
+            self._on_model_change(form, model, True)
+            tags_in = model.tags
+            if not tags_in.startswith(','):
+                tags_in = ',{}'.format(tags_in)
+            if not tags_in.endswith(','):
+                tags_in = '{},'.format(tags_in)
+            self.model.bukudb.add_rec(
+                url=model.url, title_in=model.title, tags_in=tags_in, desc=model.description)
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash(gettext('Failed to create record. %(error)s', error=str(ex)), 'error')
+                log.exception('Failed to create record.')
+            return False
+        else:
+            self.after_model_change(form, model, True)
+        return model
+
 
 class TagModelView(BaseModelView):
 
@@ -238,6 +260,9 @@ class TagModelView(BaseModelView):
         else:
             self.after_model_change(form, model, False)
         return res
+
+    def create_model(self, form):
+        pass
 
 
 def chunks(l, n):
