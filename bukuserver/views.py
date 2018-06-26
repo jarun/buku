@@ -72,7 +72,7 @@ class BookmarkModelView(BaseModelView):
 
     #  column_list = [x.name.lower() for x in BookmarkField] + ['Entry']
     column_list = ['Entry']
-    column_filters = ['id']
+    column_filters = ['id', 'url']
     #  column_exclude_list = ['description', ]
     column_formatters = {'Entry': _list_entry,}
     create_template = 'bukuserver/bookmark_create.html'
@@ -113,6 +113,17 @@ class BookmarkModelView(BaseModelView):
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.SMALLER),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.TOP_X),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.BOTTOM_X),
+            ])
+        elif name == BookmarkField.URL.name.lower():
+            def netloc_match_func(query, value, index):
+                return filter(lambda x: urlparse(x[index]).netloc == value, query)
+
+            res.extend([
+                bs_filters.BookmarkBaseFilter(name, 'netloc match', netloc_match_func),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
             ])
         elif name in self.scaffold_list_columns():
             pass
