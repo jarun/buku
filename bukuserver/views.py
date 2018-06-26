@@ -66,6 +66,9 @@ class BookmarkModelView(BaseModelView):
             res += description.replace('\n', '<br/>')
         return Markup(res)
 
+    def _create_ajax_loader(self, name, options):
+        pass
+
     #  column_list = [x.name.lower() for x in BookmarkField] + ['Entry']
     column_list = ['Entry']
     #  column_exclude_list = ['description', ]
@@ -91,6 +94,9 @@ class BookmarkModelView(BaseModelView):
     def scaffold_form(self):
         cls = forms.BookmarkForm
         return cls
+
+    def scaffold_list_form(self, widget=None, validators=None):
+        pass
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
@@ -184,6 +190,9 @@ class BookmarkModelView(BaseModelView):
 
 class TagModelView(BaseModelView):
 
+    def _create_ajax_loader(self, name, options):
+        pass
+
     can_create = False
 
     def __init__(self, *args, **kwargs):
@@ -204,6 +213,9 @@ class TagModelView(BaseModelView):
             name = wtforms.StringField(validators=[wtforms.validators.required()])
 
         return CustomForm
+
+    def scaffold_list_form(self, widget=None, validators=None):
+        pass
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
