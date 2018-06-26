@@ -306,25 +306,22 @@ class TagModelView(BaseModelView):
             log.debug(len(items))
             return filter(lambda x: x[index] in top_x, query)
 
+        res.extend([
+            bs_filters.TagBaseFilter(name, 'equals', equal_func),
+            bs_filters.TagBaseFilter(name, 'not equal', not_equal_func),
+            bs_filters.TagBaseFilter(name, 'in list', in_list_func),
+            bs_filters.TagBaseFilter(name, 'not in list', not_in_list_func),
+        ])
         if name == 'usage_count':
             res.extend([
-                bs_filters.TagBaseFilter(name, 'equals', equal_func),
-                bs_filters.TagBaseFilter(name, 'not equal', not_equal_func),
                 bs_filters.TagBaseFilter(name, 'greater than', greater_func),
                 bs_filters.TagBaseFilter(name, 'smaller than', smaller_func),
-                bs_filters.TagBaseFilter(name, 'in list', in_list_func),
-                bs_filters.TagBaseFilter(name, 'not in list', not_in_list_func),
                 bs_filters.TagBaseFilter(name, 'top most common', top_most_common_func),
                 bs_filters.TagBaseFilter(name, 'top x', top_x_func),
                 bs_filters.TagBaseFilter(name, 'bottom x', bottom_x_func),
             ])
         elif name == 'name':
-            res.extend([
-                bs_filters.TagBaseFilter(name, 'equals', equal_func),
-                bs_filters.TagBaseFilter(name, 'not equal', not_equal_func),
-                bs_filters.TagBaseFilter(name, 'in list', in_list_func),
-                bs_filters.TagBaseFilter(name, 'not in list', not_in_list_func),
-            ])
+            pass
         else:
             return super().scaffold_filters(name)
         return res
