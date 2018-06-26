@@ -111,6 +111,8 @@ class BookmarkModelView(BaseModelView):
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.GREATER),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.SMALLER),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.TOP_X),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.BOTTOM_X),
             ])
         elif name in self.scaffold_list_columns():
             pass
