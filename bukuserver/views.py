@@ -268,15 +268,40 @@ class TagModelView(BaseModelView):
 
     def scaffold_filters(self, name):
         res = []
+
+        def equal_func(query, value, index):
+            return filter(lambda x: x[index] == value, query)
+
+        def not_equal_func(query, value, index):
+            return filter(lambda x: x[index] == value, query)
+
+        def greater_func(query, value, index):
+            return filter(lambda x: x[index] > value, query)
+
+        def smaller_func(query, value, index):
+            return filter(lambda x: x[index] > value, query)
+
+        def in_list_func(query, value, index):
+            return filter(lambda x: x[index] in value, query)
+
+        def not_in_list_func(query, value, index):
+            return filter(lambda x: x[index] not in value, query)
+
         if name == 'usage_count':
             res.extend([
-                bs_filters.TagEqualFilter(name),
-                bs_filters.TagNotEqualFilter(name),
+                bs_filters.TagBaseFilter(name, 'equals', equal_func),
+                bs_filters.TagBaseFilter(name, 'not equal', not_equal_func),
+                bs_filters.TagBaseFilter(name, 'greater than', greater_func),
+                bs_filters.TagBaseFilter(name, 'smaller than', smaller_func),
+                bs_filters.TagBaseFilter(name, 'in list', in_list_func),
+                bs_filters.TagBaseFilter(name, 'not in list', not_in_list_func),
             ])
         elif name == 'name':
             res.extend([
-                bs_filters.TagEqualFilter(name),
-                bs_filters.TagNotEqualFilter(name),
+                bs_filters.TagBaseFilter(name, 'equals', equal_func),
+                bs_filters.TagBaseFilter(name, 'not equal', not_equal_func),
+                bs_filters.TagBaseFilter(name, 'in list', in_list_func),
+                bs_filters.TagBaseFilter(name, 'not in list', not_in_list_func),
             ])
         else:
             return super().scaffold_filters(name)
