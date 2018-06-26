@@ -16,7 +16,7 @@ def equal_func(query, value, index):
 
 
 def not_equal_func(query, value, index):
-    return filter(lambda x: x[index] == value, query)
+    return filter(lambda x: x[index] != value, query)
 
 
 def greater_func(query, value, index):
