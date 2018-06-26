@@ -6,7 +6,7 @@ import logging
 
 from flask import flash
 from flask_admin.babel import gettext
-from flask_admin.model import BaseModelView, filters as fam_filters
+from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
 from jinja2 import Markup
 import wtforms

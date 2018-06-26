@@ -1,4 +1,3 @@
-from flask_admin.babel import lazy_gettext
 from flask_admin.model import filters
 
 
