@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 from buku import BukuDb, __version__
 from flask.cli import FlaskGroup
 from flask_admin import Admin
-from flask_api import status
+from flask_api import exceptions, FlaskAPI, status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
 from markupsafe import Markup
@@ -21,7 +21,6 @@ from flask import (
     abort,
     current_app,
     flash,
-    Flask,
     jsonify,
     redirect,
     render_template,
@@ -48,6 +47,31 @@ def get_tags():
         res = jsonify(result)
     else:
         res = render_template('bukuserver/tags.html', result=result)
+    return res
+
+
+def tag_list():
+    tags = BukuDb().get_tag_all()
+    result = {'tags': tags[0]}
+    return result
+
+
+def tag_detail(tag):
+    bukudb = BukuDb()
+    if request.method == 'GET':
+        tags = bukudb.get_tag_all()
+        if tag not in tags[1]:
+            raise exceptions.NotFound()
+        res = dict(name=tag, usage_count=tags[1][tag])
+    elif request.method == 'PUT':
+        res = None
+        # TODO: catch better tags input
+        new_tags = request.form.getlist('tags')
+        result_flag = bukudb.replace_tag(tag, new_tags)
+        if result_flag:
+            res = response.response_template['success'], status.HTTP_200_OK
+        else:
+            res = response.response_template['failure'], status.HTTP_400_BAD_REQUEST
     return res
 
 
@@ -516,7 +540,7 @@ def view_statistic():
 
 def create_app(config_filename=None):
     """create app."""
-    app = Flask(__name__)
+    app = FlaskAPI(__name__)
     per_page = int(os.getenv('BUKUSERVER_PER_PAGE', views.DEFAULT_PER_PAGE))
     per_page = per_page if per_page > 0 else views.DEFAULT_PER_PAGE
     app.config['BUKUSERVER_PER_PAGE'] = per_page
@@ -540,8 +564,10 @@ def create_app(config_filename=None):
     admin = Admin(app, name='Buku Server', template_mode='bootstrap3')
     # routing
     #  api
-    app.add_url_rule('/api/tags', 'get_tags', get_tags, methods=['GET'])
-    app.add_url_rule('/api/tags/<tag>', 'update_tag', update_tag, methods=['PUT'])
+    #  app.add_url_rule('/api/tags', 'get_tags', get_tags, methods=['GET'])
+    app.add_url_rule('/api/tags', 'get_tags', tag_list, methods=['GET'])
+    #  app.add_url_rule('/api/tags/<tag>', 'update_tag', update_tag, methods=['PUT'])
+    app.add_url_rule('/api/tags/<tag>', 'update_tag', tag_detail, methods=['GET', 'PUT'])
     app.add_url_rule('/api/bookmarks', 'bookmarks', bookmarks, methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmarks', refresh_bookmarks, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>', 'bookmark_api', bookmark_api, methods=['GET', 'PUT', 'DELETE'])
