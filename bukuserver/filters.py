@@ -28,6 +28,8 @@ class TagBaseFilter(filters.BaseFilter):
             value = [v.strip() for v in value.split(',') if v.strip()]
         elif self.name == 'usage_count':
             value = int(value)
+            if self.operation_text in ('top x', 'bottom x') and value < 1:
+                raise ValueError
         return value
 
     def apply(self, query, value):

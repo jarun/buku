@@ -1,3 +1,4 @@
+from collections import Counter
 from enum import Enum
 from types import SimpleNamespace
 from urllib.parse import urlparse
@@ -287,6 +288,24 @@ class TagModelView(BaseModelView):
         def not_in_list_func(query, value, index):
             return filter(lambda x: x[index] not in value, query)
 
+        def top_most_common_func(query, value, index):
+            counter = Counter(x[index] for x in query)
+            most_common = counter.most_common(value)
+            most_common_item = [x[0] for x in most_common]
+            return filter(lambda x: x[index] in most_common_item, query)
+
+        def top_x_func(query, value, index):
+            items = sorted(set(x[index] for x in query), reverse=True)
+            top_x = items[:value]
+            log.debug(len(items))
+            return filter(lambda x: x[index] in top_x, query)
+
+        def bottom_x_func(query, value, index):
+            items = sorted(set(x[index] for x in query), reverse=False)
+            top_x = items[:value]
+            log.debug(len(items))
+            return filter(lambda x: x[index] in top_x, query)
+
         if name == 'usage_count':
             res.extend([
                 bs_filters.TagBaseFilter(name, 'equals', equal_func),
@@ -295,6 +314,9 @@ class TagModelView(BaseModelView):
                 bs_filters.TagBaseFilter(name, 'smaller than', smaller_func),
                 bs_filters.TagBaseFilter(name, 'in list', in_list_func),
                 bs_filters.TagBaseFilter(name, 'not in list', not_in_list_func),
+                bs_filters.TagBaseFilter(name, 'top most common', top_most_common_func),
+                bs_filters.TagBaseFilter(name, 'top x', top_x_func),
+                bs_filters.TagBaseFilter(name, 'bottom x', bottom_x_func),
             ])
         elif name == 'name':
             res.extend([
