@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from urllib.parse import urlparse
 import logging
 
-from flask import flash
+from flask import flash, url_for
 from flask_admin.babel import gettext
 from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
@@ -280,8 +280,17 @@ class TagModelView(BaseModelView):
             models = list(flt.apply(models, clean_value))
         return models
 
+    def _name_formatter(self, context, model, name):
+        data = getattr(model, name)
+        return Markup('<a href="{}">{}</a>'.format(
+            url_for('bookmark.index_view', flt1_tags_contain=data),
+            data if data else '&lt;EMPTY TAG&gt;'
+        ))
+
     can_create = False
+    can_set_page_size = True
     column_filters = ['name', 'usage_count']
+    column_formatters = {'name': _name_formatter,}
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
