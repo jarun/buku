@@ -99,6 +99,8 @@ class TagBaseFilter(BaseFilter):
             value = int(value)
             if self.filter_type in (FilterType.TOP_X, FilterType.BOTTOM_X) and value < 1:
                 raise ValueError
+        if isinstance(value, str):
+            return value.strip()
         return value
 
 
@@ -160,6 +162,8 @@ class BookmarkBaseFilter(BaseFilter):
             value = int(value)
             if self.filter_type in (FilterType.TOP_X, FilterType.BOTTOM_X) and value < 1:
                 raise ValueError
+        if isinstance(value, str):
+            return value.strip()
         return value
 
 
