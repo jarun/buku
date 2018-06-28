@@ -24,7 +24,7 @@ tests_require = [
     'pylint>=1.7.2',
     'pytest-cov',
     'pytest>=3.4.2',
-    'PyYAML>=3.12',
+    'PyYAML==3.12',
 ]
 
 
