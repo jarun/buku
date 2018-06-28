@@ -1,18 +1,23 @@
 """Forms module."""
 # pylint: disable=too-few-public-methods, missing-docstring
 from flask_wtf import FlaskForm
-from wtforms import StringField, FieldList, BooleanField, validators
+import wtforms
 
 
 class SearchBookmarksForm(FlaskForm):
-    keywords = FieldList(StringField('Keywords'), min_entries=1)
-    all_keywords = BooleanField('Match all keywords')
-    deep = BooleanField('Deep search')
-    regex = BooleanField('Regex')
+    keywords = wtforms.FieldList(wtforms.StringField('Keywords'), min_entries=1)
+    all_keywords = wtforms.BooleanField('Match all keywords')
+    deep = wtforms.BooleanField('Deep search')
+    regex = wtforms.BooleanField('Regex')
 
 
-class CreateBookmarksForm(FlaskForm):
-    url = StringField(validators=[validators.required(), validators.URL(require_tld=False)])
-    title = StringField()
-    tags = StringField()
-    description = StringField()
+class HomeForm(SearchBookmarksForm):
+    keyword = wtforms.StringField('Keyword')
+
+
+class BookmarkForm(FlaskForm):
+    url = wtforms.StringField(
+        validators=[wtforms.validators.required(), wtforms.validators.URL(require_tld=False)])
+    title = wtforms.StringField()
+    tags = wtforms.StringField()
+    description = wtforms.TextAreaField()

@@ -2,12 +2,14 @@
 # pylint: disable=wrong-import-order, ungrouped-imports
 """Server module."""
 import os
+import sys
 from collections import Counter
 from urllib.parse import urlparse
 
-from buku import BukuDb
+from buku import BukuDb, __version__, network_handler
 from flask.cli import FlaskGroup
-from flask_api import status
+from flask_admin import Admin
+from flask_api import exceptions, FlaskAPI, status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
 from markupsafe import Markup
@@ -15,10 +17,10 @@ import arrow
 import click
 import flask
 from flask import (
+    __version__ as flask_version,
     abort,
     current_app,
     flash,
-    Flask,
     jsonify,
     redirect,
     render_template,
@@ -27,13 +29,11 @@ from flask import (
 )
 
 try:
-    from . import response, forms
+    from . import response, forms, views
 except ImportError:
-    from bukuserver import response, forms
+    from bukuserver import response, forms, views
 
 
-DEFAULT_PER_PAGE = 10
-DEFAULT_URL_RENDER_MODE = 'full'
 STATISTIC_DATA = None
 
 
@@ -47,6 +47,46 @@ def get_tags():
         res = jsonify(result)
     else:
         res = render_template('bukuserver/tags.html', result=result)
+    return res
+
+
+def network_handle_detail():
+    failed_resp = response.response_template['failure'], status.HTTP_400_BAD_REQUEST
+    url = request.data.get('url', None)
+    if not url:
+        return failed_resp
+    try:
+        res = network_handler(url)
+        return {'title': res[0], 'recognized mime': res[1], 'bad url': res[2]}
+    except Exception as e:
+        current_app.logger.debug(str(e))
+    return failed_resp
+
+
+def tag_list():
+    tags = BukuDb().get_tag_all()
+    result = {'tags': tags[0]}
+    return result
+
+
+def tag_detail(tag):
+    bukudb = BukuDb()
+    if request.method == 'GET':
+        tags = bukudb.get_tag_all()
+        if tag not in tags[1]:
+            raise exceptions.NotFound()
+        res = dict(name=tag, usage_count=tags[1][tag])
+    elif request.method == 'PUT':
+        res = None
+        try:
+            new_tags = request.data.get('tags').split(',')
+        except AttributeError as e:
+            raise exceptions.ParseError(detail=str(e))
+        result_flag = bukudb.replace_tag(tag, new_tags)
+        if result_flag:
+            res = response.response_template['success'], status.HTTP_200_OK
+        else:
+            res = response.response_template['failure'], status.HTTP_400_BAD_REQUEST
     return res
 
 
@@ -71,11 +111,6 @@ def update_tag(tag):
     return res
 
 
-def chunks(l, n):
-    n = max(1, n)
-    return (l[i:i+n] for i in range(0, len(l), n))
-
-
 def bookmarks():
     """Bookmarks."""
     res = None
@@ -85,10 +120,10 @@ def bookmarks():
         get_per_page_parameter(),
         type=int,
         default=int(
-            current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
+            current_app.config.get('BUKUSERVER_PER_PAGE', views.DEFAULT_PER_PAGE))
     )
     url_render_mode = current_app.config['BUKUSERVER_URL_RENDER_MODE']
-    create_bookmarks_form = forms.CreateBookmarksForm()
+    create_bookmarks_form = forms.BookmarkForm()
     if request.method == 'GET':
         all_bookmarks = bukudb.get_rec_all()
         result = {
@@ -116,7 +151,7 @@ def bookmarks():
             current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks'])))
             current_app.logger.debug('per page:{}'.format(per_page))
             pagination_total = len(result['bookmarks'])
-            bms = list(chunks(result['bookmarks'], per_page))
+            bms = list(views.chunks(result['bookmarks'], per_page))
             try:
                 result['bookmarks'] = bms[page-1]
             except IndexError as err:
@@ -191,7 +226,7 @@ def bookmark_api(id):
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                {'ContentType': 'application/json'}
     bukudb = getattr(flask.g, 'bukudb', BukuDb())
-    bookmark_form = forms.CreateBookmarksForm()
+    bookmark_form = forms.BookmarkForm()
     is_html_post_request = request.method == 'POST' and not request.path.startswith('/api/')
     if request.method == 'GET':
         bookmark = bukudb.get_rec_by_id(id)
@@ -383,7 +418,7 @@ def search_bookmarks():
         get_per_page_parameter(),
         type=int,
         default=int(
-            current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
+            current_app.config.get('BUKUSERVER_PER_PAGE', views.DEFAULT_PER_PAGE))
     )
 
     res = None
@@ -403,7 +438,7 @@ def search_bookmarks():
             res = jsonify(result)
         else:
             pagination_total = len(result['bookmarks'])
-            bms = list(chunks(result['bookmarks'], per_page))
+            bms = list(views.chunks(result['bookmarks'], per_page))
             try:
                 result['bookmarks'] = bms[page-1]
             except IndexError as err:
@@ -418,7 +453,7 @@ def search_bookmarks():
                 'bukuserver/bookmarks.html',
                 result=result, pagination=pagination,
                 search_bookmarks_form=search_bookmarks_form,
-                create_bookmarks_form=forms.CreateBookmarksForm(),
+                create_bookmarks_form=forms.BookmarkForm(),
             )
     elif request.method == 'DELETE':
         if found_bookmarks is not None:
@@ -520,13 +555,13 @@ def view_statistic():
 
 def create_app(config_filename=None):
     """create app."""
-    app = Flask(__name__)
-    per_page = int(os.getenv('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE))
-    per_page = per_page if per_page > 0 else DEFAULT_PER_PAGE
+    app = FlaskAPI(__name__)
+    per_page = int(os.getenv('BUKUSERVER_PER_PAGE', views.DEFAULT_PER_PAGE))
+    per_page = per_page if per_page > 0 else views.DEFAULT_PER_PAGE
     app.config['BUKUSERVER_PER_PAGE'] = per_page
-    url_render_mode = os.getenv('BUKUSERVER_URL_RENDER_MODE', DEFAULT_URL_RENDER_MODE)
+    url_render_mode = os.getenv('BUKUSERVER_URL_RENDER_MODE', views.DEFAULT_URL_RENDER_MODE)
     if url_render_mode not in ('full', 'netloc'):
-        url_render_mode = DEFAULT_URL_RENDER_MODE
+        url_render_mode = views.DEFAULT_URL_RENDER_MODE
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
     bukudb = BukuDb()
@@ -541,16 +576,20 @@ def create_app(config_filename=None):
     app.jinja_env.filters['netloc'] = lambda x: urlparse(x).netloc  # pylint: disable=no-member
 
     Bootstrap(app)
+    admin = Admin(
+        app, name='Buku Server', template_mode='bootstrap3',
+        index_view=views.CustomAdminIndexView(
+            template='bukuserver/home.html', url='/'
+        )
+    )
     # routing
-    app.add_url_rule('/api/tags', 'get_tags', get_tags, methods=['GET'])
-    app.add_url_rule('/tags', 'get_tags-html', get_tags, methods=['GET'])
-    app.add_url_rule('/api/tags/<tag>', 'update_tag', update_tag, methods=['PUT'])
-    app.add_url_rule('/tags/<tag>', 'update_tag-html', update_tag, methods=['POST'])
+    #  api
+    app.add_url_rule('/api/tags', 'get_tags', tag_list, methods=['GET'])
+    app.add_url_rule('/api/tags/<tag>', 'update_tag', tag_detail, methods=['GET', 'PUT'])
+    app.add_url_rule('/api/network_handle', 'networkk_handle', network_handle_detail, methods=['POST'])
     app.add_url_rule('/api/bookmarks', 'bookmarks', bookmarks, methods=['GET', 'POST', 'DELETE'])
-    app.add_url_rule('/bookmarks', 'bookmarks-html', bookmarks, methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmarks', refresh_bookmarks, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>', 'bookmark_api', bookmark_api, methods=['GET', 'PUT', 'DELETE'])
-    app.add_url_rule('/bookmarks/<id>', 'bookmark_api-html', bookmark_api, methods=['GET', 'POST'])
     app.add_url_rule('/api/bookmarks/<id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
     app.add_url_rule('/api/bookmarks/<id>/long', 'get_long_url', get_long_url, methods=['GET'])
@@ -558,14 +597,36 @@ def create_app(config_filename=None):
         '/api/bookmarks/<starting_id>/<ending_id>',
         'bookmark_range_operations', bookmark_range_operations, methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/search', 'search_bookmarks', search_bookmarks, methods=['GET', 'DELETE'])
-    app.add_url_rule('/bookmarks/search', 'search_bookmarks-html', search_bookmarks, methods=['GET'])
-    app.add_url_rule('/', 'index', lambda: render_template(
-        'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
-    app.add_url_rule('/statistic', 'statistic', view_statistic, methods=['GET', 'POST'])
+    #  non api
+    admin.add_view(views.BookmarkModelView(
+        bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
+    admin.add_view(views.TagModelView(
+        bukudb, 'Tags', page_size=per_page))
+    admin.add_view(views.StatisticView('Statistic', endpoint='statistic'))
     return app
 
 
-@click.group(cls=FlaskGroup, create_app=create_app)
+class CustomFlaskGroup(FlaskGroup):  # pylint: disable=too-few-public-methods
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.params[0].help = 'Show the program version'
+        self.params[0].callback = get_custom_version
+
+
+def get_custom_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    message = '%(app_name)s %(app_version)s\nFlask %(version)s\nPython %(python_version)s'
+    click.echo(message % {
+        'app_name': 'Buku',
+        'app_version': __version__,
+        'version': flask_version,
+        'python_version': sys.version,
+    }, color=ctx.color)
+    ctx.exit()
+
+
+@click.group(cls=CustomFlaskGroup, create_app=create_app)
 def cli():
     """This is a management script for the wiki application."""
 

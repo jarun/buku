@@ -24,13 +24,14 @@ tests_require = [
     'pylint>=1.7.2',
     'pytest-cov',
     'pytest>=3.4.2',
-    'PyYAML>=3.12',
+    'PyYAML==3.12',
 ]
 
 
 server_require = [
     'arrow>=0.12.1',
     'click>=6.7',
+    'Flask-Admin==1.5.1',
     'Flask-API>=0.6.9',
     'Flask-Bootstrap>=3.3.7.1',
     'flask-paginate>=0.5.1',
