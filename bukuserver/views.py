@@ -1,15 +1,18 @@
+"""views module."""
 from collections import Counter
 from types import SimpleNamespace
 from urllib.parse import urlparse
 import itertools
 import logging
 
-from flask import flash, redirect, url_for, request 
+from buku import BukuDb
+from flask import flash, redirect, request, url_for
 from flask_admin.babel import gettext
-from flask_admin.base import AdminIndexView, expose
+from flask_admin.base import AdminIndexView, BaseView, expose
 from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
 from jinja2 import Markup
+import arrow
 import wtforms
 
 try:
@@ -20,6 +23,7 @@ except ImportError:
     from bukuserver.filters import BookmarkField, FilterType
 
 
+STATISTIC_DATA = None
 DEFAULT_URL_RENDER_MODE = 'full'
 DEFAULT_PER_PAGE = 10
 log = logging.getLogger("bukuserver.views")
@@ -445,6 +449,96 @@ class TagModelView(BaseModelView):
 
     def create_model(self, form):
         pass
+
+
+class StatisticView(BaseView):
+
+    @expose('/')
+    def index(self):
+        bukudb = BukuDb()
+        global STATISTIC_DATA
+        statistic_data = STATISTIC_DATA
+        if not statistic_data or request.method == 'POST':
+            all_bookmarks = bukudb.get_rec_all()
+            netloc = [urlparse(x[1]).netloc for x in all_bookmarks]
+            tag_set = [x[3] for x in all_bookmarks]
+            tag_items = []
+            for tags in tag_set:
+                tag_items.extend([x.strip() for x in tags.split(',') if x.strip()])
+            tag_counter = Counter(tag_items)
+            title_items = [x[2] for x in all_bookmarks]
+            title_counter = Counter(title_items)
+            statistic_datetime = arrow.now()
+            STATISTIC_DATA = {
+                'datetime': statistic_datetime,
+                'netloc': netloc,
+                'tag_counter': tag_counter,
+                'title_counter': title_counter,
+            }
+        else:
+            netloc = statistic_data['netloc']
+            statistic_datetime = statistic_data['datetime']
+            tag_counter = statistic_data['tag_counter']
+            title_counter = statistic_data['title_counter']
+
+        netloc_counter = Counter(netloc)
+        unique_netloc_len = len(set(netloc))
+        colors = [
+            "#F7464A", "#46BFBD", "#FDB45C", "#FEDCBA",
+            "#ABCDEF", "#DDDDDD", "#ABCABC", "#4169E1",
+            "#C71585", "#FF4500", "#FEDCBA", "#46BFBD"]
+        show_netloc_table = False
+        if unique_netloc_len > len(colors):
+            max_netloc_item = len(colors)
+            netloc_colors = colors
+            show_netloc_table = True
+        else:
+            netloc_colors = colors[:unique_netloc_len]
+            max_netloc_item = unique_netloc_len
+        most_common_netlocs = netloc_counter.most_common(max_netloc_item)
+        most_common_netlocs = [
+            [val[0], val[1], netloc_colors[idx]] for idx, val in enumerate(most_common_netlocs)]
+
+        unique_tag_len = len(tag_counter)
+        show_tag_rank_table = False
+        if unique_tag_len > len(colors):
+            max_tag_item = len(colors)
+            tag_colors = colors
+            show_tag_rank_table = True
+        else:
+            tag_colors = colors[:unique_tag_len]
+            max_tag_item = unique_tag_len
+        most_common_tags = tag_counter.most_common(max_tag_item)
+        most_common_tags = [
+            [val[0], val[1], tag_colors[idx]] for idx, val in enumerate(most_common_tags)]
+
+        unique_title_len = len(title_counter)
+        show_title_rank_table = False
+        if unique_title_len > len(colors):
+            max_title_item = len(colors)
+            title_colors = colors
+            show_title_rank_table = True
+        else:
+            title_colors = colors[:unique_title_len]
+            max_title_item = unique_title_len
+        most_common_titles = title_counter.most_common(max_title_item)
+        most_common_titles = [
+            [val[0], val[1], title_colors[idx]] for idx, val in enumerate(most_common_titles)]
+
+        return self.render(
+            'bukuserver/statistic.html',
+            most_common_netlocs=most_common_netlocs,
+            netloc_counter=netloc_counter,
+            show_netloc_table=show_netloc_table,
+            most_common_tags=most_common_tags,
+            tag_counter=tag_counter,
+            show_tag_rank_table=show_tag_rank_table,
+            most_common_titles=most_common_titles,
+            title_counter=title_counter,
+            show_title_rank_table=show_title_rank_table,
+            datetime=statistic_datetime,
+            datetime_text=statistic_datetime.humanize(arrow.now(), granularity='second'),
+        )
 
 
 def chunks(l, n):

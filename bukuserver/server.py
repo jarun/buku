@@ -605,12 +605,12 @@ def create_app(config_filename=None):
     app.add_url_rule('/bookmarks/search', 'search_bookmarks-html', search_bookmarks, methods=['GET'])
     app.add_url_rule('/', 'index', lambda: render_template(
         'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
-    app.add_url_rule('/statistic', 'statistic', view_statistic, methods=['GET', 'POST'])
 
     admin.add_view(views.BookmarkModelView(
         bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
     admin.add_view(views.TagModelView(
         bukudb, 'Tags', page_size=per_page))
+    admin.add_view(views.StatisticView(bukudb, 'Statistic', endpoint='statistic'))
     return app
 
 

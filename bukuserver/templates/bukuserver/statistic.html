@@ -1,9 +1,9 @@
-{% extends "bukuserver/base.html" %}
+{% extends "bukuserver/home.html" %}
 
-{% block content %}
+{% block body %}
 <div class="container">
   <h2 style="padding-top: 70px;">Statistics</h2>
-  <form class="form-inline" action="{{url_for('statistic')}}" method="POST">
+  <form class="form-inline" action="{{url_for('statistic.index')}}" method="POST">
     Data created
     <span rel="tooltip" title="{{datetime}}">{{datetime_text}}</span>
     <button type="submit" class="btn btn-default btn-sm">refresh</button>
@@ -214,7 +214,11 @@
     </div>
   </div>
   {% endif %}
+{% endblock %}
 
+{% block tail %}
+  {{ super() }}
+  <script src="{{url_for('static', filename='bukuserver/js/Chart.min.js')}}"></script>
   <script>
   var ctx = document.getElementById("mostCommonChart").getContext('2d');
   var netlocChart = new Chart(ctx, {
@@ -326,9 +330,4 @@
   </script>
 
 </div>
-{% endblock %}
-
-{% block head %}
-{{super()}}
-<script src="{{url_for('static', filename='bukuserver/js/Chart.min.js')}}"></script>
 {% endblock %}
