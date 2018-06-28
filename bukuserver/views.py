@@ -83,8 +83,12 @@ class BookmarkModelView(BaseModelView):
     column_filters = ['id', 'url', 'tags']
     column_formatters = {'Entry': _list_entry,}
     column_list = ['Entry']
+    create_modal = True
+    create_modal_template = 'bukuserver/bookmark_create_modal.html'
     create_template = 'bukuserver/bookmark_create.html'
     details_modal = True
+    edit_modal = True
+    edit_modal_template = 'bukuserver/bookmark_edit_modal.html'
     edit_template = 'bukuserver/bookmark_edit.html'
     named_filter_urls = True
 

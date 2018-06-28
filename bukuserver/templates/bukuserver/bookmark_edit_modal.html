@@ -1,0 +1,6 @@
+{% extends 'admin/model/modals/edit.html' %}
+
+{% block tail %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='bukuserver/js/bookmark.js') }}"></script>
+{% endblock %}
