@@ -138,7 +138,17 @@ class BookmarkModelView(BaseModelView):
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
-        bookmarks = bukudb.get_rec_all()
+        if [x[1] == 'buku' for x in filters]:
+            mode_id = [x[0] for x in filters]
+            if len(list(set(mode_id))) > 1:
+                flash(gettext('Invalid search mode combination'), 'error')
+                return 0, []
+            keywords = [x[2] for x in filters]
+            for idx, flt_name, value in filters:
+                flt = self._filters[idx]
+            bookmarks = bukudb.searchdb(keywords, all_keywords=flt.all_keywords, deep=flt.deep, regex=flt.regex)
+        else:
+            bookmarks = bukudb.get_rec_all()
         bookmarks = self._apply_filters(bookmarks, filters)
         if sort_field:
             key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
@@ -192,11 +202,10 @@ class BookmarkModelView(BaseModelView):
     def scaffold_filters(self, name):
         res = []
         if name == 'buku':
-
-            for match_all, deep_search, regex in sorted(itertools.product([True, False], repeat=3)):
+            values_combi = sorted(itertools.product([True, False], repeat=3))
+            for all_keywords, deep, regex in values_combi:
                 res.append(
-                    bs_filters.BookmarkBukuFilter(
-                        match_all=match_all, deep_search=deep_search, regex=regex)
+                    bs_filters.BookmarkBukuFilter(all_keywords=all_keywords, deep=deep, regex=regex)
                 )
         elif name == BookmarkField.ID.name.lower():
             res.extend([
