@@ -610,7 +610,7 @@ def create_app(config_filename=None):
         bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
     admin.add_view(views.TagModelView(
         bukudb, 'Tags', page_size=per_page))
-    admin.add_view(views.StatisticView(bukudb, 'Statistic', endpoint='statistic'))
+    admin.add_view(views.StatisticView('Statistic', endpoint='statistic'))
     return app
 
 
