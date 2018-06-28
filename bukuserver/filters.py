@@ -132,3 +132,71 @@ class BookmarkBaseFilter(BaseFilter):
             if self.filter_type in (FilterType.TOP_X, FilterType.BOTTOM_X) and value < 1:
                 raise ValueError
         return value
+
+
+class BookmarkTagNumberEqualFilter(BookmarkBaseFilter):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        def apply_func(query, value, index):
+            for item in query:
+                tags = [tag for tag in item[index].split(',') if tag]
+                if len(tags) == value:
+                    yield item
+
+        self.apply_func = apply_func
+
+    def clean(self, value):
+        value = int(value)
+        if value < 0:
+            raise ValueError
+        return value
+
+
+class BookmarkTagNumberGreaterFilter(BookmarkTagNumberEqualFilter):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        def apply_func(query, value, index):
+            for item in query:
+                tags = [tag for tag in item[index].split(',') if tag]
+                if len(tags) > value:
+                    yield item
+
+        self.apply_func = apply_func
+
+
+class BookmarkTagNumberNotEqualFilter(BookmarkTagNumberEqualFilter):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        def apply_func(query, value, index):
+            for item in query:
+                tags = [tag for tag in item[index].split(',') if tag]
+                if len(tags) != value:
+                    yield item
+
+        self. apply_func = apply_func
+
+
+class BookmarkTagNumberSmallerFilter(BookmarkBaseFilter):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        def apply_func(query, value, index):
+            for item in query:
+                tags = [tag for tag in item[index].split(',') if tag]
+                if len(tags) < value:
+                    yield item
+
+        self.apply_func = apply_func
+
+    def clean(self, value):
+        value = int(value)
+        if value < 1:
+            raise ValueError
+        return value

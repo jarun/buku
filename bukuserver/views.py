@@ -72,7 +72,7 @@ class BookmarkModelView(BaseModelView):
 
     can_set_page_size = True
     can_view_details = True
-    column_filters = ['id', 'url']
+    column_filters = ['id', 'url', 'tags']
     column_formatters = {'Entry': _list_entry,}
     column_list = ['Entry']
     create_template = 'bukuserver/bookmark_create.html'
@@ -199,6 +199,27 @@ class BookmarkModelView(BaseModelView):
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+            ])
+        elif name == BookmarkField.TAGS.name.lower():
+            def tags_contain_func(query, value, index):
+                for item in query:
+                    for tag in item[index].split(','):
+                        if tag and tag == value:
+                            yield item
+
+            def tags_not_contain_func(query, value, index):
+                for item in query:
+                    for tag in item[index].split(','):
+                        if tag and tag == value:
+                            yield item
+
+            res.extend([
+                bs_filters.BookmarkBaseFilter(name, 'contain', tags_contain_func),
+                bs_filters.BookmarkBaseFilter(name, 'not contain', tags_not_contain_func),
+                bs_filters.BookmarkTagNumberEqualFilter(name, 'number equal'),
+                bs_filters.BookmarkTagNumberNotEqualFilter(name, 'number not equal'),
+                bs_filters.BookmarkTagNumberGreaterFilter(name, 'number greater than'),
+                bs_filters.BookmarkTagNumberSmallerFilter(name, 'number smaller than'),
             ])
         elif name in self.scaffold_list_columns():
             pass
