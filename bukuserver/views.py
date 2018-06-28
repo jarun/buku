@@ -36,6 +36,16 @@ class CustomBukuDbModel:  # pylint: disable=too-few-public-methods
 
 class BookmarkModelView(BaseModelView):
 
+    def _apply_filters(self, models, filters):
+        for idx, flt_name, value in filters:
+            flt = self._filters[idx]
+            clean_value = flt.clean(value)
+            models = list(flt.apply(models, clean_value))
+        return models
+
+    def _create_ajax_loader(self, name, options):
+        pass
+
     def _list_entry(self, context, model, name):
         netloc = urlparse(model.url).netloc
         if netloc:
@@ -60,16 +70,6 @@ class BookmarkModelView(BaseModelView):
             res += description.replace('\n', '<br/>')
         return Markup(res)
 
-    def _create_ajax_loader(self, name, options):
-        pass
-
-    def _apply_filters(self, models, filters):
-        for idx, flt_name, value in filters:
-            flt = self._filters[idx]
-            clean_value = flt.clean(value)
-            models = list(flt.apply(models, clean_value))
-        return models
-
     can_set_page_size = True
     can_view_details = True
     column_filters = ['id', 'url']
@@ -87,117 +87,6 @@ class BookmarkModelView(BaseModelView):
         self.page_size = kwargs.pop('page_size', DEFAULT_PER_PAGE)
         self.url_render_mode = kwargs.pop('url_render_mode', DEFAULT_URL_RENDER_MODE)
         super().__init__(*args, **kwargs)
-
-    def scaffold_list_columns(self):
-        return [x.name.lower() for x in BookmarkField]
-
-    def scaffold_sortable_columns(self):
-        return {x:x for x in self.scaffold_list_columns()}
-
-    def scaffold_form(self):
-        cls = forms.BookmarkForm
-        return cls
-
-    def scaffold_list_form(self, widget=None, validators=None):
-        pass
-
-    def scaffold_filters(self, name):
-        res = []
-        if name == BookmarkField.ID.name.lower():
-            res.extend([
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.GREATER),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.SMALLER),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.TOP_X),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.BOTTOM_X),
-            ])
-        elif name == BookmarkField.URL.name.lower():
-            def netloc_match_func(query, value, index):
-                return filter(lambda x: urlparse(x[index]).netloc == value, query)
-
-            res.extend([
-                bs_filters.BookmarkBaseFilter(name, 'netloc match', netloc_match_func),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
-            ])
-        elif name in self.scaffold_list_columns():
-            pass
-        else:
-            return super().scaffold_filters(name)
-        return res
-
-    def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
-        bukudb = self.bukudb
-        all_bookmarks = bukudb.get_rec_all()
-        all_bookmarks = self._apply_filters(all_bookmarks, filters)
-        if sort_field:
-            key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
-            all_bookmarks = sorted(all_bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
-        count = len(all_bookmarks)
-        if page_size:
-            bookmarks = list(chunks(all_bookmarks, page_size))[page]
-        data = []
-        for bookmark in bookmarks:
-            bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
-            for field in list(BookmarkField):
-                if field == BookmarkField.TAGS:
-                    value = bookmark[field.value]
-                    if value.startswith(','):
-                        value = value[1:]
-                    if value.endswith(','):
-                        value = value[:-1]
-                    setattr(bm_sns, field.name.lower(), value)
-                else:
-                    setattr(bm_sns, field.name.lower(), bookmark[field.value])
-            data.append(bm_sns)
-        return count, data
-
-    def get_pk_value(self, model):
-        return model.id
-
-    def get_one(self, id):
-        bookmark = self.model.bukudb.get_rec_by_id(id)
-        bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
-        for field in list(BookmarkField):
-            if field == BookmarkField.TAGS and bookmark[field.value].startswith(','):
-                value = bookmark[field.value]
-                if value.startswith(','):
-                    value = value[1:]
-                if value.endswith(','):
-                    value = value[:-1]
-                setattr(bm_sns, field.name.lower(), value)
-            else:
-                setattr(bm_sns, field.name.lower(), bookmark[field.value])
-        return bm_sns
-
-    def update_model(self, form, model):
-        res = False
-        try:
-            original_tags = model.tags
-            form.populate_obj(model)
-            self._on_model_change(form, model, False)
-            self.bukudb.delete_tag_at_index(model.id, original_tags)
-            tags_in = model.tags
-            if not tags_in.startswith(','):
-                tags_in = ',{}'.format(tags_in)
-            if not tags_in.endswith(','):
-                tags_in = '{},'.format(tags_in)
-            res = self.bukudb.update_rec(
-                model.id, url=model.url, title_in=model.title, tags_in=tags_in,
-                desc=model.description)
-        except Exception as ex:
-            if not self.handle_view_exception(ex):
-                flash(gettext('Failed to update record. %(error)s', error=str(ex)), 'error')
-                log.exception('Failed to update record.')
-            return False
-        else:
-            self.after_model_change(form, model, False)
-        return res
 
     def create_model(self, form):
         try:
@@ -232,6 +121,117 @@ class BookmarkModelView(BaseModelView):
             return False
         else:
             self.after_model_delete(model)
+        return res
+
+    def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
+        bukudb = self.bukudb
+        all_bookmarks = bukudb.get_rec_all()
+        all_bookmarks = self._apply_filters(all_bookmarks, filters)
+        if sort_field:
+            key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
+            all_bookmarks = sorted(all_bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
+        count = len(all_bookmarks)
+        if page_size:
+            bookmarks = list(chunks(all_bookmarks, page_size))[page]
+        data = []
+        for bookmark in bookmarks:
+            bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+            for field in list(BookmarkField):
+                if field == BookmarkField.TAGS:
+                    value = bookmark[field.value]
+                    if value.startswith(','):
+                        value = value[1:]
+                    if value.endswith(','):
+                        value = value[:-1]
+                    setattr(bm_sns, field.name.lower(), value)
+                else:
+                    setattr(bm_sns, field.name.lower(), bookmark[field.value])
+            data.append(bm_sns)
+        return count, data
+
+    def get_one(self, id):
+        bookmark = self.model.bukudb.get_rec_by_id(id)
+        bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+        for field in list(BookmarkField):
+            if field == BookmarkField.TAGS and bookmark[field.value].startswith(','):
+                value = bookmark[field.value]
+                if value.startswith(','):
+                    value = value[1:]
+                if value.endswith(','):
+                    value = value[:-1]
+                setattr(bm_sns, field.name.lower(), value)
+            else:
+                setattr(bm_sns, field.name.lower(), bookmark[field.value])
+        return bm_sns
+
+    def get_pk_value(self, model):
+        return model.id
+
+    def scaffold_list_columns(self):
+        return [x.name.lower() for x in BookmarkField]
+
+    def scaffold_list_form(self, widget=None, validators=None):
+        pass
+
+    def scaffold_sortable_columns(self):
+        return {x:x for x in self.scaffold_list_columns()}
+
+    def scaffold_filters(self, name):
+        res = []
+        if name == BookmarkField.ID.name.lower():
+            res.extend([
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.GREATER),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.SMALLER),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.TOP_X),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.BOTTOM_X),
+            ])
+        elif name == BookmarkField.URL.name.lower():
+            def netloc_match_func(query, value, index):
+                return filter(lambda x: urlparse(x[index]).netloc == value, query)
+
+            res.extend([
+                bs_filters.BookmarkBaseFilter(name, 'netloc match', netloc_match_func),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+            ])
+        elif name in self.scaffold_list_columns():
+            pass
+        else:
+            return super().scaffold_filters(name)
+        return res
+
+    def scaffold_form(self):
+        cls = forms.BookmarkForm
+        return cls
+
+    def update_model(self, form, model):
+        res = False
+        try:
+            original_tags = model.tags
+            form.populate_obj(model)
+            self._on_model_change(form, model, False)
+            self.bukudb.delete_tag_at_index(model.id, original_tags)
+            tags_in = model.tags
+            if not tags_in.startswith(','):
+                tags_in = ',{}'.format(tags_in)
+            if not tags_in.endswith(','):
+                tags_in = '{},'.format(tags_in)
+            res = self.bukudb.update_rec(
+                model.id, url=model.url, title_in=model.title, tags_in=tags_in,
+                desc=model.description)
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash(gettext('Failed to update record. %(error)s', error=str(ex)), 'error')
+                log.exception('Failed to update record.')
+            return False
+        else:
+            self.after_model_change(form, model, False)
         return res
 
 
