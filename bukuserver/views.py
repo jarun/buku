@@ -110,7 +110,7 @@ class BookmarkModelView(BaseModelView):
 
     can_set_page_size = True
     can_view_details = True
-    column_filters = ['buku', 'id', 'url', 'tags']
+    column_filters = ['buku', 'id', 'url', 'title', 'tags']
     column_formatters = {'Entry': _list_entry,}
     column_list = ['Entry']
     create_modal = True
@@ -256,6 +256,13 @@ class BookmarkModelView(BaseModelView):
 
             res.extend([
                 bs_filters.BookmarkBaseFilter(name, 'netloc match', netloc_match_func),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+            ])
+        elif name == BookmarkField.TITLE.name.lower():
+            res.extend([
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
