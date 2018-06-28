@@ -70,15 +70,15 @@ class BookmarkModelView(BaseModelView):
             models = list(flt.apply(models, clean_value))
         return models
 
-    #  column_list = [x.name.lower() for x in BookmarkField] + ['Entry']
-    column_list = ['Entry']
-    column_filters = ['id', 'url']
-    #  column_exclude_list = ['description', ]
-    column_formatters = {'Entry': _list_entry,}
-    create_template = 'bukuserver/bookmark_create.html'
-    edit_template = 'bukuserver/bookmark_edit.html'
+    can_set_page_size = True
     can_view_details = True
+    column_filters = ['id', 'url']
+    column_formatters = {'Entry': _list_entry,}
+    column_list = ['Entry']
+    create_template = 'bukuserver/bookmark_create.html'
     details_modal = True
+    edit_template = 'bukuserver/bookmark_edit.html'
+    named_filter_urls = True
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
