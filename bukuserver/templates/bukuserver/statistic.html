@@ -2,7 +2,6 @@
 
 {% block body %}
 <div class="container">
-  <h2 style="padding-top: 70px;">Statistics</h2>
   <form class="form-inline" action="{{url_for('statistic.index')}}" method="POST">
     Data created
     <span rel="tooltip" title="{{datetime}}">{{datetime_text}}</span>
@@ -30,7 +29,7 @@
       {% for item, number, _ in most_common_netlocs %}
       <tr>
         <td>{{loop.index}}</td>
-        <td> <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a> </td>
+        <td> <a href="{{url_for('bookmark.index_view', flt1_url_netloc_match=item)}}">{{item}}</a> </td>
         <td class="text-right">{{number}}</td>
       </tr>
       {% endfor %}
@@ -61,7 +60,7 @@
                 <td>{{loop.index}}</td>
                 <td>
                   {% if netloc %}
-                  <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a>
+                  <a href="{{url_for('bookmark.index_view', flt1_url_netloc_match=item)}}">{{item}}</a>
                   {% else %}
                   <span class="btn btn-default" disabled="disabled">(No Netloc)</span>
                   {% endif %}
@@ -100,7 +99,7 @@
       <tr>
         <td>{{loop.index}}</td>
         <td>
-          <a href="{{url_for('bookmarks-html', tag=item)}}">{{item}}</a>
+          <a href="{{url_for('bookmark.index_view', flt3_tags_contain=item)}}">{{item}}</a>
         </td>
         <td class="text-right">{{number}}</td>
       </tr>
@@ -129,7 +128,7 @@
             {% for item, number in tag_counter.most_common() %}
               <tr>
                 <td>{{loop.index}}</td>
-                <td> <a href="{{url_for('bookmarks-html', tag=item)}}">{{item}}</a> </td>
+                <td> <a href="{{url_for('bookmark.index_view', flt3_tags_contain=item)}}">{{item}}</a> </td>
                 <td class="text-right">{{number}}</td>
               </tr>
             {% endfor %}
@@ -164,7 +163,7 @@
         <td>{{loop.index}}</td>
         <td>
           {% if item %}
-          <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a>
+          <a href="{{url_for('bookmark.index_view', flt0_title_equals=item)}}">{{item}}</a>
           {% else %}
           (No Title)
           {% endif %}
@@ -243,12 +242,12 @@
         var form = $('<form></form>');
 
         form.attr("method", "get");
-        form.attr("action", "{{url_for('search_bookmarks-html')}}");
+        form.attr("action", "{{url_for('bookmark.index_view')}}");
 
         var field = $('<input></input>');
 
         field.attr("type", "hidden");
-        field.attr("name", "keywords-0");
+        field.attr("name", "flt1_url_netloc_match");
         field.attr("value", value);
         form.append(field);
 
@@ -280,7 +279,7 @@
     options: {
       'onClick' : function (evt, item) {
         var tagStr = this.data.labels[item[0]._index];
-        var url = "{{url_for('bookmarks-html')}}?tag=" + tagStr;
+        var url = "{{url_for('bookmark.index_view')}}?flt3_tags_contain=" + tagStr;
         window.location.href = url;
       }
     }
@@ -309,12 +308,12 @@
         var form = $('<form></form>');
 
         form.attr("method", "get");
-        form.attr("action", "{{url_for('search_bookmarks-html')}}");
+        form.attr("action", "{{url_for('bookmark.index_view')}}");
 
         var field = $('<input></input>');
 
         field.attr("type", "hidden");
-        field.attr("name", "keywords-0");
+        field.attr("name", "flt0_title_equals");
         field.attr("value", value);
         form.append(field);
 
