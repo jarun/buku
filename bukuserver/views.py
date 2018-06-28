@@ -1,6 +1,7 @@
 from collections import Counter
 from types import SimpleNamespace
 from urllib.parse import urlparse
+import itertools
 import logging
 
 from flask import flash, url_for
@@ -80,7 +81,7 @@ class BookmarkModelView(BaseModelView):
 
     can_set_page_size = True
     can_view_details = True
-    column_filters = ['id', 'url', 'tags']
+    column_filters = ['buku', 'id', 'url', 'tags']
     column_formatters = {'Entry': _list_entry,}
     column_list = ['Entry']
     create_modal = True
@@ -190,7 +191,14 @@ class BookmarkModelView(BaseModelView):
 
     def scaffold_filters(self, name):
         res = []
-        if name == BookmarkField.ID.name.lower():
+        if name == 'buku':
+
+            for match_all, deep_search, regex in sorted(itertools.product([True, False], repeat=3)):
+                res.append(
+                    bs_filters.BookmarkBukuFilter(
+                        match_all=match_all, deep_search=deep_search, regex=regex)
+                )
+        elif name == BookmarkField.ID.name.lower():
             res.extend([
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),

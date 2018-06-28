@@ -102,6 +102,31 @@ class TagBaseFilter(BaseFilter):
         return value
 
 
+class BookmarkBukuFilter(BaseFilter):
+
+    def __init__(self, *args, **kwargs):
+        self.keys = ['match_all', 'deep_search', 'regex']
+        for key, value in kwargs.items():
+            if key in self.keys and value:
+                setattr(self, key, value)
+            else:
+                setattr(self, key, False)
+        list(map(lambda x: kwargs.pop(x), self.keys))
+        super().__init__('buku', *args, **kwargs)
+
+    def operation(self):
+        parts = []
+        for key in self.keys:
+            if getattr(self, key):
+                parts.append(key)
+        if not parts:
+            return 'search'
+        return 'search ' + ', '.join(parts)
+
+    def apply(self, query, value):
+        return query
+
+
 class BookmarkBaseFilter(BaseFilter):
 
     def __init__(self, name, operation_text=None, apply_func=None, filter_type=None, options=None, data_type=None):
