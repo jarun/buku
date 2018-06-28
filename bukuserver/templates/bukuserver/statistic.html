@@ -198,7 +198,7 @@
                 <td>{{loop.index}}</td>
                 <td style="word-break:break-all;">
                   {% if item %}
-                  <a href="{{url_for('search_bookmarks-html')}}?keywords-0={{item}}">{{item}}</a>
+                  <a href="{{url_for('bookmark.index_view', flt0_title_equals=item)}}">{{item}}</a>
                   {% else %}
                   <span class="btn btn-default" disabled="disabled">(No Title)</span>
                   {% endif %}
