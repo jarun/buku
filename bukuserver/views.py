@@ -167,15 +167,18 @@ class BookmarkModelView(BaseModelView):
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
-        if [x[1] == 'buku' for x in filters]:
+        contain_buku_search = any(x[1] == 'buku' for x in filters)
+        if contain_buku_search:
             mode_id = [x[0] for x in filters]
             if len(list(set(mode_id))) > 1:
                 flash(gettext('Invalid search mode combination'), 'error')
                 return 0, []
             keywords = [x[2] for x in filters]
             for idx, flt_name, value in filters:
-                flt = self._filters[idx]
-            bookmarks = bukudb.searchdb(keywords, all_keywords=flt.all_keywords, deep=flt.deep, regex=flt.regex)
+                if flt_name == 'buku':
+                    flt = self._filters[idx]
+            bookmarks = bukudb.searchdb(
+                keywords, all_keywords=flt.all_keywords, deep=flt.deep, regex=flt.regex)
         else:
             bookmarks = bukudb.get_rec_all()
         bookmarks = self._apply_filters(bookmarks, filters)
