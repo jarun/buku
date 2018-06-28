@@ -579,7 +579,7 @@ def create_app(config_filename=None):
     admin = Admin(
         app, name='Buku Server', template_mode='bootstrap3',
         index_view=views.CustomAdminIndexView(
-            template='bukuserver/home.html'
+            template='bukuserver/home.html', url='/'
         )
     )
     # routing
@@ -598,14 +598,6 @@ def create_app(config_filename=None):
         'bookmark_range_operations', bookmark_range_operations, methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/search', 'search_bookmarks', search_bookmarks, methods=['GET', 'DELETE'])
     #  non api
-    app.add_url_rule('/tags', 'get_tags-html', get_tags, methods=['GET'])
-    app.add_url_rule('/tags/<tag>', 'update_tag-html', update_tag, methods=['POST'])
-    app.add_url_rule('/bookmarks', 'bookmarks-html', bookmarks, methods=['GET', 'POST', 'DELETE'])
-    app.add_url_rule('/bookmarks/<id>', 'bookmark_api-html', bookmark_api, methods=['GET', 'POST'])
-    app.add_url_rule('/bookmarks/search', 'search_bookmarks-html', search_bookmarks, methods=['GET'])
-    app.add_url_rule('/', 'index', lambda: render_template(
-        'bukuserver/index.html', search_bookmarks_form=forms.SearchBookmarksForm()))
-
     admin.add_view(views.BookmarkModelView(
         bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
     admin.add_view(views.TagModelView(
