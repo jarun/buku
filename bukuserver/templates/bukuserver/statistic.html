@@ -59,7 +59,7 @@
               <tr>
                 <td>{{loop.index}}</td>
                 <td>
-                  {% if netloc %}
+                  {% if item %}
                   <a href="{{url_for('bookmark.index_view', flt1_url_netloc_match=item)}}">{{item}}</a>
                   {% else %}
                   <span class="btn btn-default" disabled="disabled">(No Netloc)</span>
