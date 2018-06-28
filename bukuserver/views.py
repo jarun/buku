@@ -137,14 +137,14 @@ class BookmarkModelView(BaseModelView):
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
-        all_bookmarks = bukudb.get_rec_all()
-        all_bookmarks = self._apply_filters(all_bookmarks, filters)
+        bookmarks = bukudb.get_rec_all()
+        bookmarks = self._apply_filters(bookmarks, filters)
         if sort_field:
             key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
-            all_bookmarks = sorted(all_bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
-        count = len(all_bookmarks)
-        if page_size:
-            bookmarks = list(chunks(all_bookmarks, page_size))[page]
+            bookmarks = sorted(bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
+        count = len(bookmarks)
+        if page_size and bookmarks:
+            bookmarks = list(chunks(bookmarks, page_size))[page]
         data = []
         for bookmark in bookmarks:
             bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
