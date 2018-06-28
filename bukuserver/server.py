@@ -6,7 +6,7 @@ import sys
 from collections import Counter
 from urllib.parse import urlparse
 
-from buku import BukuDb, __version__
+from buku import BukuDb, __version__, network_handler
 from flask.cli import FlaskGroup
 from flask_admin import Admin
 from flask_api import exceptions, FlaskAPI, status
@@ -48,6 +48,19 @@ def get_tags():
     else:
         res = render_template('bukuserver/tags.html', result=result)
     return res
+
+
+def network_handle_detail():
+    failed_resp = response.response_template['failure'], status.HTTP_400_BAD_REQUEST
+    url = request.data.get('url', None)
+    if not url:
+        return failed_resp
+    try:
+        res = network_handler(url)
+        return {'title': res[0], 'recognized mime': res[1], 'bad url': res[2]}
+    except Exception as e:
+        current_app.logger.debug(str(e))
+    return failed_resp
 
 
 def tag_list():
@@ -566,10 +579,9 @@ def create_app(config_filename=None):
     admin = Admin(app, name='Buku Server', template_mode='bootstrap3')
     # routing
     #  api
-    #  app.add_url_rule('/api/tags', 'get_tags', get_tags, methods=['GET'])
     app.add_url_rule('/api/tags', 'get_tags', tag_list, methods=['GET'])
-    #  app.add_url_rule('/api/tags/<tag>', 'update_tag', update_tag, methods=['PUT'])
     app.add_url_rule('/api/tags/<tag>', 'update_tag', tag_detail, methods=['GET', 'PUT'])
+    app.add_url_rule('/api/network_handle', 'networkk_handle', network_handle_detail, methods=['POST'])
     app.add_url_rule('/api/bookmarks', 'bookmarks', bookmarks, methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmarks', refresh_bookmarks, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>', 'bookmark_api', bookmark_api, methods=['GET', 'PUT', 'DELETE'])
