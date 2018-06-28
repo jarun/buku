@@ -80,18 +80,26 @@ class BookmarkModelView(BaseModelView):
         parsed_url = urlparse(model.url)
         netloc, scheme = parsed_url.netloc, parsed_url.scheme
         is_scheme_valid = scheme in ('http', 'https')
-        if netloc:
-            netloc_tmpl = '<img src="{}{}"/> '
-            res = netloc_tmpl.format(
-                'http://www.google.com/s2/favicons?domain=', netloc)
-        else:
-            res = ''
+        tag_text = []
+        tag_tmpl = '<a class="btn btn-default" href="#">{0}</a>'
+        for tag in model.tags.split(','):
+            if tag:
+                tag_text.append(tag_tmpl.format(tag))
+        if not netloc:
+            return Markup("""\
+            {0.title}<br/>{2}<br/>{1}{0.description}
+            """.format(
+                model, ''.join(tag_text), Markup.escape(model.url)
+            ))
+        netloc_tmpl = '<img src="{}{}"/> '
+        res = netloc_tmpl.format(
+            'http://www.google.com/s2/favicons?domain=', netloc)
         title = model.title if model.title else '&lt;EMPTY TITLE&gt;'
         if is_scheme_valid:
             res += '<a href="{0.url}">{1}</a>'.format(model, title)
         else:
             res += title
-        if self.url_render_mode == 'netloc' and netloc:
+        if self.url_render_mode == 'netloc':
             res += ' ({})'.format(netloc)
         res += '<br/>'
         if not is_scheme_valid:
@@ -99,9 +107,7 @@ class BookmarkModelView(BaseModelView):
         elif self.url_render_mode is None or self.url_render_mode == 'full':
             res += '<a href="{0.url}">{0.url}</a>'.format(model)
             res += '<br/>'
-        for tag in model.tags.split(','):
-            if tag:
-                res += '<a class="btn btn-default" href="#">{0}</a>'.format(tag)
+        res += ''.join(tag_text)
         description = model.description
         if description:
             res += '<br/>'
