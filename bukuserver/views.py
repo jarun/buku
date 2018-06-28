@@ -467,7 +467,7 @@ class TagModelView(BaseModelView):
         pass
 
 
-class StatisticView(BaseView):
+class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
 
     @expose('/')
     def index(self):
