@@ -4,8 +4,9 @@ from urllib.parse import urlparse
 import itertools
 import logging
 
-from flask import flash, url_for
+from flask import flash, redirect, url_for, request 
 from flask_admin.babel import gettext
+from flask_admin.base import AdminIndexView, expose
 from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
 from jinja2 import Markup
@@ -22,6 +23,30 @@ except ImportError:
 DEFAULT_URL_RENDER_MODE = 'full'
 DEFAULT_PER_PAGE = 10
 log = logging.getLogger("bukuserver.views")
+
+
+class CustomAdminIndexView(AdminIndexView):
+
+    @expose('/')
+    def index(self):
+        return self.render('bukuserver/home.html', form=forms.HomeForm())
+
+    @expose('/', methods=['POST',])
+    def search(self):
+        "redirect to bookmark search"
+        form = forms.HomeForm()
+        bbm_filter = bs_filters.BookmarkBukuFilter(
+            all_keywords=False, deep=form.deep.data, regex=form.regex.data)
+        op_text = bbm_filter.operation()
+        values_combi = sorted(itertools.product([True, False], repeat=3))
+        for idx, (all_keywords, deep, regex) in enumerate(values_combi):
+            if deep == form.deep.data and regex == form.regex.data and not all_keywords:
+                choosen_idx = idx
+        url_op_text = op_text.replace(', ', '_').replace('  ', ' ').replace(' ', '_')
+        key = ''.join(['flt', str(choosen_idx), '_buku_', url_op_text])
+        kwargs = {key: form.keyword.data}
+        url = url_for('bookmark.index_view', **kwargs)
+        return redirect(url)
 
 
 class CustomBukuDbModel:  # pylint: disable=too-few-public-methods

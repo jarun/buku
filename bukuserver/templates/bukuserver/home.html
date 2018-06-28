@@ -1,0 +1,39 @@
+{% extends "admin/index.html" %}
+
+{% block menu_links %}
+{{ super() }}
+<form class="navbar-form navbar-right" action="{{url_for('bookmark.index_view')}}" method="GET">
+  <div class="form-group">
+    <input type="text" class="form-control" id="inputKeywords" placeholder="Search bookmark" name="flt1_buku_search">
+  </div>
+  <button type="submit" class="btn btn-default">Search</button>
+</form>
+{% endblock %}
+
+{% block body %}
+{{ super() }}
+<div class="container">
+  <div style="padding: 40px 15px; text-align: center;">
+    <h1>BUKU</h1>
+    <p class="lead">Bookmark manager like a text-based mini-web</p>
+    <p>
+      <a class="btn btn-lg btn-success" href="{{url_for('bookmark.index_view')}}" role="button">Bookmarks</a>
+      <a class="btn btn-lg btn-success" href="{{url_for('tag.index_view')}}" role="button">Tags</a>
+      <a class="btn btn-lg btn-success" href="{{url_for('statistic')}}" role="button">Statistics</a>
+    </p>
+    <div class=" col-md-4 col-md-offset-4">
+      <form class="form-horizontal" action="{{url_for('admin.search')}}" method="POST">
+        <div class="form-group">
+          {{form.keyword.label}}
+          {{form.keyword()}}
+        </div>
+        <div class="text-left col-sm-offset-2">
+          <div class="form-group"> {{form.deep()}} {{form.deep.label}} </div>
+          <div class="form-group"> {{form.regex()}} {{form.regex.label}} </div>
+        </div>
+        <button type="submit" class="btn btn-default">Search</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

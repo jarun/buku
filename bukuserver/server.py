@@ -576,7 +576,12 @@ def create_app(config_filename=None):
     app.jinja_env.filters['netloc'] = lambda x: urlparse(x).netloc  # pylint: disable=no-member
 
     Bootstrap(app)
-    admin = Admin(app, name='Buku Server', template_mode='bootstrap3')
+    admin = Admin(
+        app, name='Buku Server', template_mode='bootstrap3',
+        index_view=views.CustomAdminIndexView(
+            template='bukuserver/home.html'
+        )
+    )
     # routing
     #  api
     app.add_url_rule('/api/tags', 'get_tags', tag_list, methods=['GET'])

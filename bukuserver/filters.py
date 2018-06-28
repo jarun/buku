@@ -107,7 +107,7 @@ class BookmarkBukuFilter(BaseFilter):
     def __init__(self, *args, **kwargs):
         self.keys = {
             'all_keywords': 'match all',
-            'deep': 'deep search',
+            'deep': 'deep',
             'regex': 'regex'
         }
         for key, value in kwargs.items():
