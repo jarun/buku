@@ -813,7 +813,7 @@ class BukuDb:
 
         # Update tags if passed as argument
         if tags_in is not None:
-            if tags_in == '+,' or tags_in == '-,':
+            if tags_in in ('+,', '-,'):
                 logerr('Please specify a tag')
                 return False
 
