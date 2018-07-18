@@ -556,7 +556,7 @@ def view_statistic():
 def create_app(config_filename=None):
     """create app."""
     app = FlaskAPI(__name__)
-    per_page = int(os.getenv('BUKUSERVER_PER_PAGE', views.DEFAULT_PER_PAGE))
+    per_page = int(os.getenv('BUKUSERVER_PER_PAGE', str(views.DEFAULT_PER_PAGE)))
     per_page = per_page if per_page > 0 else views.DEFAULT_PER_PAGE
     app.config['BUKUSERVER_PER_PAGE'] = per_page
     url_render_mode = os.getenv('BUKUSERVER_URL_RENDER_MODE', views.DEFAULT_URL_RENDER_MODE)

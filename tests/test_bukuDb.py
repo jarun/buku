@@ -16,7 +16,7 @@ from tempfile import TemporaryDirectory
 
 from hypothesis import given, example
 from hypothesis import strategies as st
-from unittest import mock as mock
+from unittest import mock
 import pytest
 import unittest
 import yaml
@@ -768,12 +768,12 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
     n_low, n_high = normalize_range(db_len=db_len, low=low, high=high)
 
     exp_res = True
-    if n_high > db_len and n_low <= db_len:
+    if n_high > db_len >= n_low:
         exp_db_len = db_len - (db_len + 1 - n_low)
-    elif n_high == n_low and n_low > db_len:
+    elif n_high == n_low > db_len:
         exp_db_len = db_len
         exp_res = False
-    elif n_high == n_low and n_low <= db_len:
+    elif n_high == n_low <= db_len:
         exp_db_len = db_len - 1
     else:
         exp_db_len = db_len - (n_high + 1 - n_low)
