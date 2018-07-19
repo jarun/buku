@@ -2,7 +2,9 @@ Buku v3.X
 Unreleased
 
 What's in?
-- urllib3 is required on installation
+- Add --cached to completion scripts
+- Several dependencies is now required on installation
+- Bukuserver will use Flask-Admin
 
 -------------------------------------------------------------------------------
 
