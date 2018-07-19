@@ -2,7 +2,6 @@ Buku v3.X
 Unreleased
 
 What's in?
-- Add --cached to completion scripts
 - Several dependencies is now required on installation
 - Bukuserver will use Flask-Admin
 
