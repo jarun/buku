@@ -478,7 +478,7 @@ class TagModelView(BaseModelView):
 
 class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
 
-    @expose('/')
+    @expose('/', methods=('GET', 'POST'))
     def index(self):
         bukudb = BukuDb()
         global STATISTIC_DATA
