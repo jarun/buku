@@ -103,7 +103,7 @@ ENV BUKUSERVER_PER_PAGE=100
 <p align="center">
 <a href="https://i.imgur.com/MQM07VZ.png"><img src="https://i.imgur.com/MQM07VZ.png" alt="index page" width="650"/></a>
 </p>
-<p align="center"><i>view bookmark detail</i></a></p>
+<p align="center"><i>view bookmark details</i></a></p>
 
 <p><br><br></p>
 <p align="center">
