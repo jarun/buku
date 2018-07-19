@@ -81,10 +81,11 @@ class BookmarkModelView(BaseModelView):
         netloc, scheme = parsed_url.netloc, parsed_url.scheme
         is_scheme_valid = scheme in ('http', 'https')
         tag_text = []
-        tag_tmpl = '<a class="btn btn-default" href="#">{0}</a>'
+        tag_tmpl = '<a class="btn btn-default" href="{1}">{0}</a>'
         for tag in model.tags.split(','):
             if tag:
-                tag_text.append(tag_tmpl.format(tag))
+                tag_text.append(tag_tmpl.format(tag, url_for(
+                    'bookmark.index_view', flt2_tags_contain=tag)))
         if not netloc:
             return Markup("""\
             {0.title}<br/>{2}<br/>{1}{0.description}
@@ -100,13 +101,21 @@ class BookmarkModelView(BaseModelView):
         else:
             res += title
         if self.url_render_mode == 'netloc':
-            res += ' ({})'.format(netloc)
+            res += ' (<a href="{1}">{0}</a>)'.format(
+                netloc,
+                url_for('bookmark.index_view', flt2_url_netloc_match=netloc)
+            )
         res += '<br/>'
         if not is_scheme_valid:
             res += model.url
         elif self.url_render_mode is None or self.url_render_mode == 'full':
             res += '<a href="{0.url}">{0.url}</a>'.format(model)
             res += '<br/>'
+        if self.url_render_mode != 'netloc':
+            res += tag_tmpl.format(
+                'netloc:{}'.format(netloc),
+                url_for('bookmark.index_view', flt2_url_netloc_match=netloc)
+            )
         res += ''.join(tag_text)
         description = model.description
         if description:
@@ -469,7 +478,7 @@ class TagModelView(BaseModelView):
 
 class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
 
-    @expose('/')
+    @expose('/', methods=('GET', 'POST'))
     def index(self):
         bukudb = BukuDb()
         global STATISTIC_DATA
