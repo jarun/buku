@@ -3,7 +3,6 @@
 """Server module."""
 import os
 import sys
-from collections import Counter
 from urllib.parse import urlparse
 
 from buku import BukuDb, __version__, network_handler
@@ -13,7 +12,6 @@ from flask_api import exceptions, FlaskAPI, status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
 from markupsafe import Markup
-import arrow
 import click
 import flask
 from flask import (
