@@ -53,7 +53,7 @@ setup(
     license='GPLv3',
     platforms=['any'],
     py_modules=['buku'],
-    install_requires=['urllib3>=1.13.1', 'cryptography>=4.4.1', 'beautifulsoup4>=1.2.3'],
+    install_requires=['urllib3>=1.13.1', 'cryptography>=2.3', 'beautifulsoup4>=1.2.3'],
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
     entry_points={
