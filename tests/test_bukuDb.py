@@ -248,14 +248,6 @@ class TestBukuDb(unittest.TestCase):
             self.assertNotIn(to_delete, from_db)
 
     # @unittest.skip('skipping')
-    @pytest.mark.slowtest
-    def test_refreshdb(self):
-        self.bdb.add_rec("https://www.google.com/ncr", "?")
-        self.bdb.refreshdb(1, 1)
-        from_db = self.bdb.get_rec_by_id(1)
-        self.assertEqual(from_db[2], "?", 'from_db: {}'.format(from_db))
-
-    # @unittest.skip('skipping')
     def test_search_keywords_and_filter_by_tags(self):
         # adding bookmark
         for bookmark in self.bookmarks:
@@ -659,6 +651,44 @@ class TestBukuDb(unittest.TestCase):
 
     # def test_import_bookmark(self):
     # self.fail()
+
+
+@pytest.fixture(scope='function')
+def refreshdb_fixture():
+    # Setup
+    os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
+    # start every test from a clean state
+    if exists(TEST_TEMP_DBFILE_PATH):
+        os.remove(TEST_TEMP_DBFILE_PATH)
+
+    bdb = BukuDb()
+
+    yield bdb
+
+    # Teardown
+    os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
+
+
+#  @pytest.mark.slowtest
+@pytest.mark.parametrize(
+    "title_in, exp_res",
+    [
+        ['?', 'Example Domain'],
+        [None, 'Example Domain'],
+        ['', 'Example Domain'],
+        ['random title', 'Example Domain'],
+    ]
+)
+def test_refreshdb(refreshdb_fixture, title_in, exp_res):
+    bdb = refreshdb_fixture
+    args = ["https://example.com"]
+    if title_in:
+        args.append(title_in)
+    bdb.add_rec(*args)
+    bdb.refreshdb(1, 1)
+    from_db = bdb.get_rec_by_id(1)
+    assert from_db[2] == exp_res, 'from_db: {}'.format(from_db)
 
 
 @given(
