@@ -41,6 +41,8 @@ import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 import webbrowser
+import chardet
+import cgi
 
 __version__ = '3.8'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -2947,16 +2949,18 @@ def get_page_title(resp):
         Title fetched from parsed page.
     """
 
+    header = resp.getheader('content-type')
+    charset = cgi.parse_header(header)[1].get('charset', chardet.detect(resp.data)['encoding'])
     parser = BukuHTMLParser()
 
     try:
-        parser.feed(resp.data.decode(errors='replace'))
+        parser.feed(resp.data.decode(charset, errors='replace'))
     except Exception as e:
         # Suppress Exception due to intentional self.reset() in BHTMLParser
         if (logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!'):
             logerr('get_page_title(): %s', e)
     finally:
-        return parser.parsed_title
+        return re.sub(' +', ' ', parser.parsed_title)
 
 
 def gen_headers():
