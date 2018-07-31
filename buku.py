@@ -2950,7 +2950,7 @@ def get_page_title(resp):
     parser = BukuHTMLParser()
 
     try:
-        parser.feed(resp.data.decode(errors='replace'))
+        parser.feed(resp.data.decode('utf-8'))
     except Exception as e:
         # Suppress Exception due to intentional self.reset() in BHTMLParser
         if (logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!'):
