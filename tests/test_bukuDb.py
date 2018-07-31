@@ -253,7 +253,7 @@ class TestBukuDb(unittest.TestCase):
         self.bdb.add_rec("https://www.google.com/ncr", "?")
         self.bdb.refreshdb(1, 1)
         from_db = self.bdb.get_rec_by_id(1)
-        self.assertEqual(from_db[2], "Google", 'from_db: {}'.format(from_db))
+        self.assertEqual(from_db[2], "?", 'from_db: {}'.format(from_db))
 
     # @unittest.skip('skipping')
     def test_search_keywords_and_filter_by_tags(self):
