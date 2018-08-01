@@ -2965,7 +2965,7 @@ def get_page_title(resp):
         if (logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!'):
             logerr('get_page_title(): %s', e)
     finally:
-        return parser.parsed_title
+        return re.sub('\s{2,}', ' ', parser.parsed_title)
 
 
 def gen_headers():
