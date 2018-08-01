@@ -1383,6 +1383,12 @@ class BukuDb:
 
             try:
                 if self.chatty:
+                    self.cur.execute('SELECT COUNT(*) from bookmarks where id BETWEEN ? AND ?', (low, high))
+                    count = self.cur.fetchone()
+                    if (count[0] < 1):
+                        print('Index %d-%d: 0 deleted' % (low, high))
+                        return False
+
                     if self.print_rec(0, low, high, True) is True:
                         resp = input('Delete these bookmarks? (y/n): ')
                         if resp != 'y':
