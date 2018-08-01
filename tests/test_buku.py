@@ -568,6 +568,17 @@ def test_sigint_handler(capsys):
             'serp..1.2.311.06cSKPTLo18',
             ('xkbcomp alt gr', 0, 0)
         ],
+        [
+            'http://www.vim.org/scripts/script.php?script_id=4641',
+            (
+                'mlessnau_case - "in-case" selection, deletion and substitution '
+                'for underscore, camel, mixed case : vim online', 0, 0
+            )
+        ],
+        [
+            'http://www.kadrof.ru/cat_exchange.shtml',
+            ('Все биржи фриланса и удаленной работы - больше 110 сайтов | Kadrof.ru', 0, 0)
+        ],
     ]
 )
 def test_network_handler_with_url(url, exp_res):
