@@ -1387,8 +1387,6 @@ class BukuDb:
                         resp = input('Delete these bookmarks? (y/n): ')
                         if resp != 'y':
                             return False
-                    else:
-                        return False
 
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
@@ -1566,8 +1564,7 @@ class BukuDb:
                     resultset = self.cur.execute(query)
                 else:
                     query = 'SELECT * from bookmarks where id BETWEEN ? AND ?'
-                    self.cur.execute(query, (low, high))
-                    resultset = self.cur.fetchall()
+                    resultset = self.cur.execute(query, (low, high))
             except IndexError:
                 logerr('Index out of range')
                 return False
@@ -1593,9 +1590,9 @@ class BukuDb:
             self.cur.execute('SELECT * FROM bookmarks')
             resultset = self.cur.fetchall()
 
-        if len(resultset) < 1:
+        if not resultset:
             logerr('0 records')
-            return False
+            return True
 
         if not self.json:
             print_rec_with_filter(resultset, self.field_filter)
