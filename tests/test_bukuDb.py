@@ -680,7 +680,6 @@ def refreshdb_fixture():
         ['random title', 'Example Domain'],
     ]
 )
-@unittest.skip('skipping')
 def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     bdb = refreshdb_fixture
     args = ["https://example.com"]
