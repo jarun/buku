@@ -1,6 +1,7 @@
 """test module."""
 from itertools import product
 from unittest import mock
+from urllib.parse import urlparse
 import json
 import os
 import signal
@@ -52,10 +53,11 @@ def test_get_page_title():
     """test func."""
     resp = mock.Mock()
     parser = mock.Mock()
+    parser.parsed_title = 'doubled    whitespace'
     with mock.patch('buku.BukuHTMLParser', return_value=parser):
         import buku
         res = buku.get_page_title(resp)
-        assert res == parser.parsed_title
+        assert res == 'doubled whitespace'
 
 
 def test_gen_headers():
@@ -553,6 +555,31 @@ def test_sigint_handler(capsys):
         ['http://example.com/page1.txt', (('', 1, 0))],
         ['about:new_page', (('', 0, 1))],
         ['chrome://version/', (('', 0, 1))],
+        ['chrome://version/', (('', 0, 1))],
+        [
+            'http://4pda.ru/forum/index.php?showtopic=182463&st=1640#entry6044923',
+            ('Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA', 0, 0)
+        ],
+        [
+            'https://www.google.ru/search?'
+            'newwindow=1&safe=off&q=xkbcomp+alt+gr&'
+            'oq=xkbcomp+alt+gr&'
+            'gs_l=serp.3..33i21.28976559.28977886.0.'
+            '28978017.6.6.0.0.0.0.167.668.0j5.5.0....0...1c.1.64.'
+            'serp..1.2.311.06cSKPTLo18',
+            ('xkbcomp alt gr', 0, 0)
+        ],
+        [
+            'http://www.vim.org/scripts/script.php?script_id=4641',
+            (
+                'mlessnau_case - "in-case" selection, deletion and substitution '
+                'for underscore, camel, mixed case : vim online', 0, 0
+            )
+        ],
+        [
+            'http://www.kadrof.ru/cat_exchange.shtml',
+            ('Все биржи фриланса и удаленной работы - больше 110 сайтов | Kadrof.ru', 0, 0)
+        ],
     ]
 )
 def test_network_handler_with_url(url, exp_res):
@@ -562,6 +589,8 @@ def test_network_handler_with_url(url, exp_res):
     buku.urllib3 = urllib3
     buku.myproxy = None
     res = buku.network_handler(url)
+    if urlparse(url).netloc == 'www.google.ru':
+        res = (res[0].split(" - ")[0], res[1], res[2])
     assert res == exp_res
 
 

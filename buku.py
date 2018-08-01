@@ -1387,8 +1387,6 @@ class BukuDb:
                         resp = input('Delete these bookmarks? (y/n): ')
                         if resp != 'y':
                             return False
-                    else:
-                        return False
 
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
@@ -1566,8 +1564,7 @@ class BukuDb:
                     resultset = self.cur.execute(query)
                 else:
                     query = 'SELECT * from bookmarks where id BETWEEN ? AND ?'
-                    self.cur.execute(query, (low, high))
-                    resultset = self.cur.fetchall()
+                    resultset = self.cur.execute(query, (low, high))
             except IndexError:
                 logerr('Index out of range')
                 return False
@@ -1593,9 +1590,9 @@ class BukuDb:
             self.cur.execute('SELECT * FROM bookmarks')
             resultset = self.cur.fetchall()
 
-        if len(resultset) < 1:
+        if not resultset:
             logerr('0 records')
-            return False
+            return True
 
         if not self.json:
             print_rec_with_filter(resultset, self.field_filter)
@@ -2953,19 +2950,37 @@ def get_page_title(resp):
 
     parser = BukuHTMLParser()
     charset = 'utf-8'
+    soup = None
+    parsed_title = None
 
     try:
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(resp.data, 'html.parser')
+    except Exception as e:
+        logerr('get_page_title(): %s', e)
+    try:
+        charset_found = False
         if 'content-type' in resp.headers:
             _, params = cgi.parse_header(resp.headers['content-type'])
             if params.get('charset') is not None:
                 charset = params.get('charset')
+                charset_found = True
+        if not charset_found and soup:
+            meta_tag = soup.find('meta', attrs={'http-equiv': 'Content-Type'})
+            if meta_tag:
+                _, params = cgi.parse_header(meta_tag.attrs['content'])
+                charset = params.get('charset', charset)
         parser.feed(resp.data.decode(charset))
     except Exception as e:
+        if isinstance(e, UnicodeDecodeError) and soup:
+            parsed_title = soup.find('title').text
         # Suppress Exception due to intentional self.reset() in BHTMLParser
         if (logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!'):
             logerr('get_page_title(): %s', e)
     finally:
-        return re.sub('\s{2,}', ' ', parser.parsed_title)
+        if not parsed_title:
+            parsed_title = parser.parsed_title
+        return re.sub('\s{2,}', ' ', parsed_title)
 
 
 def gen_headers():
