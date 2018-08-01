@@ -53,10 +53,11 @@ def test_get_page_title():
     """test func."""
     resp = mock.Mock()
     parser = mock.Mock()
+    parser.parsed_title = 'doubled    whitespace'
     with mock.patch('buku.BukuHTMLParser', return_value=parser):
         import buku
         res = buku.get_page_title(resp)
-        assert res == parser.parsed_title
+        assert res == 'doubled whitespace'
 
 
 def test_gen_headers():
