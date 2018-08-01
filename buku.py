@@ -2954,8 +2954,8 @@ def get_page_title(resp):
     try:
         if 'content-type' in resp.headers:
             _, params = cgi.parse_header(resp.headers['content-type'])
-            if 'charset' in params:
-                charset = params['charset']
+            if params.get('charset') is not None:
+                charset = params.get('charset')
         parser.feed(resp.data.decode(charset))
     except Exception as e:
         # Suppress Exception due to intentional self.reset() in BHTMLParser
