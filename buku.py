@@ -18,6 +18,7 @@
 # along with Buku.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import cgi
 import collections
 import html.parser as HTMLParser
 import json
@@ -2948,9 +2949,14 @@ def get_page_title(resp):
     """
 
     parser = BukuHTMLParser()
+    charset = 'utf-8'
 
     try:
-        parser.feed(resp.data.decode('utf-8'))
+        if 'content-type' in resp.headers:
+            _, params = cgi.parse_header(resp.headers['content-type'])
+            if 'charset' in params:
+                charset = params['charset']
+        parser.feed(resp.data.decode(charset))
     except Exception as e:
         # Suppress Exception due to intentional self.reset() in BHTMLParser
         if (logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!'):
