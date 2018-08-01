@@ -18,6 +18,7 @@
 # along with Buku.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+from bs4 import BeautifulSoup
 import cgi
 import collections
 import html.parser as HTMLParser
@@ -2311,9 +2312,8 @@ class BukuDb:
 
         else:
             try:
-                import bs4
                 with open(filepath, mode='r', encoding='utf-8') as infp:
-                    soup = bs4.BeautifulSoup(infp, 'html.parser')
+                    soup = BeautifulSoup(infp, 'html.parser')
             except ImportError:
                 logerr('Beautiful Soup not found')
                 return False
@@ -2960,7 +2960,6 @@ def get_page_title(resp):
     parsed_title = None
 
     try:
-        from bs4 import BeautifulSoup
         soup = BeautifulSoup(resp.data, 'html.parser')
     except Exception as e:
         logerr('get_page_title(): %s', e)
