@@ -2955,6 +2955,7 @@ def get_page_title(resp):
     charset = 'utf-8'
 
     try:
+        charset = 'utf-8'
         if 'content-type' in resp.headers:
             _, params = cgi.parse_header(resp.headers['content-type'])
             if params.get('charset') is not None:
