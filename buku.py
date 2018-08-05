@@ -1362,6 +1362,12 @@ class BukuDb:
         else:  # Remove a single entry
             try:
                 if self.chatty:
+                    self.cur.execute('SELECT COUNT(*) FROM bookmarks WHERE id = ? LIMIT 1', (index,))
+                    count = self.cur.fetchone()
+                    if (count[0] < 1):
+                        logerr('No matching index %d', index)
+                        return False
+
                     if self.print_rec(index) is True:
                         resp = input('Delete this bookmark? (y/n): ')
                         if resp != 'y':
@@ -3898,7 +3904,7 @@ def delim_wrap(token):
     if token[-1] != DELIM:
         token = token + DELIM
 
-     return token
+    return token
 
 
 def read_in(msg):
