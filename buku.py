@@ -930,7 +930,6 @@ class BukuDb:
             blank_URL_str = 'Index %d: No title\n'
             success_str = 'Title: [%s]\nIndex %d: updated\n'
 
-        query = 'UPDATE bookmarks SET metadata = ?, desc = ? WHERE id = ?'
         done = {'value': 0}  # count threads completed
         processed = {'value': 0}  # count number of records processed
 
@@ -958,6 +957,9 @@ class BukuDb:
             count = 0
 
             while True:
+                query = 'UPDATE bookmarks SET'
+                arguments = []
+
                 cond.acquire()
                 if resultset:
                     row = resultset.pop()
@@ -970,21 +972,41 @@ class BukuDb:
                 count += 1
 
                 cond.acquire()
+
                 if bad:
                     print(bad_url_str % row[0])
                     cond.release()
                     continue
-                elif mime:
+
+                if mime:
                     if self.chatty:
                         print(mime_str % row[0])
                     cond.release()
                     continue
-                elif title == '':
+
+                to_update = False
+
+                if not title or title == '':
                     print(blank_URL_str % row[0])
+                else:
+                    query += ' metadata = ?,'
+                    arguments += (title,)
+                    to_update = True
+
+                if desc:
+                    query += ' desc = ?,'
+                    arguments += (desc,)
+                    to_update = True
+
+                if not to_update:
                     cond.release()
                     continue
 
-                self.cur.execute(query, (title, '' if desc is None else desc, row[0],))
+                query = query[:-1] + ' WHERE id = ?'
+                arguments += (row[0],)
+                logdbg('query: "%s", args: %s', query, arguments)
+
+                self.cur.execute(query, arguments)
                 self.append_tag_at_index(row[0], delim_wrap(tags), delay_commit=True)
 
                 # Save after fetching 32 titles per thread
