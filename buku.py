@@ -891,8 +891,8 @@ class BukuDb:
     def refreshdb(self, index, threads):
         """Refresh ALL records in the database.
 
-        Fetch title for eachbookmark from the web and update the records.
-        Doesn't update the record if title is empty.
+        Fetch title for each bookmark from the web and update the records.
+        Doesn't update the record if fetched title is empty.
 
         Notes
         -----
@@ -2927,7 +2927,7 @@ def parse_decoded_page(page):
     soup = BeautifulSoup(page, 'html5lib')
 
     try:
-        title = soup.find('title').text.strip()
+        title = soup.find('title').text.strip().replace('\n', ' ')
     except Exception as e:
         pass
 
@@ -2946,7 +2946,7 @@ def parse_decoded_page(page):
     keywords = soup.find('meta', attrs={'name':'keywords'}) or soup.find('meta', attrs={'name':'Keywords'})
     try:
         if keywords:
-            keys = keywords.get('content').strip()
+            keys = keywords.get('content').strip().replace('\n', ' ')
     except Exception as e:
         pass
 
@@ -3121,7 +3121,7 @@ def network_handler(url, http_head=False):
             return ('', '', '', 1, 0)
         if page_title is None:
             return ('', page_desc, page_keys, 0, 0)
-        return (page_title.strip().replace('\n', ''), page_desc, page_keys, 0, 0)
+        return (page_title, page_desc, page_keys, 0, 0)
 
 
 def parse_tags(keywords=[]):
