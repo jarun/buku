@@ -563,19 +563,19 @@ class BukuDb:
             logerr('URL [%s] already exists at index %d', url, id)
             return -1
 
-        # Process title
+        # Fetch data
+        meta, pdesc, ptags, mime, bad = network_handler(url)
+        if bad:
+            print('Malformed URL\n')
+        elif mime:
+            logdbg('HTTP HEAD requested')
+        elif meta == '' and title_in is None:
+            print('No title\n')
+        else:
+            logdbg('Title: [%s]', meta)
+
         if title_in is not None:
             meta = title_in
-        else:
-            meta, pdesc, ptags, mime, bad = network_handler(url)
-            if bad:
-                print('Malformed URL\n')
-            elif mime:
-                logdbg('HTTP HEAD requested')
-            elif meta == '':
-                print('No title\n')
-            else:
-                logdbg('Title: [%s]', meta)
 
         # Fix up tags, if broken
         if tags_in and tags_in != DELIM:
@@ -4079,11 +4079,13 @@ def to_temp_file_content(url, title_in, tags_in, desc):
     strings += (tags_in.strip(DELIM),) if not None else ''
 
     # DESC
-    strings += ('# Add COMMENTS in next line(s).',)
-    if desc is not None and desc != '':
-        strings += (desc,)
-    else:
+    strings += ('# Add COMMENTS in next line(s). Leave blank to web fetch, "-" for no comments.',)
+    if desc is None:
         strings += ('\n',)
+    elif desc == '':
+        strings += ('-',)
+    else:
+        strings += (desc,)
     return '\n'.join(strings)
 
 
@@ -4141,6 +4143,11 @@ def parse_temp_file_content(content):
             comments = comments[0:i+1]
 
     comments = '\n'.join(comments)
+    if comments == '':
+        comments = None
+    elif comments == '-':
+        comments = ''
+
     return url, title, tags, comments
 
 
