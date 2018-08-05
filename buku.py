@@ -783,13 +783,7 @@ class BukuDb:
                 self.chatty = chatty
                 tag_modified = True
             else:
-                # Fix up tags, if broken
-                if tags_in is None or tags_in == '':
-                    tags_in = DELIM
-                elif tags_in[0] != DELIM:
-                    tags_in = DELIM + tags_in
-                elif tags_in[-1] != DELIM:
-                    tags_in = tags_in + DELIM
+                tags_in = delim_wrap(tags_in)
 
                 query += ' tags = ?,'
                 arguments += (tags_in,)
@@ -3895,7 +3889,16 @@ def delim_wrap(token):
         Token string wrapped by DELIM.
     """
 
-    return DELIM + token + DELIM
+    if token is None or token.strip() == '':
+        return DELIM
+
+    if token[0] != DELIM:
+        token = DELIM + token
+
+    if token[-1] != DELIM:
+        token = token + DELIM
+
+     return token
 
 
 def read_in(msg):
