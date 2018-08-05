@@ -2951,18 +2951,22 @@ def parse_decoded_page(page):
     try:
         title = soup.find('title').text.strip().replace('\n', ' ')
     except Exception as e:
+        logdbg(e)
         pass
 
     description = (soup.find('meta', attrs={'name':'og:description'}) or
-                   soup.find('meta', attrs={'property':'description'}) or
-                   soup.find('meta', attrs={'name':'description'}) or
                    soup.find('meta', attrs={'name':'og:Description'}) or
+                   soup.find('meta', attrs={'property':'og:description'}) or
+                   soup.find('meta', attrs={'property':'og:Description'}) or
+                   soup.find('meta', attrs={'property':'description'}) or
                    soup.find('meta', attrs={'property':'Description'}) or
+                   soup.find('meta', attrs={'name':'description'}) or
                    soup.find('meta', attrs={'name':'Description'}))
     try:
         if description:
             desc = description.get('content').strip()
     except Exception as e:
+        logdbg(e)
         pass
 
     keywords = soup.find('meta', attrs={'name':'keywords'}) or soup.find('meta', attrs={'name':'Keywords'})
@@ -2970,6 +2974,7 @@ def parse_decoded_page(page):
         if keywords:
             keys = keywords.get('content').strip().replace('\n', ' ')
     except Exception as e:
+        logdbg(e)
         pass
 
     logdbg('title: %s' % title)
