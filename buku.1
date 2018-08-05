@@ -9,7 +9,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
 .PP
 .B Features
 .PP
-  * Store bookmarks with title (auto-fetched), tags and notes
+  * Store bookmarks with auto-fetched title, tags and description
   * Auto-import from Firefox, Google Chrome and Chromium
   * Open bookmarks and search results in browser
   * Shorten, expand URLs, browse cached page from Wayback Machine
@@ -50,8 +50,8 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 .IP 6. 4
 \fBUpdate\fR operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
-  - If --url is passed (and --title is omitted), update the title from web using the URL.
-  - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles from web. Bookmarks marked immutable are skipped.
+  - If --url is passed (and --title is omitted), update the title from web using the URL. Description is updated (if --comment is omitted) and tags are appended to (if --tag is omitted).
+  - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles, description and append tags from web. Bookmarks marked immutable are skipped.
   - Can update bookmarks matching a search, when combined with any of the search options and no arguments to update are passed.
 .PP
 .IP 7. 4
@@ -100,7 +100,7 @@ Bookmark
 along with comma-separated tags. A tag can have multiple words.
 .TP
 .BI \-u " " \--update " [...]"
-Update fields of the bookmarks at specified indices in DB. If no arguments are specified, all titles are refreshed from the web. Works with update modifiers for the fields url, title, tag and comment. If only indices are passed without any edit options, titles are fetched and updated (if not empty). Accepts hyphenated ranges and space-separated indices. Updates search results when used with search options, if no arguments.
+Update fields of the bookmarks at specified indices in DB. If no arguments are specified, all titles and descriptions are refreshed from the web. Tags are appended. Works with update modifiers for the fields url, title, tag and comment. If only indices are passed without any edit options, titles and descriptions are fetched and updated (if not empty). Accepts hyphenated ranges and space-separated indices. Updates search results when used with search options, if no arguments.
 .TP
 .BI \-w " " \--write " [editor|index]"
 Edit a bookmark in
@@ -132,7 +132,7 @@ Manually specify the title, works with --add, --update. Omits or clears the titl
 Add notes or description of the bookmark, works with --add, --update. Clears the comment, if no arguments passed.
 .TP
 .BI \--immutable " N"
-Set the title of a bookmark immutable during updates. Works with --add, --update. N=1 sets the immutable flag, N=0 removes it. If omitted, bookmarks are added with N=0.
+Set the title, description and tags of a bookmark immutable during autorefresh. Works with --add, --update. N=1 sets the immutable flag, N=0 removes it. If omitted, bookmarks are added with N=0.
 .SH SEARCH OPTIONS
 .TP
 .BI \-s " " \--sany " keyword [...]"

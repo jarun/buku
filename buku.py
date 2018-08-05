@@ -567,7 +567,7 @@ class BukuDb:
         if title_in is not None:
             meta = title_in
         else:
-            meta, mime, bad = network_handler(url)
+            meta, pdesc, ptags, mime, bad = network_handler(url)
             if bad:
                 print('Malformed URL\n')
             elif mime:
@@ -578,16 +578,14 @@ class BukuDb:
                 logdbg('Title: [%s]', meta)
 
         # Fix up tags, if broken
-        if tags_in is None or tags_in == '':
-            tags_in = DELIM
-        elif tags_in[0] != DELIM:
-            tags_in = DELIM + tags_in
-        elif tags_in[-1] != DELIM:
-            tags_in = tags_in + DELIM
+        if tags_in and tags_in != DELIM:
+            tags_in = delim_wrap(tags_in)
+        else:
+            tags_in = delim_wrap(parse_tags([ptags]))
 
         # Process description
         if desc is None:
-            desc = ''
+            desc = '' if pdesc is None else pdesc
 
         try:
             flagset = 0
@@ -623,6 +621,9 @@ class BukuDb:
         bool
             True on success, False on failure.
         """
+
+        if tags_in is None or tags_in == DELIM:
+            return True
 
         if index == 0:
             resp = read_in('Append the tags to ALL bookmarks? (y/n): ')
@@ -739,7 +740,7 @@ class BukuDb:
         desc : str, optional
             Description of bookmark.
         immutable : int, optional
-            Diable title fetch from web if 1. Default is -1.
+            Disable title fetch from web if 1. Default is -1.
         threads : int, optional
             Number of threads to use to refresh full DB. Default is 4.
 
@@ -816,10 +817,12 @@ class BukuDb:
         # 4. if no other argument (url, tag, comment, immutable) passed,
         #    update title from web using DB URL (if title is mutable)
         title_to_insert = None
+        pdesc = None
+        ptags = None
         if title_in is not None:
             title_to_insert = title_in
         elif url is not None and url != '':
-            title_to_insert, mime, bad = network_handler(url)
+            title_to_insert, pdesc, ptags, mime, bad = network_handler(url)
             if bad:
                 print('Malformed URL\n')
             elif mime:
@@ -828,6 +831,16 @@ class BukuDb:
                 print('No title\n')
             else:
                 logdbg('Title: [%s]', title_to_insert)
+
+            if not desc:
+                if not pdesc:
+                    pdesc = ''
+                query += ' desc = ?,'
+                arguments += (pdesc,)
+                to_update = True
+
+            if not tags_in and ptags:
+                self.append_tag_at_index(index, delim_wrap(ptags))
         elif not to_update and not tag_modified:
             ret = self.refreshdb(index, threads)
             if ret and index and self.chatty:
@@ -917,7 +930,7 @@ class BukuDb:
             blank_URL_str = 'Index %d: No title\n'
             success_str = 'Title: [%s]\nIndex %d: updated\n'
 
-        query = 'UPDATE bookmarks SET metadata = ? WHERE id = ?'
+        query = 'UPDATE bookmarks SET metadata = ?, desc = ? WHERE id = ?'
         done = {'value': 0}  # count threads completed
         processed = {'value': 0}  # count number of records processed
 
@@ -953,7 +966,7 @@ class BukuDb:
                     break
                 cond.release()
 
-                title, mime, bad = network_handler(row[1], row[2] & 1)
+                title, desc, tags, mime, bad = network_handler(row[1], row[2] & 1)
                 count += 1
 
                 cond.acquire()
@@ -971,7 +984,9 @@ class BukuDb:
                     cond.release()
                     continue
 
-                self.cur.execute(query, (title, row[0],))
+                self.cur.execute(query, (title, '' if desc is None else desc, row[0],))
+                self.append_tag_at_index(row[0], delim_wrap(tags), delay_commit=True)
+
                 # Save after fetching 32 titles per thread
                 if count & 0b11111 == 0:
                     self.conn.commit()
@@ -2918,14 +2933,17 @@ def parse_decoded_page(page):
 
     description = (soup.find('meta', attrs={'name':'og:description'}) or
                    soup.find('meta', attrs={'property':'description'}) or
-                   soup.find('meta', attrs={'name':'description'}))
+                   soup.find('meta', attrs={'name':'description'}) or
+                   soup.find('meta', attrs={'name':'og:Description'}) or
+                   soup.find('meta', attrs={'property':'Description'}) or
+                   soup.find('meta', attrs={'name':'Description'}))
     try:
         if description:
             desc = description.get('content').strip()
     except Exception as e:
         pass
 
-    keywords = soup.find('meta', attrs={'name':'keywords'})
+    keywords = soup.find('meta', attrs={'name':'keywords'}) or soup.find('meta', attrs={'name':'Keywords'})
     try:
         if keywords:
             keys = keywords.get('content').strip()
@@ -3049,13 +3067,15 @@ def network_handler(url, http_head=False):
     Returns
     -------
     tuple
-        (title, recognized mime, bad url).
+        (title, description, tags, recognized mime, bad url).
     """
 
     page_title = None
+    page_desc = None
+    page_keys = None
 
     if is_nongeneric_url(url) or is_bad_url(url):
-        return ('', 0, 1)
+        return ('', '', '', 0, 1)
 
     if is_ignored_mime(url) or http_head:
         method = 'HEAD'
@@ -3098,10 +3118,10 @@ def network_handler(url, http_head=False):
         if manager:
             manager.clear()
         if method == 'HEAD':
-            return ('', 1, 0)
+            return ('', '', '', 1, 0)
         if page_title is None:
-            return ('', 0, 0)
-        return (page_title.strip().replace('\n', ''), 0, 0)
+            return ('', page_desc, page_keys, 0, 0)
+        return (page_title.strip().replace('\n', ''), page_desc, page_keys, 0, 0)
 
 
 def parse_tags(keywords=[]):
@@ -3125,7 +3145,7 @@ def parse_tags(keywords=[]):
     if keywords is None:
         return None
 
-    if not keywords:
+    if not keywords or len(keywords) < 1 or not keywords[0]:
         return DELIM
 
     tags = DELIM
@@ -4268,10 +4288,10 @@ POSITIONAL ARGUMENTS:
                          bookmark URL with comma-separated tags
     -u, --update [...]   update fields of an existing bookmark
                          accepts indices and ranges
-                         refresh the title, if no edit options
+                         refresh title, desc, tags if no edit options
                          if no arguments:
                          - update results when used with search
-                         - otherwise refresh all titles
+                         - otherwise refresh all titles, desc, tags
     -w, --write [editor|index]
                          open editor to edit a fresh bookmark
                          edit last bookmark, if index=-1
@@ -4305,7 +4325,7 @@ POSITIONAL ARGUMENTS:
                          -a: do not set title, -u: clear title
     -c, --comment [...]  notes or description of the bookmark
                          clears description, if no arguments
-    --immutable N        disable title fetch from web on update
+    --immutable N        disable web-fetch during auto-refresh
                          N=0: mutable (default), N=1: immutable''')
     addarg = edit_grp.add_argument
     addarg('--url', nargs=1, help=HIDE)

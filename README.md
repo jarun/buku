@@ -27,7 +27,7 @@
 
 `buku` is a powerful bookmark manager written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with seamless GUI integration. Hence, `Buku` (after my son's nickname, meaning *close to the heart* in my language).
 
-`buku` fetches the title of a bookmarked url and stores it along with any user-provided comments and tags. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once. `buku` can look up the latest snapshot of a broken link on the Wayback Machine. There's an Easter egg to revisit random forgotten bookmarks too! *Buku* is too busy to track you - no hidden history, obsolete records, usage analytics or homing. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
+`buku` fetches the title, tags and description of a bookmarked url from the web and stores it. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once. `buku` can look up the latest snapshot of a broken link on the Wayback Machine. There's an Easter egg to revisit random forgotten bookmarks too! *Buku* is too busy to track you - no hidden history, obsolete records, usage analytics or homing. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
 
 [bukuserver](https://github.com/jarun/Buku/tree/master/bukuserver) exposes a browsable frontend on a local webhost server.
 
@@ -67,7 +67,7 @@ There are several [projects based on `buku`](#related-projects), including a bro
 
 ### Features
 
-- Store bookmarks with title (auto-fetched), tags and notes
+- Store bookmarks with auto-fetched title, tags and description
 - Auto-import from Firefox, Google Chrome and Chromium
 - Open bookmarks and search results in browser
 - Shorten, expand URLs, browse cached page from Wayback Machine
@@ -165,10 +165,10 @@ GENERAL OPTIONS:
                            bookmark URL with comma-separated tags
       -u, --update [...]   update fields of an existing bookmark
                            accepts indices and ranges
-                           refresh the title, if no edit options
+                           refresh title, desc, tags if no edit options
                            if no arguments:
                            - update results when used with search
-                           - otherwise refresh all titles
+                           - otherwise refresh all titles, desc, tags
       -w, --write [editor|index]
                            open editor to edit a fresh bookmark
                            edit last bookmark, if index=-1
@@ -190,7 +190,7 @@ EDIT OPTIONS:
                            -a: do not set title, -u: clear title
       -c, --comment [...]  notes or description of the bookmark
                            clears description, if no arguments
-      --immutable N        disable title fetch from web on update
+      --immutable N        disable web-fetch during auto-refresh
                            N=0: mutable (default), N=1: immutable
 
 SEARCH OPTIONS:
