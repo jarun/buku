@@ -86,55 +86,6 @@ logdbg = logger.debug
 logerr = logger.error
 
 
-class BukuHTMLParser(HTMLParser.HTMLParser):
-    """Class to parse and fetch the title from a HTML page, if available.
-
-    .. note:: The methods in this class are custom implementations of the
-              HTMLParser object.
-
-              See docs https://docs.python.org/3/library/html.parser.html.
-
-
-    Attributes
-    ----------
-    in_title_tag : bool
-        True if HTML tag is a <title> tag. Initial value is False.
-    data : str
-        Initial value is empty string.
-    prev_tag : None or str
-        Initial value is None.
-    parsed_title : None or str
-        The parsed title from a title tag. Initial value is None.
-    """
-
-    def __init__(self):
-        HTMLParser.HTMLParser.__init__(self)
-        self.in_title_tag = False
-        self.data = ''
-        self.prev_tag = None
-        self.parsed_title = None
-
-    def handle_starttag(self, tag, attrs):
-        self.in_title_tag = False
-        if tag == 'title':
-            self.in_title_tag = True
-            self.prev_tag = tag
-
-    def handle_endtag(self, tag):
-        if tag == 'title':
-            self.in_title_tag = False
-            if self.data != '':
-                self.parsed_title = self.data
-                self.reset()  # We have received title data, exit parsing
-
-    def handle_data(self, data):
-        if self.prev_tag == 'title' and self.in_title_tag:
-            self.data += data
-
-    def error(self, message):
-        pass
-
-
 class BukuCrypt:
     """Class to handle encryption and decryption of
     the database file. Functionally a separate entity.
@@ -2940,8 +2891,56 @@ def is_ignored_mime(url):
     return False
 
 
-def get_page_title(resp):
-    """Invoke HTML parser and extract title from HTTP response.
+def parse_decoded_page(page):
+    """Fetch title, description and keywords from decoded html page.
+
+    Parameters
+    ----------
+    page : str
+        Decoded html page.
+
+    Returns
+    -------
+    tuple
+        (title, description, keywords).
+    """
+
+    title = None
+    desc = None
+    keys = None
+
+    soup = BeautifulSoup(page, 'html5lib')
+
+    try:
+        title = soup.find('title').text.strip()
+    except Exception as e:
+        pass
+
+    description = (soup.find('meta', attrs={'name':'og:description'}) or
+                   soup.find('meta', attrs={'property':'description'}) or
+                   soup.find('meta', attrs={'name':'description'}))
+    try:
+        if description:
+            desc = description.get('content').strip()
+    except Exception as e:
+        pass
+
+    keywords = soup.find('meta', attrs={'name':'keywords'})
+    try:
+        if keywords:
+            keys = keywords.get('content').strip()
+    except Exception as e:
+        pass
+
+    logdbg('title: %s' % title)
+    logdbg('desc : %s' % desc)
+    logdbg('keys : %s' % keys)
+
+    return (title, desc, keys)
+
+
+def get_data_from_page(resp):
+    """Detect HTTP response encoding and invoke parser with decoded data.
 
     Parameters
     ----------
@@ -2950,42 +2949,46 @@ def get_page_title(resp):
 
     Returns
     -------
-    str
-        Title fetched from parsed page.
+    tuple
+        (title, description, keywords).
     """
-
-    parser = BukuHTMLParser()
-    charset = 'utf-8'
-    soup = None
-    parsed_title = None
 
     try:
         soup = BeautifulSoup(resp.data, 'html.parser')
     except Exception as e:
-        logerr('get_page_title(): %s', e)
+        logerr('get_data_from_page(): %s', e)
+
     try:
-        charset_found = False
-        if 'content-type' in resp.headers:
+        charset = None
+
+        if soup.meta and soup.meta.get('charset') is not None:
+            charset = soup.meta.get('charset')
+        elif 'content-type' in resp.headers:
             _, params = cgi.parse_header(resp.headers['content-type'])
             if params.get('charset') is not None:
                 charset = params.get('charset')
-                charset_found = True
-        if not charset_found and soup:
+
+        if not charset and soup:
             meta_tag = soup.find('meta', attrs={'http-equiv': 'Content-Type'})
             if meta_tag:
                 _, params = cgi.parse_header(meta_tag.attrs['content'])
                 charset = params.get('charset', charset)
-        parser.feed(resp.data.decode(charset))
+
+        if charset:
+            logdbg('charset: %s' % charset)
+            title, desc, keywords = parse_decoded_page(resp.data.decode(charset, errors='replace'))
+        else:
+            title, desc, keywords = parse_decoded_page(resp.data.decode(errors='replace'))
+
+        if title is not None:
+            title = re.sub('\s{2,}', ' ', title)
+        if desc is not None:
+            desc = re.sub('\s{2,}', ' ', desc)
+
+        return (title, desc, keywords)
     except Exception as e:
-        if isinstance(e, UnicodeDecodeError) and soup:
-            parsed_title = soup.find('title').text
-        # Suppress Exception due to intentional self.reset() in BHTMLParser
-        if (logger.isEnabledFor(logging.DEBUG) and str(e) != 'we should not get here!'):
-            logerr('get_page_title(): %s', e)
-    finally:
-        if not parsed_title:
-            parsed_title = parser.parsed_title
-        return re.sub('\s{2,}', ' ', parsed_title)
+        logerr(e)
+        return (None, None, None)
 
 
 def gen_headers():
@@ -3070,7 +3073,7 @@ def network_handler(url, http_head=False):
 
             if resp.status == 200:
                 if method == 'GET':
-                    page_title = get_page_title(resp)
+                    page_title, page_desc, page_keys = get_data_from_page(resp)
             elif resp.status == 403 and url.endswith('/'):
                 # HTTP response Forbidden
                 # Handle URLs in the form of https://www.domain.com/
