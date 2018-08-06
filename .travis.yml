@@ -15,7 +15,7 @@ install: "pip install -r requirements.txt"
 script:
   - python3 -m flake8
   - find . -iname "*.py" ! -path "./api/*" | xargs pylint --rcfile tests/.pylintrc
-  - python3 -m pytest ./tests/test_*.py --cov buku -vv
+  - python3 -m pytest ./tests/test_*.py --cov buku -vv --durations=0
 before_deploy:
   - sudo apt-get update -qy
   - sudo apt-get install -qy python3 python3-pip
