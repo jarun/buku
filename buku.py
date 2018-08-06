@@ -19,6 +19,7 @@
 
 import argparse
 from bs4 import BeautifulSoup
+import certifi
 import cgi
 import collections
 import json
@@ -2417,9 +2418,12 @@ class BukuDb:
             gen_headers()
 
         if myproxy:
-            manager = urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders)
+            manager = urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         else:
-            manager = urllib3.PoolManager(num_pools=1, headers={'User-Agent': USER_AGENT})
+            manager = urllib3.PoolManager(num_pools=1,
+                                          headers={'User-Agent': USER_AGENT},
+                                          cert_reqs='CERT_REQUIRED',
+                                          ca_certs=certifi.where())
 
         try:
             r = manager.request('POST', _u, headers={'content-type': 'application/json', 'User-Agent': USER_AGENT})
@@ -3072,9 +3076,10 @@ def get_PoolManager():
     """
 
     if myproxy:
-        return urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders, timeout=15)
+        return urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders, timeout=15,
+                                    cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
-    return urllib3.PoolManager(num_pools=1, headers=myheaders, timeout=15)
+    return urllib3.PoolManager(num_pools=1, headers=myheaders, timeout=15, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
 
 def network_handler(url, http_head=False):
@@ -3883,9 +3888,12 @@ def check_upstream_release():
         gen_headers()
 
     if myproxy:
-        manager = urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders)
+        manager = urllib3.ProxyManager(myproxy, num_pools=1, headers=myheaders, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
     else:
-        manager = urllib3.PoolManager(num_pools=1, headers={'User-Agent': USER_AGENT})
+        manager = urllib3.PoolManager(num_pools=1,
+                                      headers={'User-Agent': USER_AGENT},
+                                      cert_reqs='CERT_REQUIRED',
+                                      ca_certs=certifi.where())
 
     try:
         r = manager.request('GET', 'https://api.github.com/repos/jarun/buku/releases?per_page=1', headers={'User-Agent': USER_AGENT})
