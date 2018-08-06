@@ -1082,7 +1082,9 @@ class BukuDb:
             logerr('No matching index %d', index)
             return False
 
-        result = edit_rec(editor, rec[1], rec[2], rec[3], rec[4])
+        # If reading from DB, show empty title and desc as empty lines. We have to convert because
+        # even in case of add with a blank title or desc, '' is used as initializer to show '-'.
+        result = edit_rec(editor, rec[1], rec[2] if rec[2] != '' else None, rec[3], rec[4] if rec[4] != '' else None)
         if result is not None:
             url, title, tags, desc = result
             return self.update_rec(index, url, title, tags, desc, immutable)
