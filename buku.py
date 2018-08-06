@@ -672,6 +672,9 @@ class BukuDb:
             True on success, False on failure.
         """
 
+        if tags_in is None or tags_in == DELIM:
+            return True
+
         tags_to_delete = tags_in.strip(DELIM).split(DELIM)
 
         if index == 0:
