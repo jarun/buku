@@ -2955,12 +2955,9 @@ def is_unusual_tag(tagstr):
         return True
 
     nwords = len(tagstr.split())
-    ncommas = tagstr.count(',')
+    ncommas = tagstr.count(',') + 1
 
-    if nwords > 3 and ncommas == 0:
-        return True
-
-    if ncommas and (nwords / (ncommas + 1)) > 3:
+    if nwords / ncommas > 3:
         return True
 
     return False
@@ -3013,13 +3010,14 @@ def parse_decoded_page(page):
     try:
         if keywords:
             keys = keywords.get('content').strip().replace('\n', ' ')
-            if (is_unusual_tag(keys)):
-                keys = re.sub('\s{2,}', ' ', keys)
-                logdbg('keywords to description: %s', keys)
-                if desc:
-                    desc = desc + '\n## ' + keys
-                else:
-                    desc = '* ' + keys
+            keys = re.sub('\s{2,}', ' ', keys)
+            if is_unusual_tag(keys):
+                if keys != title and keys != desc:
+                    logdbg('keywords to description: %s', keys)
+                    if desc:
+                        desc = desc + '\n## ' + keys
+                    else:
+                        desc = '* ' + keys
 
                 keys = None
     except Exception as e:
