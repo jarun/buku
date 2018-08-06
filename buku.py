@@ -2931,6 +2931,41 @@ def is_ignored_mime(url):
     return False
 
 
+def is_unusual_tag(tagstr):
+    """Identify unusual tags. Criteria:
+       - a full stop found
+       - more than 3 words without any commas
+       - word to comma ratio is greater than 3
+
+    Parameters
+    ----------
+    tagstr : str
+        tag string to check.
+
+    Returns
+    -------
+    bool
+        True if valid tag else False.
+    """
+
+    if not tagstr:
+        return False
+
+    if tagstr.find('.') != -1:
+        return True
+
+    nwords = len(tagstr.split())
+    ncommas = tagstr.count(',')
+
+    if nwords > 3 and ncommas == 0:
+        return True
+
+    if ncommas and (nwords / ncommas) > 3:
+        return True
+
+    return False
+
+
 def parse_decoded_page(page):
     """Fetch title, description and keywords from decoded html page.
 
@@ -2953,6 +2988,8 @@ def parse_decoded_page(page):
 
     try:
         title = soup.find('title').text.strip().replace('\n', ' ')
+        if title:
+            title = re.sub('\s{2,}', ' ', title)
     except Exception as e:
         logdbg(e)
 
@@ -2967,6 +3004,8 @@ def parse_decoded_page(page):
     try:
         if description:
             desc = description.get('content').strip()
+            if desc:
+                desc = re.sub('\s{2,}', ' ', desc)
     except Exception as e:
         logdbg(e)
 
@@ -2974,6 +3013,15 @@ def parse_decoded_page(page):
     try:
         if keywords:
             keys = keywords.get('content').strip().replace('\n', ' ')
+            if (is_unusual_tag(keys)):
+                keys = re.sub('\s{2,}', ' ', keys)
+                logdbg('keywords to description: %s', keys)
+                if desc:
+                    desc = desc + '\n\n## ' + keys
+                else:
+                    desc = '* ' + keys
+
+                keys = None
     except Exception as e:
         logdbg(e)
 
@@ -3024,11 +3072,6 @@ def get_data_from_page(resp):
             title, desc, keywords = parse_decoded_page(resp.data.decode(charset, errors='replace'))
         else:
             title, desc, keywords = parse_decoded_page(resp.data.decode(errors='replace'))
-
-        if title is not None:
-            title = re.sub('\s{2,}', ' ', title)
-        if desc is not None:
-            desc = re.sub('\s{2,}', ' ', desc)
 
         return (title, desc, keywords)
     except Exception as e:
