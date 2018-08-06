@@ -824,11 +824,11 @@ class BukuDb:
         elif url is not None and url != '':
             title_to_insert, pdesc, ptags, mime, bad = network_handler(url)
             if bad:
-                print('Malformed URL\n')
+                print('Malformed URL')
             elif mime:
                 logdbg('HTTP HEAD requested')
             elif title_to_insert == '':
-                print('No title\n')
+                print('No title')
             else:
                 logdbg('Title: [%s]', title_to_insert)
 
@@ -868,7 +868,7 @@ class BukuDb:
             query = query[:-1] + ' WHERE id = ?'
             arguments += (index,)
 
-        logdbg('query: "%s", args: %s', query, arguments)
+        logdbg('update_rec query: "%s", args: %s', query, arguments)
 
         try:
             self.cur.execute(query, arguments)
@@ -1004,7 +1004,7 @@ class BukuDb:
 
                 query = query[:-1] + ' WHERE id = ?'
                 arguments += (row[0],)
-                logdbg('query: "%s", args: %s', query, arguments)
+                logdbg('refreshdb query: "%s", args: %s', query, arguments)
 
                 self.cur.execute(query, arguments)
                 self.append_tag_at_index(row[0], delim_wrap(tags), delay_commit=True)
@@ -3101,9 +3101,10 @@ def network_handler(url, http_head=False):
     page_title = None
     page_desc = None
     page_keys = None
+    exception = False
 
     if is_nongeneric_url(url) or is_bad_url(url):
-        return ('', '', '', 0, 1)
+        return (None, None, None, 0, 1)
 
     if is_ignored_mime(url) or http_head:
         method = 'HEAD'
@@ -3142,13 +3143,17 @@ def network_handler(url, http_head=False):
             break
     except Exception as e:
         logerr('network_handler(): %s', e)
+        exception = True
     finally:
         if manager:
             manager.clear()
+        if exception:
+            return (None, None, None, 0, 0)
         if method == 'HEAD':
             return ('', '', '', 1, 0)
         if page_title is None:
             return ('', page_desc, page_keys, 0, 0)
+
         return (page_title, page_desc, page_keys, 0, 0)
 
 
