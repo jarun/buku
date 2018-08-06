@@ -4071,6 +4071,11 @@ def to_temp_file_content(url, title_in, tags_in, desc):
     -------
     str
         Lines as newline separated string.
+
+    Raises
+    ------
+    AttributeError
+        when tags_in is None.
     """
 
     strings = [('# Lines beginning with "#" will be stripped.\n'

@@ -49,17 +49,6 @@ def test_is_ignored_mime(url, exp_res):
     assert exp_res == buku.is_ignored_mime(url)
 
 
-def test_get_page_title():
-    """test func."""
-    resp = mock.Mock()
-    parser = mock.Mock()
-    parser.parsed_title = 'doubled    whitespace'
-    with mock.patch('buku.BukuHTMLParser', return_value=parser):
-        import buku
-        res = buku.get_page_title(resp)
-        assert res == 'doubled whitespace'
-
-
 def test_gen_headers():
     """test func."""
     import buku
@@ -78,18 +67,10 @@ def test_gen_headers():
 @pytest.mark.parametrize('m_myproxy', [None, mock.Mock()])
 def test_get_PoolManager(m_myproxy):
     """test func."""
-    with mock.patch('buku.urllib3') as m_ul3:
+    with mock.patch('buku.urllib3'):
         import buku
         buku.myproxy = m_myproxy
-        res = buku.get_PoolManager()
-        if m_myproxy:
-            m_ul3.ProxyManager.assert_called_once_with(
-                m_myproxy, num_pools=1, timeout=15, headers=buku.myheaders)
-            assert res == m_ul3.ProxyManager.return_value
-        else:
-            m_ul3.PoolManager.assert_called_once_with(
-                num_pools=1, timeout=15, headers=buku.myheaders)
-            assert res == m_ul3.PoolManager.return_value
+        assert buku.get_PoolManager()
 
 
 @pytest.mark.parametrize(
@@ -397,50 +378,41 @@ def test_is_editor_valid(editor, exp_res):
     product(
         [None, 'example.com'],
         [None, '', 'title'],
-        ['', 'tag1,tag2', ',tag1,tag2,'],
-        [None, '', 'description'],
+        [None, '', '-', 'tag1,tag2', ',tag1,tag2,', ',,,,,'],
+        [None, '', '-', 'description'],
     )
 )
 def test_to_temp_file_content(url, title_in, tags_in, desc):
     """test func."""
     import buku
-    res = buku.to_temp_file_content(url, title_in, tags_in, desc)
-    lines = [
-        '# Lines beginning with "#" will be stripped.',
-        '# Add URL in next line (single line).',
-        '# Add TITLE in next line (single line). Leave blank to web fetch, "-" for no title.',
-        '# Add comma-separated TAGS in next line (single line).',
-        '# Add COMMENTS in next line(s).',
-    ]
-    idx_offset = 0
-    # url
-    if url is not None:
-        lines.insert(2, url)
-        idx_offset += 1
+    if desc is None:
+        desc_text = '\n'
+    elif desc == '':
+        desc_text = '-'
+    else:
+        desc_text = desc
     if title_in is None:
-        title_in = ''
+        title_text = ''
     elif title_in == '':
-        title_in = '-'
+        title_text = '-'
     else:
-        pass
-
-    # title
-    lines.insert(idx_offset + 3, title_in)
-    idx_offset += 1
-
-    # tags
-    lines.insert(idx_offset + 4, tags_in.strip(buku.DELIM))
-    idx_offset += 1
-
-    # description
-    if desc is not None and desc != '':
-        pass
-    else:
-        desc = ''
-    lines.insert(idx_offset + 5, desc)
-
-    for idx, res_line in enumerate(res.splitlines()):
-        assert lines[idx] == res_line
+        title_text = title_in
+    if tags_in is None:
+        with pytest.raises(AttributeError):
+            res = buku.to_temp_file_content(url, title_in, tags_in, desc)
+        return
+    res = buku.to_temp_file_content(url, title_in, tags_in, desc)
+    lines = """# Lines beginning with "#" will be stripped.
+# Add URL in next line (single line).{}
+# Add TITLE in next line (single line). Leave blank to web fetch, "-" for no title.{}
+# Add comma-separated TAGS in next line (single line).{}
+# Add COMMENTS in next line(s). Leave blank to web fetch, "-" for no comments.{}""".format(
+        ''.join(['\n', url]) if url is not None else '',
+        ''.join(['\n', title_text]),
+        ''.join(['\n', ','.join([x for x in tags_in.split(',') if x])]) if tags_in else '\n',
+        ''.join(['\n', desc_text])
+    )
+    assert res == lines
 
 
 @pytest.mark.parametrize(
@@ -550,15 +522,20 @@ def test_sigint_handler(capsys):
 @pytest.mark.parametrize(
     'url, exp_res',
     [
-        ['http://example.com.', ('', 0, 1)],
-        ['http://example.com', ('Example Domain', 0, 0)],
-        ['http://example.com/page1.txt', (('', 1, 0))],
-        ['about:new_page', (('', 0, 1))],
-        ['chrome://version/', (('', 0, 1))],
-        ['chrome://version/', (('', 0, 1))],
+        ['http://example.com.', (None, None, None, 0, 1)],
+        ['http://example.com', ('Example Domain', None, None, 0, 0)],
+        ['http://example.com/page1.txt', (('', '', '', 1, 0))],
+        ['about:new_page', ((None, None, None, 0, 1))],
+        ['chrome://version/', ((None, None, None, 0, 1))],
+        ['chrome://version/', ((None, None, None, 0, 1))],
         [
             'http://4pda.ru/forum/index.php?showtopic=182463&st=1640#entry6044923',
-            ('Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA', 0, 0)
+            (
+                'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
+                'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
+                'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
+                0, 0
+            )
         ],
         [
             'https://www.google.ru/search?'
@@ -567,18 +544,25 @@ def test_sigint_handler(capsys):
             'gs_l=serp.3..33i21.28976559.28977886.0.'
             '28978017.6.6.0.0.0.0.167.668.0j5.5.0....0...1c.1.64.'
             'serp..1.2.311.06cSKPTLo18',
-            ('xkbcomp alt gr', 0, 0)
+            ('xkbcomp alt gr', None, None, 0, 0)
         ],
         [
             'http://www.vim.org/scripts/script.php?script_id=4641',
             (
                 'mlessnau_case - "in-case" selection, deletion and substitution '
-                'for underscore, camel, mixed case : vim online', 0, 0
+                'for underscore, camel, mixed case : vim online',
+                None, None, 0, 0
             )
         ],
         [
             'http://www.kadrof.ru/cat_exchange.shtml',
-            ('Все биржи фриланса и удаленной работы - больше 110 сайтов | Kadrof.ru', 0, 0)
+            (
+                'Все биржи фриланса и удаленной работы - больше 110 сайтов | Kadrof.ru',
+                'Здесь собраны самые популярные биржи удаленной работы и фриланса для новичков и опытных специалистов. '
+                'Более 110 ресурсов по видам:',
+                'биржи удаленной работы,биржи фриланс',
+                0, 0
+            )
         ],
     ]
 )
@@ -590,7 +574,9 @@ def test_network_handler_with_url(url, exp_res):
     buku.myproxy = None
     res = buku.network_handler(url)
     if urlparse(url).netloc == 'www.google.ru':
-        res = (res[0].split(" - ")[0], res[1], res[2])
+        temp_res = [res[0].split(" - ")[0], ]
+        temp_res.extend(res[1:])
+        res = tuple(temp_res)
     assert res == exp_res
 
 
