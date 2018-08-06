@@ -1007,7 +1007,7 @@ def test_add_rec_add_invalid_url(caplog, url):
         ],
         [
             {'url': 'http://example.com', 'tags_in': 'tag1'},
-            ('http://example.com', 'Example Domain', ',tag1', '', 0),
+            ('http://example.com', 'Example Domain', ',tag1,', '', 0),
         ],
         [
             {'url': 'http://example.com', 'tags_in': ',tag1'},
