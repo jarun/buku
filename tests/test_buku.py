@@ -393,43 +393,29 @@ def test_is_editor_valid(editor, exp_res):
 def test_to_temp_file_content(url, title_in, tags_in, desc):
     """test func."""
     import buku
-    res = buku.to_temp_file_content(url, title_in, tags_in, desc)
-    lines = [
-        '# Lines beginning with "#" will be stripped.',
-        '# Add URL in next line (single line).',
-        '# Add TITLE in next line (single line). Leave blank to web fetch, "-" for no title.',
-        '# Add comma-separated TAGS in next line (single line).',
-        '# Add COMMENTS in next line(s).',
-    ]
-    idx_offset = 0
-    # url
-    if url is not None:
-        lines.insert(2, url)
-        idx_offset += 1
+    if desc is None:
+        desc_text = '\n'
+    elif desc == '':
+        desc_text = '-'
+    else:
+        desc_text = desc
+    title_in = ''
     if title_in is None:
         title_in = ''
     elif title_in == '':
         title_in = '-'
-    else:
-        pass
-
-    # title
-    lines.insert(idx_offset + 3, title_in)
-    idx_offset += 1
-
-    # tags
-    lines.insert(idx_offset + 4, tags_in.strip(buku.DELIM))
-    idx_offset += 1
-
-    # description
-    if desc is not None and desc != '':
-        pass
-    else:
-        desc = ''
-    lines.insert(idx_offset + 5, desc)
-
-    for idx, res_line in enumerate(res.splitlines()):
-        assert lines[idx] == res_line
+    res = buku.to_temp_file_content(url, title_in, tags_in, desc)
+    lines = """# Lines beginning with "#" will be stripped.
+# Add URL in next line (single line).{}
+# Add TITLE in next line (single line). Leave blank to web fetch, "-" for no title.{}
+# Add comma-separated TAGS in next line (single line).{}
+# Add COMMENTS in next line(s). Leave blank to web fetch, "-" for no comments.{}""".format(
+        ''.join(['\n', url]) if url is not None else '',
+        ''.join(['\n', title_in]) if title_in else '\n',
+        ''.join(['\n', ','.join([x for x in tags_in.split(',') if x])]) if tags_in else '\n',
+        ''.join(['\n', desc_text])
+    )
+    assert res == lines
 
 
 @pytest.mark.parametrize(
