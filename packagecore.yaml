@@ -11,19 +11,21 @@ packages:
     builddeps:
       - make
     deps:
-      - python-urllib3
-      - python-cryptography
-      - python-beautifulsoup4
       - python
+      - python-beautifulsoup4
+      - python-certifi
+      - python-cryptography
+      - python-urllib3
 # centos no beautifulsoup4
   centos7.3:
     builddeps:
       - make
     deps:
+      - python
 #     - python-beautifulsoup4
+      - python-certifi
       - python-cryptography
       - python-urllib3
-      - python
     commands:
       pre:
         - yum install epel-release
@@ -31,63 +33,71 @@ packages:
     builddeps:
       - make
     deps:
+      - python
 #     - python-beautifulsoup4
+      - python-certifi
       - python-cryptography
       - python-urllib3
-      - python
   debian9:
     builddeps:
       - make
     deps:
-      - python3-urllib3
-      - python3-cryptography
-      - python3-bs4
       - python3
+      - python3-bs4
+      - python3-certifi
+      - python3-cryptography
+      - python3-urllib3
   fedora26:
     builddeps:
       - make
     deps:
+      - python3
       - python3-beautifulsoup4
+      - python3-certifi
       - python3-cryptography
       - python3-urllib3
-      - python3
   fedora27:
     builddeps:
       - make
     deps:
+      - python3
       - python3-beautifulsoup4
+      - python3-certifi
       - python3-cryptography
       - python3-urllib3
-      - python3
   fedora28:
     builddeps:
       - make
     deps:
+      - python3
       - python3-beautifulsoup4
+      - python3-certifi
       - python3-cryptography
       - python3-urllib3
-      - python3
   opensuse42.3:
     builddeps:
       - make
     deps:
+      - python3
       - python3-beautifulsoup4
+      - python3-certifi
       - python3-cryptography
       - python3-urllib3
-      - python3
   ubuntu16.04:
     builddeps:
       - make
     deps:
-      - python3-urllib3
-      - python3-cryptography
-      - python3-bs4
       - python3
+      - python3-bs4
+      - python3-certifi
+      - python3-cryptography
+      - python3-urllib3
   ubuntu18.04:
     builddeps:
       - make
     deps:
-      - python3-urllib3
-      - python3-cryptography
-      - python3-bs4
       - python3
+      - python3-bs4
+      - python3-certifi
+      - python3-cryptography
+      - python3-urllib3

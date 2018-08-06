@@ -88,16 +88,16 @@ There are several [projects based on `buku`](#related-projects), including a bro
 | Feature | Dependency |
 | --- | --- |
 | Scripting language | Python 3.4+ |
-| HTTP(S) | urllib3 |
+| HTTPS | certifi, urllib3 |
 | Encryption | cryptography |
 | Import browser exported html | beautifulsoup4 |
 
 To install package dependencies using pip3, run:
 
-    # pip3 install urllib3 cryptography beautifulsoup4
+    # pip3 install certifi urllib3 cryptography beautifulsoup4
 or on Ubuntu:
 
-    # apt-get install python3-urllib3 python3-cryptography python3-bs4
+    # apt-get install ca-certificates python3-urllib3 python3-cryptography python3-bs4
 
 To copy url to clipboard at the prompt, `Buku` uses `xsel` on Linux, `pbcopy` (default installed) on OS X and `clip` (default installed) on Windows.
 
