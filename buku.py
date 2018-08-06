@@ -3017,7 +3017,7 @@ def parse_decoded_page(page):
                 keys = re.sub('\s{2,}', ' ', keys)
                 logdbg('keywords to description: %s', keys)
                 if desc:
-                    desc = desc + '\n\n## ' + keys
+                    desc = desc + '\n## ' + keys
                 else:
                     desc = '* ' + keys
 
