@@ -21,7 +21,6 @@ import argparse
 from bs4 import BeautifulSoup
 import cgi
 import collections
-import html.parser as HTMLParser
 import json
 import logging
 import os
@@ -2952,7 +2951,6 @@ def parse_decoded_page(page):
         title = soup.find('title').text.strip().replace('\n', ' ')
     except Exception as e:
         logdbg(e)
-        pass
 
     description = (soup.find('meta', attrs={'name':'og:description'}) or
                    soup.find('meta', attrs={'name':'og:Description'}) or
@@ -2967,7 +2965,6 @@ def parse_decoded_page(page):
             desc = description.get('content').strip()
     except Exception as e:
         logdbg(e)
-        pass
 
     keywords = soup.find('meta', attrs={'name':'keywords'}) or soup.find('meta', attrs={'name':'Keywords'})
     try:
@@ -2975,11 +2972,10 @@ def parse_decoded_page(page):
             keys = keywords.get('content').strip().replace('\n', ' ')
     except Exception as e:
         logdbg(e)
-        pass
 
-    logdbg('title: %s' % title)
-    logdbg('desc : %s' % desc)
-    logdbg('keys : %s' % keys)
+    logdbg('title: %s', title)
+    logdbg('desc : %s', desc)
+    logdbg('keys : %s', keys)
 
     return (title, desc, keys)
 
@@ -3020,7 +3016,7 @@ def get_data_from_page(resp):
                 charset = params.get('charset', charset)
 
         if charset:
-            logdbg('charset: %s' % charset)
+            logdbg('charset: %s', charset)
             title, desc, keywords = parse_decoded_page(resp.data.decode(charset, errors='replace'))
         else:
             title, desc, keywords = parse_decoded_page(resp.data.decode(errors='replace'))
