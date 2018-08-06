@@ -3012,7 +3012,7 @@ def parse_decoded_page(page):
             keys = keywords.get('content').strip().replace('\n', ' ')
             keys = re.sub('\s{2,}', ' ', keys)
             if is_unusual_tag(keys):
-                if keys != title and keys != desc:
+                if keys not in (title, desc):
                     logdbg('keywords to description: %s', keys)
                     if desc:
                         desc = desc + '\n## ' + keys
