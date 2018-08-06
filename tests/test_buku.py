@@ -533,7 +533,7 @@ def test_sigint_handler(capsys):
             (
                 'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
                 'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
-                'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
+                None,
                 0, 0
             )
         ],
