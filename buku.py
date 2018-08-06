@@ -2960,7 +2960,7 @@ def is_unusual_tag(tagstr):
     if nwords > 3 and ncommas == 0:
         return True
 
-    if ncommas and (nwords / ncommas) > 3:
+    if ncommas and (nwords / (ncommas + 1)) > 3:
         return True
 
     return False
