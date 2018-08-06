@@ -386,8 +386,8 @@ def test_is_editor_valid(editor, exp_res):
     product(
         [None, 'example.com'],
         [None, '', 'title'],
-        ['', 'tag1,tag2', ',tag1,tag2,'],
-        [None, '', 'description'],
+        [None, '', '-', 'tag1,tag2', ',tag1,tag2,', ',,,,,'],
+        [None, '', '-', 'description'],
     )
 )
 def test_to_temp_file_content(url, title_in, tags_in, desc):
@@ -399,11 +399,16 @@ def test_to_temp_file_content(url, title_in, tags_in, desc):
         desc_text = '-'
     else:
         desc_text = desc
-    title_in = ''
     if title_in is None:
-        title_in = ''
+        title_text = ''
     elif title_in == '':
-        title_in = '-'
+        title_text = '-'
+    else:
+        title_text = title_in
+    if tags_in is None:
+        with pytest.raises(AttributeError):
+            res = buku.to_temp_file_content(url, title_in, tags_in, desc)
+        return
     res = buku.to_temp_file_content(url, title_in, tags_in, desc)
     lines = """# Lines beginning with "#" will be stripped.
 # Add URL in next line (single line).{}
@@ -411,7 +416,7 @@ def test_to_temp_file_content(url, title_in, tags_in, desc):
 # Add comma-separated TAGS in next line (single line).{}
 # Add COMMENTS in next line(s). Leave blank to web fetch, "-" for no comments.{}""".format(
         ''.join(['\n', url]) if url is not None else '',
-        ''.join(['\n', title_in]) if title_in else '\n',
+        ''.join(['\n', title_text]),
         ''.join(['\n', ','.join([x for x in tags_in.split(',') if x])]) if tags_in else '\n',
         ''.join(['\n', desc_text])
     )
