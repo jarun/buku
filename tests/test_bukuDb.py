@@ -670,7 +670,6 @@ def refreshdb_fixture():
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 
-#  @pytest.mark.slowtest
 @pytest.mark.parametrize(
     "title_in, exp_res",
     [
@@ -682,7 +681,7 @@ def refreshdb_fixture():
 )
 def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     bdb = refreshdb_fixture
-    args = ["https://example.com"]
+    args = ["http://example.com"]
     if title_in:
         args.append(title_in)
     bdb.add_rec(*args)
