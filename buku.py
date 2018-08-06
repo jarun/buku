@@ -4292,6 +4292,69 @@ def setcolors(args):
     result = [id_col, id_str_col, url_col, desc_col, tag_col]
     return result
 
+
+def update_record(args, search_opted, title_in, desc_in, tags_in, update_search_results, search_results, bdb):
+    if args.url is not None:
+        url_in = args.url[0]
+    else:
+        url_in = ''
+
+    # Parse tags into a comma-separated string
+    if tags_in:
+        if tags_in[0] == '+':
+            tags = '+' + parse_tags(tags_in[1:])
+        elif tags_in[0] == '-':
+            tags = '-' + parse_tags(tags_in[1:])
+        else:
+            tags = parse_tags(tags_in)
+    else:
+        tags = None
+
+    # No arguments to --update, update all
+    if not args.update:
+        # Update all records only if search was not opted
+        if not search_opted:
+            bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads)
+        elif update_search_results and search_results is not None:
+            if not args.tacit:
+                print('Updated results:\n')
+
+            pos = len(search_results) - 1
+            while pos >= 0:
+                idx = search_results[pos][0]
+                bdb.update_rec(idx, url_in, title_in, tags, desc_in, args.immutable, args.threads)
+
+                # Commit at every 200th removal
+                if pos % 200 == 0:
+                    bdb.conn.commit()
+
+                pos -= 1
+    else:
+        for idx in args.update:
+            if is_int(idx):
+                bdb.update_rec(int(idx), url_in, title_in, tags, desc_in, args.immutable, args.threads)
+            elif '-' in idx:
+                try:
+                    vals = [int(x) for x in idx.split('-')]
+                    if vals[0] > vals[1]:
+                        vals[0], vals[1] = vals[1], vals[0]
+
+                    # Update only once if range starts from 0 (all)
+                    if vals[0] == 0:
+                        bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads)
+                    else:
+                        for _id in range(vals[0], vals[1] + 1):
+                            bdb.update_rec(_id, url_in, title_in, tags, desc_in, args.immutable, args.threads)
+                            if interrupted:
+                                break
+                except ValueError:
+                    logerr('Invalid index or range to update')
+                    bdb.close_quit(1)
+
+            if interrupted:
+                break
+
+
 # main starts here
 def main():
     """Main."""
@@ -4772,65 +4835,7 @@ POSITIONAL ARGUMENTS:
 
     # Update record
     if args.update is not None:
-        if args.url is not None:
-            url_in = args.url[0]
-        else:
-            url_in = ''
-
-        # Parse tags into a comma-separated string
-        if tags_in:
-            if tags_in[0] == '+':
-                tags = '+' + parse_tags(tags_in[1:])
-            elif tags_in[0] == '-':
-                tags = '-' + parse_tags(tags_in[1:])
-            else:
-                tags = parse_tags(tags_in)
-        else:
-            tags = None
-
-        # No arguments to --update, update all
-        if not args.update:
-            # Update all records only if search was not opted
-            if not search_opted:
-                bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads)
-            elif update_search_results and search_results is not None:
-                if not args.tacit:
-                    print('Updated results:\n')
-
-                pos = len(search_results) - 1
-                while pos >= 0:
-                    idx = search_results[pos][0]
-                    bdb.update_rec(idx, url_in, title_in, tags, desc_in, args.immutable, args.threads)
-
-                    # Commit at every 200th removal
-                    if pos % 200 == 0:
-                        bdb.conn.commit()
-
-                    pos -= 1
-        else:
-            for idx in args.update:
-                if is_int(idx):
-                    bdb.update_rec(int(idx), url_in, title_in, tags, desc_in, args.immutable, args.threads)
-                elif '-' in idx:
-                    try:
-                        vals = [int(x) for x in idx.split('-')]
-                        if vals[0] > vals[1]:
-                            vals[0], vals[1] = vals[1], vals[0]
-
-                        # Update only once if range starts from 0 (all)
-                        if vals[0] == 0:
-                            bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads)
-                        else:
-                            for _id in range(vals[0], vals[1] + 1):
-                                bdb.update_rec(_id, url_in, title_in, tags, desc_in, args.immutable, args.threads)
-                                if interrupted:
-                                    break
-                    except ValueError:
-                        logerr('Invalid index or range to update')
-                        bdb.close_quit(1)
-
-                if interrupted:
-                    break
+        update_record(args, search_opted, title_in, desc_in, tags_in, update_search_results, search_results, bdb)
 
     # Delete record
     if args.delete is not None:
