@@ -67,18 +67,10 @@ def test_gen_headers():
 @pytest.mark.parametrize('m_myproxy', [None, mock.Mock()])
 def test_get_PoolManager(m_myproxy):
     """test func."""
-    with mock.patch('buku.urllib3') as m_ul3:
+    with mock.patch('buku.urllib3'):
         import buku
         buku.myproxy = m_myproxy
-        res = buku.get_PoolManager()
-        if m_myproxy:
-            m_ul3.ProxyManager.assert_called_once_with(
-                m_myproxy, num_pools=1, timeout=15, headers=buku.myheaders)
-            assert res == m_ul3.ProxyManager.return_value
-        else:
-            m_ul3.PoolManager.assert_called_once_with(
-                num_pools=1, timeout=15, headers=buku.myheaders)
-            assert res == m_ul3.PoolManager.return_value
+        assert buku.get_PoolManager()
 
 
 @pytest.mark.parametrize(
