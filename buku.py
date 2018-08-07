@@ -2937,10 +2937,7 @@ def is_ignored_mime(url):
 
 
 def is_unusual_tag(tagstr):
-    """Identify unusual tags. Criteria:
-       - a full stop found
-       - more than 3 words without any commas
-       - word to comma ratio is greater than 3
+    """Identify unusual tags with word to comma ratio > 3.
 
     Parameters
     ----------
@@ -2955,9 +2952,6 @@ def is_unusual_tag(tagstr):
 
     if not tagstr:
         return False
-
-    if tagstr.find('.') != -1:
-        return True
 
     nwords = len(tagstr.split())
     ncommas = tagstr.count(',') + 1
@@ -2995,14 +2989,14 @@ def parse_decoded_page(page):
     except Exception as e:
         logdbg(e)
 
-    description = (soup.find('meta', attrs={'name':'og:description'}) or
-                   soup.find('meta', attrs={'name':'og:Description'}) or
-                   soup.find('meta', attrs={'property':'og:description'}) or
-                   soup.find('meta', attrs={'property':'og:Description'}) or
+    description = (soup.find('meta', attrs={'name':'description'}) or
+                   soup.find('meta', attrs={'name':'Description'}) or
                    soup.find('meta', attrs={'property':'description'}) or
                    soup.find('meta', attrs={'property':'Description'}) or
-                   soup.find('meta', attrs={'name':'description'}) or
-                   soup.find('meta', attrs={'name':'Description'}))
+                   soup.find('meta', attrs={'name':'og:description'}) or
+                   soup.find('meta', attrs={'name':'og:Description'}) or
+                   soup.find('meta', attrs={'property':'og:description'}) or
+                   soup.find('meta', attrs={'property':'og:Description'}))
     try:
         if description:
             desc = description.get('content').strip()
