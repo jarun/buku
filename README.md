@@ -103,7 +103,7 @@ To copy url to clipboard at the prompt, `Buku` uses `xsel` on Linux, `pbcopy` (d
 
 #### From a package manager
 
-- [AUR](https://aur.archlinux.org/packages/buku/) (`pacman -S buku`)
+- [AUR](https://aur.archlinux.org/packages/buku/) (`yaourt -S buku`)
 - [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1) (`apt-get install buku`)
 - [Fedora](https://apps.fedoraproject.org/packages/buku) (`dnf install buku`)
 - [FreeBSD](https://www.freshports.org/www/py-buku/) (`pkg install www/py-buku`)
