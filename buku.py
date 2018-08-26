@@ -75,7 +75,7 @@ COLORMAP = {k: '\x1b[%sm' % v for k, v in {
     'x': '0', 'X': '1', 'y': '7', 'Y': '7;1', 'z': '2',
 }.items()}
 
-USER_AGENT = 'Buku/{} (X11; Linux x86_64; 1024x768)'.format(__version__)
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0'
 myheaders = None  # Default dictionary of headers
 myproxy = None  # Default proxy
 text_browsers = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
