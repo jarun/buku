@@ -480,4 +480,5 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/i
 - [LinuxUser Magazine 01/2017 Issue](http://www.linux-community.de/LU/2017/01/Das-Beste-aus-zwei-Welten)
 - [Make Tech Easier](https://www.maketecheasier.com/manage-browser-bookmarks-ubuntu-command-line/)
 - [One Thing Well](http://onethingwell.org/post/144952807044/buku)
+- [Open Source For You](https://opensourceforu.com/2018/05/buku-a-bookmark-manager-in-the-command-line/)
 - [ulno.net](https://ulno.net/blog/2017-07-19/of-bookmarks-tags-and-browsers/)
