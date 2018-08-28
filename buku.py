@@ -1262,7 +1262,7 @@ class BukuDb:
             True to search for matching substrings.
         regex : bool, optional
             Match a regular expression if True.
-        tags : str
+        stag : str
             String of tags to search for.
             Retrieves entries matching ANY tag if tags are
             delimited with ','.
@@ -1912,8 +1912,9 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath, taglist=None):
+    def exportdb(self, filepath, resultset=None):
         """Export DB bookmarks to file.
+        Exports full DB, if resultset is None
 
         If destination file name ends with '.db', bookmarks are
         exported to a Buku database file.
@@ -1921,15 +1922,16 @@ class BukuDb:
         exported to a markdown file.
         If destination file name ends with '.org' bookmarks are
         exported to a org file.
-        Otherwise, bookmarks are
-        exported to a Firefox bookmarks.html formatted file.
+        Otherwise, bookmarks are exported to a Firefox bookmarks.html
+        formatted file.
 
         Parameters
         ----------
         filepath : str
             Path to export destination file.
-        taglist : list, optional
-            Specific tags to export.
+        resultset : list of tuples
+            List of results to export.
+
 
         Returns
         -------
@@ -1939,37 +1941,12 @@ class BukuDb:
 
         count = 0
         timestamp = str(int(time.time()))
-        arguments = []
-        query = 'SELECT * FROM bookmarks'
-        is_tag_valid = False
 
-        if taglist is not None:
-            tagstr = parse_tags(taglist)
-
-            if not tagstr or tagstr == DELIM:
-                logerr('Invalid tag')
-                return False
-
-            tags = tagstr.split(DELIM)
-            query += ' WHERE'
-            for tag in tags:
-                if tag != '':
-                    is_tag_valid = True
-                    query += " tags LIKE '%' || ? || '%' OR"
-                    tag = delim_wrap(tag)
-                    arguments += (tag,)
-
-            if is_tag_valid:
-                query = query[:-3]
-            else:
-                query = query[:-6]
-
-        logdbg('(%s), %s', query, arguments)
-        self.cur.execute(query, arguments)
-        resultset = self.cur.fetchall()
         if not resultset:
-            print('No records found')
-            return False
+            resultset = self.get_rec_all()
+            if not resultset:
+                print('No records found')
+                return False
 
         if os.path.exists(filepath):
             resp = read_in(filepath + ' exists. Overwrite? (y/n): ')
@@ -4476,7 +4453,7 @@ POSITIONAL ARGUMENTS:
                          export orgfile, if file ends with '.org'
                          format: *[[url][title]], 1 entry per line
                          export buku DB, if file ends with '.db'
-                         use --tag to export specific tags
+                         combines with search results, if opted
     -i, --import file    import bookmarks html in Firefox format
                          import markdown, if file ends with '.md'
                          import orgfile, if file ends with '.org'
@@ -4698,7 +4675,6 @@ POSITIONAL ARGUMENTS:
     # Search record
     search_results = None
     search_opted = True
-    update_search_results = False
     tags_search = True if (args.stag is not None and len(args.stag)) else False
     exclude_results = True if (args.exclude is not None and len(args.exclude)) else False
 
@@ -4779,7 +4755,7 @@ POSITIONAL ARGUMENTS:
 
     if search_results:
         oneshot = args.np
-        to_delete = False
+        update_search_results = False
 
         # Open all results in browser right away if args.oa
         # is specified. The has priority over delete/update.
@@ -4788,15 +4764,10 @@ POSITIONAL ARGUMENTS:
             for row in search_results:
                 browse(row[1])
 
-        # In case of search and delete/update,
-        # prompt should be non-interactive
-        # delete gets priority over update
-        if args.delete is not None and not args.delete:
+        if ((args.export is not None) or
+           (args.delete is not None and not args.delete) or
+           (args.update is not None and not args.update)):
             oneshot = True
-            to_delete = True
-        elif args.update is not None and not args.update:
-            oneshot = True
-            update_search_results = True
 
         if not args.json and not args.format:
             prompt(bdb, search_results, oneshot, args.deep, num=args.count)
@@ -4806,9 +4777,17 @@ POSITIONAL ARGUMENTS:
             # Printing in Json format is non-interactive
             print(format_json(search_results, field_filter=args.format))
 
-        # Delete search results if opted
-        if to_delete:
+        # Export the results, if opted
+        if args.export is not None:
+            bdb.exportdb(args.export[0], search_results)
+
+        # In case of search and delete/update,
+        # prompt should be non-interactive
+        # delete gets priority over update
+        if args.delete is not None and not args.delete:
             bdb.delete_resultset(search_results)
+        elif args.update is not None and not args.update:
+            update_search_results = True
 
     # Update record
     if args.update is not None:
@@ -4926,13 +4905,8 @@ POSITIONAL ARGUMENTS:
             bdb.replace_tag(args.replace[0], args.replace[1:])
 
     # Export bookmarks
-    if args.export is not None:
-        if args.tag is None:
-            bdb.exportdb(args.export[0])
-        elif not args.tag:
-            logerr('Missing tag')
-        else:
-            bdb.exportdb(args.export[0], args.tag)
+    if args.export is not None and not search_opted:
+        bdb.exportdb(args.export[0])
 
     # Import bookmarks
     if args.importfile is not None:

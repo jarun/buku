@@ -190,7 +190,7 @@ Decrypt (unlock) the DB file with
 Auto-import bookmarks from Firefox, Google Chrome and Chromium browsers.
 .TP
 .BI \-e " " \--export " file"
-Export bookmarks to Firefox bookmarks formatted HTML. Works with --tag to export only specific tags. Markdown is used if
+Export bookmarks to Firefox bookmarks formatted HTML. Works with all search options. Markdown is used if
 .I file
 has extension '.md'.
 .br
@@ -526,19 +526,21 @@ This will open the existing bookmark's details in the editor for modifications. 
 Applies to --url, --title and --tag too.
 .PP
 .IP 9. 4
-\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML, markdown or orgfile:
+\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML, markdown, orgfile or a new database:
 .PP
 .EX
 .IP
-.B buku -e bookmarks.html --tag tag 1, tag 2
+.B buku -e bookmarks.html --stag tag 1, tag 2
 .br
-.B buku -e bookmarks.md --tag tag 1, tag 2
+.B buku -e bookmarks.md --stag tag 1, tag 2
 .br
-.B buku -e bookmarks.db --tag tag 1, tag 2
+.B buku -e bookmarks.org --stag tag 1, tag 2
+.br
+.B buku -e bookmarks.db --stag tag 1, tag 2
 .EE
 .PP
 .IP "" 4
-All bookmarks are exported if --tag is not specified.
+All bookmarks are exported if search is not opted.
 .PP
 .IP 10. 4
 \fBImport\fR bookmarks from HTML, markdown or orgfile:

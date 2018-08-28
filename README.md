@@ -222,7 +222,7 @@ POWER TOYS:
                            export orgfile, if file ends with '.org'
                            format: *[[url][title]], 1 entry per line
                            export buku DB, if file ends with '.db'
-                           use --tag to export specific tags
+                           combines with search results, if opted
       -i, --import file    import bookmarks html in Firefox format
                            import markdown, if file ends with '.md'
                            import orgfile, if file ends with '.org'
@@ -324,13 +324,13 @@ PROMPT KEYS:
 
        $ buku -u 15012014 -c this is a new comment
     Applies to --url, --title and --tag too.
-9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, markdown or orgfile:
+9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, markdown, orgfile or a new database:
 
-       $ buku -e bookmarks.html --tag tag 1, tag 2
-       $ buku -e bookmarks.md --tag tag 1, tag 2
-       $ buku -e bookmarks.org --tag tag 1, tag 2
-       $ buku -e bookmarks.db --tag tag 1, tag 2
-    All bookmarks are exported if --tag is not specified.
+       $ buku -e bookmarks.html --stag tag 1, tag 2
+       $ buku -e bookmarks.md --stag tag 1, tag 2
+       $ buku -e bookmarks.org --stag tag 1, tag 2
+       $ buku -e bookmarks.db --stag tag 1, tag 2
+    All bookmarks are exported if search is not opted.
 10. **Import** bookmarks from HTML, markdown or orgfile:
 
         $ buku -i bookmarks.html
