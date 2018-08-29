@@ -217,7 +217,7 @@
 
 {% block tail %}
   {{ super() }}
-  <script src="{{url_for('static', filename='bukuserver/js/Chart.min.js')}}"></script>
+  <script src="{{url_for('static', filename='bukuserver/js/Chart.js')}}"></script>
   <script>
   var ctx = document.getElementById("mostCommonChart").getContext('2d');
   var netlocChart = new Chart(ctx, {
