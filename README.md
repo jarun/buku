@@ -90,7 +90,7 @@ There are several [projects based on `buku`](#related-projects), including a bro
 | Scripting language | Python 3.4+ |
 | HTTPS | certifi, urllib3 |
 | Encryption | cryptography |
-| Import browser exported html | beautifulsoup4 |
+| HTML | beautifulsoup4, html5lib |
 
 To install package dependencies using pip3, run:
 

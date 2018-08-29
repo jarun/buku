@@ -2,8 +2,13 @@ Buku v3.X
 Unreleased
 
 What's in?
-- Several dependencies is now required on installation
-- Bukuserver will use Flask-Admin
+- Show search results in pages
+- Retrieve description and tags from page, if available
+- Export works with all search options now
+- Visit cached version on Wayback machine
+- Switched to user agent for Firefox on Ubuntu
+- Several dependencies made _required_ for installation
+- bukuserver will use Flask-Admin
 
 -------------------------------------------------------------------------------
 
