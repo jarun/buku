@@ -23,7 +23,7 @@ packages:
     deps:
       - python
 #     - python-beautifulsoup4
-      - python-certifi
+#     - python-certifi
       - python-cryptography
       - python-urllib3
     commands:
@@ -35,7 +35,7 @@ packages:
     deps:
       - python
 #     - python-beautifulsoup4
-      - python-certifi
+#     - python-certifi
       - python-cryptography
       - python-urllib3
   debian9:

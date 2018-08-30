@@ -1,12 +1,12 @@
-Buku v3.X
-Unreleased
+Buku v3.9
+2018-08-30
 
 What's in?
-- Show search results in pages
+- Set number of search results per page (default 10)
 - Retrieve description and tags from page, if available
-- Export works with all search options now
 - Visit cached version on Wayback machine
-- Switched to user agent for Firefox on Ubuntu
+- Export works with all search options now
+- Changed user agent to Firefox on Ubuntu
 - Several dependencies made _required_ for installation
 - bukuserver will use Flask-Admin
 
