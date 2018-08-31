@@ -468,7 +468,8 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/i
 - [bukubrow](https://github.com/SamHH/bukubrow), WebExtension for browser integration
 - [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli frontend
 - [buku_run](https://github.com/carnager/buku_run), rofi frontend
-- [pinku](https://github.com/mosegontar/pinku), A Pinboard-to-Buku importation utility
+- [pinku](https://github.com/mosegontar/pinku), a Pinboard-to-Buku import utility
+- [buku-dmenu](https://gitlab.com/benoliver999/buku-dmenu), a simple bash dmenu wrapper
 
 <a href="http://buku.readthedocs.io/en/stable/?badge=stable"><img src="https://img.shields.io/badge/docs-stable-brightgreen.svg?maxAge=2592000" alt="Stable Docs" /></a>
 
