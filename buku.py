@@ -1739,6 +1739,39 @@ class BukuDb:
 
         return True
 
+    def get_tagstr_from_taglist(self, id_list, taglist):
+        """Get a string of delimiter-separated (and enclosed) string
+        of tags from a dictionary of tags by matching ids.
+
+        The inputs are the outputs from BukuDb.get_tag_all().
+
+        Parameters
+        ----------
+        id_list : list
+            List of ids.
+        taglist : list
+            List of tags.
+        Returns
+        -------
+        str
+            Delimiter separated and enclosed list of tags.
+        """
+
+        tags = DELIM
+
+        for id in id_list:
+            if is_int(id) and int(id) > 0:
+                tags += taglist[int(id) - 1] + DELIM
+            elif '-' in id:
+                vals = [int(x) for x in id.split('-')]
+                if vals[0] > vals[-1]:
+                    vals[0], vals[-1] = vals[-1], vals[0]
+
+                for _id in range(vals[0], vals[-1] + 1):
+                    tags += taglist[_id - 1] + DELIM
+
+        return tags
+
     def set_tag(self, cmdstr, taglist):
         """Append, overwrite, remove tags using the symbols >>, > and << respectively.
 
@@ -1752,7 +1785,7 @@ class BukuDb:
         Returns
         -------
         int
-            Number of indices updated on success, -1 on failure.
+            Number of indices updated on success, -1 on failure, -2 on no symbol found.
         """
 
         if not cmdstr or not taglist:
@@ -1772,23 +1805,14 @@ class BukuDb:
             flag = 1
 
         if not flag:
-            return -1
+            return -2
 
         tags = DELIM
         id_list = cmdstr[:index].split()
         try:
-            for id in id_list:
-                if is_int(id) and int(id) > 0:
-                    tags += taglist[int(id) - 1] + DELIM
-                elif '-' in id:
-                    vals = [int(x) for x in id.split('-')]
-                    if vals[0] > vals[-1]:
-                        vals[0], vals[-1] = vals[-1], vals[0]
-
-                    for _id in range(vals[0], vals[-1] + 1):
-                        tags += taglist[_id - 1] + DELIM
-                else:
-                    return -1
+            tags = self.get_tagstr_from_taglist(id_list, taglist)
+            if tags == DELIM:
+                return -1
         except ValueError:
             return -1
 
@@ -2574,11 +2598,12 @@ PROMPT KEYS:
     r expression           run a regex search
     t [...]                search bookmarks by tags or show taglist
                            list index after a tag listing shows records with the tag
+    g taglist id|range [...] [>>|>|<<] [record id|range ...]
+                           append, set, remove (all or specific) tags
+                           search by taglist id(s) if records are omitted
     n                      show next page of search results
     o id|range [...]       browse bookmarks by indices and/or ranges
     p id|range [...]       print bookmarks by indices and/or ranges
-    g [taglist id|range ...] [>>|>|<<] record id|range [...]
-                           append, set, remove (all or specific) tags
     w [editor|id]          edit and add or update a bookmark
     c id                   copy url at search result index to clipboard
     O                      toggle try to open in a GUI browser
@@ -3561,6 +3586,16 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
             _count = obj.set_tag(nav[2:], unique_tags)
             if _count == -1:
                 print('Invalid input')
+            elif _count == -2:
+                try:
+                    tagid_list = nav[2:].split()
+                    tagstr = obj.get_tagstr_from_taglist(tagid_list, unique_tags)
+                    tagstr = tagstr.strip(DELIM)
+                    results = obj.search_by_tag(tagstr)
+                    new_results = True
+                    cur_index = next_index = 0
+                except Exception:
+                    print('Invalid input')
             else:
                 print('%d updated' % _count)
             continue

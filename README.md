@@ -268,11 +268,12 @@ PROMPT KEYS:
     r expression           run a regex search
     t [...]                search bookmarks by tags or show taglist
                            list index after a tag listing shows records with the tag
+    g taglist id|range [...] [>>|>|<<] [record id|range ...]
+                           append, set, remove (all or specific) tags
+                           search by taglist id(s) if records are omitted
     n                      show next page of search results
     o id|range [...]       browse bookmarks by indices and/or ranges
     p id|range [...]       print bookmarks by indices and/or ranges
-    g [taglist id|range ...] [>>|>|<<] record id|range [...]
-                           append, set, remove (all or specific) tags
     w [editor|id]          edit and add or update a bookmark
     c id                   copy url at search result index to clipboard
     O                      toggle try to open in a GUI browser
