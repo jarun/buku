@@ -3428,7 +3428,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             for row in results:
                 count += 1
                 print_single_rec(row, count)
-        except:
+        except Exception:
             pass
         finally:
             return
