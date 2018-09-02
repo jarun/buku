@@ -2596,8 +2596,7 @@ PROMPT KEYS:
     S keyword [...]        search for records with ALL keywords
     d                      match substrings ('pen' matches 'opened')
     r expression           run a regex search
-    t [...]                search bookmarks by tags or show taglist
-                           list index after a tag listing shows records with the tag
+    t [tag, ...]           search by tags; show taglist, if no args
     g taglist id|range [...] [>>|>|<<] [record id|range ...]
                            append, set, remove (all or specific) tags
                            search by taglist id(s) if records are omitted
