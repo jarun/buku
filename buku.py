@@ -3365,8 +3365,6 @@ def edit_at_prompt(obj, nav, suggest=False):
             tags = obj.suggest_similar_tag(tags)
         obj.add_rec(url, title, tags, desc)
 
-    return
-
 
 def show_taglist(obj):
     """Additional prompt to show unique tag list.
@@ -3387,8 +3385,6 @@ def show_taglist(obj):
             print('%6d. %s (%d)' % (count, tag, dic[tag]))
             count += 1
         print()
-
-    return
 
 
 def prompt(obj, results, noninteractive=False, deep=False, listtags=False, suggest=False, num=10):
@@ -3596,7 +3592,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
         # list tags with 't'
         if nav == 't':
-            nav = show_taglist(obj)
+            show_taglist(obj)
             continue
 
         # iterate over white-space separated indices
