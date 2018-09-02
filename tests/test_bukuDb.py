@@ -750,7 +750,7 @@ def test_list_tags(capsys, setup):
 
     # listing tags, asserting output
     out, err = capsys.readouterr()
-    prompt(bdb, None, True, subprompt=True)
+    prompt(bdb, None, True, listtags=True)
     out, err = capsys.readouterr()
     assert out == "     1. 1 (2)\n     2. 2 (1)\n     3. 3 (1)\n     4. ant (3)\n     5. bee (3)\n     6. cat (3)\n\n"
     assert err == ''

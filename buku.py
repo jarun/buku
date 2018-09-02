@@ -3588,11 +3588,6 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             copy_to_clipboard(content=results[index + cur_index][1].encode('utf-8'))
             continue
 
-        # Nothing to browse if there are no results
-        if not results:
-            print('Not in a search context')
-            continue
-
         # open all results and re-prompt with 'a'
         if nav == 'a':
             for index in range(cur_index, next_index):
@@ -4501,11 +4496,6 @@ POSITIONAL ARGUMENTS:
     addarg('--fixtags', action='store_true', help=HIDE)
     addarg('--db', nargs=1, help=HIDE)
 
-    # Show help and exit if no arguments
-    if len(sys.argv) == 1:
-        argparser.print_help(sys.stdout)
-        sys.exit(1)
-
     # Parse the arguments
     args = argparser.parse_args()
 
@@ -4549,6 +4539,21 @@ POSITIONAL ARGUMENTS:
 
         # Enable prompt with reverse video
         promptmsg = '\x1b[7mbuku (? for help)\x1b[0m '
+
+    # Enable browser output in case of a text based browser
+    if os.getenv('BROWSER') in text_browsers:
+        browse.suppress_browser_output = False
+    else:
+        browse.suppress_browser_output = True
+
+    # Overriding text browsers is disabled by default
+    browse.override_text_browser = False
+
+    # Fallback to prompt if no arguments
+    if len(sys.argv) == 1:
+        bdb = BukuDb()
+        prompt(bdb, None)
+        bdb.close_quit(0)
 
     # Set up debugging
     if args.debug:
@@ -4653,15 +4658,6 @@ POSITIONAL ARGUMENTS:
             if args.suggest:
                 tags = bdb.suggest_similar_tag(tags)
             bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
-
-    # Enable browser output in case of a text based browser
-    if os.getenv('BROWSER') in text_browsers:
-        browse.suppress_browser_output = False
-    else:
-        browse.suppress_browser_output = True
-
-    # Overriding text browsers is disabled by default
-    browse.override_text_browser = False
 
     # Search record
     search_results = None
