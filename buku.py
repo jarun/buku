@@ -3369,79 +3369,30 @@ def edit_at_prompt(obj, nav, suggest=False):
     return
 
 
-def taglist_subprompt(obj, noninteractive=False):
+def show_taglist(obj):
     """Additional prompt to show unique tag list.
 
     Parameters
     ----------
     obj : BukuDb instance
         A valid instance of BukuDb class.
-    noninteractive : bool, optional
-        If True, does not seek user input. Default is False.
-
-    Returns
-    -------
-    str
-        New command string.
     """
 
     unique_tags, dic = obj.get_tag_all()
-    new_results = True
+    if not unique_tags:
+        count = 0
+        print('0 tags')
+    else:
+        count = 1
+        for tag in unique_tags:
+            print('%6d. %s (%d)' % (count, tag, dic[tag]))
+            count += 1
+        print()
 
-    while True:
-        if new_results:
-            if not unique_tags:
-                count = 0
-                print('0 tags')
-            else:
-                count = 1
-                for tag in unique_tags:
-                    print('%6d. %s (%d)' % (count, tag, dic[tag]))
-                    count += 1
-                print()
-
-            if noninteractive:
-                break
-
-        try:
-            nav = read_in(promptmsg)
-            if not nav:
-                nav = read_in(promptmsg)
-                if not nav:
-                    # Quit on double enter
-                    return 'q'
-            nav = nav.strip()
-        except EOFError:
-            return 'q'
-
-        if is_int(nav) and int(nav) > 0 and int(nav) < count:
-            return 't ' + unique_tags[int(nav) - 1]
-        elif nav == 't':
-            new_results = True
-        elif (nav in ('d', 'w', 'q') or
-              nav.startswith(('s ', 'S ', 'r ', 't ', 'o ', 'p ', 'g ', 'w ', 'c '))):
-            return nav
-        elif nav == 'O':
-            browse.override_text_browser = not browse.override_text_browser
-            print('text browser override toggled')
-            new_results = False
-        elif nav == '?':
-            ExtendedArgumentParser.prompt_help(sys.stdout)
-            new_results = False
-        elif is_int(nav):
-            print('No matching index %s' % nav)
-            new_results = False
-        elif nav == 'n':
-            print('No more results')
-            new_results = False
-        else:
-            print('Invalid input')
-            new_results = False
-
-    return ''
+    return
 
 
-def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, suggest=False, num=10):
+def prompt(obj, results, noninteractive=False, deep=False, listtags=False, suggest=False, num=10):
     """Show each matching result from a search and prompt.
 
     Parameters
@@ -3454,8 +3405,8 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
         If True, does not seek user input. Shows all results. Default is False.
     deep : bool, optional
         Use deep search. Default is False.
-    subprompt : bool, optional
-        If True, jump directly to subprompt.
+    listtags : bool, optional
+        If True, list all tags.
     suggest : bool, optional
         If True, suggest similar tags on edit and add bookmark.
     num : int, optional
@@ -3466,58 +3417,55 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
         logerr('Not a BukuDb instance')
         return
 
-    new_results = True
+    new_results = True if results else False
     nav = ''
-    cur_index = next_index = 0
+    cur_index = next_index = count = 0
+
+    if listtags:
+        show_taglist(obj)
+
+    if noninteractive:
+        try:
+            for row in results:
+                count += 1
+                print_single_rec(row, count)
+        except:
+            pass
+        finally:
+            return
 
     while True:
-        if not subprompt:
-            if new_results or nav == 'n':
-                count = 0
+        if new_results or nav == 'n':
+            count = 0
 
-                if noninteractive:
-                    for row in results:
+            if results:
+                total_results = len(results)
+                cur_index = next_index
+                if cur_index < total_results:
+                    next_index = min(cur_index + num, total_results)
+                    print()
+                    for row in results[cur_index:next_index]:
                         count += 1
                         print_single_rec(row, count)
-                    return
-
-                if results:
-                    total_results = len(results)
-                    cur_index = next_index
-                    if cur_index < total_results:
-                        next_index = min(cur_index + num, total_results)
-                        print()
-                        for row in results[cur_index:next_index]:
-                            count += 1
-                            print_single_rec(row, count)
-                    else:
-                        print('No more results')
                 else:
-                    print('0 results')
+                    print('No more results')
+            else:
+                print('0 results')
 
-            try:
+        try:
+            nav = read_in(promptmsg)
+            if not nav:
                 nav = read_in(promptmsg)
                 if not nav:
-                    nav = read_in(promptmsg)
-                    if not nav:
-                        # Quit on double enter
-                        break
-                nav = nav.strip()
-                # show the next set of results from previous search
-                if nav == 'n':
-                    continue
+                    # Quit on double enter
+                    break
+            nav = nav.strip()
+        except EOFError:
+            return
 
-            except EOFError:
-                return
-        else:
-            nav = 't'
-            subprompt = False
-
-        # list tags with 't'
-        if nav == 't':
-            nav = taglist_subprompt(obj, noninteractive)
-            if noninteractive:
-                return
+        # show the next set of results from previous search
+        if nav == 'n':
+            continue
 
         # search ANY match with new keywords
         if nav.startswith('s '):
@@ -3650,6 +3598,11 @@ def prompt(obj, results, noninteractive=False, deep=False, subprompt=False, sugg
         if nav == 'a':
             for index in range(cur_index, next_index):
                 browse(results[index][1])
+            continue
+
+        # list tags with 't'
+        if nav == 't':
+            nav = show_taglist(obj)
             continue
 
         # iterate over white-space separated indices
@@ -4779,7 +4732,7 @@ POSITIONAL ARGUMENTS:
                 search_results = bdb.exclude_results_from_search(search_results, args.exclude, args.deep)
         else:
             # Use sub prompt to list all tags
-            prompt(bdb, None, args.np, subprompt=True, suggest=args.suggest)
+            prompt(bdb, None, args.np, listtags=True, suggest=args.suggest)
     elif args.exclude is not None:
         logerr('no search criteria to exclude results from')
     else:
