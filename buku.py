@@ -3320,6 +3320,7 @@ def prep_tag_search(tags):
 
     return tags, search_operator, excluded_tags
 
+
 def gen_auto_tag():
     """Generate a tag in Year-Month-Date format.
 
@@ -3630,27 +3631,49 @@ def copy_to_clipboard(content):
     content : str
         Content to be copied to clipboard
     """
-    try:
-        # try copying the url to clipboard using native utilities
-        if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
-            if shutil.which('xsel') is None:
-                raise FileNotFoundError
-            copier_params = ['xsel', '-b', '-i']
-        elif sys.platform == 'darwin':
-            copier_params = ['pbcopy']
-        elif sys.platform == 'win32':
-            copier_params = ['clip']
-        else:
-            copier_params = []
 
-        if not copier_params:
-            print('operating system not identified')
+    # try copying the url to clipboard using native utilities
+    copier_params = []
+    copier_mode = 'stdin'
+    if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
+        if shutil.which('xsel') is not None:
+            copier_params = ['xsel', '-b', '-i']
+        elif shutil.which('xclip') is not None:
+            copier_params = ['xclip', '-selection', 'clipboard']
+        # If we're using Termux (Android) use its 'termux-api'
+        # add-on to set device clipboard.
+        elif shutil.which('termux-clipboard-set') is not None:
+            copier_params = ['termux-clipboard-set']
+    elif sys.platform == 'darwin':
+        copier_params = ['pbcopy']
+    elif sys.platform == 'win32':
+        copier_params = ['clip']
+
+    # If native clipboard utilities are absent, try to use terminal
+    # multiplexers, tmux/GNU screen, as fallback.
+    if not copier_params:
+        if os.getenv('TMUX_PANE'):
+            copier_params = ['tmux', 'set-buffer']
+            copier_mode = 'cmdline_arg'
+        elif os.getenv('STY'):
+            copier_params = ['screen', '-X', 'readbuf']
+            copier_mode = 'ext_file'
+
+    if not copier_params:
+        print('failed to locate suitable clipboard utility')
+    else:
+        if copier_mode is 'stdin':
+            Popen(copier_params, stdin=PIPE,
+                  stdout=DEVNULL, stderr=DEVNULL).communicate(content)
+        elif copier_mode == 'cmdline_arg':
+            Popen(copier_params + [content], stdin=DEVNULL, stdout=DEVNULL,
+                  stderr=DEVNULL).communicate()
+            print('URL copied to tmux buffer.')
         else:
-            Popen(copier_params, stdin=PIPE, stdout=DEVNULL, stderr=DEVNULL).communicate(content)
-    except FileNotFoundError:
-        print('xsel missing')
-    except Exception as e:
-        print(e)
+            with open('/tmp/screen-exchange', 'wb') as f:
+                f.write(content)
+            Popen(copier_params, stdin=DEVNULL, stdout=DEVNULL,
+                  stderr=DEVNULL).communicate()
 
 
 def print_rec_with_filter(records, field_filter=0):
@@ -3699,6 +3722,7 @@ def print_rec_with_filter(records, field_filter=0):
         sys.stdout = os.fdopen(1)
         sys.exit(1)
 
+
 def print_single_rec(row, idx=0):  # NOQA
     """Print a single DB record.
 
@@ -3738,6 +3762,7 @@ def print_single_rec(row, idx=0):  # NOQA
     except BrokenPipeError:
         sys.stdout = os.fdopen(1)
         sys.exit(1)
+
 
 def format_json(resultset, single_record=False, field_filter=0):
     """Return results in json format.
