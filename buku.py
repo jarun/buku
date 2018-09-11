@@ -3662,7 +3662,7 @@ def copy_to_clipboard(content):
     if not copier_params:
         print('failed to locate suitable clipboard utility')
     else:
-        if copier_mode is 'stdin':
+        if copier_mode == 'stdin':
             Popen(copier_params, stdin=PIPE,
                   stdout=DEVNULL, stderr=DEVNULL).communicate(content)
         elif copier_mode == 'cmdline_arg':
