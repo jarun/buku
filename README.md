@@ -31,9 +31,7 @@
 
 [bukuserver](https://github.com/jarun/Buku/tree/master/bukuserver) exposes a browsable frontend on a local webhost server.
 
-If you prefer the cli on a desktop, for GUI and browser integration (or to sync bookmarks with your favourite bookmark management service) refer to the wiki page on [System integration](https://github.com/jarun/Buku/wiki/System-integration). The [shell completion](#shell-completion) scripts are handy.
-
-We have one of the best documentation around. You can start with the [Examples](#examples).
+To get started right away, jump to the [Quickstart](#quickstart) section. We have one of the best documentation around. You'll find handy examples in the man page too.
 
 There are several [projects based on `buku`](#related-projects), including a browser plug-in.
 
@@ -57,6 +55,7 @@ There are several [projects based on `buku`](#related-projects), including a bro
 - [Usage](#usage)
   - [Cmdline options](#cmdline-options)
   - [Colors](#colors)
+- [Quickstart](#quickstart)
 - [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
   - [Editor integration](#editor-integration)
@@ -283,6 +282,23 @@ PROMPT KEYS:
 #### Colors
 
 `buku` supports custom colors. Visit the wiki page on how to [customize colors](https://github.com/jarun/Buku/wiki/Customize-colors) for more details.
+
+### Quickstart
+
+1. Export `VISUAL` or `EDITOR` to point to your favourite editor. Note that `VISUAL` takes precedence over `EDITOR`.
+2. Create a sweeter shortcut with some convenience.
+
+       alias b='buku --suggest'
+3. Auto-import bookmarks from your browser(s).
+
+       b --ai
+4. Manually add a bookmark (for hands-on).
+
+       b -w
+5. List your bookmarks with DB index.
+
+       b -p
+6. For GUI and browser integration (or to sync bookmarks with your favourite bookmark management service) refer to the wiki page on [System integration](https://github.com/jarun/Buku/wiki/System-integration).
 
 ### Examples
 
