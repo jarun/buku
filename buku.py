@@ -564,18 +564,18 @@ class BukuDb:
             return -1
 
         # Fetch data
-        meta, pdesc, ptags, mime, bad = network_handler(url)
+        ptitle, pdesc, ptags, mime, bad = network_handler(url)
         if bad:
             print('Malformed URL\n')
         elif mime:
             logdbg('HTTP HEAD requested')
-        elif meta == '' and title_in is None:
+        elif ptitle == '' and title_in is None:
             print('No title\n')
         else:
-            logdbg('Title: [%s]', meta)
+            logdbg('Title: [%s]', ptitle)
 
         if title_in is not None:
-            meta = title_in
+            ptitle = title_in
 
         # Fix up tags, if broken
         if tags_in and tags_in != DELIM:
@@ -593,7 +593,7 @@ class BukuDb:
                 flagset |= immutable
 
             qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
-            self.cur.execute(qry, (url, meta, tags_in, desc, flagset))
+            self.cur.execute(qry, (url, ptitle, tags_in, desc, flagset))
             if not delay_commit:
                 self.conn.commit()
             if self.chatty:
