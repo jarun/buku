@@ -36,6 +36,7 @@ import signal
 import sqlite3
 import subprocess
 from subprocess import Popen, PIPE, DEVNULL
+from itertools import chain
 import sys
 import threading
 import time
@@ -1093,6 +1094,45 @@ class BukuDb:
             return self.update_rec(index, immutable)
 
         return False
+
+    def list_using_id(self, ids=[]):
+        """List entries in the DB using the specified id list.
+
+        Parameters
+        ----------
+        ids : list of ids in string form
+
+        Returns
+        -------
+        list
+        """
+        q0 = 'SELECT * FROM bookmarks'
+        if ids:
+            q0 += ' WHERE id in ('
+            for idx in ids:
+                if '-' in idx:
+                    val = idx.split('-')
+                    if val[0]:
+                        part_ids = list(map(int, val))
+                        part_ids[1] += 1
+                        part_ids = list(range(*part_ids))
+                    else:
+                        end = int(val[1])
+                        qtemp = 'SELECT id FROM bookmarks ORDER BY id DESC limit {0}'.format(end)
+                        self.cur.execute(qtemp, [])
+                        part_ids = list(chain.from_iterable(self.cur.fetchall()))
+                    q0 += ','.join(list(map(str, part_ids)))
+                else:
+                    q0 += idx + ','
+            q0 = q0.rstrip(',')
+            q0 += ')'
+
+        try:
+            self.cur.execute(q0, [])
+        except sqlite3.OperationalError as e:
+            logerr(e)
+            return None
+        return self.cur.fetchall()
 
     def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
         """Search DB for entries where tags, URL, or title fields match keywords.
@@ -4500,7 +4540,7 @@ POSITIONAL ARGUMENTS:
     addarg('-j', '--json', action='store_true', help=HIDE)
     addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=HIDE)
     addarg('--nc', action='store_true', help=HIDE)
-    addarg('-n', '--count', nargs='?', const=10, type=int, default=10, help=HIDE)
+    addarg('-n', '--count', nargs='?', const=10, type=int, default=0, help=HIDE)
     addarg('--np', action='store_true', help=HIDE)
     addarg('-o', '--open', nargs='*', help=HIDE)
     addarg('--oa', action='store_true', help=HIDE)
@@ -4778,7 +4818,8 @@ POSITIONAL ARGUMENTS:
             oneshot = True
 
         if not args.json and not args.format:
-            prompt(bdb, search_results, oneshot, args.deep, num=args.count)
+            num = 10 if not args.count else args.count
+            prompt(bdb, search_results, oneshot, args.deep, num=num)
         elif not args.json:
             print_rec_with_filter(search_results, field_filter=args.format)
         else:
@@ -4892,18 +4933,27 @@ POSITIONAL ARGUMENTS:
     # Print record
     if args.print is not None:
         if not args.print:
-            bdb.print_rec(0)
+            if args.count:
+                search_results = bdb.list_using_id()
+                prompt(bdb, search_results, args.np, False, num=args.count)
+            else:
+                bdb.print_rec(0)
         else:
-            try:
-                for idx in args.print:
-                    if is_int(idx):
-                        bdb.print_rec(int(idx))
-                    elif '-' in idx:
-                        vals = [int(x) for x in idx.split('-')]
-                        bdb.print_rec(0, vals[0], vals[-1], True)
-            except ValueError:
-                logerr('Invalid index or range to print')
-                bdb.close_quit(1)
+            if args.count:
+                search_results = bdb.list_using_id(args.print)
+                prompt(bdb, search_results, args.np, False, num=args.count)
+            else:
+                try:
+                    for idx in args.print:
+                        if is_int(idx):
+                            bdb.print_rec(int(idx))
+                        elif '-' in idx:
+                            vals = [int(x) for x in idx.split('-')]
+                            bdb.print_rec(0, vals[0], vals[-1], True)
+
+                except ValueError:
+                    logerr('Invalid index or range to print')
+                    bdb.close_quit(1)
 
     # Replace a tag in DB
     if args.replace is not None:
