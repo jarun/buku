@@ -1173,8 +1173,15 @@ class BukuDb:
         if regex:
             q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             for token in keywords:
+                if not token:
+                    continue
+
                 q0 += case_statement(q2) + ' + '
                 qargs += (token, token, token, token,)
+
+            if not qargs:
+                return None
+
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         elif all_keywords:
             if len(keywords) == 1 and keywords[0] == 'blank':
@@ -1185,6 +1192,9 @@ class BukuDb:
             else:
                 q0 = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE '
                 for token in keywords:
+                    if not token:
+                        continue
+
                     if deep:
                         q0 += q1 + 'AND '
                     else:
@@ -1197,11 +1207,18 @@ class BukuDb:
                         q0 += q2 + 'AND '
 
                     qargs += (token, token, token, token,)
+
+                if not qargs:
+                    return None
+
                 q0 = q0[:-4]
             q0 += 'ORDER BY id ASC'
         elif not all_keywords:
             q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
             for token in keywords:
+                if not token:
+                    continue
+
                 if deep:
                     q0 += case_statement(q1) + ' + '
                 else:
@@ -1214,6 +1231,10 @@ class BukuDb:
                     q0 += case_statement(q2) + ' + '
 
                 qargs += (token, token, token, token,)
+
+            if not qargs:
+                return None
+
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         else:
             logerr('Invalid search option')
