@@ -4624,7 +4624,7 @@ POSITIONAL ARGUMENTS:
     if args.debug:
         logger.setLevel(logging.DEBUG)
         logdbg('Buku v%s', __version__)
-        logdbg('Python v%d.%d.%d' % sys.version_info[:3])
+        logdbg('Python v%s', ('%d.%d.%d' % sys.version_info[:3]))
     else:
         logging.disable(logging.WARNING)
         urllib3.disable_warnings()
