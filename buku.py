@@ -3998,6 +3998,10 @@ def regexp(expr, item):
         True if result of search is not None, returns None otherwise.
     """
 
+    if expr is None or item is None:
+        logdbg('expr: [%s], item: [%s]', expr, item)
+        return False
+
     return re.search(expr, item, re.IGNORECASE) is not None
 
 
