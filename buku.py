@@ -1269,6 +1269,9 @@ class BukuDb:
         """
 
         logdbg(tags)
+        if tags is None or tags == DELIM or tags == '':
+            return None
+
         tags, search_operator, excluded_tags = prep_tag_search(tags)
         if search_operator is None:
             logerr("Cannot use both '+' and ',' in same search")
