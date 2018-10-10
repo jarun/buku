@@ -1,6 +1,6 @@
 #### Bug reports
 
-Before opening an issue, please try to reproduce on [the latest development version](https://github.com/jarun/Buku#installing-from-this-repository) first. The bug you noticed might have already been fixed.
+Before opening an issue, please try to reproduce on [the latest development version](https://github.com/jarun/Buku#from-source) first. The bug you noticed might have already been fixed.
 
 If the issue can be reproduced on master, then please make sure you provide the following:
 - Debug logs using the `-z` option;
