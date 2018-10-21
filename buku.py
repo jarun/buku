@@ -2655,6 +2655,8 @@ Webpage: https://github.com/jarun/Buku
         file.write('''
 PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
+    O [id|range [...]]     open search result/indices in GUI browser
+                           toggle try GUI browser if no options
     a                      open all results in browser
     s keyword [...]        search for records with ANY keyword
     S keyword [...]        search for records with ALL keywords
@@ -2669,7 +2671,6 @@ PROMPT KEYS:
     p id|range [...]       print bookmarks by indices and/or ranges
     w [editor|id]          edit and add or update a bookmark
     c id                   copy url at search result index to clipboard
-    O                      toggle try to open in a GUI browser
     ?                      show this help
     q, ^D, double Enter    exit buku
 
@@ -3660,6 +3661,14 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             show_taglist(obj)
             continue
 
+        toggled = False
+        # Open in GUI browser
+        if nav.startswith('O '):
+            if not browse.override_text_browser:
+                browse.override_text_browser = True
+                toggled = True
+            nav = nav[2:]
+
         # iterate over white-space separated indices
         for nav in nav.split():
             if is_int(nav):
@@ -3685,6 +3694,9 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             else:
                 print('Invalid input')
                 break
+
+        if toggled:
+            browse.override_text_browser = False
 
 
 def copy_to_clipboard(content):
