@@ -3055,7 +3055,7 @@ def parse_decoded_page(page):
     try:
         title = soup.find('title').text.strip().replace('\n', ' ')
         if title:
-            title = re.sub('\s{2,}', ' ', title)
+            title = re.sub(r'\s{2,}', ' ', title)
     except Exception as e:
         logdbg(e)
 
@@ -3071,7 +3071,7 @@ def parse_decoded_page(page):
         if description:
             desc = description.get('content').strip()
             if desc:
-                desc = re.sub('\s{2,}', ' ', desc)
+                desc = re.sub(r'\s{2,}', ' ', desc)
     except Exception as e:
         logdbg(e)
 
@@ -3079,7 +3079,7 @@ def parse_decoded_page(page):
     try:
         if keywords:
             keys = keywords.get('content').strip().replace('\n', ' ')
-            keys = re.sub('\s{2,}', ' ', keys)
+            keys = re.sub(r'\s{2,}', ' ', keys)
             if is_unusual_tag(keys):
                 if keys not in (title, desc):
                     logdbg('keywords to description: %s', keys)
