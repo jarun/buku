@@ -526,7 +526,7 @@ class BukuDb:
         resultset = self.cur.fetchall()
         return -1 if resultset[0][0] is None else resultset[0][0]
 
-    def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0, delay_commit=False):
+    def add_rec(self, url, title_in=None, tags_in=None, desc=None, immutable=0, delay_commit=False, fetch=True):
         """Add a new bookmark.
 
         Parameters
@@ -546,6 +546,8 @@ class BukuDb:
         delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
+        fetch : bool, optional
+            Fetch page from web and parse for data
 
         Returns
         -------
@@ -564,16 +566,19 @@ class BukuDb:
             logerr('URL [%s] already exists at index %d', url, id)
             return -1
 
-        # Fetch data
-        ptitle, pdesc, ptags, mime, bad = network_handler(url)
-        if bad:
-            print('Malformed URL\n')
-        elif mime:
-            logdbg('HTTP HEAD requested')
-        elif ptitle == '' and title_in is None:
-            print('No title\n')
+        if fetch:
+            # Fetch data
+            ptitle, pdesc, ptags, mime, bad = network_handler(url)
+            if bad:
+                print('Malformed URL\n')
+            elif mime:
+                logdbg('HTTP HEAD requested')
+            elif ptitle == '' and title_in is None:
+                print('No title\n')
+            else:
+                logdbg('Title: [%s]', ptitle)
         else:
-            logdbg('Title: [%s]', ptitle)
+            ptitle = pdesc = ptags = ''
 
         if title_in is not None:
             ptitle = title_in
@@ -2145,7 +2150,7 @@ class BukuDb:
                     tags += folder_name
                 if unique_tag:
                     tags += DELIM + unique_tag
-                yield (item['url'], item['name'], parse_tags([tags]), None, 0, True)
+                yield (item['url'], item['name'], parse_tags([tags]), None, 0, True, False)
 
     def load_chrome_database(self, path, unique_tag, add_parent_folder_as_tag):
         """Open Chrome Bookmarks json file and import data.
@@ -2233,7 +2238,7 @@ class BukuDb:
             else:
                 title = ''
 
-            self.add_rec(url, title, tags, None, 0, True)
+            self.add_rec(url, title, tags, None, 0, True, False)
         try:
             cur.close()
             conn.close()
@@ -2436,7 +2441,7 @@ class BukuDb:
         resultset = indb_cur.fetchall()
         if resultset:
             for row in resultset:
-                self.add_rec(row[1], row[2], row[3], row[4], row[5], True)
+                self.add_rec(row[1], row[2], row[3], row[4], row[5], True, False)
 
             self.conn.commit()
 
@@ -2907,8 +2912,9 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
                 tag['tags'] = newtag
 
         yield (
-            tag['href'], tag.string, parse_tags([tag['tags']])
-            if tag.has_attr('tags') else None, desc, 0, True
+            tag['href'], tag.string,
+            parse_tags([tag['tags']]) if tag.has_attr('tags') else None,
+            desc, 0, True, False
         )
 
 
