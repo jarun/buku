@@ -353,9 +353,13 @@ class TagModelView(BaseModelView):
 
     def _name_formatter(self, context, model, name):
         data = getattr(model, name)
+        if not data:
+            return Markup('<a href="{}">{}</a>'.format(
+                url_for('bookmark.index_view', flt2_tags_number_equal=0),
+                '&lt;EMPTY TAG&gt;'
+            ))
         return Markup('<a href="{}">{}</a>'.format(
-            url_for('bookmark.index_view', flt1_tags_contain=data),
-            data if data else '&lt;EMPTY TAG&gt;'
+            url_for('bookmark.index_view', flt1_tags_contain=data), data
         ))
 
     can_create = False
