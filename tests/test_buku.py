@@ -677,7 +677,7 @@ def test_import_html_and_add_parent():
     html_text = """<DT><H3>1s</H3>
 <DL><p>
 <DT><A HREF="http://example.com/"></A>"""
-    exp_res = ('http://example.com/', None, ',1s,', None, 0, True)
+    exp_res = ('http://example.com/', None, ',1s,', None, 0, True, False)
     html_soup = BeautifulSoup(html_text, 'html.parser')
     res = list(import_html(html_soup, True, None))
     assert res[0] == exp_res
@@ -690,7 +690,7 @@ def test_import_html_and_new_tag():
 <DD>comment for the bookmark here"""
     exp_res = (
         'https://github.com/j', 'GitHub', ',tag1,tag2,tag3,',
-        'comment for the bookmark here', 0, True
+        'comment for the bookmark here', 0, True, False
     )
     html_soup = BeautifulSoup(html_text, 'html.parser')
     res = list(import_html(html_soup, False, 'tag3'))
