@@ -2,6 +2,7 @@
 #
 # Unit test cases for buku
 #
+import logging
 import math
 import os
 import re
@@ -14,14 +15,20 @@ from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
 
-from hypothesis import given, example
+from hypothesis import given, example, settings
 from hypothesis import strategies as st
 from unittest import mock
 import pytest
 import unittest
+import vcr
 import yaml
 
 from buku import BukuDb, parse_tags, prompt
+
+
+logging.basicConfig()  # you need to initialize logging, otherwise you will not see anything from vcrpy
+vcr_log = logging.getLogger("vcr")
+vcr_log.setLevel(logging.INFO)
 
 TEST_TEMP_DIR_OBJ = TemporaryDirectory(prefix='bukutest_')
 TEST_TEMP_DIR_PATH = TEST_TEMP_DIR_OBJ.name
@@ -38,7 +45,7 @@ TEST_BOOKMARKS = [
      'ZAŻÓŁĆ',
      parse_tags(['zażółć,gęślą,jaźń']),
      "Testing UTF-8, zażółć gęślą jaźń."],
-    ['https://test.com:8080',
+    ['http://example.com/',
      'test',
      parse_tags(['test,tes,est,es']),
      "a case for replace_tag test"],
@@ -356,6 +363,7 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
+    @vcr.use_cassette('tests/vcr_cassettes/test_search_by_multiple_tags_search_all.yaml')
     def test_search_by_multiple_tags_search_all(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -447,6 +455,7 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
+    @vcr.use_cassette('tests/vcr_cassettes/test_search_by_tags_enforces_space_seprations_exclusion.yaml')
     def test_search_by_tags_enforces_space_seprations_exclusion(self):
 
         bookmark1 = ['https://bookmark1.com',
@@ -517,6 +526,7 @@ class TestBukuDb(unittest.TestCase):
                 self.assertEqual(arg_list, expected)
 
     # @unittest.skip('skipping')
+    @vcr.use_cassette('tests/vcr_cassettes/test_search_and_open_all_in_browser.yaml')
     def test_search_and_open_all_in_browser(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -775,6 +785,7 @@ def test_compactdb(setup):
     assert bdb.get_rec_by_id(3) is None
 
 
+@vcr.use_cassette('tests/vcr_cassettes/test_delete_rec_range_and_delay_commit.yaml')
 @given(
     low=st.integers(min_value=-10, max_value=10),
     high=st.integers(min_value=-10, max_value=10),
@@ -782,6 +793,7 @@ def test_compactdb(setup):
     input_retval=st.characters()
 )
 @example(low=0, high=0, delay_commit=False, input_retval='y')
+@settings(max_examples=2)
 def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
