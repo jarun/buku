@@ -9,8 +9,6 @@ import re
 import shutil
 import sqlite3
 import sys
-import urllib.request
-import zipfile
 from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
@@ -1343,7 +1341,6 @@ def test_load_firefox_database(firefox_db, add_pt):
         with open(res_yaml_file, 'w') as f:
             yaml.dump(call_args_list_dict, f)
         print('call args list dict dumped to:{}'.format(res_yaml_file))
-
 
 
 @pytest.mark.parametrize(
