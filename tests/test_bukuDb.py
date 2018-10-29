@@ -1277,23 +1277,12 @@ def test_browse_by_index(low, high, index, is_range, empty_database):
 
 
 @pytest.fixture()
-def bookmark_folder(tmpdir):
-    # database
-    zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
-    tmp_zip = tmpdir.join('bookmarks.zip')
-    extract_all_from_zip_url(zip_url, tmp_zip, tmpdir)
-    return tmpdir
-
-
-@pytest.fixture()
-def chrome_db(bookmark_folder):
+def chrome_db():
     # compatibility
-    tmpdir = bookmark_folder
-
-    json_file = [x.strpath for x in tmpdir.listdir() if x.basename == 'Bookmarks'][0]
     dir_path = os.path.dirname(os.path.realpath(__file__))
     res_yaml_file = os.path.join(dir_path, 'test_bukuDb', '25491522_res.yaml')
     res_nopt_yaml_file = os.path.join(dir_path, 'test_bukuDb', '25491522_res_nopt.yaml')
+    json_file = os.path.join(dir_path, 'test_bukuDb', 'Bookmarks')
     return json_file, res_yaml_file, res_nopt_yaml_file
 
 
@@ -1303,7 +1292,7 @@ def test_load_chrome_database(chrome_db, add_pt):
     # compatibility
     json_file = chrome_db[0]
     res_yaml_file = chrome_db[1] if add_pt else chrome_db[2]
-    dump_data = False
+    dump_data = False  # NOTE: change this value to dump data
     if not dump_data:
         with open(res_yaml_file, 'r') as f:
             res_yaml = yaml.load(f)
@@ -1320,17 +1309,15 @@ def test_load_chrome_database(chrome_db, add_pt):
     if dump_data:
         with open(res_yaml_file, 'w') as f:
             yaml.dump(call_args_list_dict, f)
+        print('call args list dict dumped to:{}'.format(res_yaml_file))
 
 
 @pytest.fixture()
-def firefox_db(bookmark_folder):
-    # compatibility
-    tmpdir = bookmark_folder
-
-    ff_db_path = [x.strpath for x in tmpdir.listdir() if x.basename == 'places.sqlite'][0]
+def firefox_db():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     res_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res.yaml')
     res_nopt_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res_nopt.yaml')
+    ff_db_path = os.path.join(dir_path, 'test_bukuDb', 'places.sqlite')
     return ff_db_path, res_yaml_file, res_nopt_yaml_file
 
 
@@ -1338,7 +1325,7 @@ def firefox_db(bookmark_folder):
 def test_load_firefox_database(firefox_db, add_pt):
     # compatibility
     ff_db_path = firefox_db[0]
-    dump_data = False
+    dump_data = False  # NOTE: change this value to dump data
     res_yaml_file = firefox_db[1] if add_pt else firefox_db[2]
     if not dump_data:
         with open(res_yaml_file, 'r') as f:
@@ -1355,6 +1342,8 @@ def test_load_firefox_database(firefox_db, add_pt):
     if dump_data:
         with open(res_yaml_file, 'w') as f:
             yaml.dump(call_args_list_dict, f)
+        print('call args list dict dumped to:{}'.format(res_yaml_file))
+
 
 
 @pytest.mark.parametrize(
@@ -1400,20 +1389,6 @@ def test_exclude_results_from_search(search_results, exclude_results, exp_res):
 
 
 # Helper functions for testcases
-
-
-def extract_all_from_zip_url(zip_url, tmp_zip, folder):
-    """extra all files in zip from zip url.
-
-    Args:
-        zip_url (str): URL of zip file.
-        zip_filename: Temporary zip file to save from url.
-        folder: Extract all files inside this folder.
-    """
-    with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
-        shutil.copyfileobj(response, out_file)
-    zip_obj = zipfile.ZipFile(tmp_zip.strpath)
-    zip_obj.extractall(path=folder.strpath)
 
 
 def split_and_test_membership(a, b):
