@@ -6,7 +6,6 @@ import logging
 import math
 import os
 import re
-import shutil
 import sqlite3
 import sys
 from genericpath import exists
@@ -330,6 +329,7 @@ class TestBukuDb(unittest.TestCase):
                 expected = [(i + 1,) + tuple(self.bookmarks[i])]
                 self.assertEqual(results, expected)
 
+    @vcr.use_cassette('tests/vcr_cassettes/test_search_by_multiple_tags_search_any.yaml')
     def test_search_by_multiple_tags_search_any(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -355,9 +355,7 @@ class TestBukuDb(unittest.TestCase):
                 (1, 'http://slashdot.org', 'SLASHDOT',
                  parse_tags([',news,old,']),
                  "News for old nerds, stuff that doesn't matter"),
-                (3, 'https://test.com:8080', 'test',
-                 parse_tags([',test,tes,est,es,']),
-                 "a case for replace_tag test")
+                (3, 'http://example.com/', 'test', ',es,est,tes,test,', 'a case for replace_tag test')
             ]
             self.assertEqual(results, expected)
 
