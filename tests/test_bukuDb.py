@@ -259,7 +259,7 @@ class TestBukuDb(unittest.TestCase):
 
         with mock.patch('buku.prompt'):
             expected = [(3,
-                         'https://test.com:8080',
+                         'http://example.com/',
                          'test',
                          ',es,est,tes,test,',
                          'a case for replace_tag test')]
@@ -272,7 +272,7 @@ class TestBukuDb(unittest.TestCase):
             )
             self.assertIn(expected[0], results)
             expected = [(3,
-                         'https://test.com:8080',
+                         'http://example.com/',
                          'test',
                          ',es,est,tes,test,',
                          'a case for replace_tag test'),
@@ -777,7 +777,7 @@ def test_compactdb(setup):
     assert bdb.get_rec_by_id(1) == (
         1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter", 0)
     assert bdb.get_rec_by_id(2) == (
-        2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
+        2, 'http://example.com/', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
     assert bdb.get_rec_by_id(3) is None
 
 
