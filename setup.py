@@ -25,6 +25,7 @@ tests_require = [
     'pytest-cov',
     'pytest>=3.4.2',
     'PyYAML==3.12',
+    'vcrpy>=1.13.0',
 ]
 
 

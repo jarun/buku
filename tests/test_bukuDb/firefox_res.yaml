@@ -1,49 +1,50 @@
 ? !!python/tuple ['http://voyagerlive.org/', Voyager, ',bookmarks toolbar,', null,
-  0, true]
+  0, true, false]
 : {}
 ? !!python/tuple ['http://wiki.ubuntu.com/', Ubuntu Wiki (community-edited website),
-  ',bookmarks menu,ubuntu and free software links,', null, 0, true]
+  ',bookmarks menu,ubuntu and free software links,', null, 0, true, false]
 : {}
 ? !!python/tuple ['http://www.debian.org/', Debian (Ubuntu is based on Debian), ',bookmarks
-    menu,ubuntu and free software links,', null, 0, true]
+    menu,ubuntu and free software links,', null, 0, true, false]
 : {}
 ? !!python/tuple ['http://www.ubuntu.com/', Ubuntu, ',bookmarks menu,ubuntu and free
-    software links,', null, 0, true]
+    software links,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://addons.mozilla.org/fr/firefox/addon/adblock-plus/', '',
-  ',language,tags,', null, 0, true]
+  ',language,tags,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://addons.mozilla.org/fr/firefox/addon/adblock-plus/', Adblock
-    Plus, ',bookmarks toolbar,f+,language,', null, 0, true]
+    Plus, ',bookmarks toolbar,f+,language,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://addons.mozilla.org/fr/firefox/addon/searchpreview/', SearchPreview,
-  ',bookmarks toolbar,f+,', null, 0, true]
+  ',bookmarks toolbar,f+,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://addons.mozilla.org/fr/firefox/language-tools/', '', ',hello,language,tags,',
-  null, 0, true]
+  null, 0, true, false]
 : {}
 ? !!python/tuple ['https://addons.mozilla.org/fr/firefox/language-tools/', Language
-    Tools, ',bookmarks toolbar,f+,hello,language,', null, 0, true]
+    Tools, ',bookmarks toolbar,f+,hello,language,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://answers.launchpad.net/ubuntu/+addquestion', Make a Support
     Request to the Ubuntu Community, ',bookmarks menu,ubuntu and free software links,',
-  null, 0, true]
+  null, 0, true, false]
 : {}
 ? !!python/tuple ['https://one.ubuntu.com/', Ubuntu One - The personal cloud that
     brings your digital life together, ',bookmarks menu,ubuntu and free software links,',
-  null, 0, true]
+  null, 0, true, false]
 : {}
-? !!python/tuple ['https://www.google.co.in/', '', ',bookmarks menu,', null, 0, true]
+? !!python/tuple ['https://www.google.co.in/', '', ',bookmarks menu,', null, 0, true,
+  false]
 : {}
 ? !!python/tuple ['https://www.mozilla.org/en-US/about/', About Us, ',bookmarks menu,mozilla
-    firefox,', null, 0, true]
+    firefox,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://www.mozilla.org/en-US/contribute/', Get Involved, ',bookmarks
-    menu,mozilla firefox,', null, 0, true]
+    menu,mozilla firefox,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://www.mozilla.org/en-US/firefox/customize/', Customize Firefox,
-  ',bookmarks menu,mozilla firefox,', null, 0, true]
+  ',bookmarks menu,mozilla firefox,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://www.mozilla.org/en-US/firefox/help/', Help and Tutorials,
-  ',bookmarks menu,mozilla firefox,', null, 0, true]
+  ',bookmarks menu,mozilla firefox,', null, 0, true, false]
 : {}

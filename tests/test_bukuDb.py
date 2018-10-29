@@ -2,26 +2,30 @@
 #
 # Unit test cases for buku
 #
+import logging
 import math
 import os
 import re
-import shutil
 import sqlite3
 import sys
-import urllib.request
-import zipfile
 from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
 
-from hypothesis import given, example
+from hypothesis import given, example, settings
 from hypothesis import strategies as st
 from unittest import mock
 import pytest
 import unittest
+import vcr
 import yaml
 
 from buku import BukuDb, parse_tags, prompt
+
+
+logging.basicConfig()  # you need to initialize logging, otherwise you will not see anything from vcrpy
+vcr_log = logging.getLogger("vcr")
+vcr_log.setLevel(logging.INFO)
 
 TEST_TEMP_DIR_OBJ = TemporaryDirectory(prefix='bukutest_')
 TEST_TEMP_DIR_PATH = TEST_TEMP_DIR_OBJ.name
@@ -38,7 +42,7 @@ TEST_BOOKMARKS = [
      'ZAŻÓŁĆ',
      parse_tags(['zażółć,gęślą,jaźń']),
      "Testing UTF-8, zażółć gęślą jaźń."],
-    ['https://test.com:8080',
+    ['http://example.com/',
      'test',
      parse_tags(['test,tes,est,es']),
      "a case for replace_tag test"],
@@ -255,7 +259,7 @@ class TestBukuDb(unittest.TestCase):
 
         with mock.patch('buku.prompt'):
             expected = [(3,
-                         'https://test.com:8080',
+                         'http://example.com/',
                          'test',
                          ',es,est,tes,test,',
                          'a case for replace_tag test')]
@@ -268,7 +272,7 @@ class TestBukuDb(unittest.TestCase):
             )
             self.assertIn(expected[0], results)
             expected = [(3,
-                         'https://test.com:8080',
+                         'http://example.com/',
                          'test',
                          ',es,est,tes,test,',
                          'a case for replace_tag test'),
@@ -325,6 +329,7 @@ class TestBukuDb(unittest.TestCase):
                 expected = [(i + 1,) + tuple(self.bookmarks[i])]
                 self.assertEqual(results, expected)
 
+    @vcr.use_cassette('tests/vcr_cassettes/test_search_by_multiple_tags_search_any.yaml')
     def test_search_by_multiple_tags_search_any(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -350,12 +355,11 @@ class TestBukuDb(unittest.TestCase):
                 (1, 'http://slashdot.org', 'SLASHDOT',
                  parse_tags([',news,old,']),
                  "News for old nerds, stuff that doesn't matter"),
-                (3, 'https://test.com:8080', 'test',
-                 parse_tags([',test,tes,est,es,']),
-                 "a case for replace_tag test")
+                (3, 'http://example.com/', 'test', ',es,est,tes,test,', 'a case for replace_tag test')
             ]
             self.assertEqual(results, expected)
 
+    @vcr.use_cassette('tests/vcr_cassettes/test_search_by_multiple_tags_search_all.yaml')
     def test_search_by_multiple_tags_search_all(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -447,6 +451,7 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
+    @vcr.use_cassette('tests/vcr_cassettes/test_search_by_tags_enforces_space_seprations_exclusion.yaml')
     def test_search_by_tags_enforces_space_seprations_exclusion(self):
 
         bookmark1 = ['https://bookmark1.com',
@@ -517,6 +522,7 @@ class TestBukuDb(unittest.TestCase):
                 self.assertEqual(arg_list, expected)
 
     # @unittest.skip('skipping')
+    @vcr.use_cassette('tests/vcr_cassettes/test_search_and_open_all_in_browser.yaml')
     def test_search_and_open_all_in_browser(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -771,10 +777,11 @@ def test_compactdb(setup):
     assert bdb.get_rec_by_id(1) == (
         1, 'http://slashdot.org', 'SLASHDOT', ',news,old,', "News for old nerds, stuff that doesn't matter", 0)
     assert bdb.get_rec_by_id(2) == (
-        2, 'https://test.com:8080', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
+        2, 'http://example.com/', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
     assert bdb.get_rec_by_id(3) is None
 
 
+@vcr.use_cassette('tests/vcr_cassettes/test_delete_rec_range_and_delay_commit.yaml')
 @given(
     low=st.integers(min_value=-10, max_value=10),
     high=st.integers(min_value=-10, max_value=10),
@@ -782,6 +789,7 @@ def test_compactdb(setup):
     input_retval=st.characters()
 )
 @example(low=0, high=0, delay_commit=False, input_retval='y')
+@settings(max_examples=2)
 def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
@@ -1225,6 +1233,7 @@ def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp
         assert res == exp_res
 
 
+@vcr.use_cassette('tests/vcr_cassettes/test_browse_by_index.yaml')
 @given(
     low=st.integers(min_value=-2, max_value=3),
     high=st.integers(min_value=-2, max_value=3),
@@ -1233,6 +1242,7 @@ def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp
     empty_database=st.booleans(),
 )
 @example(low=0, high=0, index=0, is_range=False, empty_database=True)
+@settings(max_examples=2)
 def test_browse_by_index(low, high, index, is_range, empty_database):
     """test method."""
     n_low, n_high = (high, low) if low > high else (low, high)
@@ -1265,23 +1275,12 @@ def test_browse_by_index(low, high, index, is_range, empty_database):
 
 
 @pytest.fixture()
-def bookmark_folder(tmpdir):
-    # database
-    zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
-    tmp_zip = tmpdir.join('bookmarks.zip')
-    extract_all_from_zip_url(zip_url, tmp_zip, tmpdir)
-    return tmpdir
-
-
-@pytest.fixture()
-def chrome_db(bookmark_folder):
+def chrome_db():
     # compatibility
-    tmpdir = bookmark_folder
-
-    json_file = [x.strpath for x in tmpdir.listdir() if x.basename == 'Bookmarks'][0]
     dir_path = os.path.dirname(os.path.realpath(__file__))
     res_yaml_file = os.path.join(dir_path, 'test_bukuDb', '25491522_res.yaml')
     res_nopt_yaml_file = os.path.join(dir_path, 'test_bukuDb', '25491522_res_nopt.yaml')
+    json_file = os.path.join(dir_path, 'test_bukuDb', 'Bookmarks')
     return json_file, res_yaml_file, res_nopt_yaml_file
 
 
@@ -1291,7 +1290,7 @@ def test_load_chrome_database(chrome_db, add_pt):
     # compatibility
     json_file = chrome_db[0]
     res_yaml_file = chrome_db[1] if add_pt else chrome_db[2]
-    dump_data = False
+    dump_data = False  # NOTE: change this value to dump data
     if not dump_data:
         with open(res_yaml_file, 'r') as f:
             res_yaml = yaml.load(f)
@@ -1308,17 +1307,15 @@ def test_load_chrome_database(chrome_db, add_pt):
     if dump_data:
         with open(res_yaml_file, 'w') as f:
             yaml.dump(call_args_list_dict, f)
+        print('call args list dict dumped to:{}'.format(res_yaml_file))
 
 
 @pytest.fixture()
-def firefox_db(bookmark_folder):
-    # compatibility
-    tmpdir = bookmark_folder
-
-    ff_db_path = [x.strpath for x in tmpdir.listdir() if x.basename == 'places.sqlite'][0]
+def firefox_db():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     res_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res.yaml')
     res_nopt_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res_nopt.yaml')
+    ff_db_path = os.path.join(dir_path, 'test_bukuDb', 'places.sqlite')
     return ff_db_path, res_yaml_file, res_nopt_yaml_file
 
 
@@ -1326,7 +1323,7 @@ def firefox_db(bookmark_folder):
 def test_load_firefox_database(firefox_db, add_pt):
     # compatibility
     ff_db_path = firefox_db[0]
-    dump_data = False
+    dump_data = False  # NOTE: change this value to dump data
     res_yaml_file = firefox_db[1] if add_pt else firefox_db[2]
     if not dump_data:
         with open(res_yaml_file, 'r') as f:
@@ -1343,6 +1340,7 @@ def test_load_firefox_database(firefox_db, add_pt):
     if dump_data:
         with open(res_yaml_file, 'w') as f:
             yaml.dump(call_args_list_dict, f)
+        print('call args list dict dumped to:{}'.format(res_yaml_file))
 
 
 @pytest.mark.parametrize(
@@ -1388,20 +1386,6 @@ def test_exclude_results_from_search(search_results, exclude_results, exp_res):
 
 
 # Helper functions for testcases
-
-
-def extract_all_from_zip_url(zip_url, tmp_zip, folder):
-    """extra all files in zip from zip url.
-
-    Args:
-        zip_url (str): URL of zip file.
-        zip_filename: Temporary zip file to save from url.
-        folder: Extract all files inside this folder.
-    """
-    with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
-        shutil.copyfileobj(response, out_file)
-    zip_obj = zipfile.ZipFile(tmp_zip.strpath)
-    zip_obj.extractall(path=folder.strpath)
 
 
 def split_and_test_membership(a, b):
