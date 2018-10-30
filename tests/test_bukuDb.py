@@ -6,8 +6,11 @@ import logging
 import math
 import os
 import re
+import shutil
 import sqlite3
 import sys
+import urllib
+import zipfile
 from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
@@ -1311,11 +1314,18 @@ def test_load_chrome_database(chrome_db, add_pt):
 
 
 @pytest.fixture()
-def firefox_db():
+def firefox_db(tmpdir):
+    zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
     dir_path = os.path.dirname(os.path.realpath(__file__))
     res_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res.yaml')
     res_nopt_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res_nopt.yaml')
     ff_db_path = os.path.join(dir_path, 'test_bukuDb', 'places.sqlite')
+    if not os.path.isfile(ff_db_path):
+        tmp_zip = tmpdir.join('bookmarks.zip')
+        with urllib.request.urlopen(zip_url) as response, open(tmp_zip.strpath, 'wb') as out_file:
+            shutil.copyfileobj(response, out_file)
+        zip_obj = zipfile.ZipFile(tmp_zip.strpath)
+        zip_obj.extractall(path=os.path.join(dir_path, 'test_bukuDb'))
     return ff_db_path, res_yaml_file, res_nopt_yaml_file
 
 
