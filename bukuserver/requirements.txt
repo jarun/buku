@@ -4,7 +4,7 @@ buku>=2.9
 cffi==1.9.1
 click==6.7
 Flask>=0.12.3
-requests==2.18.4
+requests>=2.20.0
 Flask-API==0.6.9
 idna==2.5
 itsdangerous==0.24
