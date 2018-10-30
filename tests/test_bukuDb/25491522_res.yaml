@@ -1,45 +1,45 @@
 ? !!python/tuple ['http://voyagerlive.org/', Voyager, ',bookmarks bar,', null, 0,
-  true]
+  true, false]
 : {}
 ? !!python/tuple ['http://wiki.ubuntu.com/', Ubuntu Wiki (community-edited website),
   ',bookmarks bar,imported from firefox,ubuntu and free software links,', null, 0,
-  true]
+  true, false]
 : {}
 ? !!python/tuple ['http://www.debian.org/', Debian (Ubuntu is based on Debian), ',bookmarks
-    bar,imported from firefox,ubuntu and free software links,', null, 0, true]
+    bar,imported from firefox,ubuntu and free software links,', null, 0, true, false]
 : {}
 ? !!python/tuple ['http://www.ubuntu.com/', Ubuntu, ',bookmarks bar,imported from
-    firefox,ubuntu and free software links,', null, 0, true]
+    firefox,ubuntu and free software links,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://addons.mozilla.org/fr/firefox/addon/adblock-plus/', Adblock
-    Plus, ',bookmarks bar,f+,', null, 0, true]
+    Plus, ',bookmarks bar,f+,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://addons.mozilla.org/fr/firefox/addon/searchpreview/', SearchPreview,
-  ',bookmarks bar,f+,', null, 0, true]
+  ',bookmarks bar,f+,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://addons.mozilla.org/fr/firefox/language-tools/', Language
-    Tools, ',bookmarks bar,f+,', null, 0, true]
+    Tools, ',bookmarks bar,f+,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://answers.launchpad.net/ubuntu/+addquestion', Make a Support
     Request to the Ubuntu Community, ',bookmarks bar,imported from firefox,ubuntu
-    and free software links,', null, 0, true]
+    and free software links,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://one.ubuntu.com/', Ubuntu One - The personal cloud that
     brings your digital life together, ',bookmarks bar,imported from firefox,ubuntu
-    and free software links,', null, 0, true]
+    and free software links,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://www.google.com/', Google, ',other bookmarks,', null, 0,
-  true]
+  true, false]
 : {}
 ? !!python/tuple ['https://www.mozilla.org/en-US/about/', About Us, ',bookmarks bar,imported
-    from firefox,mozilla firefox,', null, 0, true]
+    from firefox,mozilla firefox,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://www.mozilla.org/en-US/contribute/', Get Involved, ',bookmarks
-    bar,imported from firefox,mozilla firefox,', null, 0, true]
+    bar,imported from firefox,mozilla firefox,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://www.mozilla.org/en-US/firefox/customize/', Customize Firefox,
-  ',bookmarks bar,imported from firefox,mozilla firefox,', null, 0, true]
+  ',bookmarks bar,imported from firefox,mozilla firefox,', null, 0, true, false]
 : {}
 ? !!python/tuple ['https://www.mozilla.org/en-US/firefox/help/', Help and Tutorials,
-  ',bookmarks bar,imported from firefox,mozilla firefox,', null, 0, true]
+  ',bookmarks bar,imported from firefox,mozilla firefox,', null, 0, true, false]
 : {}

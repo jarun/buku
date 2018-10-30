@@ -620,7 +620,7 @@ def test_import_md(tmpdir, newtag, exp_res):
 <a> </a>""",
             ((
                 'https://github.com/j', 'GitHub', ',tag1,tag2,',
-                'comment for the bookmark here\n', 0, True
+                'comment for the bookmark here\n', 0, True, False
             ),)
         ),
         (
@@ -629,7 +629,7 @@ def test_import_md(tmpdir, newtag, exp_res):
             <a>second line of the comment here</a>""",
             ((
                 'https://github.com/j', 'GitHub', ',tag1,tag2,',
-                'comment for the bookmark here\n            ', 0, True
+                'comment for the bookmark here\n            ', 0, True, False
             ),)
         ),
         (
@@ -644,9 +644,9 @@ def test_import_md(tmpdir, newtag, exp_res):
                     'comment for the bookmark here\n            '
                     'second line of the comment here\n            '
                     'third line of the comment here\n            ',
-                    0, True
+                    0, True, False
                 ),
-                ('https://news.com/', 'News', ',tag1,tag2,tag3,', None, 0, True)
+                ('https://news.com/', 'News', ',tag1,tag2,tag3,', None, 0, True, False)
             )
         ),
         (
@@ -655,7 +655,7 @@ def test_import_md(tmpdir, newtag, exp_res):
             <DD>comment for the bookmark here""",
             ((
                 'https://github.com/j', 'GitHub', ',tag1,tag2,',
-                'comment for the bookmark here', 0, True
+                'comment for the bookmark here', 0, True, False
             ),)
         )
 
@@ -668,7 +668,7 @@ def test_import_html(html_text, exp_res):
     html_soup = BeautifulSoup(html_text, 'html.parser')
     res = list(import_html(html_soup, False, None))
     for item, exp_item in zip(res, exp_res):
-        assert item == exp_item
+        assert item == exp_item, 'Actual item:\n{}'.format(item)
 
 
 def test_import_html_and_add_parent():
@@ -677,7 +677,7 @@ def test_import_html_and_add_parent():
     html_text = """<DT><H3>1s</H3>
 <DL><p>
 <DT><A HREF="http://example.com/"></A>"""
-    exp_res = ('http://example.com/', None, ',1s,', None, 0, True)
+    exp_res = ('http://example.com/', None, ',1s,', None, 0, True, False)
     html_soup = BeautifulSoup(html_text, 'html.parser')
     res = list(import_html(html_soup, True, None))
     assert res[0] == exp_res
@@ -690,7 +690,7 @@ def test_import_html_and_new_tag():
 <DD>comment for the bookmark here"""
     exp_res = (
         'https://github.com/j', 'GitHub', ',tag1,tag2,tag3,',
-        'comment for the bookmark here', 0, True
+        'comment for the bookmark here', 0, True, False
     )
     html_soup = BeautifulSoup(html_text, 'html.parser')
     res = list(import_html(html_soup, False, 'tag3'))
