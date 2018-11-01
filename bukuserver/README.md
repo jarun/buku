@@ -3,8 +3,9 @@
 ### Table of Contents
 
 - [Installation](#installation)
-  - [Installing dependencies](#installing-dependencies)
-  - [Installing from PyPi](#installing-from-pypi)
+  - [Dependencies](#dependencies)
+  - [From PyPi](#from-pypi)
+  - [From source](#from-source)
 - [Webserver options](#webserver-options)
 - [Configuration](#configuration)
 - [Screenshots](#screenshots)
@@ -14,21 +15,26 @@
 You need to have some packages before you install `bukuserver` on your server.
 So be sure to have `python3`, `python3-pip` , `python3-dev`, `libffi-dev` packages from your distribution.
 
-#### Installing dependencies
+#### Dependencies
 
 ```
 $ python3 -m pip install --user --upgrade pip
 $ python3 -m pip install --user virtualenv
 $ python3 -m virtualenv env
 $ source env/bin/activate
+```
+
+#### From PyPi
+
+    $ pip3 install buku[server]
+
+#### From source
+
+```
 $ git clone https://github.com/jarun/Buku
 $ cd Buku
 $ pip3 install .[server]
 ```
-
-#### Installing from PyPi
-
-    $ pip3 install buku[server]
 
 ### Webserver options
 
