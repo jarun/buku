@@ -1,3 +1,15 @@
+Buku v4.0
+2018-11-01
+
+What's in?
+- Show records in pages with option `-p` (works with `-n`, default 10)
+- Enhanced clipboard support: `xclip`, tmux, GNU Screen, Termux
+- Prompt key `O` works with search results along with GUI browser toggling
+- Search by taglist id with prompt key `g`
+- Multiple fixes
+
+-------------------------------------------------------------------------------
+
 Buku v3.9
 2018-08-30
 

@@ -45,7 +45,7 @@ from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 import webbrowser
 
-__version__ = '3.9'
+__version__ = '4.0'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -2660,8 +2660,8 @@ Webpage: https://github.com/jarun/Buku
         file.write('''
 PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
-    O [id|range [...]]     open search result/indices in GUI browser
-                           toggle try GUI browser if no options
+    O [id|range [...]]     open search results/indices in GUI browser
+                           toggle try GUI browser if no arguments
     a                      open all results in browser
     s keyword [...]        search for records with ANY keyword
     S keyword [...]        search for records with ALL keywords

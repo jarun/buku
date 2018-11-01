@@ -261,6 +261,8 @@ SYMBOLS:
 
 PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
+    O [id|range [...]]     open search results/indices in GUI browser
+                           toggle try GUI browser if no arguments
     a                      open all results in browser
     s keyword [...]        search for records with ANY keyword
     S keyword [...]        search for records with ALL keywords
@@ -275,7 +277,6 @@ PROMPT KEYS:
     p id|range [...]       print bookmarks by indices and/or ranges
     w [editor|id]          edit and add or update a bookmark
     c id                   copy url at search result index to clipboard
-    O                      toggle try to open in a GUI browser
     ?                      show this help
     q, ^D, double Enter    exit buku
 ```
