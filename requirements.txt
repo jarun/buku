@@ -1,4 +1,5 @@
-certifi
-urllib3>=1.13.1
 beautifulsoup4>=4.4.1
+certifi
 cryptography>=1.2.3
+setuptools
+urllib3>=1.13.1

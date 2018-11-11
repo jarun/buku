@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import shutil
 import sys
 
 from setuptools import setup, find_packages
@@ -8,6 +9,8 @@ from setuptools import setup, find_packages
 if sys.version_info < (3, 4):
     print('ERROR: Buku requires at least Python 3.4 to run.')
     sys.exit(1)
+
+shutil.copyfile('buku', 'buku.py')
 
 with open('buku.py', encoding='utf-8') as f:
     version = re.search('__version__ = \'([^\']+)\'', f.read()).group(1)
@@ -77,6 +80,7 @@ setup(
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
+        'Intended Audience :: Developers',
         'Intended Audience :: End Users/Desktop',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
