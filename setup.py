@@ -6,10 +6,6 @@ import sys
 
 from setuptools import setup, find_packages
 
-if sys.version_info < (3, 4):
-    print('ERROR: Buku requires at least Python 3.4 to run.')
-    sys.exit(1)
-
 shutil.copyfile('buku', 'buku.py')
 
 with open('buku.py', encoding='utf-8') as f:
@@ -55,6 +51,7 @@ setup(
     author_email='engineerarun@gmail.com',
     url='https://github.com/jarun/Buku',
     license='GPLv3',
+    python_requires='>=3.4',
     platforms=['any'],
     py_modules=['buku'],
     install_requires=[
