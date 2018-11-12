@@ -51,7 +51,7 @@ setup(
     author_email='engineerarun@gmail.com',
     url='https://github.com/jarun/Buku',
     license='GPLv3',
-    python_requires='>=3.4',
+    python_requires='>=3.4',  # requires pip>=9.0.0
     platforms=['any'],
     py_modules=['buku'],
     install_requires=[
