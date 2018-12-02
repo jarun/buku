@@ -3723,7 +3723,6 @@ def copy_to_clipboard(content):
 
     # try copying the url to clipboard using native utilities
     copier_params = []
-    copier_mode = 'stdin'
     if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
         if shutil.which('xsel') is not None:
             copier_params = ['xsel', '-b', '-i']
@@ -3738,31 +3737,34 @@ def copy_to_clipboard(content):
     elif sys.platform == 'win32':
         copier_params = ['clip']
 
-    # If native clipboard utilities are absent, try to use terminal
-    # multiplexers, tmux/GNU screen, as fallback.
-    if not copier_params:
-        if os.getenv('TMUX_PANE'):
-            copier_params = ['tmux', 'set-buffer']
-            copier_mode = 'cmdline_arg'
-        elif os.getenv('STY'):
-            copier_params = ['screen', '-X', 'readbuf']
-            copier_mode = 'ext_file'
+    if copier_params:
+        Popen(copier_params, stdin=PIPE, stdout=DEVNULL, stderr=DEVNULL).communicate(content)
+        return
 
-    if not copier_params:
-        print('failed to locate suitable clipboard utility')
-    else:
-        if copier_mode == 'stdin':
-            Popen(copier_params, stdin=PIPE,
-                  stdout=DEVNULL, stderr=DEVNULL).communicate(content)
-        elif copier_mode == 'cmdline_arg':
-            Popen(copier_params + [content], stdin=DEVNULL, stdout=DEVNULL,
-                  stderr=DEVNULL).communicate()
-            print('URL copied to tmux buffer.')
-        else:
-            with open('/tmp/screen-exchange', 'wb') as f:
-                f.write(content)
-            Popen(copier_params, stdin=DEVNULL, stdout=DEVNULL,
-                  stderr=DEVNULL).communicate()
+    # If native clipboard utilities are absent, try to use terminal multiplexers
+    # tmux
+    if os.getenv('TMUX_PANE'):
+        copier_params = ['tmux', 'set-buffer']
+        Popen(copier_params + [content], stdin=DEVNULL, stdout=DEVNULL, stderr=DEVNULL).communicate()
+        print('URL copied to tmux buffer.')
+        return
+
+    # GNU Screen paste buffer
+    if os.getenv('STY'):
+        import tempfile
+        copier_params = ['screen', '-X', 'readbuf', '-e', 'utf8']
+        tmpfd, tmppath = tempfile.mkstemp()
+        try:
+            with os.fdopen(tmpfd, 'wb') as fp:
+                fp.write(content)
+            copier_params.append(tmppath)
+            Popen(copier_params, stdin=DEVNULL, stdout=DEVNULL, stderr=DEVNULL).communicate()
+        finally:
+            os.unlink(tmppath)
+        return
+
+    print('failed to locate suitable clipboard utility')
+    return
 
 
 def print_rec_with_filter(records, field_filter=0):
