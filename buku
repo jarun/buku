@@ -3491,7 +3491,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         logerr('Not a BukuDb instance')
         return
 
-    new_results = True if results else False
+    new_results = bool(results)
     nav = ''
     cur_index = next_index = count = 0
 
@@ -4777,8 +4777,8 @@ POSITIONAL ARGUMENTS:
     # Search record
     search_results = None
     search_opted = True
-    tags_search = True if (args.stag is not None and len(args.stag)) else False
-    exclude_results = True if (args.exclude is not None and len(args.exclude)) else False
+    tags_search = bool(args.stag is not None and len(args.stag))
+    exclude_results = bool(args.exclude is not None and len(args.exclude))
 
     if args.sany is not None:
         if len(args.sany):
