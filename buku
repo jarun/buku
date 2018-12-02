@@ -2749,10 +2749,17 @@ def get_firefox_profile_name(path):
                     profile_path = config.get(name, 'path')
                     return profile_path
             except NoOptionError:
-                continue
+                pass
+            try:
+                # alternative way to detect default profile
+                if config.get(name, 'name').lower() == "default":
+                    profile_path = config.get(name, 'path')
+                    return profile_path
+            except NoOptionError:
+                pass
 
-            # There is no default profile
-            return None
+        # There is no default profile
+        return None
     else:
         logdbg('get_firefox_profile_name(): {} does not exist'.format(path))
         return None
