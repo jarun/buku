@@ -113,7 +113,7 @@ To copy url to clipboard at the prompt `Buku` uses `xsel` (or `xclip`) on Linux,
 - [openSUSE](https://software.opensuse.org/search?q=buku) (`zypper in python3-buku`)
 - [PyPI](https://pypi.python.org/pypi/buku/) (`pip3 install buku`)
 - [Raspbian Testing](https://archive.raspbian.org/raspbian/pool/main/b/buku/) (`apt-get install buku`)
-- [Slackware](http://slackbuilds.org/repository/14.2/desktop/Buku/) (`slackpkg install googler`)
+- [Slackware](http://slackbuilds.org/repository/14.2/desktop/Buku/) (`slackpkg install buku`)
 - [Termux](https://pypi.python.org/pypi/buku/) (`pip3 install buku`)
 - [Ubuntu](https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1) (`apt-get install buku`)
 - [Ubuntu PPA](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/jarun/) (`apt-get install buku`)
