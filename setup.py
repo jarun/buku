@@ -38,7 +38,7 @@ server_require = [
     'flask-paginate>=0.5.1',
     'Flask-WTF>=0.14.2',
     'Flask>=0.12',
-    'requests>=2.18.4',
+    'requests>=2.20.0',
     'Werkzeug>=0.11.15',
 ]
 
@@ -59,7 +59,7 @@ setup(
         'beautifulsoup4>=4.4.1',
         'certifi',
         'cryptography>=1.2.3',
-        'urllib3>=1.13.1',
+        'urllib3>=1.23',
         'html5lib>=1.0.1',
     ],
     packages=find_packages(exclude=['tests']),
