@@ -55,6 +55,7 @@ Following are available os env config available for bukuserver.
 | PER_PAGE | bookmarks per page | positive integer [default: 10] |
 | SECRET_KEY | server secret key | string [default: os.urandom(24)] |
 | URL_RENDER_MODE | url render mode | `full` or `netloc` [default: `full`] |
+| DB | full path to db file | path string [default: standard path for buku] |
 
 Note: `BUKUSERVER_` is the common prefix.
 
