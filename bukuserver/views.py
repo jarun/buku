@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 import itertools
 import logging
 
-from buku import BukuDb
 from flask import flash, redirect, request, url_for
 from flask_admin.babel import gettext
 from flask_admin.base import AdminIndexView, BaseView, expose
