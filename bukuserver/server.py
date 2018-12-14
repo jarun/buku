@@ -208,8 +208,8 @@ def refresh_bookmarks():
     if request.method == 'POST':
         print(request.form['index'])
         print(request.form['threads'])
-        result_flag = getattr(flask.g, 'bukudb', 
-            BukuDb(current_app.config.get('BUKUSERVER_DB'))).refreshdb(request.form['index'], request.form['threads'])
+        result_flag = getattr(flask.g, 'bukudb',
+                                BukuDb(current_app.config.get('BUKUSERVER_DB'))).refreshdb(request.form['index'], request.form['threads'])
         if result_flag:
             res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
         else:
