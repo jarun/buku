@@ -34,10 +34,14 @@ except ImportError:
 
 STATISTIC_DATA = None
 
+def get_bukudb():
+    """get bukudb instance"""
+    db_file = current_app.config.get('BUKUSERVER_DB_FILE', None)
+    return BukuDb(dbfile=db_file)
 
 def get_tags():
     """get tags."""
-    tags = getattr(flask.g, 'bukudb', BukuDb(current_app.config.get('BUKUSERVER_DB'))).get_tag_all()
+    tags = getattr(flask.g,'bukudb', get_bukudb()).get_tag_all()
     result = {
         'tags': tags[0]
     }
@@ -62,13 +66,13 @@ def network_handle_detail():
 
 
 def tag_list():
-    tags = BukuDb(current_app.config.get('BUKUSERVER_DB')).get_tag_all()
+    tags = get_bukudb().get_tag_all()
     result = {'tags': tags[0]}
     return result
 
 
 def tag_detail(tag):
-    bukudb = BukuDb(current_app.config.get('BUKUSERVER_DB'))
+    bukudb = get_bukudb()
     if request.method == 'GET':
         tags = bukudb.get_tag_all()
         if tag not in tags[1]:
@@ -92,7 +96,7 @@ def update_tag(tag):
     res = None
     if request.method in ('PUT', 'POST'):
         new_tags = request.form.getlist('tags')
-        result_flag = getattr(flask.g, 'bukudb', BukuDb(current_app.config.get('BUKUSERVER_DB'))).replace_tag(tag, new_tags)
+        result_flag = getattr(flask.g, 'bukudb', get_bukudb()).replace_tag(tag, new_tags)
         op_text = 'replace tag [{}] with [{}]'.format(tag, ', '.join(new_tags))
         if request.method == 'PUT' and result_flag and request.path.startswith('/api/'):
             res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
@@ -112,7 +116,7 @@ def update_tag(tag):
 def bookmarks():
     """Bookmarks."""
     res = None
-    bukudb = getattr(flask.g, 'bukudb', BukuDb(current_app.config.get('BUKUSERVER_DB')))
+    bukudb = getattr(flask.g, 'bukudb', get_bukudb())
     page = request.args.get(get_page_parameter(), type=int, default=1)
     per_page = request.args.get(
         get_per_page_parameter(),
@@ -209,7 +213,7 @@ def refresh_bookmarks():
         print(request.form['index'])
         print(request.form['threads'])
         result_flag = getattr(flask.g, 'bukudb',
-                                BukuDb(current_app.config.get('BUKUSERVER_DB'))).refreshdb(request.form['index'], request.form['threads'])
+                              get_bukudb()).refreshdb(request.form['index'], request.form['threads'])
         if result_flag:
             res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
         else:
@@ -224,7 +228,7 @@ def bookmark_api(id):
     except ValueError:
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                {'ContentType': 'application/json'}
-    bukudb = getattr(flask.g, 'bukudb', BukuDb(current_app.config.get('BUKUSERVER_DB')))
+    bukudb = getattr(flask.g, 'bukudb', get_bukudb())
     bookmark_form = forms.BookmarkForm()
     is_html_post_request = request.method == 'POST' and not request.path.startswith('/api/')
     if request.method == 'GET':
@@ -287,7 +291,8 @@ def refresh_bookmark(id):
                {'ContentType': 'application/json'}
     res = None
     if request.method == 'POST':
-        result_flag = getattr(flask.g, 'bukudb', BukuDb(current_app.config.get('BUKUSERVER_DB'))).refreshdb(id, request.form['threads'])
+        result_flag = getattr(flask.g, 'bukudb',
+                              get_bukudb()).refreshdb(id, request.form['threads'])
         if result_flag:
             res = jsonify(response.response_template['success']), status.HTTP_200_OK, {'ContentType': 'application/json'}
         else:
@@ -303,7 +308,7 @@ def get_tiny_url(id):
                {'ContentType': 'application/json'}
     res = None
     if request.method == 'GET':
-        shortened_url = getattr(flask.g, 'bukudb', BukuDb(current_app.config.get('BUKUSERVER_DB'))).tnyfy_url(id)
+        shortened_url = getattr(flask.g, 'bukudb', get_bukudb()).tnyfy_url(id)
         if shortened_url is not None:
             result = {
                 'url': shortened_url
@@ -323,7 +328,7 @@ def get_long_url(id):
 
     res = None
     if request.method == 'GET':
-        bookmark = getattr(flask.g, 'bukudb', BukuDb(current_app.config.get('BUKUSERVER_DB'))).get_rec_by_id(id)
+        bookmark = getattr(flask.g, 'bukudb', get_bukudb()).get_rec_by_id(id)
         if bookmark is not None:
             result = {
                 'url': bookmark[1],
@@ -343,7 +348,7 @@ def bookmark_range_operations(starting_id, ending_id):
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
                {'ContentType': 'application/json'}
     res = None
-    bukudb = getattr(flask.g, 'bukudb', BukuDb(current_app.config.get('BUKUSERVER_DB')))
+    bukudb = getattr(flask.g, 'bukudb', get_bukudb())
     max_id = bukudb.get_max_id()
     if starting_id > max_id or ending_id > max_id:
         return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
@@ -409,7 +414,7 @@ def search_bookmarks():
         regex = search_bookmarks_form.regex.data
 
     result = {'bookmarks': []}
-    bukudb = getattr(flask.g, 'bukudb', BukuDb(current_app.config.get('BUKUSERVER_DB')))
+    bukudb = getattr(flask.g, 'bukudb', get_bukudb())
     found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
     found_bookmarks = [] if found_bookmarks is None else found_bookmarks
     page = request.args.get(get_page_parameter(), type=int, default=1)
@@ -476,8 +481,8 @@ def create_app(config_filename=None):
         url_render_mode = views.DEFAULT_URL_RENDER_MODE
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
-    app.config['BUKUSERVER_DB'] = os.getenv('BUKUSERVER_DB')
-    bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB'])
+    app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE')
+    bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
 
