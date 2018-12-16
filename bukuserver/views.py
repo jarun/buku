@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 import itertools
 import logging
 
-from buku import BukuDb
 from flask import flash, redirect, request, url_for
 from flask_admin.babel import gettext
 from flask_admin.base import AdminIndexView, BaseView, expose
@@ -482,9 +481,14 @@ class TagModelView(BaseModelView):
 
 class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
 
+    def __init__(self, *args, **kwargs):
+        self.bukudb = args[0]
+        args = list(args[1:])
+        super().__init__(*args, **kwargs)
+
     @expose('/', methods=('GET', 'POST'))
     def index(self):
-        bukudb = BukuDb()
+        bukudb = self.bukudb
         global STATISTIC_DATA
         statistic_data = STATISTIC_DATA
         if not statistic_data or request.method == 'POST':
