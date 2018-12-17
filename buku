@@ -22,6 +22,7 @@ from bs4 import BeautifulSoup
 import certifi
 import cgi
 import collections
+from enum import Enum
 import json
 import logging
 import os
@@ -2245,6 +2246,114 @@ class BukuDb:
         except Exception as e:
             logerr(e)
 
+    def import_firefox_json(self, path, unique_tag, add_parent_folder_as_tag):
+        """Open Firefox json export file and import data.
+
+        Ignore 'SmartBookmark'  and 'Separator'  entries.
+
+        Parameters
+        ----------
+        path : str
+            Path to Firefox json bookmarks file.
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format.
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False.
+        """
+
+        """ Format
+            typeCode
+                1 : uri        (type=text/x-moz-place)
+                2 : subfolder  (type=text/x-moz-container)
+                3 : separator  (type=text/x-moz-separator)
+        """
+
+        class TypeCode(Enum):
+            uri = 1
+            folder = 2
+            separator = 3
+
+        def is_smart(entry):
+            result = False
+            try:
+                d = [ anno for anno in entry['annos'] if anno['name'] == "Places/SmartBookmark" ]
+                if 0 < len(d):
+                    result = True
+                else:
+                    result = False
+            except: 
+                result = False
+
+            return result
+
+        def extract_desc(entry):
+            try:
+                d = [ anno for anno in entry['annos'] if anno['name'] == "bookmarkProperties/description" ]
+                return d[0]['value']
+            except: 
+                return ""   
+
+        def extract_tags(entry):
+            tags = []
+            try:
+                tags =  i['tags'].split(',')
+            except:
+                pass
+
+            return tags
+
+        def iterate_children(parent_folder, entry_list):
+            print("---" , parent_folder, len(entry_list))
+            for bm_entry  in entry_list:
+                print(bm_entry['typeCode'], bm_entry['title'])
+                if TypeCode.uri.value == bm_entry['typeCode'] :
+                    print("1--")
+                    if is_smart(bm_entry):
+                        continue
+                    if is_nongeneric_url(bm_entry['uri']):
+                        continue
+
+                    desc = extract_desc(bm_entry)
+                    tags = extract_tags(bm_entry)
+
+                    if add_parent_folder_as_tag:
+                        tags.append(folder_name)
+                    if unique_tag:
+                        tags.append(unique_tag)
+
+                    print( parent_folder, bm_entry['title'], bm_entry['uri'], tags, desc)
+                    #self.add_rec(item.url, item.title, item.tags, item.desc, 0, True, False)
+
+                    #yield({
+                    #        'url' : bm_entry['uri'],
+                    #        'title': bm_entry['title'],
+                    #        'tags' : tags,
+                    #        'desc' : desc
+                    #})
+
+                elif TypeCode.folder.value == bm_entry['typeCode'] :
+                    print("2--")
+                    try:
+                        iterate_children(bm_entry['title'], bm_entry['children'])
+                    except:
+                        pass
+
+                elif TypeCode.separator.value == bm_entry['typeCode'] :
+                    print("3--")
+                    pass 
+
+                else :
+                    print("X--")
+
+        # TODO: Errorhandling if file does not exist
+        with open(path, 'r', encoding='utf-8') as datafile:
+            data = json.load(datafile)
+
+        iterate_children(data['title'], data['children'])
+
+        #for item in iterate_children(data['title'], data['children']):
+        #    self.add_rec(item.url, item.title, item.tags, item.desc, 0, True, False)
+
     def auto_import_from_browser(self):
         """Import bookmarks from a browser default database file.
 
@@ -2376,6 +2485,11 @@ class BukuDb:
             items = import_md(filepath=filepath, newtag=newtag)
         elif filepath.endswith('org'):
             items = import_org(filepath=filepath, newtag=newtag)
+        elif filepath.endswith('json'):
+            print("XXXX", filepath)
+            # no items, import adds bookmarks itself
+            items = []
+            self.import_firefox_json(filepath, newtag, append_tags_resp )
 
         else:
             try:
