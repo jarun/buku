@@ -1,5 +1,5 @@
 import json
-from buku import import_firefox_json 
+from buku import import_firefox_json
 
 
 def test_load_from_empty():
@@ -22,17 +22,15 @@ def test_load_no_typecode():
         {
             "title" : "title",
             "children": [
-                { 
+                {
                     "title" : "title1",
                     "uri" : "http://uri1",
                     "annos" : [{
-                         "name": "bookmarkProperties/description", 
+                         "name": "bookmarkProperties/description",
                          "value": "desc"
                      }]
                 }]
-        }
-     """
-    )
+        }""")
 
     # Act
     items = import_firefox_json(data)
@@ -52,19 +50,16 @@ def test_load_invalid_typecode():
         {
             "title" : "title",
             "children": [
-                { 
+                {
                     "title" : "title1",
                     "typeCode" : 99,
                     "uri" : "http://uri1",
                     "annos" : [{
-                         "name": "bookmarkProperties/description", 
+                         "name": "bookmarkProperties/description",
                          "value": "desc"
                      }]
                 }]
-        }
-     """
-    )
-
+        }""")
     # Act
     items = import_firefox_json(data)
 
@@ -85,18 +80,16 @@ def test_load_one_child():
             "title" : "title",
             "typeCode" : 2,
             "children": [
-                { 
+                {
                     "title" : "title1",
                     "typeCode" : 1,
                     "uri" : "http://uri1",
                     "annos" : [{
-                         "name": "bookmarkProperties/description", 
+                         "name": "bookmarkProperties/description",
                          "value": "desc"
                      }]
                 }]
-        }
-     """
-    )
+        } """)
 
     # Act
     items = import_firefox_json(data)
@@ -111,8 +104,6 @@ def test_load_one_child():
     assert 'title1' == result[0][1]
     assert ',' == result[0][2]
     assert 'desc' == result[0][3]
-
-
 
 def test_load_one_container_child():
     """test method."""
@@ -143,7 +134,6 @@ def test_load_one_container_child():
                 } ]
          }""")
 
-
     # Act
     items = import_firefox_json(data)
 
@@ -153,7 +143,6 @@ def test_load_one_container_child():
         result.append(item)
 
     assert 0 == len(result)
-
 
 def test_load_many_children():
     """test method."""
@@ -195,6 +184,3 @@ def test_load_many_children():
 # non-generic url
 # tags with comma(?), UTF chars, ...
 # endurance test (>200 entries)
-
-if __name__ == '__main__':
-    main()
