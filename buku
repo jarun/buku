@@ -2376,15 +2376,28 @@ class BukuDb:
         items = []
         if filepath.endswith('.md'):
             items = import_md(filepath=filepath, newtag=newtag)
+
         elif filepath.endswith('org'):
             items = import_org(filepath=filepath, newtag=newtag)
+
         elif filepath.endswith('json'):
             if not tacit:
                 resp = input('Add Bookmark folder name as tag? (y/n): ')
             else:
                 resp = 'y'
             add_bookmark_folder_as_tag = (resp == 'y')
-            items = import_firefox_json(filepath, add_bookmark_folder_as_tag, newtag )
+            try:
+                with open(filepath, 'r', encoding='utf-8') as datafile:
+                    data = json.load(datafile)
+
+                items = import_firefox_json(data, add_bookmark_folder_as_tag, newtag )
+
+            except json.decoder.JSONDecodeError as e:
+                logerr("JSONDecodeError: " + str(e))
+                return False
+            except Exception as e:
+                logerr(e)
+                return False
 
         else:
             try:
@@ -2872,7 +2885,7 @@ def import_org(filepath, newtag):
 
 
 
-def import_firefox_json(path, add_bookmark_folder_as_tag, unique_tag):
+def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None):
     """Open Firefox json export file and import data.
 
     Ignore 'SmartBookmark'  and 'Separator'  entries.
@@ -2917,72 +2930,79 @@ def import_firefox_json(path, add_bookmark_folder_as_tag, unique_tag):
             d = [ anno for anno in entry['annos'] if anno['name'] == "bookmarkProperties/description" ]
             return d[0]['value']
         except:
+            logdbg("no description found for entry: ", entry['uri'], entry['title'])
             return ""
-
-    def extract_tags_string(entry, parent_folder):
-        tags = ""
-        try:
-            tags =  entry['tags']
-        except:
-            pass
-
-        if add_parent_folder_as_tag:
-            tags += ","+parent_folder
-
-        if unique_tag:
-            tags += ","+unique_tag
-
-        return tags
 
     def extract_tags(entry):
         tags = []
         try:
             tags =  entry['tags'].split(',')
         except:
+            logdbg("no tags found for entry: ", entry['uri'], entry['title'])
             pass
 
         return tags
 
     def iterate_children(parent_folder, entry_list):
         for bm_entry in entry_list:
-            if TypeCode.uri.value == bm_entry['typeCode'] :
-                if is_smart(bm_entry):
-                    continue
-                if is_nongeneric_url(bm_entry['uri']):
-                    continue
+            try:
+                typeCode = bm_entry['typeCode'] 
+            except:
+                logdbg("item without typeCode found, ignoring: ", bm_entry['title'] )
+                continue
 
-                desc = extract_desc(bm_entry)
-                bookmark_tags = extract_tags(bm_entry)
-
-                if add_bookmark_folder_as_tag:
-                    bookmark_tags.append(parent_folder)
-
-                if unique_tag:
-                    bookmark_tags.append(unique_tag)
-
-                formatted_tags = [DELIM + tag for tag in bookmark_tags]
-                tags = parse_tags(formatted_tags)
-
-                yield (bm_entry['uri'], bm_entry['title'], tags, desc, 0, True)
-
-            elif TypeCode.folder.value == bm_entry['typeCode'] :
+            if TypeCode.uri.value == typeCode :
                 try:
-                    # from python 3.3
-                    # yield from iterate_children(bm_entry['title'], bm_entry['children'])
+                    if is_smart(bm_entry):
+                        logdbg("SmartBookmark found,m ignoring: ", bm_entry['title'] )
+                        continue
 
-                    for entry in iterate_children(bm_entry['title'], bm_entry['children']):
-                        yield entry
+                    if is_nongeneric_url(bm_entry['uri']):
+                        logdbg("Non-Generic URL found,m ignoring: ", bm_entry['title'] )
+                        continue
 
-                except:
+                    desc = extract_desc(bm_entry)
+                    bookmark_tags = extract_tags(bm_entry)
+
+                    if add_bookmark_folder_as_tag:
+                        bookmark_tags.append(parent_folder)
+
+                    if unique_tag:
+                        bookmark_tags.append(unique_tag)
+
+                    formatted_tags = [DELIM + tag for tag in bookmark_tags]
+                    tags = parse_tags(formatted_tags)
+
+                    logdbg("Entry found: ", bm_entry['uri'], bm_entry['title'], tags, desc)
+                    yield (bm_entry['uri'], bm_entry['title'], tags, desc, 0, True)
+
+                except Exception as e:
+                    logerr(e)
                     pass
 
-            elif TypeCode.separator.value == bm_entry['typeCode'] :
-                 pass
+            elif TypeCode.folder.value == typeCode :
+                try:
+                    # from python 3.3 on:
+                    # yield from iterate_children(bm_entry['title'], bm_entry['children'])
 
-    with open(path, 'r') as datafile:
-        data = json.load(datafile)
+                    for entry in iterate_children(parent_folder+"/"+bm_entry['title'], bm_entry['children']):
+                        yield entry
+                except Exception as e:
+                    # if any of the properties does not exist, bail out silently
+                    logerr(e)
+                    pass
 
-    yield from iterate_children(data['title'], data['children'])
+            elif TypeCode.separator.value == typeCode :
+                logdbg("Unknonw typeCode found : ", typeCode) 
+                pass
+
+    try:
+        entry_list = json['children']
+    except:
+        logerr("No children in Root entry found") 
+        return []
+
+    yield from iterate_children("", entry_list )
 
 
 def import_html(html_soup, add_parent_folder_as_tag, newtag):

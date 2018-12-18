@@ -1352,44 +1352,6 @@ def test_load_firefox_database(firefox_db, add_pt):
             yaml.dump(call_args_list_dict, f)
         print('call args list dict dumped to:{}'.format(res_yaml_file))
 
-@pytest.fixture()
-def firefox_json():
-    # compatibility
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    res_yaml_file = os.path.join(dir_path, 'test_bukuDb', '')
-    res_nopt_yaml_file = os.path.join(dir_path, 'test_bukuDb', '')
-    json_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_bookmarks.json')
-    return json_file, res_yaml_file, res_nopt_yaml_file
-
-
-## TODO
-#   * test typeCode (1 = uri, text/x-moz-place =  bookmarklet,query,<whatelse?>)
-#   * handle charset propert?
-@pytest.mark.parametrize('add_pt', [True, False])
-def test_load_firefox_json(firefox_json, add_pt):
-    """test method."""
-    # compatibility
-    json_file = firefox_json[0]
-    res_yaml_file = firefox_json[1] if add_pt else firefox_json[2]
-    dump_data = False  # NOTE: change this value to dump data
-    if not dump_data:
-        with open(res_yaml_file, 'r') as f:
-            res_yaml = yaml.load(f)
-    # init
-    import buku
-    bdb = buku.BukuDb()
-    bdb.add_rec = mock.Mock()
-    bdb.load_firefox_json(json_file, None, add_pt)
-    call_args_list_dict = dict(bdb.add_rec.call_args_list)
-    # test
-    if not dump_data:
-        assert call_args_list_dict == res_yaml
-    # dump data for new test
-    if dump_data:
-        with open(res_yaml_file, 'w') as f:
-            yaml.dump(call_args_list_dict, f)
-        print('call args list dict dumped to:{}'.format(res_yaml_file))
-
 
 @pytest.mark.parametrize(
     'keyword_results, stag_results, exp_res',
