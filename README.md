@@ -107,7 +107,7 @@ To copy url to clipboard at the prompt `Buku` uses `xsel` (or `xclip`) on Linux,
 - [Fedora](https://apps.fedoraproject.org/packages/buku) (`dnf install buku`)
 - [FreeBSD](https://www.freshports.org/www/py-buku/) (`pkg install www/py-buku`)
 - [Gentoo](https://packages.gentoo.org/packages/www-misc/buku) (`emerge buku`)
-- [Homebrew](http://formulae.brew.sh/formula/buku) (`brew install buku`)
+- [macOS/Homebrew](http://formulae.brew.sh/formula/buku) (`brew install buku`)
 - [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`nix-env -i buku`)
 - [OpenBSD](https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/buku/) (`pkg_add buku`)
 - [openSUSE](https://software.opensuse.org/search?q=buku) (`zypper in python3-buku`)
