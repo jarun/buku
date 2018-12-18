@@ -2246,7 +2246,6 @@ class BukuDb:
         except Exception as e:
             logerr(e)
 
-
     def auto_import_from_browser(self):
         """Import bookmarks from a browser default database file.
 
@@ -2390,7 +2389,7 @@ class BukuDb:
                 with open(filepath, 'r', encoding='utf-8') as datafile:
                     data = json.load(datafile)
 
-                items = import_firefox_json(data, add_bookmark_folder_as_tag, newtag )
+                items = import_firefox_json(data, add_bookmark_folder_as_tag, newtag)
 
             except json.decoder.JSONDecodeError as e:
                 logerr("JSONDecodeError: " + str(e))
@@ -2883,8 +2882,6 @@ def import_org(filepath, newtag):
                         if newtag else None, None, 0, True
                     )
 
-
-
 def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None):
     """Open Firefox json export file and import data.
 
@@ -2915,29 +2912,29 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
     def is_smart(entry):
         result = False
         try:
-            d = [ anno for anno in entry['annos'] if anno['name'] == "Places/SmartBookmark" ]
+            d = [anno for anno in entry['annos'] if anno['name'] == "Places/SmartBookmark"]
             if 0 < len(d):
                 result = True
             else:
                 result = False
-        except:
+        except Exception:
             result = False
 
         return result
 
     def extract_desc(entry):
         try:
-            d = [ anno for anno in entry['annos'] if anno['name'] == "bookmarkProperties/description" ]
+            d = [anno for anno in entry['annos'] if anno['name'] == "bookmarkProperties/description"]
             return d[0]['value']
-        except:
+        except Exception:
             logdbg("no description found for entry: ", entry['uri'], entry['title'])
             return ""
 
     def extract_tags(entry):
         tags = []
         try:
-            tags =  entry['tags'].split(',')
-        except:
+            tags = entry['tags'].split(',')
+        except Exception:
             logdbg("no tags found for entry: ", entry['uri'], entry['title'])
             pass
 
@@ -2946,19 +2943,19 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
     def iterate_children(parent_folder, entry_list):
         for bm_entry in entry_list:
             try:
-                typeCode = bm_entry['typeCode'] 
-            except:
-                logdbg("item without typeCode found, ignoring: ", bm_entry['title'] )
+                typeCode = bm_entry['typeCode']
+            except Exception:
+                logdbg("item without typeCode found, ignoring: ", bm_entry['title'])
                 continue
 
-            if TypeCode.uri.value == typeCode :
+            if TypeCode.uri.value == typeCode:
                 try:
                     if is_smart(bm_entry):
-                        logdbg("SmartBookmark found,m ignoring: ", bm_entry['title'] )
+                        logdbg("SmartBookmark found,m ignoring: ", bm_entry['title'])
                         continue
 
                     if is_nongeneric_url(bm_entry['uri']):
-                        logdbg("Non-Generic URL found,m ignoring: ", bm_entry['title'] )
+                        logdbg("Non-Generic URL found,m ignoring: ", bm_entry['title'])
                         continue
 
                     desc = extract_desc(bm_entry)
@@ -2980,7 +2977,7 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                     logerr(e)
                     pass
 
-            elif TypeCode.folder.value == typeCode :
+            elif TypeCode.folder.value == typeCode:
                 try:
                     # from python 3.3 on:
                     # yield from iterate_children(bm_entry['title'], bm_entry['children'])
@@ -2992,17 +2989,17 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                     logerr(e)
                     pass
 
-            elif TypeCode.separator.value == typeCode :
-                logdbg("Unknonw typeCode found : ", typeCode) 
+            elif TypeCode.separator.value == typeCode:
+                logdbg("Unknonw typeCode found : ", typeCode)
                 pass
 
     try:
         entry_list = json['children']
-    except:
-        logerr("No children in Root entry found") 
+    except Exception:
+        logerr("No children in Root entry found")
         return []
 
-    yield from iterate_children("", entry_list )
+    yield from iterate_children("", entry_list)
 
 
 def import_html(html_soup, add_parent_folder_as_tag, newtag):
