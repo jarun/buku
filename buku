@@ -2392,7 +2392,7 @@ class BukuDb:
                 items = import_firefox_json(data, add_bookmark_folder_as_tag, newtag)
 
             except json.decoder.JSONDecodeError as e:
-                logerr("JSONDecodeError: " + str(e))
+                logerr("JSONDecodeError: {}".format(e))
                 return False
             except Exception as e:
                 logerr(e)
@@ -2897,14 +2897,13 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
         True if bookmark parent folder should be added as tags else False.
     """
 
-    """ Format
-        typeCode
-            1 : uri        (type=text/x-moz-place)
-            2 : subfolder  (type=text/x-moz-container)
-            3 : separator  (type=text/x-moz-separator)
-    """
-
     class TypeCode(Enum):
+        """ Format
+            typeCode
+                1 : uri        (type=text/x-moz-place)
+                2 : subfolder  (type=text/x-moz-container)
+                3 : separator  (type=text/x-moz-separator)
+        """
         uri = 1
         folder = 2
         separator = 3
@@ -2913,10 +2912,7 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
         result = False
         try:
             d = [anno for anno in entry['annos'] if anno['name'] == "Places/SmartBookmark"]
-            if 0 < len(d):
-                result = True
-            else:
-                result = False
+            result = bool(len(d))
         except Exception:
             result = False
 
@@ -2927,7 +2923,7 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
             d = [anno for anno in entry['annos'] if anno['name'] == "bookmarkProperties/description"]
             return d[0]['value']
         except Exception:
-            logdbg("no description found for entry: ", entry['uri'], entry['title'])
+            logdbg("no description found for entry: {} {}".format(entry['uri'], entry['title']))
             return ""
 
     def extract_tags(entry):
@@ -2935,8 +2931,7 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
         try:
             tags = entry['tags'].split(',')
         except Exception:
-            logdbg("no tags found for entry: ", entry['uri'], entry['title'])
-            pass
+            logdbg("no tags found for entry: {} {}".format(entry['uri'], entry['title']))
 
         return tags
 
@@ -2945,17 +2940,17 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
             try:
                 typeCode = bm_entry['typeCode']
             except Exception:
-                logdbg("item without typeCode found, ignoring: ", bm_entry['title'])
+                logdbg("item without typeCode found, ignoring: {}".format(bm_entry['title']))
                 continue
 
             if TypeCode.uri.value == typeCode:
                 try:
                     if is_smart(bm_entry):
-                        logdbg("SmartBookmark found,m ignoring: ", bm_entry['title'])
+                        logdbg("SmartBookmark found,m ignoring: {}".format(bm_entry['title']))
                         continue
 
                     if is_nongeneric_url(bm_entry['uri']):
-                        logdbg("Non-Generic URL found,m ignoring: ", bm_entry['title'])
+                        logdbg("Non-Generic URL found,m ignoring: {}".format(bm_entry['title']))
                         continue
 
                     desc = extract_desc(bm_entry)
@@ -2970,12 +2965,11 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                     formatted_tags = [DELIM + tag for tag in bookmark_tags]
                     tags = parse_tags(formatted_tags)
 
-                    logdbg("Entry found: ", bm_entry['uri'], bm_entry['title'], tags, desc)
+                    logdbg("Entry found: {}, {}, {}, {} ".format(bm_entry['uri'], bm_entry['title'], tags, desc))
                     yield (bm_entry['uri'], bm_entry['title'], tags, desc, 0, True)
 
                 except Exception as e:
                     logerr(e)
-                    pass
 
             elif TypeCode.folder.value == typeCode:
                 try:
@@ -2987,11 +2981,9 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                 except Exception as e:
                     # if any of the properties does not exist, bail out silently
                     logerr(e)
-                    pass
 
             elif TypeCode.separator.value == typeCode:
-                logdbg("Unknonw typeCode found : ", typeCode)
-                pass
+                logdbg("Unknonw typeCode found : {}".format(typeCode))
 
     try:
         entry_list = json['children']
