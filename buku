@@ -2391,8 +2391,8 @@ class BukuDb:
 
                 items = import_firefox_json(data, add_bookmark_folder_as_tag, newtag)
 
-            except json.decoder.JSONDecodeError as e:
-                logerr("JSONDecodeError: {}".format(e))
+            except json.decoder.ValueError as e:
+                logerr("JSON Decode Error: {}".format(e))
                 return False
             except Exception as e:
                 logerr(e)
