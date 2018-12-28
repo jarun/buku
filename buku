@@ -2375,10 +2375,8 @@ class BukuDb:
         items = []
         if filepath.endswith('.md'):
             items = import_md(filepath=filepath, newtag=newtag)
-
         elif filepath.endswith('org'):
             items = import_org(filepath=filepath, newtag=newtag)
-
         elif filepath.endswith('json'):
             if not tacit:
                 resp = input('Add Bookmark folder name as tag? (y/n): ')
