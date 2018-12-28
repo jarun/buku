@@ -3057,7 +3057,7 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
         yield (
             tag['href'], tag.string,
             parse_tags([tag['tags']]) if tag.has_attr('tags') else None,
-            desc, 0, True, False
+            desc if not desc else desc.strip(), 0, True, False
         )
 
 
