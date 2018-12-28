@@ -619,7 +619,7 @@ def test_import_md(tmpdir, newtag, exp_res):
 <a> </a>""",
             ((
                 'https://github.com/j', 'GitHub', ',tag1,tag2,',
-                'comment for the bookmark here\n', 0, True, False
+                'comment for the bookmark here', 0, True, False
             ),)
         ),
         (
@@ -628,7 +628,7 @@ def test_import_md(tmpdir, newtag, exp_res):
             <a>second line of the comment here</a>""",
             ((
                 'https://github.com/j', 'GitHub', ',tag1,tag2,',
-                'comment for the bookmark here\n            ', 0, True, False
+                'comment for the bookmark here', 0, True, False
             ),)
         ),
         (
@@ -642,7 +642,7 @@ def test_import_md(tmpdir, newtag, exp_res):
                     'https://github.com/j', 'GitHub', ',tag1,tag2,',
                     'comment for the bookmark here\n            '
                     'second line of the comment here\n            '
-                    'third line of the comment here\n            ',
+                    'third line of the comment here',
                     0, True, False
                 ),
                 ('https://news.com/', 'News', ',tag1,tag2,tag3,', None, 0, True, False)
