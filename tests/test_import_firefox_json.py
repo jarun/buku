@@ -16,7 +16,7 @@ def test_load_from_empty():
 
 def test_load_full_entry():
     """test method."""
-    
+
     # Arrange
     data = json.loads("""
         {
