@@ -2961,7 +2961,8 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                     desc = extract_desc(bm_entry)
                     bookmark_tags = extract_tags(bm_entry)
 
-                    if add_bookmark_folder_as_tag:
+                    # if parent_folder is not "None"
+                    if add_bookmark_folder_as_tag and parent_folder:
                         bookmark_tags.append(parent_folder)
 
                     if unique_tag:
@@ -2979,9 +2980,14 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                 try:
                     # from python 3.3 on:
                     # yield from iterate_children(bm_entry['title'], bm_entry['children'])
+                    try:
+                        title = bm_entry['title']
+                    except Exception:
+                        title = ""
 
-                    for entry in iterate_children(parent_folder+"/"+bm_entry['title'], bm_entry['children']):
+                    for entry in iterate_children(title, bm_entry['children']):
                         yield entry
+
                 except Exception:
                     # if any of the properties does not exist, bail out silently
                     logdbg("No 'children' found in bookmark folder - skipping: {}".format(bm_entry['title']))
@@ -2995,7 +3001,12 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
         logerr("No children in Root entry found")
         return []
 
-    yield from iterate_children("", entry_list)
+    try:
+        title = json['title']
+    except Exception:
+        title = None
+
+    yield from iterate_children(title, entry_list)
 
 
 def import_html(html_soup, add_parent_folder_as_tag, newtag):

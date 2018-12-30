@@ -215,6 +215,31 @@ def test_load_many_children():
 
     assert 3 == len(result)
 
+def test_load_container_no_title():
+    """test method."""
+
+    # Arrange
+    data = json.loads("""
+        {
+            "typeCode" : 2,
+            "children": [
+                    {"title":"title1","typeCode":1,"uri":"http://uri.com"}
+            ]
+        }
+    """)
+
+    # Act
+    items = import_firefox_json(data, add_bookmark_folder_as_tag=True)
+
+    # Assert
+    result = []
+    for item in items:
+        result.append(item)
+
+    assert 1 == len(result)
+    assert 'http://uri.com' == result[0][0]
+    assert ',' == result[0][2]
+
 def test_load_hierarchical_container():
     """test method."""
 
@@ -225,7 +250,7 @@ def test_load_hierarchical_container():
             "typeCode" : 2,
             "children": [
                     {
-                        "title" : "title",
+                        "title" : "title2",
                         "typeCode" : 2,
                         "children": [
                             {"title":"title1","typeCode":1,"uri":"http://uri1.com/#more-74"},
@@ -241,7 +266,7 @@ def test_load_hierarchical_container():
                       """)
 
     # Act
-    items = import_firefox_json(data)
+    items = import_firefox_json(data, add_bookmark_folder_as_tag=True)
 
     # Assert
     result = []
@@ -255,6 +280,14 @@ def test_load_hierarchical_container():
     assert 'http://uri4.com/#more-74' == result[3][0]
     assert 'http://uri5.com/xyz' == result[4][0]
     assert 'http://uri6.com' == result[5][0]
+
+    assert ',title2,' == result[0][2]
+    assert ',title2,' == result[1][2]
+    assert ',title2,' == result[2][2]
+    assert ',title,' == result[3][2]
+    assert ',title,' == result[4][2]
+    assert ',title,' == result[5][2]
+
 
 def test_load_separator():
     """test method."""
