@@ -2973,7 +2973,7 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                     logdbg("Entry found: {}, {}, {}, {} ".format(bm_entry['uri'], bm_entry['title'], tags, desc))
                     yield (bm_entry['uri'], bm_entry['title'], tags, desc, 0, True, False)
                 except Exception as e:
-                    logerr(e)
+                    logerr("Error parsing entry '{}' Exception '{}'".format(bm_entry['title'], e))
 
             elif TypeCode.folder.value == typeCode:
                 try:
@@ -2982,9 +2982,9 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
 
                     for entry in iterate_children(parent_folder+"/"+bm_entry['title'], bm_entry['children']):
                         yield entry
-                except Exception as e:
+                except Exception:
                     # if any of the properties does not exist, bail out silently
-                    logerr(e)
+                    logdbg("No 'children' found in bookmark folder - skipping: {}".format(bm_entry['title']))
 
             elif TypeCode.separator.value == typeCode:
                 logdbg("Unknonw typeCode found : {}".format(typeCode))

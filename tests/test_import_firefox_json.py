@@ -110,6 +110,25 @@ def test_load_invalid_typecode():
 
     assert 0 == len(result)
 
+def test_load_folder_with_no_children():
+    """test method."""
+
+    # Arrange
+    data = json.loads("""
+        {
+            "title" : "title",
+            "typeCode" : 2
+        } """)
+
+    # Act
+    items = import_firefox_json(data)
+
+    # Assert
+    result = []
+    for item in items:
+        result.append(item)
+
+    assert 0 == len(result)
 
 def test_load_one_child():
     """test method."""
