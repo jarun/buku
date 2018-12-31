@@ -2415,7 +2415,7 @@ class BukuDb:
             items = import_org(filepath=filepath, newtag=newtag)
         elif filepath.endswith('json'):
             if not tacit:
-                resp = input('Add Bookmark folder name as tag? (y/n): ')
+                resp = input('Add parent folder names as tags? (y/n): ')
             else:
                 resp = 'y'
             add_bookmark_folder_as_tag = (resp == 'y')
