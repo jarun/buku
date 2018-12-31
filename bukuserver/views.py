@@ -25,7 +25,7 @@ except ImportError:
 STATISTIC_DATA = None
 DEFAULT_URL_RENDER_MODE = 'full'
 DEFAULT_PER_PAGE = 10
-log = logging.getLogger("bukuserver.views")
+LOG = logging.getLogger("bukuserver.views")
 
 
 class CustomAdminIndexView(AdminIndexView):
@@ -160,7 +160,7 @@ class BookmarkModelView(BaseModelView):
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 flash(gettext('Failed to create record. %(error)s', error=str(ex)), 'error')
-                log.exception('Failed to create record.')
+                LOG.exception('Failed to create record.')
             return False
         else:
             self.after_model_change(form, model, True)
@@ -173,7 +173,7 @@ class BookmarkModelView(BaseModelView):
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 flash(gettext('Failed to delete record. %(error)s', error=str(ex)), 'error')
-                log.exception('Failed to delete record.')
+                LOG.exception('Failed to delete record.')
             return False
         else:
             self.after_model_delete(model)
@@ -198,7 +198,7 @@ class BookmarkModelView(BaseModelView):
         bookmarks = self._apply_filters(bookmarks, filters)
         if sort_field:
             key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
-            bookmarks = sorted(bookmarks, key=lambda x:x[key_idx], reverse=sort_desc)
+            bookmarks = sorted(bookmarks, key=lambda x: x[key_idx], reverse=sort_desc)
         count = len(bookmarks)
         if page_size and bookmarks:
             bookmarks = list(chunks(bookmarks, page_size))[page]
@@ -331,7 +331,7 @@ class BookmarkModelView(BaseModelView):
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 flash(gettext('Failed to update record. %(error)s', error=str(ex)), 'error')
-                log.exception('Failed to update record.')
+                LOG.exception('Failed to update record.')
             return False
         else:
             self.after_model_change(form, model, False)
@@ -453,7 +453,7 @@ class TagModelView(BaseModelView):
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 flash(gettext('Failed to delete record. %(error)s', error=str(ex)), 'error')
-                log.exception('Failed to delete record.')
+                LOG.exception('Failed to delete record.')
             return False
         else:
             self.after_model_delete(model)
@@ -469,7 +469,7 @@ class TagModelView(BaseModelView):
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 flash(gettext('Failed to update record. %(error)s', error=str(ex)), 'error')
-                log.exception('Failed to update record.')
+                LOG.exception('Failed to update record.')
             return False
         else:
             self.after_model_change(form, model, False)

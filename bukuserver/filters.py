@@ -70,7 +70,14 @@ class BaseFilter(filters.BaseFilter):
 
 class TagBaseFilter(BaseFilter):
 
-    def __init__(self, name, operation_text=None, apply_func=None, filter_type=None, options=None, data_type=None):
+    def __init__(
+            self,
+            name,
+            operation_text=None,
+            apply_func=None,
+            filter_type=None,
+            options=None,
+            data_type=None):
         if operation_text in ('in list', 'not in list'):
             super().__init__(name, options, data_type='select2-tags')
         else:
@@ -91,7 +98,9 @@ class TagBaseFilter(BaseFilter):
             self.operation_text = operation_text
 
     def clean(self, value):
-        if self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST) and self.name == 'usage_count':
+        if (
+                self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST) and
+                self.name == 'usage_count'):
             value = [int(v.strip()) for v in value.split(',') if v.strip()]
         elif self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST):
             value = [v.strip() for v in value.split(',') if v.strip()]
@@ -135,7 +144,14 @@ class BookmarkBukuFilter(BaseFilter):
 
 class BookmarkBaseFilter(BaseFilter):
 
-    def __init__(self, name, operation_text=None, apply_func=None, filter_type=None, options=None, data_type=None):
+    def __init__(
+            self,
+            name,
+            operation_text=None,
+            apply_func=None,
+            filter_type=None,
+            options=None,
+            data_type=None):
         if operation_text in ('in list', 'not in list'):
             super().__init__(name, options, data_type='select2-tags')
         else:
@@ -154,7 +170,9 @@ class BookmarkBaseFilter(BaseFilter):
             self.operation_text = operation_text
 
     def clean(self, value):
-        if self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST) and self.name == BookmarkField.ID.name.lower():
+        if (
+                self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST) and
+                self.name == BookmarkField.ID.name.lower()):
             value = [int(v.strip()) for v in value.split(',') if v.strip()]
         elif self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST):
             value = [v.strip() for v in value.split(',') if v.strip()]
