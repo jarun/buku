@@ -60,8 +60,8 @@ def test_gen_headers():
         'DNT': '1'
     }
     buku.gen_headers()
-    assert buku.myproxy is None
-    assert buku.myheaders == exp_myheaders
+    assert buku.MYPROXY is None
+    assert buku.MYHEADERS == exp_myheaders
 
 
 @pytest.mark.parametrize('m_myproxy', [None, mock.Mock()])
@@ -199,7 +199,7 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
         # test
         if nav == 'w' and not is_editor_valid_retval:
             return
-        elif nav == 'w':
+        if nav == 'w':
             m_edit_rec.assert_called_once_with(editor, '', None, buku.DELIM, None)
         elif buku.is_int(nav[2:]):
             obj.edit_update_rec.assert_called_once_with(int(nav[2:]))
@@ -599,7 +599,7 @@ def test_is_nongeneric_url(url, exp_res):
     'newtag, exp_res',
     [
         (None, ('http://example.com', 'text1', None, None, 0, True)),
-        ('tag1',('http://example.com', 'text1', ',tag1,', None, 0, True)),
+        ('tag1', ('http://example.com', 'text1', ',tag1,', None, 0, True)),
     ]
 )
 def test_import_md(tmpdir, newtag, exp_res):

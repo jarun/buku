@@ -1,9 +1,5 @@
 [MESSAGES CONTROL]
 disable=
-  anomalous-backslash-in-string,
-  bad-continuation,
-  bad-whitespace,
-  bare-except,
   broad-except,
   dangerous-default-value,
   expression-not-assigned,
@@ -14,20 +10,14 @@ disable=
   len-as-condition,
   logging-format-interpolation,
   lost-exception,
-  misplaced-comparison-constant,
   missing-docstring,
-  missing-final-newline,
-  no-else-return,
-  #no-member,
   no-self-use,
   pointless-statement,
   protected-access,
   redefined-argument-from-local,
   redefined-builtin,
   redefined-outer-name,
-  superfluous-parens,
   too-many-arguments,
-  too-many-boolean-expressions,
   too-many-branches,
   too-many-instance-attributes,
   too-many-lines,
@@ -43,6 +33,5 @@ disable=
   unsupported-assignment-operation,
   unused-argument,
   unused-variable,
-  wrong-import-order,
 [FORMAT]
 max-line-length=139

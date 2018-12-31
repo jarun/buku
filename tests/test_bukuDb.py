@@ -15,13 +15,13 @@ from genericpath import exists
 from itertools import product
 from tempfile import TemporaryDirectory
 
+from unittest import mock
+import unittest
+import pytest
+import yaml
 from hypothesis import given, example, settings
 from hypothesis import strategies as st
-from unittest import mock
-import pytest
-import unittest
 import vcr
-import yaml
 
 from buku import BukuDb, parse_tags, prompt
 
@@ -829,20 +829,20 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
         # teardown
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
         return
-    elif (low == 0 or high == 0) and input_retval != 'y':
+    if (low == 0 or high == 0) and input_retval != 'y':
         assert not res
         assert len(bdb_dc.get_rec_all()) == db_len
         # teardown
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
         return
-    elif (low == 0 or high == 0) and input_retval == 'y':
+    if (low == 0 or high == 0) and input_retval == 'y':
         assert res == exp_res
         with pytest.raises(sqlite3.OperationalError):
             bdb.get_rec_all()
         # teardown
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
         return
-    elif n_low > db_len and n_low > 0:
+    if n_low > db_len and n_low > 0:
         assert not res
         assert len(bdb_dc.get_rec_all()) == db_len
         # teardown
@@ -976,7 +976,7 @@ def test_delete_rec_on_non_interger(index, low, high, is_range):
         with pytest.raises(TypeError):
             bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
         return
-    elif not is_range and not isinstance(index, int):
+    if not is_range and not isinstance(index, int):
         res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
         assert not res
         assert len(bdb.get_rec_all()) == db_len
@@ -1260,7 +1260,7 @@ def test_browse_by_index(low, high, index, is_range, empty_database):
         res = bdb.browse_by_index(index=index, low=low, high=high, is_range=is_range)
         if is_range and (low < 0 or high < 0):
             assert not res
-        elif is_range and 0 < n_low and 0 < n_high:
+        elif is_range and n_low > 0 and n_high > 0:
             assert res
         elif is_range:
             assert not res

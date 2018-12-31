@@ -12,7 +12,7 @@ def test_load_from_empty():
 
     # Assert
     count = sum(1 for _ in items)
-    assert 0 == count
+    assert count == 0
 
 def test_load_full_entry():
     """test method."""
@@ -48,11 +48,11 @@ def test_load_full_entry():
     for item in items:
         result.append(item)
 
-    assert 1 == len(result)
-    assert 'http://uri.com/abc?234&536' == result[0][0]
-    assert 'title' == result[0][1]
-    assert ',x,y,' == result[0][2]
-    assert 'desc' == result[0][3]
+    assert len(result) == 1
+    assert result[0][0] == 'http://uri.com/abc?234&536'
+    assert result[0][1] == 'title'
+    assert result[0][2] == ',x,y,'
+    assert result[0][3] == 'desc'
 
 
 def test_load_no_typecode():
@@ -80,7 +80,7 @@ def test_load_no_typecode():
     for item in items:
         result.append(item)
 
-    assert 0 == len(result)
+    assert len(result) == 0
 
 
 def test_load_invalid_typecode():
@@ -108,7 +108,7 @@ def test_load_invalid_typecode():
     for item in items:
         result.append(item)
 
-    assert 0 == len(result)
+    assert len(result) == 0
 
 
 def test_load_one_child():
@@ -140,11 +140,11 @@ def test_load_one_child():
     for item in items:
         result.append(item)
 
-    assert 1 == len(result)
-    assert 'http://uri1' == result[0][0]
-    assert 'title1' == result[0][1]
-    assert ',' == result[0][2]
-    assert 'desc' == result[0][3]
+    assert len(result) == 1
+    assert result[0][0] == 'http://uri1'
+    assert result[0][1] == 'title1'
+    assert result[0][2] == ','
+    assert result[0][3] == 'desc'
 
 def test_load_one_container_child():
     """test method."""
@@ -169,7 +169,7 @@ def test_load_one_container_child():
     for item in items:
         result.append(item)
 
-    assert 0 == len(result)
+    assert len(result) == 0
 
 def test_load_many_children():
     """test method."""
@@ -194,7 +194,7 @@ def test_load_many_children():
     for item in items:
         result.append(item)
 
-    assert 3 == len(result)
+    assert len(result) == 3
 
 def test_load_hierarchical_container():
     """test method."""
@@ -229,13 +229,13 @@ def test_load_hierarchical_container():
     for item in items:
         result.append(item)
 
-    assert 6 == len(result)
-    assert 'http://uri1.com/#more-74' == result[0][0]
-    assert 'http://uri2.com/xyz' == result[1][0]
-    assert 'http://uri3.com' == result[2][0]
-    assert 'http://uri4.com/#more-74' == result[3][0]
-    assert 'http://uri5.com/xyz' == result[4][0]
-    assert 'http://uri6.com' == result[5][0]
+    assert len(result) == 6
+    assert result[0][0] == 'http://uri1.com/#more-74'
+    assert result[1][0] == 'http://uri2.com/xyz'
+    assert result[2][0] == 'http://uri3.com'
+    assert result[3][0] == 'http://uri4.com/#more-74'
+    assert result[4][0] == 'http://uri5.com/xyz'
+    assert result[5][0] == 'http://uri6.com'
 
 def test_load_separator():
     """test method."""
@@ -261,7 +261,7 @@ def test_load_separator():
     for item in items:
         result.append(item)
 
-    assert 0 == len(result)
+    assert len(result) == 0
 
 def test_load_multiple_tags():
     """test method."""
@@ -290,5 +290,5 @@ def test_load_multiple_tags():
     for item in items:
         result.append(item)
 
-    assert 1 == len(result)
-    assert ",tag1,tag2," == result[0][2]
+    assert len(result) == 1
+    assert result[0][2] == ",tag1,tag2,"

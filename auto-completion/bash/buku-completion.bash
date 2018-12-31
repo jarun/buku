@@ -1,5 +1,5 @@
 #
-# Bash completion definition for buku.
+# Bash completion definition for Buku.
 #
 # Author:
 #   Arun Prakash Jana <engineerarun@gmail.com>
