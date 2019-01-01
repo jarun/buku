@@ -582,7 +582,7 @@ class TestBukuDb(unittest.TestCase):
         with mock.patch('builtins.input', return_value='y'):
             self.bdb.cleardb()
         # assert table has been dropped
-        assert self.bdb.get_rec_by_id(0)
+        assert self.bdb.get_rec_by_id(0) is None
 
     # @unittest.skip('skipping')
     def test_replace_tag(self):
