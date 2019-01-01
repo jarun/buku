@@ -582,11 +582,7 @@ class TestBukuDb(unittest.TestCase):
         with mock.patch('builtins.input', return_value='y'):
             self.bdb.cleardb()
         # assert table has been dropped
-        with self.assertRaises(sqlite3.OperationalError) as ctx_man:
-            self.bdb.get_rec_by_id(0)
-
-        err_msg = str(ctx_man.exception)
-        self.assertEqual(err_msg, 'no such table: bookmarks')
+        assert self.bdb.get_rec_by_id(0)
 
     # @unittest.skip('skipping')
     def test_replace_tag(self):
