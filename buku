@@ -1600,10 +1600,13 @@ class BukuDb:
             print('No bookmarks deleted')
             return False
 
-        self.cur.execute('DROP TABLE if exists bookmarks')
-        self.conn.commit()
-        print('All bookmarks deleted')
-        return True
+        if self.delete_rec_all():
+            self.cur.execute('VACUUM')
+            self.conn.commit()
+            print('All bookmarks deleted')
+            return True
+        else:
+            return False
 
     def print_rec(self, index=0, low=0, high=0, is_range=False):
         """Print bookmark details at index or all bookmarks if index is 0.
