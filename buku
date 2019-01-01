@@ -1605,8 +1605,8 @@ class BukuDb:
             self.conn.commit()
             print('All bookmarks deleted')
             return True
-        else:
-            return False
+
+        return False
 
     def print_rec(self, index=0, low=0, high=0, is_range=False):
         """Print bookmark details at index or all bookmarks if index is 0.
