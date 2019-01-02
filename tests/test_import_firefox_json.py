@@ -20,24 +20,30 @@ def test_load_full_entry():
     # Arrange
     data = json.loads("""
         {
-            "title" : "title",
+            "title" : "main",
+            "typeCode": 2,
             "children": [
                 {
-                  "dateAdded": 1269200039653000,
-                  "guid": "xxxydfalkj",
-                  "id": 113,
-                  "index": 0,
-                  "lastModified": 1305978154986000,
-                  "title": "title",
-                  "type": "text/x-moz-place",
-                  "typeCode": 1,
-                  "tags" : "x,y",
-                  "uri": "http://uri.com/abc?234&536",
-                  "annos" : [{
-                         "name": "bookmarkProperties/description",
-                         "value": "desc"
-                   }]
-                }]
+                "title" : "title",
+                "typeCode": 2,
+                "children": [
+                    {
+                      "dateAdded": 1269200039653000,
+                      "guid": "xxxydfalkj",
+                      "id": 113,
+                      "index": 0,
+                      "lastModified": 1305978154986000,
+                      "title": "entry title",
+                      "type": "text/x-moz-place",
+                      "typeCode": 1,
+                      "tags" : "x,y",
+                      "uri": "http://uri.com/abc?234&536",
+                      "annos" : [{
+                             "name": "bookmarkProperties/description",
+                             "value": "desc"
+                       }]
+                    }]
+             }]
         }""")
 
     # Act
@@ -50,7 +56,7 @@ def test_load_full_entry():
 
     assert len(result) == 1
     assert result[0][0] == 'http://uri.com/abc?234&536'
-    assert result[0][1] == 'title'
+    assert result[0][1] == 'entry title'
     assert result[0][2] == ',x,y,'
     assert result[0][3] == 'desc'
 
@@ -60,15 +66,20 @@ def test_load_no_typecode():
     # Arrange
     data = json.loads("""
         {
-            "title" : "title",
+            "title" : "main",
+            "typeCode": 2,
             "children": [
                 {
-                    "title" : "title1",
-                    "uri" : "http://uri1",
-                    "annos" : [{
-                         "name": "bookmarkProperties/description",
-                         "value": "desc"
-                     }]
+                "title" : "title",
+                "children": [
+                    {
+                        "title" : "title1",
+                        "uri" : "http://uri1",
+                        "annos" : [{
+                             "name": "bookmarkProperties/description",
+                             "value": "desc"
+                         }]
+                    }]
                 }]
         }""")
 
@@ -136,20 +147,26 @@ def test_load_one_child():
     # Arrange
     data = json.loads("""
         {
-            "title" : "title",
+            "title" : "main",
             "typeCode" : 2,
             "children": [
                 {
-                    "title" : "title1",
-                    "typeCode" : 1,
-                    "uri" : "http://uri1",
-                    "annos" : [{
-                         "name": "bookmarkProperties/description",
-                         "value": "desc"
-                      }]
-                 }
-            ]
-        } """)
+                "title" : "title",
+                "typeCode" : 2,
+                "children": [
+                    {
+                        "title" : "title1",
+                        "typeCode" : 1,
+                        "uri" : "http://uri1",
+                        "annos" : [{
+                             "name": "bookmarkProperties/description",
+                             "value": "desc"
+                          }]
+                     }
+                ]}
+           ]
+        }
+    """)
 
     # Act
     items = import_firefox_json(data)
@@ -171,13 +188,18 @@ def test_load_one_container_child():
     # Arrange
     data = json.loads("""
         {
-            "title" : "title",
-            "typeCode" : 2,
+            "title" : "main",
+            "typeCode": 2,
             "children": [
                 {
-                    "title":"bookmark folder",
-                    "typeCode":2
-                } ]
+                "title" : "title",
+                "typeCode" : 2,
+                "children": [
+                    {
+                        "title":"bookmark folder",
+                        "typeCode":2
+                    }]
+             }]
          }""")
 
     # Act
@@ -195,15 +217,21 @@ def test_load_many_children():
 
     # Arrange
     data = json.loads("""
-            {
+        {
+            "title" : "main",
+            "typeCode" : 2,
+            "children": [
+                {
                 "title":"Weitere Lesezeichen",
                 "typeCode":2,
                 "children": [
                     {"title":"title1","typeCode":1,"uri":"http://uri1.com/#more-74"},
                     {"title":"title2","typeCode":1,"uri":"http://uri2.com/xyz"},
                     {"title":"title3","typeCode":1,"uri":"http://uri3.com"}
-                ]
-            } """)
+                ]}
+            ]
+        }
+    """)
 
     # Act
     items = import_firefox_json(data)
@@ -221,9 +249,14 @@ def test_load_container_no_title():
     # Arrange
     data = json.loads("""
         {
+            "title" : "main",
             "typeCode" : 2,
             "children": [
-                    {"title":"title1","typeCode":1,"uri":"http://uri.com"}
+                {
+                "typeCode" : 2,
+                "children": [
+                        {"title":"title1","typeCode":1,"uri":"http://uri.com"}
+                ]}
             ]
         }
     """)
@@ -246,24 +279,29 @@ def test_load_hierarchical_container():
     # Arrange
     data = json.loads("""
         {
-            "title" : "title",
+            "title" : "main",
             "typeCode" : 2,
             "children": [
-                    {
-                        "title" : "title2",
-                        "typeCode" : 2,
-                        "children": [
-                            {"title":"title1","typeCode":1,"uri":"http://uri1.com/#more-74"},
-                            {"title":"title2","typeCode":1,"uri":"http://uri2.com/xyz"},
-                            {"title":"title3","typeCode":1,"uri":"http://uri3.com"}
-                        ]
-                    },
-                    {"title":"title4","typeCode":1,"uri":"http://uri4.com/#more-74"},
-                    {"title":"title5","typeCode":1,"uri":"http://uri5.com/xyz"},
-                    {"title":"title6","typeCode":1,"uri":"http://uri6.com"}
-            ]
-        }
-                      """)
+                {
+                "title" : "title",
+                "typeCode" : 2,
+                "children": [
+                        {
+                            "title" : "title2",
+                            "typeCode" : 2,
+                            "children": [
+                                {"title":"title1","typeCode":1,"uri":"http://uri1.com/#more-74"},
+                                {"title":"title2","typeCode":1,"uri":"http://uri2.com/xyz"},
+                                {"title":"title3","typeCode":1,"uri":"http://uri3.com"}
+                            ]
+                        },
+                        {"title":"title4","typeCode":1,"uri":"http://uri4.com/#more-74"},
+                        {"title":"title5","typeCode":1,"uri":"http://uri5.com/xyz"},
+                        {"title":"title6","typeCode":1,"uri":"http://uri6.com"}
+                ]
+            }]
+       }
+    """)
 
     # Act
     items = import_firefox_json(data, add_bookmark_folder_as_tag=True)
@@ -284,10 +322,9 @@ def test_load_hierarchical_container():
     assert ',title2,' == result[0][2]
     assert ',title2,' == result[1][2]
     assert ',title2,' == result[2][2]
-    assert ',title,' == result[3][2]
-    assert ',title,' == result[4][2]
-    assert ',title,' == result[5][2]
-
+    assert ',' == result[3][2]
+    assert ',' == result[4][2]
+    assert ',' == result[5][2]
 
 def test_load_separator():
     """test method."""
@@ -295,14 +332,19 @@ def test_load_separator():
     # Arrange
     data = json.loads("""
         {
-            "title" : "title",
+            "title" : "main",
             "typeCode" : 2,
             "children": [
                 {
-                  "title": "",
-                  "type": "text/x-moz-place-separator",
-                  "typeCode": 3
-                } ]
+                "title" : "title",
+                "typeCode" : 2,
+                "children": [
+                    {
+                      "title": "",
+                      "type": "text/x-moz-place-separator",
+                      "typeCode": 3
+                    }]
+            }]
          }""")
 
     # Act
@@ -320,18 +362,24 @@ def test_load_multiple_tags():
     # Arrange
     data = json.loads("""
         {
-            "title" : "title",
+            "title" : "main",
+            "typeCode": 2,
             "children": [
                 {
-                    "title" : "title1",
-                    "uri" : "http://uri1",
-                    "tags" : "tag1, tag2",
-                    "typeCode": 1,
-                    "annos" : [{
-                         "name": "bookmarkProperties/description",
-                         "value": "desc"
-                     }]
-                }]
+                "title" : "title",
+                "typeCode": 2,
+                "children": [
+                    {
+                        "title" : "title1",
+                        "uri" : "http://uri1",
+                        "tags" : "tag1, tag2",
+                        "typeCode": 1,
+                        "annos" : [{
+                             "name": "bookmarkProperties/description",
+                             "value": "desc"
+                         }]
+                    }]
+            }]
         }""")
 
     # Act

@@ -3032,15 +3032,12 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
 
             elif TypeCode.folder.value == typeCode:
                 try:
-                    # from python 3.3 on:
-                    # yield from iterate_children(bm_entry['title'], bm_entry['children'])
                     try:
                         title = bm_entry['title']
                     except Exception:
                         title = ""
 
-                    for entry in iterate_children(title, bm_entry['children']):
-                        yield entry
+                    yield from iterate_children(title, bm_entry['children'])
 
                 except Exception:
                     # if any of the properties does not exist, bail out silently
@@ -3050,17 +3047,22 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                 LOGDBG("Unknown typeCode found : {}".format(typeCode))
 
     try:
-        entry_list = json['children']
+        main_entry_list = json['children']
     except Exception:
         LOGERR("No children in Root entry found")
         return []
 
-    try:
-        title = json['title']
-    except Exception:
-        title = None
-
-    yield from iterate_children(title, entry_list)
+    # interate over each main bookmark container, ignoring main container title
+    # assuming all entries with 'children' are containers, skipping typeCode test
+    for main_container in main_entry_list:
+        try:
+            yield from iterate_children(None, main_container['children'])
+        except Exception:
+            try:
+                title = main_container['title']
+            except Exception:
+                title = None
+            LOGDBG("No 'children' found in main bookmark folder - skipping: {}".format(title))
 
 
 def import_html(html_soup, add_parent_folder_as_tag, newtag):
