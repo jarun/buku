@@ -2996,21 +2996,23 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
 
     def iterate_children(parent_folder, entry_list):
         for bm_entry in entry_list:
+            entry_title = bm_entry['title'] if 'title' in bm_entry else "<no title>"
+
             try:
                 typeCode = bm_entry['typeCode']
             except Exception:
-                LOGDBG("ff_json: item without typeCode found, ignoring: {}".format(bm_entry['title']))
+                LOGDBG("ff_json: item without typeCode found, ignoring: {}".format(entry_title))
                 continue
 
-            LOGDBG("ff_json: processing typeCode '{}', title '{}'".format(typeCode, bm_entry['title']))
+            LOGDBG("ff_json: processing typeCode '{}', title '{}'".format(typeCode, entry_title))
             if TypeCode.uri.value == typeCode:
                 try:
                     if is_smart(bm_entry):
-                        LOGDBG("ff_json: SmartBookmark found, ignoring: {}".format(bm_entry['title']))
+                        LOGDBG("ff_json: SmartBookmark found, ignoring: {}".format(entry_title))
                         continue
 
                     if is_nongeneric_url(bm_entry['uri']):
-                        LOGDBG("ff_json: Non-Generic URL found, ignoring: {}".format(bm_entry['title']))
+                        LOGDBG("ff_json: Non-Generic URL found, ignoring: {}".format(entry_title))
                         continue
 
                     desc = extract_desc(bm_entry)
@@ -3026,26 +3028,24 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                     formatted_tags = [DELIM + tag for tag in bookmark_tags]
                     tags = parse_tags(formatted_tags)
 
-                    LOGDBG("ff_json: Entry found: {}, {}, {}, {} " .format(bm_entry['uri'], bm_entry['title'], tags, desc))
-                    yield (bm_entry['uri'], bm_entry['title'], tags, desc, 0, True, False)
+                    LOGDBG("ff_json: Entry found: {}, {}, {}, {} " .format(bm_entry['uri'], entry_title, tags, desc))
+                    yield (bm_entry['uri'], entry_title, tags, desc, 0, True, False)
 
                 except Exception as e:
-                    LOGERR("ff_json: Error parsing entry '{}' Exception '{}'".format(bm_entry['title'], e))
+                    LOGERR("ff_json: Error parsing entry '{}' Exception '{}'".format(entry_title, e))
 
             elif TypeCode.folder.value == typeCode:
 
-                title = bm_entry['title'] if 'title' in bm_entry else "<no title>"
-
                 # ignore special bookmark folders
                 if 'root' in bm_entry and bm_entry['root'] in IGNORE_FF_BOOKMARK_FOLDERS:
-                    LOGDBG("ff_json: ignoring root folder: {}" .format(title))
-                    title = None
+                    LOGDBG("ff_json: ignoring root folder: {}" .format(entry_title))
+                    entry_title = None
 
                 if "children" in bm_entry:
-                    yield from iterate_children(title, bm_entry['children'])
+                    yield from iterate_children(entry_title, bm_entry['children'])
                 else:
                     # if any of the properties does not exist, bail out silently
-                    LOGDBG("ff_json: No 'children' found in bookmark folder - skipping: {}".format(bm_entry['title']))
+                    LOGDBG("ff_json: No 'children' found in bookmark folder - skipping: {}".format(entry_title))
 
             elif TypeCode.separator.value == typeCode:
                 # ignore separator

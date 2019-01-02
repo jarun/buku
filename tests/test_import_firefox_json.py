@@ -271,9 +271,9 @@ def test_load_container_no_title():
 
     assert len(result) == 1
     assert result[0][0] == 'http://uri.com'
-    assert result[0][2] == ','
+    assert result[0][2] == ',<no title>,'
 
-def test_load_hierarchical_container():
+def test_load_hierarchical_container_without_ignore():
     """test method."""
 
     # Arrange
@@ -286,18 +286,7 @@ def test_load_hierarchical_container():
                 "title" : "title",
                 "typeCode" : 2,
                 "children": [
-                        {
-                            "title" : "title2",
-                            "typeCode" : 2,
-                            "children": [
-                                {"title":"title1","typeCode":1,"uri":"http://uri1.com/#more-74"},
-                                {"title":"title2","typeCode":1,"uri":"http://uri2.com/xyz"},
-                                {"title":"title3","typeCode":1,"uri":"http://uri3.com"}
-                            ]
-                        },
-                        {"title":"title4","typeCode":1,"uri":"http://uri4.com/#more-74"},
-                        {"title":"title5","typeCode":1,"uri":"http://uri5.com/xyz"},
-                        {"title":"title6","typeCode":1,"uri":"http://uri6.com"}
+                     {"title":"title1","typeCode":1,"uri":"http://uri.com"}
                 ]
             }]
        }
@@ -311,20 +300,51 @@ def test_load_hierarchical_container():
     for item in items:
         result.append(item)
 
-    assert len(result) == 6
+    assert len(result) == 1
+    assert result[0][0] == 'http://uri.com'
+    assert result[0][2] == ',title,'
+
+def test_load_hierarchical_container_with_ignore():
+    """test method."""
+
+    # Arrange
+    data = json.loads("""
+        {
+            "title" : "main",
+            "typeCode" : 2,
+            "children": [
+                {
+                "title" : "title",
+                "typeCode" : 2,
+                "root": "bookmarksMenuFolder",
+                "children": [
+                        {
+                            "title" : "title2",
+                            "typeCode" : 2,
+                            "children": [
+                                {"title":"title1","typeCode":1,"uri":"http://uri1.com/#more-74"}
+                            ]
+                        },
+                        {"title":"title4","typeCode":1,"uri":"http://uri4.com/#more-74"}
+                ]
+            }]
+       }
+    """)
+
+    # Act
+    items = import_firefox_json(data, add_bookmark_folder_as_tag=True)
+
+    # Assert
+    result = []
+    for item in items:
+        result.append(item)
+
+    assert len(result) == 2
     assert result[0][0] == 'http://uri1.com/#more-74'
-    assert result[1][0] == 'http://uri2.com/xyz'
-    assert result[2][0] == 'http://uri3.com'
-    assert result[3][0] == 'http://uri4.com/#more-74'
-    assert result[4][0] == 'http://uri5.com/xyz'
-    assert result[5][0] == 'http://uri6.com'
+    assert result[1][0] == 'http://uri4.com/#more-74'
 
     assert result[0][2] == ',title2,'
-    assert result[1][2] == ',title2,'
-    assert result[2][2] == ',title2,'
-    assert result[3][2] == ','
-    assert result[4][2] == ','
-    assert result[5][2] == ','
+    assert result[1][2] == ','
 
 def test_load_separator():
     """test method."""
