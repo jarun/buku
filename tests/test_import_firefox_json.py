@@ -139,7 +139,7 @@ def test_load_folder_with_no_children():
     for item in items:
         result.append(item)
 
-    assert 0 == len(result)
+    assert len(result) == 0
 
 def test_load_one_child():
     """test method."""
@@ -269,9 +269,9 @@ def test_load_container_no_title():
     for item in items:
         result.append(item)
 
-    assert 1 == len(result)
-    assert 'http://uri.com' == result[0][0]
-    assert ',' == result[0][2]
+    assert len(result) == 1
+    assert result[0][0] == 'http://uri.com'
+    assert result[0][2] == ','
 
 def test_load_hierarchical_container():
     """test method."""
@@ -319,12 +319,12 @@ def test_load_hierarchical_container():
     assert result[4][0] == 'http://uri5.com/xyz'
     assert result[5][0] == 'http://uri6.com'
 
-    assert ',title2,' == result[0][2]
-    assert ',title2,' == result[1][2]
-    assert ',title2,' == result[2][2]
-    assert ',' == result[3][2]
-    assert ',' == result[4][2]
-    assert ',' == result[5][2]
+    assert result[0][2] == ',title2,'
+    assert result[1][2] == ',title2,'
+    assert result[2][2] == ',title2,'
+    assert result[3][2] == ','
+    assert result[4][2] == ','
+    assert result[5][2] == ','
 
 def test_load_separator():
     """test method."""
