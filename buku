@@ -81,6 +81,7 @@ USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Fi
 MYHEADERS = None  # Default dictionary of headers
 MYPROXY = None  # Default proxy
 TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
+IGNORE_FF_BOOKMARK_FOLDERS = frozenset(["placesRoot", "bookmarksMenuFolder"])
 
 # Set up logging
 LOGGER = logging.getLogger()
@@ -3032,44 +3033,33 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                     LOGERR("ff_json: Error parsing entry '{}' Exception '{}'".format(bm_entry['title'], e))
 
             elif TypeCode.folder.value == typeCode:
-                try:
-                    try:
-                        title = bm_entry['title']
-                    except Exception:
-                        title = ""
 
+                title = bm_entry['title'] if 'title' in bm_entry else "<no title>"
+
+                # ignore special bookmark folders
+                if 'root' in bm_entry and bm_entry['root'] in IGNORE_FF_BOOKMARK_FOLDERS:
+                    LOGDBG("ff_json: ignoring root folder: {}" .format(title))
+                    title = None
+
+                if "children" in bm_entry:
                     yield from iterate_children(title, bm_entry['children'])
-
-                except Exception:
+                else:
                     # if any of the properties does not exist, bail out silently
                     LOGDBG("ff_json: No 'children' found in bookmark folder - skipping: {}".format(bm_entry['title']))
 
             elif TypeCode.separator.value == typeCode:
+                # ignore separator
+                pass
+            else:
                 LOGDBG("ff_json: Unknown typeCode found : {}".format(typeCode))
 
-    try:
+    if "children" in json:
         main_entry_list = json['children']
-    except Exception:
+    else:
         LOGDBG("ff_json: No children in Root entry found")
         return []
 
-    # interate over each main bookmark container, ignoring main container title
-    # assuming all entries with 'children' are containers, skipping typeCode test
-    for main_container in main_entry_list:
-        try:
-            main_container_title = main_container['title']
-        except Exception:
-            main_container_title = "<Main Bookmark Container: no title>"
-
-        try:
-            main_container_children = main_container['children']
-        except Exception:
-            main_container_children = None
-            LOGDBG("ff_json: No 'children' found in main bookmark folder - skipping: {}".format(main_container_title))
-
-        if main_container_children:
-            LOGDBG("ff_json: main bookmark folder : {}".format(main_container_title))
-            yield from iterate_children(None, main_container_children)
+    yield from iterate_children(None, main_entry_list)
 
 
 def import_html(html_soup, add_parent_folder_as_tag, newtag):
