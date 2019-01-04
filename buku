@@ -81,6 +81,7 @@ USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Fi
 MYHEADERS = None  # Default dictionary of headers
 MYPROXY = None  # Default proxy
 TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
+IGNORE_FF_BOOKMARK_FOLDERS = frozenset(["placesRoot", "bookmarksMenuFolder"])
 
 # Set up logging
 LOGGER = logging.getLogger()
@@ -2428,7 +2429,7 @@ class BukuDb:
 
                 items = import_firefox_json(data, add_bookmark_folder_as_tag, newtag)
             except ValueError as e:
-                LOGERR("JSON Decode Error: {}".format(e))
+                LOGERR("ff_json: JSON Decode Error: {}".format(e))
                 return False
             except Exception as e:
                 LOGERR(e)
@@ -2981,7 +2982,7 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
             ]
             return d[0]['value']
         except Exception:
-            LOGDBG("No description found for entry: {} {}".format(entry['uri'], entry['title']))
+            LOGDBG("ff_json: No description found for entry: {} {}".format(entry['uri'], entry['title']))
             return ""
 
     def extract_tags(entry):
@@ -2989,32 +2990,36 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
         try:
             tags = entry['tags'].split(',')
         except Exception:
-            LOGDBG("No tags found for entry: {} {}".format(entry['uri'], entry['title']))
+            LOGDBG("ff_json: No tags found for entry: {} {}".format(entry['uri'], entry['title']))
 
         return tags
 
     def iterate_children(parent_folder, entry_list):
         for bm_entry in entry_list:
+            entry_title = bm_entry['title'] if 'title' in bm_entry else "<no title>"
+
             try:
                 typeCode = bm_entry['typeCode']
             except Exception:
-                LOGDBG("item without typeCode found, ignoring: {}".format(bm_entry['title']))
+                LOGDBG("ff_json: item without typeCode found, ignoring: {}".format(entry_title))
                 continue
 
+            LOGDBG("ff_json: processing typeCode '{}', title '{}'".format(typeCode, entry_title))
             if TypeCode.uri.value == typeCode:
                 try:
                     if is_smart(bm_entry):
-                        LOGDBG("SmartBookmark found, ignoring: {}".format(bm_entry['title']))
+                        LOGDBG("ff_json: SmartBookmark found, ignoring: {}".format(entry_title))
                         continue
 
                     if is_nongeneric_url(bm_entry['uri']):
-                        LOGDBG("Non-Generic URL found, ignoring: {}".format(bm_entry['title']))
+                        LOGDBG("ff_json: Non-Generic URL found, ignoring: {}".format(entry_title))
                         continue
 
                     desc = extract_desc(bm_entry)
                     bookmark_tags = extract_tags(bm_entry)
 
-                    if add_bookmark_folder_as_tag:
+                    # if parent_folder is not "None"
+                    if add_bookmark_folder_as_tag and parent_folder:
                         bookmark_tags.append(parent_folder)
 
                     if unique_tag:
@@ -3023,34 +3028,38 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
                     formatted_tags = [DELIM + tag for tag in bookmark_tags]
                     tags = parse_tags(formatted_tags)
 
-                    LOGDBG("Entry found: {}, {}, {}, {} "
-                           .format(bm_entry['uri'], bm_entry['title'], tags, desc))
-                    yield (bm_entry['uri'], bm_entry['title'], tags, desc, 0, True, False)
+                    LOGDBG("ff_json: Entry found: {}, {}, {}, {} " .format(bm_entry['uri'], entry_title, tags, desc))
+                    yield (bm_entry['uri'], entry_title, tags, desc, 0, True, False)
+
                 except Exception as e:
-                    LOGERR(e)
+                    LOGERR("ff_json: Error parsing entry '{}' Exception '{}'".format(entry_title, e))
 
             elif TypeCode.folder.value == typeCode:
-                try:
-                    # from python 3.3 on:
-                    # yield from iterate_children(bm_entry['title'], bm_entry['children'])
 
-                    for entry in iterate_children(
-                            parent_folder+"/"+bm_entry['title'], bm_entry['children']):
-                        yield entry
-                except Exception as e:
+                # ignore special bookmark folders
+                if 'root' in bm_entry and bm_entry['root'] in IGNORE_FF_BOOKMARK_FOLDERS:
+                    LOGDBG("ff_json: ignoring root folder: {}" .format(entry_title))
+                    entry_title = None
+
+                if "children" in bm_entry:
+                    yield from iterate_children(entry_title, bm_entry['children'])
+                else:
                     # if any of the properties does not exist, bail out silently
-                    LOGERR(e)
+                    LOGDBG("ff_json: No 'children' found in bookmark folder - skipping: {}".format(entry_title))
 
             elif TypeCode.separator.value == typeCode:
-                LOGDBG("Unknown typeCode found : {}".format(typeCode))
+                # ignore separator
+                pass
+            else:
+                LOGDBG("ff_json: Unknown typeCode found : {}".format(typeCode))
 
-    try:
-        entry_list = json['children']
-    except Exception:
-        LOGERR("No children in Root entry found")
+    if "children" in json:
+        main_entry_list = json['children']
+    else:
+        LOGDBG("ff_json: No children in Root entry found")
         return []
 
-    yield from iterate_children("", entry_list)
+    yield from iterate_children(None, main_entry_list)
 
 
 def import_html(html_soup, add_parent_folder_as_tag, newtag):
