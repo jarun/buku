@@ -16,7 +16,7 @@ Buku v3.9
 What's in?
 - Set number of search results per page (default 10)
 - Retrieve description and tags from page, if available
-- Visit cached version on Wayback machine
+- Visit cached version on Wayback Machine
 - Export works with all search options now
 - Changed user agent to Firefox on Ubuntu
 - Several dependencies made _required_ for installation
@@ -29,18 +29,18 @@ Buku v3.8
 
 What's in?
 - A self-hosted http server, bukuserver, that exposes core functionality
-    - browsable frontend on a local webhost server
+    - browsable front-end on a local web host server
     - flask default cli interface is used instead custom one
-    - handle not only api but also html request
+    - handle not only API but also HTML request
     - statistic page
     - CRUD on bookmark
-    - replaces the earlier api module
+    - replaces the earlier API module
 - Import complete folder hierarchy as tags during auto-import
 - Merge tags on import even if bookmark URL exists
 - Orgfile import/export
 - Show bookmarks to be deleted before deletion
 - Merge tags during import if bookmark exists
-- Escape regex metachars in regex input
+- Escape regex metacharacters in regex input
 
 -------------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ Buku v3.0
 
 What's in?
 - Edit bookmarks in EDITOR at prompt
-- Import folder names as tags from browser html (thanks @mohammadKhalifa)
+- Import folder names as tags from browser HTML (thanks @mohammadKhalifa)
 - Append, overwrite, delete tags at prompt using >>, >, << (familiar, eh? ;))
 - Negative indices with `--print` (like `tail`)
 - Update in EDITOR along with `--immutable`
@@ -213,7 +213,7 @@ Modifications
 - Support environment variable *https_proxy*
 - Support option `--immutable` to pin titles
 - Keyword `immutable` to search (`-S`) pinned titles
-- Show index in Json output
+- Show index in JSON output
 - New key *q* to quit prompt
 - Support deflate compression
 - Add option `--tacit` to reduce verbosity of some operations
@@ -279,7 +279,7 @@ Modifications
 - Use the logging framework for debug info instead of print
 - Fixed an issue with gzip stream decoding
 - Using only relative path to fetch resource on server
-- Fixed auto-completion errors with zsh
+- Fixed auto-completion errors with Zsh
 - A lot of code cleanup and globals removed, additional test cases
 
 -------------------------------------------------------------------------------
@@ -304,7 +304,7 @@ Buku v2.1
 2016-05-28
 
 Modifications
-- Import bookmarks from Firefox, Google Chrome or IE html bookmark exports
+- Import bookmarks from Firefox, Google Chrome or IE HTML bookmark exports
 - Support comments on bookmarks
 - Prettier output using symbols (`>` title, `+` comments, `#` tags)
 - New option (`--st`, `--stag`) to search by tag
@@ -431,7 +431,7 @@ Modifications
 <pre>$ mkdir ~/.cache/buku/
 $ mv ~/.cache/markit/bookmarks.db ~/.cache/buku/bookmarks.db
 $ rm -rf ~/.cache/markit/bookmarks.db</pre>
-- Manual AES256 encryption and decryption support (password protection) implemented. This adds dependency on PyCrypto module. Installation instructions updated in README.
+- Manual AES-256 encryption and decryption support (password protection) implemented. This adds dependency on PyCrypto module. Installation instructions updated in README.
 - Some typos fixed (thanks @GuilhermeHideki)
 
 -------------------------------------------------------------------------------
