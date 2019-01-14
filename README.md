@@ -26,11 +26,11 @@
 
 ### Introduction
 
-`buku` is a powerful bookmark manager written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible cmdline solution with a private, portable, merge-able database along with seamless GUI integration. Hence, `Buku` (after my son's nickname, meaning *close to the heart* in my language).
+`buku` is a powerful bookmark manager written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible command-line solution with a private, portable, merge-able database along with seamless GUI integration. Hence, `Buku` (after my son's nickname, meaning *close to the heart* in my language).
 
-[bukuserver](https://github.com/jarun/Buku/tree/master/bukuserver) exposes a browsable frontend on a local webhost server.
+[bukuserver](https://github.com/jarun/Buku/tree/master/bukuserver) exposes a browsable front-end on a local web host server.
 
-`buku` fetches the title, tags and description of a bookmarked url from the web and stores it. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once. `buku` can look up the latest snapshot of a broken link on the Wayback Machine. There's an Easter egg to revisit random forgotten bookmarks too! *Buku* is too busy to track you - no hidden history, obsolete records, usage analytics or homing. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
+`buku` fetches the title, tags and description of a bookmarked url from the web and stores it. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once. `buku` can look up the latest snapshot of a broken link on the Wayback Machine. There's an Easter egg to revisit random forgotten bookmarks too! *Buku* is too busy to track you: no hidden history, obsolete records, usage analytics or homing. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
 
 To get started right away, jump to the [Quickstart](#quickstart) section. We have one of the best documentation around. You'll find handy examples in the man page too.
 
@@ -53,7 +53,7 @@ There are several [projects based on `buku`](#related-projects), including a bro
   - [Running standalone](#running-standalone)
 - [Shell completion](#shell-completion)
 - [Usage](#usage)
-  - [Cmdline options](#cmdline-options)
+  - [Command-line options](#command-line-options)
   - [Colors](#colors)
 - [Quickstart](#quickstart)
 - [Examples](#examples)
@@ -152,7 +152,7 @@ Shell completion scripts for Bash, Fish and Zsh can be found in respective subdi
 
 ### Usage
 
-#### Cmdline options
+#### Command-line options
 
 ```
 usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]
@@ -218,25 +218,25 @@ ENCRYPTION OPTIONS:
 
 POWER TOYS:
       --ai                 auto-import from Firefox/Chrome/Chromium
-      -e, --export file    export bookmarks to Firefox format html
-                           export markdown, if file ends with '.md'
+      -e, --export file    export bookmarks to Firefox format HTML
+                           export Markdown, if file ends with '.md'
                            format: [title](url), 1 entry per line
-                           export orgfile, if file ends with '.org'
+                           export Orgfile, if file ends with '.org'
                            format: *[[url][title]], 1 entry per line
                            export buku DB, if file ends with '.db'
                            combines with search results, if opted
-      -i, --import file    import bookmarks html in Firefox format
-                           import markdown, if file ends with '.md'
-                           import orgfile, if file ends with '.org'
+      -i, --import file    import bookmarks HTML in Firefox format
+                           import Markdown, if file ends with '.md'
+                           import Orgfile, if file ends with '.org'
                            import buku DB, if file ends with '.db'
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
                            -n shows the last n results (like tail)
-      -f, --format N       limit fields in -p or Json search output
+      -f, --format N       limit fields in -p or JSON search output
                            N=1: URL, N=2: URL and tag, N=3: title,
                            N=4: URL, title and tag. To omit DB index,
                            use N0, e.g., 10, 20, 30, 40.
-      -j, --json           Json formatted output for -p and search
+      -j, --json           JSON formatted output for -p and search
       --colors COLORS      set output colors in five-letter string
       --nc                 disable color output
       -n, --count N        show N results per page (default 10)
@@ -344,14 +344,14 @@ PROMPT KEYS:
 
        $ buku -u 15012014 -c this is a new comment
     Applies to --url, --title and --tag too.
-9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, markdown, orgfile or a new database:
+9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, Markdown, Orgfile or a new database:
 
        $ buku -e bookmarks.html --stag tag 1, tag 2
        $ buku -e bookmarks.md --stag tag 1, tag 2
        $ buku -e bookmarks.org --stag tag 1, tag 2
        $ buku -e bookmarks.db --stag tag 1, tag 2
     All bookmarks are exported if search is not opted.
-10. **Import** bookmarks from HTML, markdown or orgfile:
+10. **Import** bookmarks from HTML, Markdown or Orgfile:
 
         $ buku -i bookmarks.html
         $ buku -i bookmarks.md
@@ -486,8 +486,8 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/i
 ### Related projects
 
 - [bukubrow](https://github.com/SamHH/bukubrow), WebExtension for browser integration
-- [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli frontend
-- [buku_run](https://github.com/carnager/buku_run), rofi frontend
+- [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli front-end
+- [buku_run](https://github.com/carnager/buku_run), rofi front-end
 - [pinku](https://github.com/mosegontar/pinku), a Pinboard-to-Buku import utility
 - [buku-dmenu](https://gitlab.com/benoliver999/buku-dmenu), a simple bash dmenu wrapper
 

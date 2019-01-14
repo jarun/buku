@@ -44,7 +44,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 \fBTags\fR:
   - Comma (',') is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
   - Page keywords having a word to comma ratio > 3 are appended to description rather than tags.
-  - Parent folder (and subfolder) names are converted to all-lowercase tags during bookmarks html import.
+  - Parent folder (and subfolder) names are converted to all-lowercase tags during bookmarks HTML import.
   - Releases prior to v2.7 support both capital and lower cases in tags. From v2.7 all tags are stored in lowercase. An undocumented option --\fIfixtags\fR is introduced to modify the older tags. It also fixes another issue where the same tag appears multiple times in the tagset of a record. Run \fBbuku --fixtags\fR once.
   - Tags can be edited from the prompt very easily using '>>' (append), '>' (overwrite) and '<<' (remove) symbols. The LHS of the operands denotes the indices and ranges of tags to apply (as listed by --tag or key 't' at prompt) and the RHS denotes the actual DB indices and ranges of the bookmarks to apply the change to.
 .PP
@@ -80,7 +80,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
   - Parent folder (and subfolder) names are automatically imported as tags if --tacit is used.
   - Tags are merged even if bookmark URL exists when --tacit is used.
-  - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used in html, markdown or orgfile import.
+  - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used in HTML, Markdown or Orgfile import.
 .PP
 .IP 10. 4
 \fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
@@ -203,9 +203,9 @@ Orgfile format: * [[url][title]], 1 entry per line. A buku database is generated
 has extension '.db'.
 .TP
 .BI \-i " " \--import " file"
-Import bookmarks from Firefox bookmarks formatted html.
+Import bookmarks from Firefox bookmarks formatted HTML.
 .I file
-is considered Markdown (compliant with --export format) if it has '.md' extension, orgfile if the extension is '.org' or another buku database if the extension is '.db'.
+is considered Markdown (compliant with --export format) if it has '.md' extension, Orgfile if the extension is '.org' or another buku database if the extension is '.db'.
 .TP
 .BI \-p " " \--print " [...]"
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. A negative value (introduced for convenience) behaves like the tail utility, e.g., -n shows the details of the last n bookmarks.
@@ -228,7 +228,7 @@ Show selective monochrome output with specific fields. Works with --print. Searc
 To omit DB index from printed results, use N0, e.g., 10, 20, 30, 40.
 .TP
 .BI \-j " " \--json
-Output data formatted as json, works with --print output and search results.
+Output data formatted as JSON, works with --print output and search results.
 .TP
 .BI \--colors " COLORS"
 Set output colors. Refer to the \fBCOLORS\fR section below for details.
@@ -526,7 +526,7 @@ This will open the existing bookmark's details in the editor for modifications. 
 Applies to --url, --title and --tag too.
 .PP
 .IP 9. 4
-\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML, markdown, orgfile or a new database:
+\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML, Markdown, Orgfile or a new database:
 .PP
 .EX
 .IP
@@ -543,7 +543,7 @@ Applies to --url, --title and --tag too.
 All bookmarks are exported if search is not opted.
 .PP
 .IP 10. 4
-\fBImport\fR bookmarks from HTML, markdown or orgfile:
+\fBImport\fR bookmarks from HTML, Markdown or Orgfile:
 .PP
 .EX
 .IP

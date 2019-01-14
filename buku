@@ -2038,7 +2038,7 @@ class BukuDb:
         If destination file name ends with '.db', bookmarks are
         exported to a Buku database file.
         If destination file name ends with '.md', bookmarks are
-        exported to a markdown file.
+        exported to a Markdown file.
         If destination file name ends with '.org' bookmarks are
         exported to a org file.
         Otherwise, bookmarks are exported to a Firefox bookmarks.html
@@ -2377,10 +2377,10 @@ class BukuDb:
             print('\nAuto-generated tag: %s' % newtag)
 
     def importdb(self, filepath, tacit=False):
-        """Import bookmarks from a html or a markdown file.
+        """Import bookmarks from a HTML or a Markdown file.
 
-        Supports Firefox, Google Chrome, and IE exported html bookmarks.
-        Supports markdown files with extension '.md, .org'.
+        Supports Firefox, Google Chrome, and IE exported HTML bookmarks.
+        Supports Markdown files with extension '.md, .org'.
         Supports importing bookmarks from another Buku database file.
 
         Parameters
@@ -2389,7 +2389,7 @@ class BukuDb:
             Path to file to import.
         tacit : bool, optional
             If True, no questions asked and folder names are automatically
-            imported as tags from bookmarks html.
+            imported as tags from bookmarks HTML.
             If True, automatic timestamp tag is NOT added.
             Default is False.
 
@@ -2612,7 +2612,7 @@ class BukuDb:
         else:
             url = arg
 
-        # Try fetching cached page from wayback machine
+        # Try fetching cached page from Wayback Machine
         api_url = 'https://archive.org/wayback/available/?url=' + quote_plus(url)
         manager = get_PoolManager()
         resp = manager.request('GET', api_url)
@@ -2852,14 +2852,14 @@ def walk(root):
 
 
 def import_md(filepath, newtag):
-    """Parse bookmark markdown file.
+    """Parse bookmark Markdown file.
 
     Parameters
     ----------
     filepath : str
-        Path to markdown file.
+        Path to Markdown file.
     newtag : str
-        New tag for bookmarks in markdown file.
+        New tag for bookmarks in Markdown file.
 
     Returns
     -------
@@ -2868,7 +2868,7 @@ def import_md(filepath, newtag):
     """
     with open(filepath, mode='r', encoding='utf-8') as infp:
         for line in infp:
-            # Supported markdown format: [title](url)
+            # Supported Markdown format: [title](url)
             # Find position of title end, url start delimiter combo
             index = line.find('](')
             if index != -1:
@@ -2906,7 +2906,7 @@ def import_org(filepath, newtag):
         Parsed result.
     """
     with open(filepath, mode='r', encoding='utf-8') as infp:
-        # Supported markdown format: * [[url][title]]
+        # Supported Markdown format: * [[url][title]]
         # Find position of url end, title start delimiter combo
         for line in infp:
             index = line.find('][')
@@ -3063,12 +3063,12 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
 
 
 def import_html(html_soup, add_parent_folder_as_tag, newtag):
-    """Parse bookmark html.
+    """Parse bookmark HTML.
 
     Parameters
     ----------
     html_soup : BeautifulSoup object
-        BeautifulSoup representation of bookmark html.
+        BeautifulSoup representation of bookmark HTML.
     add_parent_folder_as_tag : bool
         True if bookmark parent folders should be added as tags else False.
     newtag : str
@@ -3246,12 +3246,12 @@ def is_unusual_tag(tagstr):
 
 
 def parse_decoded_page(page):
-    """Fetch title, description and keywords from decoded html page.
+    """Fetch title, description and keywords from decoded HTML page.
 
     Parameters
     ----------
     page : str
-        Decoded html page.
+        Decoded HTML page.
 
     Returns
     -------
@@ -4777,16 +4777,16 @@ POSITIONAL ARGUMENTS:
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
         description='''    --ai                 auto-import from Firefox/Chrome/Chromium
-    -e, --export file    export bookmarks to Firefox format html
-                         export markdown, if file ends with '.md'
+    -e, --export file    export bookmarks to Firefox format HTML
+                         export Markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
-                         export orgfile, if file ends with '.org'
+                         export Orgfile, if file ends with '.org'
                          format: *[[url][title]], 1 entry per line
                          export buku DB, if file ends with '.db'
                          combines with search results, if opted
-    -i, --import file    import bookmarks html in Firefox format
-                         import markdown, if file ends with '.md'
-                         import orgfile, if file ends with '.org'
+    -i, --import file    import bookmarks HTML in Firefox format
+                         import Markdown, if file ends with '.md'
+                         import Orgfile, if file ends with '.org'
                          import buku DB, if file ends with '.db'
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
