@@ -16,6 +16,7 @@ packages:
       - python-certifi
       - python-cryptography
       - python-urllib3
+    container: "base/archlinux"
 # centos no beautifulsoup4
   centos7.3:
     builddeps:
@@ -66,6 +67,15 @@ packages:
       - python3-cryptography
       - python3-urllib3
   fedora28:
+    builddeps:
+      - make
+    deps:
+      - python3
+      - python3-beautifulsoup4
+      - python3-certifi
+      - python3-cryptography
+      - python3-urllib3
+  fedora29:
     builddeps:
       - make
     deps:

@@ -1,4 +1,4 @@
-.TH "BUKU" "1" "01 Nov 2018" "Version 4.0" "User Commands"
+.TH "BUKU" "1" "15 Jan 2019" "Version 4.1" "User Commands"
 .SH NAME
 buku \- Bookmark manager like a text-based mini-web
 .SH SYNOPSIS
@@ -80,7 +80,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
   - Parent folder (and subfolder) names are automatically imported as tags if --tacit is used.
   - Tags are merged even if bookmark URL exists when --tacit is used.
-  - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used in HTML, Markdown or Orgfile import.
+  - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used in HTML, JSON, Markdown or Orgfile import.
 .PP
 .IP 10. 4
 \fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
@@ -205,7 +205,7 @@ has extension '.db'.
 .BI \-i " " \--import " file"
 Import bookmarks from Firefox bookmarks formatted HTML.
 .I file
-is considered Markdown (compliant with --export format) if it has '.md' extension, Orgfile if the extension is '.org' or another buku database if the extension is '.db'.
+is considered Firefox-exported JSON if it has '.md' extension, Markdown (compliant with --export format) if it is '.md', Orgfile if the extension is '.org' or another buku database if the extension is '.db'.
 .TP
 .BI \-p " " \--print " [...]"
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. A negative value (introduced for convenience) behaves like the tail utility, e.g., -n shows the details of the last n bookmarks.

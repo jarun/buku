@@ -225,10 +225,8 @@ POWER TOYS:
                            format: *[[url][title]], 1 entry per line
                            export buku DB, if file ends with '.db'
                            combines with search results, if opted
-      -i, --import file    import bookmarks HTML in Firefox format
-                           import Markdown, if file ends with '.md'
-                           import Orgfile, if file ends with '.org'
-                           import buku DB, if file ends with '.db'
+      -i, --import file    import bookmarks based on file extension
+                           supports 'html', 'json', 'md', 'org', 'db'
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
                            -n shows the last n results (like tail)
