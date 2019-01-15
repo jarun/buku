@@ -681,7 +681,6 @@ def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     high=st.integers(min_value=-10, max_value=10),
     is_range=st.booleans(),
 )
-@unittest.skip('skipping')
 def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
     """test when index, low or high is less than 0."""
     # setup
@@ -768,8 +767,7 @@ def test_compactdb(setup):
     input_retval=st.characters()
 )
 @example(low=0, high=0, delay_commit=False, input_retval='y')
-@settings(max_examples=2)
-@unittest.skip('skipping')
+@settings(max_examples=2, deadline=None)
 def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
