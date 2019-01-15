@@ -1222,7 +1222,7 @@ def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp
     empty_database=st.booleans(),
 )
 @example(low=0, high=0, index=0, is_range=False, empty_database=True)
-@settings(max_examples=2)
+@settings(max_examples=2, deadline=None)
 def test_browse_by_index(low, high, index, is_range, empty_database):
     """test method."""
     n_low, n_high = (high, low) if low > high else (low, high)
