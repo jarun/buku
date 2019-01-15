@@ -79,7 +79,6 @@ class TestBukuDb(unittest.TestCase):
     def tearDown(self):
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
-    # @unittest.skip('skipping')
     @pytest.mark.non_tox
     def test_get_default_dbdir(self):
         dbdir_expected = TEST_TEMP_DBDIR_PATH
@@ -111,7 +110,6 @@ class TestBukuDb(unittest.TestCase):
     # def test_move_legacy_dbfile(self):
     #     self.fail()
 
-    # @unittest.skip('skipping')
     def test_initdb(self):
         if exists(TEST_TEMP_DBFILE_PATH):
             os.remove(TEST_TEMP_DBFILE_PATH)
@@ -123,7 +121,6 @@ class TestBukuDb(unittest.TestCase):
         curr.close()
         conn.close()
 
-    # @unittest.skip('skipping')
     def test_get_rec_by_id(self):
         for bookmark in self.bookmarks:
             # adding bookmark from self.bookmarks
@@ -138,7 +135,6 @@ class TestBukuDb(unittest.TestCase):
         # asserting None returned if index out of range
         self.assertIsNone(self.bdb.get_rec_by_id(len(self.bookmarks[0]) + 1))
 
-    # @unittest.skip('skipping')
     def test_get_rec_id(self):
         for idx, bookmark in enumerate(self.bookmarks):
             # adding bookmark from self.bookmarks to database
@@ -151,7 +147,6 @@ class TestBukuDb(unittest.TestCase):
         idx_from_db = self.bdb.get_rec_id("http://nonexistent.url")
         self.assertEqual(-1, idx_from_db)
 
-    # @unittest.skip('skipping')
     def test_add_rec(self):
         for bookmark in self.bookmarks:
             # adding bookmark from self.bookmarks to database
@@ -182,7 +177,6 @@ class TestBukuDb(unittest.TestCase):
         suggested_results = self.bdb.suggest_similar_tag(tagstr)
         self.assertEqual(expected_results, suggested_results)
 
-    # @unittest.skip('skipping')
     def test_update_rec(self):
         old_values = self.bookmarks[0]
         new_values = self.bookmarks[1]
@@ -199,7 +193,6 @@ class TestBukuDb(unittest.TestCase):
         for pair in zip(from_db[1:], new_values):
             self.assertEqual(*pair)
 
-    # @unittest.skip('skipping')
     def test_append_tag_at_index(self):
         for bookmark in self.bookmarks:
             self.bdb.add_rec(*bookmark)
@@ -216,7 +209,6 @@ class TestBukuDb(unittest.TestCase):
         # checking if old tags still exist
         self.assertTrue(split_and_test_membership(old_tags, from_db))
 
-    # @unittest.skip('skipping')
     def test_append_tag_at_all_indices(self):
         for bookmark in self.bookmarks:
             self.bdb.add_rec(*bookmark)
@@ -236,7 +228,6 @@ class TestBukuDb(unittest.TestCase):
                 # checking if old tags still exist for boomark
                 self.assertTrue(split_and_test_membership(old_tagsets[index], tagset))
 
-    # @unittest.skip('skipping')
     def test_delete_tag_at_index(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -254,7 +245,6 @@ class TestBukuDb(unittest.TestCase):
             from_db = get_tags_at_idx(i)
             self.assertNotIn(to_delete, from_db)
 
-    # @unittest.skip('skipping')
     def test_search_keywords_and_filter_by_tags(self):
         # adding bookmark
         for bookmark in self.bookmarks:
@@ -294,7 +284,6 @@ class TestBukuDb(unittest.TestCase):
             self.assertIn(expected[0], results)
             self.assertIn(expected[1], results)
 
-    # @unittest.skip('skipping')
     def test_searchdb(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -316,7 +305,6 @@ class TestBukuDb(unittest.TestCase):
                     results = self.bdb.searchdb([keyword])
                     self.assertEqual(results, expected)
 
-    # @unittest.skip('skipping')
     def test_search_by_tag(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -497,7 +485,6 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
-    # @unittest.skip('skipping')
     def test_search_and_open_in_broswer_by_range(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -524,7 +511,6 @@ class TestBukuDb(unittest.TestCase):
                 # checking if browse called with expected arguments
                 self.assertEqual(arg_list, expected)
 
-    # @unittest.skip('skipping')
     @vcr.use_cassette('tests/vcr_cassettes/test_search_and_open_all_in_browser.yaml')
     def test_search_and_open_all_in_browser(self):
         # adding bookmarks
@@ -551,7 +537,6 @@ class TestBukuDb(unittest.TestCase):
                 # checking if browse called with expected arguments
                 self.assertEqual(arg_list, expected)
 
-    # @unittest.skip('skipping')
     def test_delete_rec(self):
         # adding bookmark and getting index
         self.bdb.add_rec(*self.bookmarks[0])
@@ -562,19 +547,16 @@ class TestBukuDb(unittest.TestCase):
         from_db = self.bdb.get_rec_by_id(index)
         self.assertIsNone(from_db)
 
-    # @unittest.skip('skipping')
     def test_delete_rec_yes(self):
         # checking that "y" response causes delete_rec to return True
         with mock.patch('builtins.input', return_value='y'):
             self.assertTrue(self.bdb.delete_rec(0))
 
-    # @unittest.skip('skipping')
     def test_delete_rec_no(self):
         # checking that non-"y" response causes delete_rec to return None
         with mock.patch('builtins.input', return_value='n'):
             self.assertFalse(self.bdb.delete_rec(0))
 
-    # @unittest.skip('skipping')
     def test_cleardb(self):
         # adding bookmarks
         self.bdb.add_rec(*self.bookmarks[0])
@@ -584,7 +566,6 @@ class TestBukuDb(unittest.TestCase):
         # assert table has been dropped
         assert self.bdb.get_rec_by_id(0) is None
 
-    # @unittest.skip('skipping')
     def test_replace_tag(self):
         indices = []
         for bookmark in self.bookmarks:
@@ -641,7 +622,6 @@ class TestBukuDb(unittest.TestCase):
     # def test_browse_by_index(self):
     # self.fail()
 
-    # @unittest.skip('skipping')
     def test_close_quit(self):
         # quitting with no args
         try:
@@ -701,7 +681,7 @@ def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     high=st.integers(min_value=-10, max_value=10),
     is_range=st.booleans(),
 )
-@unittest.skip('skipping')
+@settings(deadline=None)
 def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
     """test when index, low or high is less than 0."""
     # setup
@@ -788,8 +768,7 @@ def test_compactdb(setup):
     input_retval=st.characters()
 )
 @example(low=0, high=0, delay_commit=False, input_retval='y')
-@settings(max_examples=2)
-@unittest.skip('skipping')
+@settings(max_examples=2, deadline=None)
 def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
@@ -1243,7 +1222,7 @@ def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp
     empty_database=st.booleans(),
 )
 @example(low=0, high=0, index=0, is_range=False, empty_database=True)
-@settings(max_examples=2)
+@settings(max_examples=2, deadline=None)
 def test_browse_by_index(low, high, index, is_range, empty_database):
     """test method."""
     n_low, n_high = (high, low) if low > high else (low, high)
