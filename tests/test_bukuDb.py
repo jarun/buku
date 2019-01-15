@@ -789,6 +789,7 @@ def test_compactdb(setup):
 )
 @example(low=0, high=0, delay_commit=False, input_retval='y')
 @settings(max_examples=2)
+@unittest.skip('skipping')
 def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
@@ -882,6 +883,7 @@ def test_delete_rec_range_and_big_int(setup, low, high):
 
 
 @given(index=st.integers(), delay_commit=st.booleans(), input_retval=st.booleans())
+@unittest.skip('skipping')
 def test_delete_rec_index_and_delay_commit(index, delay_commit, input_retval):
     """test delete rec, index and delay commit."""
     bdb = BukuDb()
