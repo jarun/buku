@@ -363,7 +363,7 @@ PROMPT KEYS:
 
         $ buku -u
         $ buku -u --tacit (show only failures and exceptions)
-    This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
+    This operation can update the title, tags (appended) or description fields of non-immutable bookmarks by parsing the fetched page. Fields are updated only if the fetched fields are non-empty.
 13. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014

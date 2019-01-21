@@ -576,7 +576,7 @@ Applies to --title and --tag too. URL cannot be deleted without deleting the boo
 .EE
 .PP
 .IP "" 4
-This operation does not modify the indexes, URLs, tags or comments. Only title is refreshed if fetched title is non-empty.
+This operation can update the title, tags (appended) or description fields of non-immutable bookmarks by parsing the fetched page. Fields are updated only if the fetched fields are non-empty.
 .PP
 .IP 13. 4
 \fBDelete\fR bookmark at index 15012014:
