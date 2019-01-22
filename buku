@@ -1015,7 +1015,7 @@ class BukuDb:
                 to_update = False
 
                 if not title or title == '':
-                    LOGERR(blank_url_str % row[0])
+                    LOGERR(blank_url_str, row[0])
                 else:
                     query += ' metadata = ?,'
                     arguments += (title,)
