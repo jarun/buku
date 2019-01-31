@@ -589,6 +589,7 @@ class BukuDb:
                 LOGDBG('Title: [%s]', ptitle)
         else:
             ptitle = pdesc = ptags = ''
+            LOGDBG('ptags: [%s]', ptags)
 
         if title_in is not None:
             ptitle = title_in
