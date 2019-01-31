@@ -596,8 +596,6 @@ class BukuDb:
         # Fix up tags, if broken
         if tags_in and tags_in != DELIM:
             tags_in = delim_wrap(tags_in)
-        else:
-            tags_in = delim_wrap(parse_tags([ptags]))
 
         # Process description
         if desc is None:
@@ -866,9 +864,6 @@ class BukuDb:
                 query += ' desc = ?,'
                 arguments += (pdesc,)
                 to_update = True
-
-            if not tags_in and ptags:
-                self.append_tag_at_index(index, delim_wrap(ptags))
         elif not to_update and not tag_modified:
             ret = self.refreshdb(index, threads)
             if ret and index and self.chatty:
@@ -1035,7 +1030,6 @@ class BukuDb:
                 LOGDBG('refreshdb query: "%s", args: %s', query, arguments)
 
                 self.cur.execute(query, arguments)
-                self.append_tag_at_index(row[0], delim_wrap(tags), delay_commit=True)
 
                 # Save after fetching 32 titles per thread
                 if count & 0b11111 == 0:
