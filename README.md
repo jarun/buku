@@ -12,6 +12,7 @@
 </p>
 
 <p align="center">
+<a href="https://repology.org/metapackage/buku"><img src="https://repology.org/badge/tiny-repos/buku.svg" alt="Availability"></a>
 <a href="https://travis-ci.org/jarun/Buku"><img src="https://img.shields.io/travis/jarun/Buku.svg" alt="Build Status" /></a>
 <a href="http://buku.readthedocs.io/en/latest/?badge=latest"><img src="https://readthedocs.org/projects/buku/badge/?version=latest" alt="Docs Status" /></a>
 <a href="https://snyk.io/test/github/jarun/Buku"><img src="https://snyk.io/test/github/jarun/Buku/badge.svg" /></a>
