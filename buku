@@ -595,8 +595,7 @@ class BukuDb:
             ptitle = title_in
 
         # Fix up tags, if broken
-        if tags_in and tags_in != DELIM:
-            tags_in = delim_wrap(tags_in)
+        tags_in = delim_wrap(tags_in)
 
         # Process description
         if desc is None:
