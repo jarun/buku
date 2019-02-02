@@ -51,7 +51,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 .IP 6. 4
 \fBUpdate\fR operation:
   - If --title, --tag or --comment is passed without argument, clear the corresponding field from DB.
-  - If --url is passed (and --title is omitted), update the title from web using the URL. Description is updated (if --comment is omitted) and tags are appended to (if --tag is omitted).
+  - If --url is passed (and --title is omitted), update the title from web using the URL. Description is updated (if --comment is omitted). Tags remain untouched.
   - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles, description and append tags from web. Bookmarks marked immutable are skipped.
   - Can update bookmarks matching a search, when combined with any of the search options and no arguments to update are passed.
 .PP
@@ -576,7 +576,7 @@ Applies to --title and --tag too. URL cannot be deleted without deleting the boo
 .EE
 .PP
 .IP "" 4
-This operation can update the title, tags (appended) or description fields of non-immutable bookmarks by parsing the fetched page. Fields are updated only if the fetched fields are non-empty.
+This operation can update the title or description fields of non-immutable bookmarks by parsing the fetched page. Fields are updated only if the fetched fields are non-empty. Tags remain untouched.
 .PP
 .IP 13. 4
 \fBDelete\fR bookmark at index 15012014:

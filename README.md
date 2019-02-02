@@ -171,7 +171,7 @@ GENERAL OPTIONS:
                            refresh title, desc, tags if no edit options
                            if no arguments:
                            - update results when used with search
-                           - otherwise refresh all titles, desc, tags
+                           - otherwise refresh all titles and desc
       -w, --write [editor|index]
                            open editor to edit a fresh bookmark
                            edit last bookmark, if index=-1
@@ -364,7 +364,7 @@ PROMPT KEYS:
 
         $ buku -u
         $ buku -u --tacit (show only failures and exceptions)
-    This operation can update the title, tags (appended) or description fields of non-immutable bookmarks by parsing the fetched page. Fields are updated only if the fetched fields are non-empty.
+    This operation can update the title or description fields of non-immutable bookmarks by parsing the fetched page. Fields are updated only if the fetched fields are non-empty. Tags remain untouched.
 13. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014

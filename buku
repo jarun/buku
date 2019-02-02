@@ -4681,7 +4681,7 @@ POSITIONAL ARGUMENTS:
                          refresh title, desc, tags if no edit options
                          if no arguments:
                          - update results when used with search
-                         - otherwise refresh all titles, desc, tags
+                         - otherwise refresh all titles and desc
     -w, --write [editor|index]
                          open editor to edit a fresh bookmark
                          edit last bookmark, if index=-1
