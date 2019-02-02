@@ -168,7 +168,7 @@ GENERAL OPTIONS:
                            bookmark URL with comma-separated tags
       -u, --update [...]   update fields of an existing bookmark
                            accepts indices and ranges
-                           refresh title, desc, tags if no edit options
+                           refresh title and desc if no edit options
                            if no arguments:
                            - update results when used with search
                            - otherwise refresh all titles and desc
