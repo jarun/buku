@@ -613,7 +613,7 @@ def get_custom_version(ctx, param, value):
 
 @click.group(cls=CustomFlaskGroup, create_app=create_app)
 def cli():
-    """This is a management script for the wiki application."""
+    """This is a script for the bukuserver application."""
 
 
 if __name__ == '__main__':
