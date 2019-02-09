@@ -83,7 +83,7 @@ setup(
         'console_scripts': ['buku=buku:main', 'bukuserver=bukuserver.server:cli']
     },
     extras_require={
-        'tests': tests_require,
+        'tests': tests_require + server_require,
         'server': server_require,
         'packaging': ['twine>=1.11.0']
     },
