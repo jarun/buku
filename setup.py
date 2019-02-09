@@ -18,6 +18,7 @@ with open('README.md', encoding='utf-8') as f:
 tests_require = [
     'attrs>=17.4.0',
     'beautifulsoup4>=4.6.0',
+    'Click>=7.0',
     'flake8>=3.4.1',
     'hypothesis>=3.7.0',
     'mypy-extensions==0.4.1',
