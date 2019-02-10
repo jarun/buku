@@ -31,9 +31,9 @@
 
 [bukuserver](https://github.com/jarun/Buku/tree/master/bukuserver) exposes a browsable front-end on a local web host server.
 
-`buku` fetches the title, tags and description of a bookmarked url from the web and stores it. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. Multiple search results can be opened in the browser at once. `buku` can look up the latest snapshot of a broken link on the Wayback Machine. There's an Easter egg to revisit random forgotten bookmarks too! *Buku* is too busy to track you: no hidden history, obsolete records, usage analytics or homing. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
+`buku` can auto-import bookmarks from your browser(s) or fetch the title and description of a bookmarked url from the web. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. `buku` can look up the latest snapshot of a broken link on the Wayback Machine. There's an Easter egg to revisit random forgotten bookmarks too! *Buku* is too busy to track you: no hidden history, obsolete records, usage analytics or homing.
 
-To get started right away, jump to the [Quickstart](#quickstart) section. We have one of the best documentation around. You'll find handy examples in the man page too.
+To get started right away, jump to the [Quickstart](#quickstart) section. We have one of the best documentation around. You'll find handy examples in the man page too. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
 
 There are several [projects based on `buku`](#related-projects), including a browser plug-in.
 
