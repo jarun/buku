@@ -691,7 +691,10 @@ def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
     bdb = BukuDb()
     # clear all record first before testing
     bdb.delete_rec_all()
-    bdb.add_rec("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
+    # the range -10..10 contains 21 numbers (-10, -9, ..., -1, 0, +1, ..., +10),
+    # and so this parameterized test runs 21 * 21 * 21 * 2 = 18,522 times
+    # we don't need the fetched data to verify print_rec, so we can skip fetching it
+    bdb.add_rec("http://one.com", "", parse_tags(['cat,ant,bee,1']), "", fetch=False)
     db_len = 1
     bdb.print_rec(index=index, low=low, high=high, is_range=is_range)
 
