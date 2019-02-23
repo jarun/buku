@@ -12,9 +12,9 @@ def test_program_info(platform, file):
         import buku
         file = mock.Mock()
         if file is None:
-            buku.ExtendedArgumentParser.program_info()
+            buku.extended_argument_parser.ExtendedArgumentParser.program_info()
         else:
-            buku.ExtendedArgumentParser.program_info(file)
+            buku.extended_argument_parser.ExtendedArgumentParser.program_info(file)
         if platform == 'win32' and file == m_sys.stdout:
             assert len(m_sys.stderr.write.mock_calls) == 1
         else:
@@ -25,7 +25,7 @@ def test_prompt_help():
     """test method."""
     file = mock.Mock()
     import buku
-    buku.ExtendedArgumentParser.prompt_help(file)
+    buku.extended_argument_parser.ExtendedArgumentParser.prompt_help(file)
     assert len(file.write.mock_calls) == 1
 
 
@@ -33,7 +33,7 @@ def test_print_help():
     """test method."""
     file = mock.Mock()
     import buku
-    obj = buku.ExtendedArgumentParser()
+    obj = buku.extended_argument_parser.ExtendedArgumentParser()
     obj.program_info = mock.Mock()
     obj.print_help(file)
     obj.program_info.assert_called_once_with(file)

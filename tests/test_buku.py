@@ -297,7 +297,7 @@ def test_check_upstream_release(status_code, latest_release):
             mock.patch('buku.print') as m_print:
         import buku
         if latest_release:
-            latest_version = 'v{}'.format(buku.__version__)
+            latest_version = 'v{}'.format(buku.bukuconstants.__version__)
         else:
             latest_version = 'v0'
         m_urllib3.PoolManager.return_value = m_manager
@@ -354,7 +354,7 @@ def test_get_system_editor():
     """test func."""
     with mock.patch('buku.os') as m_os:
         import buku
-        res = buku.get_system_editor()
+        res = buku.bukuutil.get_system_editor()
         assert res == m_os.environ.get.return_value
         m_os.environ.get.assert_called_once_with('EDITOR', 'none')
 

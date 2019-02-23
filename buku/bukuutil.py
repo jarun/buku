@@ -31,3 +31,13 @@ def get_default_dbdir():
             data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
 
     return os.path.join(data_home, 'buku')
+
+# ---------------------
+# Editor mode functions
+# ---------------------
+
+
+def get_system_editor():
+    """Returns default system editor is $EDITOR is set."""
+
+    return os.environ.get('EDITOR', 'none')
