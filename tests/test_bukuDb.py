@@ -24,6 +24,7 @@ from hypothesis import strategies as st
 import vcr
 
 from buku import BukuDb, parse_tags, prompt
+from buku.bukuutil import get_default_dbdir
 
 
 logging.basicConfig()  # you need to initialize logging, otherwise you will not see anything from vcrpy
@@ -86,11 +87,11 @@ class TestBukuDb(unittest.TestCase):
         dbdir_relative_expected = os.path.abspath('.')
 
         # desktop linux
-        self.assertEqual(dbdir_expected, BukuDb.get_default_dbdir())
+        self.assertEqual(dbdir_expected, get_default_dbdir())
 
         # desktop generic
         os.environ.pop('XDG_DATA_HOME')
-        self.assertEqual(dbdir_local_expected, BukuDb.get_default_dbdir())
+        self.assertEqual(dbdir_local_expected, get_default_dbdir())
 
         # no desktop
 
@@ -102,7 +103,7 @@ class TestBukuDb(unittest.TestCase):
                 originals[env_var] = os.environ.pop(env_var)
             except KeyError:
                 pass
-        self.assertEqual(dbdir_relative_expected, BukuDb.get_default_dbdir())
+        self.assertEqual(dbdir_relative_expected, get_default_dbdir())
         for key, value in list(originals.items()):
             os.environ[key] = value
 
