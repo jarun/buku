@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 
-import os
 import re
-import shutil
 
 from setuptools import setup, find_packages
 
-if os.path.isfile('buku'):
-    shutil.copyfile('buku', 'buku.py')
-
-with open('buku.py', encoding='utf-8') as f:
+with open('buku/__init__.py', encoding='utf-8') as f:
     version = re.search('__version__ = \'([^\']+)\'', f.read()).group(1)
 
 with open('README.md', encoding='utf-8') as f:
