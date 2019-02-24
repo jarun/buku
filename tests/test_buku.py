@@ -10,6 +10,7 @@ import unittest
 
 import pytest
 
+import buku.bukuconstants
 from buku import is_int, parse_tags, prep_tag_search
 
 only_python_3_5 = pytest.mark.skipif(
@@ -54,7 +55,7 @@ def test_gen_headers():
     import buku
     exp_myheaders = {
         'Accept-Encoding': 'gzip,deflate',
-        'User-Agent': buku.USER_AGENT,
+        'User-Agent': buku.bukuconstants.USER_AGENT,
         'Accept': '*/*',
         'Cookie': '',
         'DNT': '1'

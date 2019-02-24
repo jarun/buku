@@ -45,15 +45,13 @@ import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 
-from .bukuconstants import __version__, __author__, __license__, COLORMAP  # pylint: disable=unused-import # noqa: F401
+from .bukuconstants import __version__, __author__, __license__, COLORMAP, DELIM, SKIP_MIMES, USER_AGENT, TEXT_BROWSERS  # pylint: disable=unused-import # noqa: F401
 from .bukucrypt import BukuCrypt
 from .bukuutil import get_default_dbdir, get_system_editor
 from .extended_argument_parser import create_argparser, ExtendedArgumentParser
 
 # Global variables
 INTERRUPTED = False  # Received SIGINT
-DELIM = ','  # Delimiter used to store tags in DB
-SKIP_MIMES = {'.pdf', '.txt'}
 PROMPTMSG = 'buku (? for help): '  # Prompt message string
 
 # Default format specifiers to print records
@@ -64,10 +62,8 @@ URL_STR = '   > %s\n'
 DESC_STR = '   + %s\n'
 TAG_STR = '   # %s\n'
 
-USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0'
 MYHEADERS = None  # Default dictionary of headers
 MYPROXY = None  # Default proxy
-TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
 IGNORE_FF_BOOKMARK_FOLDERS = frozenset(["placesRoot", "bookmarksMenuFolder"])
 
 # Set up logging

@@ -16,3 +16,10 @@ COLORMAP = {k: '\x1b[%sm' % v for k, v in {
     'M': '94;1', 'N': '95;1', 'O': '96;1', 'P': '97;1',
     'x': '0', 'X': '1', 'y': '7', 'Y': '7;1', 'z': '2',
 }.items()}
+
+DELIM = ','  # Delimiter used to store tags in DB
+
+SKIP_MIMES = {'.pdf', '.txt'}
+
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0'
+TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
