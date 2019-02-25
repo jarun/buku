@@ -353,7 +353,7 @@ def test_sigint_handler_with_mock():
 
 def test_get_system_editor():
     """test func."""
-    with mock.patch('buku.os') as m_os:
+    with mock.patch('buku.bukuutil.os') as m_os:
         import buku
         res = buku.bukuutil.get_system_editor()
         assert res == m_os.environ.get.return_value
