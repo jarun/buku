@@ -50,7 +50,7 @@ def test_is_ignored_mime(url, exp_res):
     assert exp_res == buku.is_ignored_mime(url)
 
 
-def test_gen_headers():
+def test_headers_were_generated():
     """test func."""
     import buku
     exp_myheaders = {
@@ -60,7 +60,6 @@ def test_gen_headers():
         'Cookie': '',
         'DNT': '1'
     }
-    buku.gen_headers()
     assert buku.MYPROXY is None
     assert buku.MYHEADERS == exp_myheaders
 
