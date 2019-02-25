@@ -32,7 +32,7 @@ only_python_3_5 = pytest.mark.skipif(
 def test_is_bad_url(url, exp_res):
     """test func."""
     import buku
-    res = buku.is_bad_url(url)
+    res = buku.bukunetworking.is_bad_url(url)
     assert res == exp_res
 
 
@@ -47,7 +47,7 @@ def test_is_bad_url(url, exp_res):
 def test_is_ignored_mime(url, exp_res):
     """test func."""
     import buku
-    assert exp_res == buku.is_ignored_mime(url)
+    assert exp_res == buku.bukunetworking.is_ignored_mime(url)
 
 
 def test_headers_were_generated():
@@ -60,8 +60,8 @@ def test_headers_were_generated():
         'Cookie': '',
         'DNT': '1'
     }
-    assert buku.MYPROXY is None
-    assert buku.MYHEADERS == exp_myheaders
+    assert buku.bukunetworking.MYPROXY is None
+    assert buku.bukunetworking.MYHEADERS == exp_myheaders
 
 
 @pytest.mark.parametrize('m_myproxy', [None, mock.Mock()])
@@ -70,7 +70,7 @@ def test_get_PoolManager(m_myproxy):
     with mock.patch('buku.urllib3'):
         import buku
         buku.myproxy = m_myproxy
-        assert buku.get_PoolManager()
+        assert buku.bukunetworking.get_PoolManager()
 
 
 @pytest.mark.parametrize(
@@ -571,7 +571,7 @@ def test_network_handler_with_url(url, exp_res):
     import urllib3
     buku.urllib3 = urllib3
     buku.myproxy = None
-    res = buku.network_handler(url)
+    res = buku.bukunetworking.network_handler(url)
     if urlparse(url).netloc == 'www.google.ru':
         temp_res = [res[0].split(" - ")[0], ]
         temp_res.extend(res[1:])
