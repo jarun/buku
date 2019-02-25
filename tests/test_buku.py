@@ -235,7 +235,7 @@ def test_format_json(field_filter, single_record):
     if not single_record:
         marks = [marks]
 
-    with mock.patch('buku.json') as m_json:
+    with mock.patch('buku.bukuutil.json') as m_json:
         import buku
         res = buku.bukuutil.format_json(resultset, single_record, field_filter)
         m_json.dumps.assert_called_once_with(marks, sort_keys=True, indent=4)
