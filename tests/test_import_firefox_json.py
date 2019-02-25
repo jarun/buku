@@ -1,5 +1,5 @@
 import json
-from buku import import_firefox_json
+from buku.bukuimporter import BukuImporter
 
 
 def test_load_from_empty():
@@ -8,7 +8,7 @@ def test_load_from_empty():
     data = json.loads("{}")
 
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     count = sum(1 for _ in items)
@@ -47,7 +47,7 @@ def test_load_full_entry():
         }""")
 
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     result = []
@@ -84,7 +84,7 @@ def test_load_no_typecode():
         }""")
 
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     result = []
@@ -112,7 +112,7 @@ def test_load_invalid_typecode():
                 }]
         }""")
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     result = []
@@ -132,7 +132,7 @@ def test_load_folder_with_no_children():
         } """)
 
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     result = []
@@ -169,7 +169,7 @@ def test_load_one_child():
     """)
 
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     result = []
@@ -203,7 +203,7 @@ def test_load_one_container_child():
          }""")
 
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     result = []
@@ -234,7 +234,7 @@ def test_load_many_children():
     """)
 
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     result = []
@@ -262,7 +262,7 @@ def test_load_container_no_title():
     """)
 
     # Act
-    items = import_firefox_json(data, add_bookmark_folder_as_tag=True)
+    items = BukuImporter.import_firefox_json(data, add_bookmark_folder_as_tag=True)
 
     # Assert
     result = []
@@ -293,7 +293,7 @@ def test_load_hierarchical_container_without_ignore():
     """)
 
     # Act
-    items = import_firefox_json(data, add_bookmark_folder_as_tag=True)
+    items = BukuImporter.import_firefox_json(data, add_bookmark_folder_as_tag=True)
 
     # Assert
     result = []
@@ -332,7 +332,7 @@ def test_load_hierarchical_container_with_ignore():
     """)
 
     # Act
-    items = import_firefox_json(data, add_bookmark_folder_as_tag=True)
+    items = BukuImporter.import_firefox_json(data, add_bookmark_folder_as_tag=True)
 
     # Assert
     result = []
@@ -368,7 +368,7 @@ def test_load_separator():
          }""")
 
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     result = []
@@ -403,7 +403,7 @@ def test_load_multiple_tags():
         }""")
 
     # Act
-    items = import_firefox_json(data)
+    items = BukuImporter.import_firefox_json(data)
 
     # Assert
     result = []

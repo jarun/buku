@@ -10,8 +10,8 @@ import unittest
 
 import pytest
 
-import buku.bukuconstants
-from buku import is_int, parse_tags, prep_tag_search
+from buku import is_int, prep_tag_search
+from buku.bukuutil import parse_tags
 
 only_python_3_5 = pytest.mark.skipif(
     sys.version_info < (3, 5), reason="requires Python 3.5 or later")
@@ -90,7 +90,7 @@ def test_parse_tags(keywords, exp_res):
         pass
     elif not keywords:
         exp_res = buku.DELIM
-    res = buku.parse_tags(keywords)
+    res = buku.bukuutil.parse_tags(keywords)
     assert res == exp_res
 
 
@@ -592,7 +592,7 @@ def test_network_handler_with_url(url, exp_res):
 )
 def test_is_nongeneric_url(url, exp_res):
     import buku
-    res = buku.is_nongeneric_url(url)
+    res = buku.bukuutil.is_nongeneric_url(url)
     assert res == exp_res
 
 
@@ -604,10 +604,10 @@ def test_is_nongeneric_url(url, exp_res):
     ]
 )
 def test_import_md(tmpdir, newtag, exp_res):
-    from buku import import_md
+    from buku.bukuimporter import BukuImporter
     p = tmpdir.mkdir("importmd").join("test.md")
     p.write("[text1](http://example.com)")
-    res = list(import_md(p.strpath, newtag))
+    res = list(BukuImporter.import_md(p.strpath, newtag))
     assert res[0] == exp_res
 
 
@@ -663,28 +663,28 @@ def test_import_md(tmpdir, newtag, exp_res):
 )
 def test_import_html(html_text, exp_res):
     """test method."""
-    from buku import import_html
+    from buku.bukuimporter import BukuImporter
     from bs4 import BeautifulSoup
     html_soup = BeautifulSoup(html_text, 'html.parser')
-    res = list(import_html(html_soup, False, None))
+    res = list(BukuImporter.import_html(html_soup, False, None))
     for item, exp_item in zip(res, exp_res):
         assert item == exp_item, 'Actual item:\n{}'.format(item)
 
 
 def test_import_html_and_add_parent():
-    from buku import import_html
+    from buku.bukuimporter import BukuImporter
     from bs4 import BeautifulSoup
     html_text = """<DT><H3>1s</H3>
 <DL><p>
 <DT><A HREF="http://example.com/"></A>"""
     exp_res = ('http://example.com/', None, ',1s,', None, 0, True, False)
     html_soup = BeautifulSoup(html_text, 'html.parser')
-    res = list(import_html(html_soup, True, None))
+    res = list(BukuImporter.import_html(html_soup, True, None))
     assert res[0] == exp_res
 
 
 def test_import_html_and_new_tag():
-    from buku import import_html
+    from buku.bukuimporter import BukuImporter
     from bs4 import BeautifulSoup
     html_text = """<DT><A HREF="https://github.com/j" TAGS="tag1,tag2">GitHub</A>
 <DD>comment for the bookmark here"""
@@ -693,7 +693,7 @@ def test_import_html_and_new_tag():
         'comment for the bookmark here', 0, True, False
     )
     html_soup = BeautifulSoup(html_text, 'html.parser')
-    res = list(import_html(html_soup, False, 'tag3'))
+    res = list(BukuImporter.import_html(html_soup, False, 'tag3'))
     assert res[0] == exp_res
 
 
