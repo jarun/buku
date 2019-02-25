@@ -2259,21 +2259,7 @@ class BukuDb:
         else:
             _u = urlbase + 'expand&format=simple&shorturl=' + qp(url)
 
-        if MYPROXY is None:
-            gen_headers()
-
-        if MYPROXY:
-            manager = urllib3.ProxyManager(
-                MYPROXY,
-                num_pools=1,
-                headers=MYHEADERS,
-                cert_reqs='CERT_REQUIRED',
-                ca_certs=certifi.where())
-        else:
-            manager = urllib3.PoolManager(num_pools=1,
-                                          headers={'User-Agent': USER_AGENT},
-                                          cert_reqs='CERT_REQUIRED',
-                                          ca_certs=certifi.where())
+        manager = get_PoolManager()
 
         try:
             r = manager.request(
@@ -3465,24 +3451,7 @@ def browse(url):
 def check_upstream_release():
     """Check and report the latest upstream release version."""
 
-    global MYPROXY
-
-    if MYPROXY is None:
-        gen_headers()
-
-    if MYPROXY:
-        manager = urllib3.ProxyManager(
-            MYPROXY,
-            num_pools=1,
-            headers=MYHEADERS,
-            cert_reqs='CERT_REQUIRED',
-            ca_certs=certifi.where()
-        )
-    else:
-        manager = urllib3.PoolManager(num_pools=1,
-                                      headers={'User-Agent': USER_AGENT},
-                                      cert_reqs='CERT_REQUIRED',
-                                      ca_certs=certifi.where())
+    manager = get_PoolManager()
 
     try:
         r = manager.request(
