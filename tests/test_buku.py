@@ -201,7 +201,7 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
             return
         if nav == 'w':
             m_edit_rec.assert_called_once_with(editor, '', None, buku.DELIM, None)
-        elif buku.is_int(nav[2:]):
+        elif buku.bukuutil.is_int(nav[2:]):
             obj.edit_update_rec.assert_called_once_with(int(nav[2:]))
             return
         else:
@@ -237,7 +237,7 @@ def test_format_json(field_filter, single_record):
 
     with mock.patch('buku.json') as m_json:
         import buku
-        res = buku.format_json(resultset, single_record, field_filter)
+        res = buku.bukuutil.format_json(resultset, single_record, field_filter)
         m_json.dumps.assert_called_once_with(marks, sort_keys=True, indent=4)
         assert res == m_json.dumps.return_value
 
@@ -253,7 +253,7 @@ def test_format_json(field_filter, single_record):
 def test_is_int(string, exp_res):
     """test func."""
     import buku
-    assert exp_res == buku.is_int(string)
+    assert exp_res == buku.bukuutil.is_int(string)
 
 
 @pytest.mark.parametrize(
@@ -318,7 +318,7 @@ def test_check_upstream_release(status_code, latest_release):
 def test_regexp(exp, item, exp_res):
     """test func."""
     import buku
-    res = buku.regexp(exp, item)
+    res = buku.bukuutil.regexp(exp, item)
     assert res == exp_res
 
 
@@ -399,9 +399,9 @@ def test_to_temp_file_content(url, title_in, tags_in, desc):
         title_text = title_in
     if tags_in is None:
         with pytest.raises(AttributeError):
-            res = buku.to_temp_file_content(url, title_in, tags_in, desc)
+            res = buku.bukuutil.to_temp_file_content(url, title_in, tags_in, desc)
         return
-    res = buku.to_temp_file_content(url, title_in, tags_in, desc)
+    res = buku.bukuutil.to_temp_file_content(url, title_in, tags_in, desc)
     lines = """# Lines beginning with "#" will be stripped.
 # Add URL in next line (single line).{}
 # Add TITLE in next line (single line). Leave blank to web fetch, "-" for no title.{}
@@ -434,7 +434,7 @@ def test_to_temp_file_content(url, title_in, tags_in, desc):
 def test_parse_temp_file_content(content, exp_res):
     """test func."""
     import buku
-    res = buku.parse_temp_file_content(content)
+    res = buku.bukuutil.parse_temp_file_content(content)
     assert res == exp_res
 
 
@@ -449,7 +449,7 @@ def test_edit_rec():
             mock.patch('buku.open'), \
             mock.patch('buku.parse_temp_file_content') as m_ptfc:
         import buku
-        res = buku.edit_rec(editor, *args)
+        res = buku.bukuutil.edit_rec(editor, *args)
         assert res == m_ptfc.return_value
 
 
