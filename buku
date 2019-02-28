@@ -1988,11 +1988,11 @@ class BukuDb:
                 # If range starts from 0 throw an error
                 if low <= 0:
                     raise IndexError
-                else:
-                    qry = 'SELECT URL from bookmarks where id BETWEEN ? AND ?'
-                    for row in self.cur.execute(qry, (low, high)):
-                        browse(row[0])
-                    return True
+
+                qry = 'SELECT URL from bookmarks where id BETWEEN ? AND ?'
+                for row in self.cur.execute(qry, (low, high)):
+                    browse(row[0])
+                return True
             except IndexError:
                 LOGERR('Index out of range')
                 return False
