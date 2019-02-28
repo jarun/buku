@@ -4002,6 +4002,9 @@ def print_rec_with_filter(records, field_filter=0):
         elif field_filter == 4:
             for row in records:
                 print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
+        elif field_filter == 5:
+            for row in records:
+                print('%s\t%s\t%s' % (row[0], row[2], row[3][1:-1]))
         elif field_filter == 10:
             for row in records:
                 print(row[1])
@@ -4014,6 +4017,9 @@ def print_rec_with_filter(records, field_filter=0):
         elif field_filter == 40:
             for row in records:
                 print('%s\t%s\t%s' % (row[1], row[2], row[3][1:-1]))
+        elif field_filter == 50:
+            for row in records:
+                print('%s\t%s' % (row[2], row[3][1:-1]))
     except BrokenPipeError:
         sys.stdout = os.fdopen(1)
         sys.exit(1)
@@ -4811,7 +4817,7 @@ POSITIONAL ARGUMENTS:
     addarg('-e', '--export', nargs=1, help=hide)
     addarg('-i', '--import', nargs=1, dest='importfile', help=hide)
     addarg('-p', '--print', nargs='*', help=hide)
-    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4, 10, 20, 30, 40}, help=hide)
+    addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4, 5, 10, 20, 30, 40, 50}, help=hide)
     addarg('-j', '--json', action='store_true', help=hide)
     addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=hide)
     addarg('--nc', action='store_true', help=hide)
