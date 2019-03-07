@@ -2547,18 +2547,19 @@ class BukuDb:
         if MYPROXY is None:
             gen_headers()
 
+        ca_certs = os.getenv('BUKU_CA_CERTS', default=certifi.where())
         if MYPROXY:
             manager = urllib3.ProxyManager(
                 MYPROXY,
                 num_pools=1,
                 headers=MYHEADERS,
                 cert_reqs='CERT_REQUIRED',
-                ca_certs=certifi.where())
+                ca_certs=ca_certs)
         else:
             manager = urllib3.PoolManager(num_pools=1,
                                           headers={'User-Agent': USER_AGENT},
                                           cert_reqs='CERT_REQUIRED',
-                                          ca_certs=certifi.where())
+                                          ca_certs=ca_certs)
 
         try:
             r = manager.request(
