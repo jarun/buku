@@ -293,7 +293,7 @@ PROMPT KEYS:
 2. Create a sweeter shortcut with some convenience.
 
        alias b='buku --suggest'
-3. Auto-import bookmarks from your browser(s).
+3. Auto-import bookmarks from your browser(s). Please quit the relevant browsers beforehand to ensure the databases are not locked.
 
        b --ai
 4. Manually add a bookmark (for hands-on).
