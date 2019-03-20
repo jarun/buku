@@ -58,6 +58,7 @@ There are several [projects based on `buku`](#related-projects), including a bro
   - [Colors](#colors)
 - [Quickstart](#quickstart)
 - [Examples](#examples)
+- [Automation](#automation)
 - [Troubleshooting](#troubleshooting)
   - [Editor integration](#editor-integration)
 - [Collaborators](#collaborators)
@@ -460,6 +461,10 @@ PROMPT KEYS:
 
         $ buku -h
         $ man buku
+
+### Automation
+
+Interactive workflows can be automated using expect. Issue [#368](https://github.com/jarun/Buku/issues/368) has a working example on automating auto-import.
 
 ### Troubleshooting
 
