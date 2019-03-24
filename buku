@@ -3393,17 +3393,17 @@ def get_PoolManager():
     ProxyManager or PoolManager
         ProxyManager if https_proxy is defined, PoolManager otherwise.
     """
-
+    ca_certs = os.getenv('BUKU_CA_CERTS', default=certifi.where())
     if MYPROXY:
         return urllib3.ProxyManager(MYPROXY, num_pools=1, headers=MYHEADERS, timeout=15,
-                                    cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+                                    cert_reqs='CERT_REQUIRED', ca_certs=ca_certs)
 
     return urllib3.PoolManager(
         num_pools=1,
         headers=MYHEADERS,
         timeout=15,
         cert_reqs='CERT_REQUIRED',
-        ca_certs=certifi.where())
+        ca_certs=ca_certs)
 
 
 def network_handler(url, http_head=False):
