@@ -528,15 +528,15 @@ def test_sigint_handler(capsys):
         ['about:new_page', ((None, None, None, 0, 1))],
         ['chrome://version/', ((None, None, None, 0, 1))],
         ['chrome://version/', ((None, None, None, 0, 1))],
-        [
-            'http://4pda.ru/forum/index.php?showtopic=182463&st=1640#entry6044923',
-            (
-                'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
-                'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
-                None,
-                0, 0
-            )
-        ],
+        # [
+        #     'http://4pda.ru/forum/index.php?showtopic=182463&st=1640#entry6044923',
+        #     (
+        #         'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
+        #         'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
+        #         None,
+        #         0, 0
+        #     )
+        # ],
         [
             'https://www.google.ru/search?'
             'newwindow=1&safe=off&q=xkbcomp+alt+gr&'
