@@ -1,5 +1,2 @@
-beautifulsoup4>=4.4.1
-certifi
-cryptography>=1.2.3
 setuptools
-urllib3>=1.23
+.
