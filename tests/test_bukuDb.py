@@ -1027,52 +1027,71 @@ def test_update_rec_index_0(caplog):
 
 
 @pytest.mark.parametrize(
-    'kwargs, exp_query, exp_arguments',
+    'kwargs, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37',
     [
         [
             {'index': 1, 'url': 'http://example.com'},
             'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'Example Domain', 1]
+            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'Example Domain', 1],
+            ['http://example.com', '', 'Example Domain', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'title_in': 'randomtitle'},
             'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
+            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'randomtitle', 1],
             ['http://example.com', 'randomtitle', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'tags_in': 'tag1'},
             'UPDATE bookmarks SET URL = ?, tags = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', ',tag1', 'Example Domain', 1]
+            'UPDATE bookmarks SET URL = ?, tags = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', ',tag1', 'Example Domain', 1],
+            ['http://example.com', ',tag1,', '', 'Example Domain', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'tags_in': '+,tag1'},
             'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'Example Domain', 1]
+            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'Example Domain', 1],
+            ['http://example.com', '', 'Example Domain', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'tags_in': '-,tag1'},
             'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'Example Domain', 1]
+            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'Example Domain', 1],
+            ['http://example.com', '', 'Example Domain', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'desc': 'randomdesc'},
             'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'randomdesc', 'Example Domain', 1],
             ['http://example.com', 'randomdesc', 'Example Domain', 1]
 
         ],
     ]
 )
-def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_arguments):
+def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37):
     """test method."""
+    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+        caplog.set_level(logging.DEBUG)
+        exp_query = exp_query_p37
+        exp_arguments = exp_arguments_p37
     bdb = BukuDb()
     res = bdb.update_rec(**kwargs)
     assert res
+
     exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
+    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+        exp_log = 'update_rec ' + exp_log
     try:
         assert caplog.records[-1].getMessage() == exp_log
         assert caplog.records[-1].levelname == 'DEBUG'
