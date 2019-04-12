@@ -1107,37 +1107,51 @@ def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_query_p37, exp_argum
 
 
 @pytest.mark.parametrize(
-    'tags_to_search, exp_query, exp_arguments',
+    'tags_to_search, exp_query, exp_query_p37, exp_arguments',
     [
         [
             'tag1, tag2',
             "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
             "OR tags LIKE '%' || ? || '%' ORDER BY id ASC",
+            "SELECT id, url, metadata, tags, desc "
+            "FROM (SELECT *, CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END + CASE "
+            "WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END AS score "
+            "FROM bookmarks WHERE score > 0 ORDER BY score DESC)",
             [',tag1,', ',tag2,']
-
         ],
         [
             'tag1+tag2,tag3, tag4',
             "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
             "OR tags LIKE '%' || ? || '%' OR tags LIKE '%' || ? || '%' ORDER BY id ASC",
+            "SELECT id, url, metadata, tags, desc "
+            "FROM (SELECT *, CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END + CASE "
+            "WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END + CASE "
+            "WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END AS score "
+            "FROM bookmarks WHERE score > 0 ORDER BY score DESC)",
             [',tag1+tag2,', ',tag3,', ',tag4,']
         ],
         [
             'tag1 + tag2+tag3',
             "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
             "AND tags LIKE '%' || ? || '%' ORDER BY id ASC",
+            None,
             [',tag1,', ',tag2+tag3,']
         ],
         [
             'tag1-tag2 + tag 3 - tag4',
             "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE (tags LIKE '%' || ? || '%' "
             "AND tags LIKE '%' || ? || '%' ) AND tags NOT REGEXP ? ORDER BY id ASC",
+            None,
             [',tag1-tag2,', ',tag 3,', ',tag4,']
         ]
     ]
 )
-def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_arguments):
+def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_query_p37, exp_arguments):
     """test that the correct query and argments are constructed"""
+    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+        caplog.set_level(logging.DEBUG)
+        if exp_query_p37:
+            exp_query = exp_query_p37
     bdb = BukuDb()
     bdb.search_by_tag(tags_to_search)
     exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
