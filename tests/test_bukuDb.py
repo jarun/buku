@@ -1120,7 +1120,7 @@ def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_query_p37, exp_argum
             [',tag1,', ',tag2,']
         ],
         [
-            'tag1+tag2,tag3, tag4',
+            'tag2+tag2,tag3, tag4',
             "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
             "OR tags LIKE '%' || ? || '%' OR tags LIKE '%' || ? || '%' ORDER BY id ASC",
             "SELECT id, url, metadata, tags, desc "
@@ -1207,6 +1207,8 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
 @pytest.mark.parametrize('read_in_retval', ['y', 'n', ''])
 def test_update_rec_update_all_bookmark(caplog, read_in_retval):
     """test method."""
+    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+        caplog.set_level(logging.DEBUG)
     with mock.patch('buku.read_in', return_value=read_in_retval):
         import buku
         bdb = buku.BukuDb()
@@ -1216,8 +1218,12 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
             return
         assert res
         try:
-            assert caplog.records[0].getMessage() == \
-                   'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
+            if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+                assert caplog.records[0].getMessage() == \
+                       'update_rec query: "UPDATE bookmarks SET tags = ?", args: [\',tags1,\']'
+            else:
+                assert caplog.records[0].getMessage() == \
+                       'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
             assert caplog.records[0].levelname == 'DEBUG'
         except IndexError as e:
             # TODO: fix test
