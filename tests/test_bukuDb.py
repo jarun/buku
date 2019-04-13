@@ -1027,52 +1027,71 @@ def test_update_rec_index_0(caplog):
 
 
 @pytest.mark.parametrize(
-    'kwargs, exp_query, exp_arguments',
+    'kwargs, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37',
     [
         [
             {'index': 1, 'url': 'http://example.com'},
             'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'Example Domain', 1]
+            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'Example Domain', 1],
+            ['http://example.com', '', 'Example Domain', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'title_in': 'randomtitle'},
             'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
+            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'randomtitle', 1],
             ['http://example.com', 'randomtitle', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'tags_in': 'tag1'},
             'UPDATE bookmarks SET URL = ?, tags = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', ',tag1', 'Example Domain', 1]
+            'UPDATE bookmarks SET URL = ?, tags = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', ',tag1', 'Example Domain', 1],
+            ['http://example.com', ',tag1,', '', 'Example Domain', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'tags_in': '+,tag1'},
             'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'Example Domain', 1]
+            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'Example Domain', 1],
+            ['http://example.com', '', 'Example Domain', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'tags_in': '-,tag1'},
             'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'Example Domain', 1]
+            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'Example Domain', 1],
+            ['http://example.com', '', 'Example Domain', 1]
 
         ],
         [
             {'index': 1, 'url': 'http://example.com', 'desc': 'randomdesc'},
             'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
+            ['http://example.com', 'randomdesc', 'Example Domain', 1],
             ['http://example.com', 'randomdesc', 'Example Domain', 1]
 
         ],
     ]
 )
-def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_arguments):
+def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37):
     """test method."""
+    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+        caplog.set_level(logging.DEBUG)
+        exp_query = exp_query_p37
+        exp_arguments = exp_arguments_p37
     bdb = BukuDb()
     res = bdb.update_rec(**kwargs)
     assert res
+
     exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
+    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+        exp_log = 'update_rec ' + exp_log
     try:
         assert caplog.records[-1].getMessage() == exp_log
         assert caplog.records[-1].levelname == 'DEBUG'
@@ -1088,37 +1107,57 @@ def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_arguments):
 
 
 @pytest.mark.parametrize(
-    'tags_to_search, exp_query, exp_arguments',
+    'tags_to_search, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37',
     [
         [
             'tag1, tag2',
             "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
             "OR tags LIKE '%' || ? || '%' ORDER BY id ASC",
-            [',tag1,', ',tag2,']
-
+            "SELECT id, url, metadata, tags, desc "
+            "FROM (SELECT *, CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END + CASE "
+            "WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END AS score "
+            "FROM bookmarks WHERE score > 0 ORDER BY score DESC)",
+            [',tag1,', ',tag2,'],
+            None
         ],
         [
-            'tag1+tag2,tag3, tag4',
+            'tag2+tag2,tag3, tag4',
             "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
             "OR tags LIKE '%' || ? || '%' OR tags LIKE '%' || ? || '%' ORDER BY id ASC",
-            [',tag1+tag2,', ',tag3,', ',tag4,']
+            "SELECT id, url, metadata, tags, desc "
+            "FROM (SELECT *, CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END + CASE "
+            "WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END + CASE "
+            "WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END AS score "
+            "FROM bookmarks WHERE score > 0 ORDER BY score DESC)",
+            [',tag1+tag2,', ',tag3,', ',tag4,'],
+            [',tag2+tag2,', ',tag3,', ',tag4,']
         ],
         [
             'tag1 + tag2+tag3',
             "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
             "AND tags LIKE '%' || ? || '%' ORDER BY id ASC",
-            [',tag1,', ',tag2+tag3,']
+            None,
+            [',tag1,', ',tag2+tag3,'],
+            None
         ],
         [
             'tag1-tag2 + tag 3 - tag4',
             "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE (tags LIKE '%' || ? || '%' "
             "AND tags LIKE '%' || ? || '%' ) AND tags NOT REGEXP ? ORDER BY id ASC",
-            [',tag1-tag2,', ',tag 3,', ',tag4,']
+            None,
+            [',tag1-tag2,', ',tag 3,', ',tag4,'],
+            None
         ]
     ]
 )
-def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_arguments):
+def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37):
     """test that the correct query and argments are constructed"""
+    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+        caplog.set_level(logging.DEBUG)
+        if exp_query_p37:
+            exp_query = exp_query_p37
+        if exp_arguments_p37:
+            exp_arguments = exp_arguments_p37
     bdb = BukuDb()
     bdb.search_by_tag(tags_to_search)
     exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
@@ -1174,6 +1213,8 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
 @pytest.mark.parametrize('read_in_retval', ['y', 'n', ''])
 def test_update_rec_update_all_bookmark(caplog, read_in_retval):
     """test method."""
+    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+        caplog.set_level(logging.DEBUG)
     with mock.patch('buku.read_in', return_value=read_in_retval):
         import buku
         bdb = buku.BukuDb()
@@ -1183,8 +1224,12 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
             return
         assert res
         try:
-            assert caplog.records[0].getMessage() == \
-                   'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
+            if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+                assert caplog.records[0].getMessage() == \
+                       'update_rec query: "UPDATE bookmarks SET tags = ?", args: [\',tags1,\']'
+            else:
+                assert caplog.records[0].getMessage() == \
+                       'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
             assert caplog.records[0].levelname == 'DEBUG'
         except IndexError as e:
             # TODO: fix test
