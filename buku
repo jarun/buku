@@ -3139,14 +3139,14 @@ def is_bad_url(url):
     # Get the netloc token
     try:
         netloc = parse_url(url).netloc
+        if not netloc:
+            # Try of prepend '//' and get netloc
+            netloc = parse_url('//' + url).netloc
+            if not netloc:
+                return True
     except LocationParseError as e:
         LOGERR('%s, URL: %s', e, url)
         return True
-    if not netloc:
-        # Try of prepend '//' and get netloc
-        netloc = parse_url('//' + url).netloc
-        if not netloc:
-            return True
 
     LOGDBG('netloc: %s', netloc)
 
