@@ -15,7 +15,6 @@
 <a href="https://repology.org/metapackage/buku"><img src="https://repology.org/badge/tiny-repos/buku.svg" alt="Availability"></a>
 <a href="https://circleci.com/gh/jarun/workflows/Buku"><img src="https://img.shields.io/circleci/project/github/jarun/Buku.svg" alt="Build Status" /></a>
 <a href="http://buku.readthedocs.io/en/latest/?badge=latest"><img src="https://readthedocs.org/projects/buku/badge/?version=latest" alt="Docs Status" /></a>
-<a href="https://snyk.io/test/github/jarun/Buku"><img src="https://snyk.io/test/github/jarun/Buku/badge.svg" /></a>
 <a href="https://github.com/jarun/buku/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-yellow.svg?maxAge=2592000" alt="License" /></a>
 </p>
 
