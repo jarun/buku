@@ -397,7 +397,7 @@ class BukuDb:
         return os.path.join(data_home, 'buku')
 
     @staticmethod
-    def initdb(dbfile: Optional[str]=None, chatty: Optional[bool]=False) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
+    def initdb(dbfile: Optional[str] = None, chatty: Optional[bool] = False) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
         """Initialize the database connection.
 
         Create DB file and/or bookmarks table if they don't exist.
@@ -538,7 +538,7 @@ class BukuDb:
             tags_in: Optional[str] = None,
             desc: Optional[str] = None,
             immutable: Optional[int] = 0,
-            delay_commit: Optional[bool]=False,
+            delay_commit: Optional[bool] = False,
             fetch: Optional[bool] = True) -> int:
         """Add a new bookmark.
 
@@ -2028,7 +2028,7 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath: str, resultset: Optional[Tuple[Any]]=None) -> bool:
+    def exportdb(self, filepath: str, resultset: Optional[Tuple[Any]] = None) -> bool:
         """Export DB bookmarks to file.
         Exports full DB, if resultset is None
 
