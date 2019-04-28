@@ -43,6 +43,7 @@ except ImportError:
     pass
 from bs4 import BeautifulSoup
 import certifi
+from mypy_extensions import TypedDict
 import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
@@ -2762,7 +2763,12 @@ PROMPT KEYS:
 # ----------------
 
 
-def convert_bookmark_set(bookmark_set: List[Tuple[Any, Any, Any, Any, Any, Any]], export_type: str) -> Dict[str, Any]:
+ConverterResult = TypedDict('ConverterResult', {'data': str, 'count': int})
+
+
+def convert_bookmark_set(
+        bookmark_set: List[Tuple[Any, Any, Any, Any, Any, Any]],
+        export_type: str) -> ConverterResult:
     """Convert list of bookmark set into multiple data format.
 
     Parameters
