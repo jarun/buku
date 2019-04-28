@@ -2077,12 +2077,9 @@ class BukuDb:
             qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
             for row in resultset:
                 outdb.cur.execute(qry, (row[1], row[2], row[3], row[4], row[5]))
+                count += 1
             outdb.conn.commit()
             outdb.close()
-
-            count = self.get_max_id()
-            if count == -1:
-                count = 0
             print('%s exported' % count)
             return True
 
