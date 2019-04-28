@@ -762,4 +762,3 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
         res = convert_bookmark_set(bms, export_type=export_type)
         assert res['count'] == 2
         assert exp_res == res['data']
-
