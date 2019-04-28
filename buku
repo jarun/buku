@@ -34,7 +34,7 @@ from subprocess import Popen, PIPE, DEVNULL
 import sys
 import threading
 import time
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import webbrowser
 try:
     import readline
@@ -46,7 +46,10 @@ import certifi
 import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
-from mypy_extensions import TypedDict
+try:
+    from mypy_extensions import TypedDict
+except ImportError:
+    TypedDict = None
 
 __version__ = '4.1'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -2760,7 +2763,7 @@ PROMPT KEYS:
 # ----------------
 
 
-ConverterResult = TypedDict('ConverterResult', {'data': str, 'count': int})
+ConverterResult = TypedDict('ConverterResult', {'data': str, 'count': int}) if TypedDict else Dict[str, Any]
 
 
 def convert_bookmark_set(
