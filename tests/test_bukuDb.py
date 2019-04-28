@@ -1435,6 +1435,17 @@ def test_exportdb_single_rec(tmpdir):
             assert f.read()
 
 
+def test_exportdb_to_db():
+    with NamedTemporaryFile(delete=False) as f1, NamedTemporaryFile(delete=False, suffix='.db') as f2:
+        db = BukuDb(dbfile=f1.name)
+        db.add_rec('http://example.com')
+        db.add_rec('http://google.com')
+        with mock.patch('builtins.input', return_value='y'):
+            db.exportdb(f2.name)
+        db2 = BukuDb(dbfile=f2.name)
+        assert db.get_rec_all() == db2.get_rec_all()
+
+
 @pytest.mark.parametrize(
     'urls, exp_res',
     [
