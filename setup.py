@@ -20,6 +20,7 @@ tests_require = [
     'beautifulsoup4>=4.6.0',
     'flake8>=3.4.1',
     'hypothesis>=3.7.0',
+    'mypy-extensions==0.4.1',
     'py>=1.5.0',
     'pylint>=1.7.2',
     'pytest-cov',
