@@ -2800,9 +2800,9 @@ def convert_bookmark_set(
     elif export_type == 'org':
         for row in resultset:
             if row[2] == '':
-                out += '- [Untitled](' + row[1] + ')\n'
+                out += '* [[{}][Untitled]]\n'.format(row[1])
             else:
-                out += '- [' + row[2] + '](' + row[1] + ')\n'
+                out += '* [[{}][{}]]\n'.format(row[1], row[2])
             count += 1
     elif export_type == 'html':
         timestamp = str(int(time.time()))
