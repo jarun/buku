@@ -1431,7 +1431,7 @@ def test_exportdb_single_rec(tmpdir):
         db.add_rec('http://example.com')
         exp_file = tmpdir.join('export')
         db.exportdb(exp_file.strpath)
-        with open(exp_file) as f:
+        with open(exp_file.strpath) as f:
             assert f.read()
 
 
