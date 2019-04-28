@@ -1,2 +1,7 @@
+# use setup.py for latest required package 
+beautifulsoup4>=4.4.1
+certifi
+cryptography>=1.2.3
+html5lib>=1.0.1
 setuptools
-.
+urllib3>=1.23
