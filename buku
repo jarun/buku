@@ -34,7 +34,7 @@ from subprocess import Popen, PIPE, DEVNULL
 import sys
 import threading
 import time
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import webbrowser
 try:
     import readline
@@ -2028,7 +2028,7 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath: str, resultset: Optional[Tuple[Any]] = None) -> bool:
+    def exportdb(self, filepath: str, resultset: Optional[List[Tuple[Any, Any, Any, Any, Any, Any]]] = None) -> bool:
         """Export DB bookmarks to file.
         Exports full DB, if resultset is None
 
@@ -2056,7 +2056,6 @@ class BukuDb:
         """
 
         count = 0
-        timestamp = str(int(time.time()))
 
         if not resultset:
             resultset = self.get_rec_all()
@@ -2093,47 +2092,17 @@ class BukuDb:
             return False
 
         if filepath.endswith('.md'):
-            for row in resultset:
-                if row[2] == '':
-                    out = '- [Untitled](' + row[1] + ')\n'
-                else:
-                    out = '- [' + row[2] + '](' + row[1] + ')\n'
-                outfp.write(out)
-                count += 1
-
+            res = convert_bookmark_set(resultset, 'markdown')
+            count += res['count']
+            outfp.write(res['data'])
         elif filepath.endswith('.org'):
-            for row in resultset:
-                if row[2] == '':
-                    out = '* [[{}][Untitled]]\n'.format(row[1])
-                else:
-                    out = '* [[{}][{}]]\n'.format(row[1], row[2])
-                outfp.write(out)
-                count += 1
+            res = convert_bookmark_set(resultset, 'org')
+            count += res['count']
+            outfp.write(res['data'])
         else:
-            outfp.write('<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
-                        '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
-                        '<TITLE>Bookmarks</TITLE>\n'
-                        '<H1>Bookmarks</H1>\n\n'
-                        '<DL><p>\n'
-                        '    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" '
-                        'PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
-                        '    <DL><p>\n'
-                        % (timestamp, timestamp))
-
-            for row in resultset:
-                out = ('        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"'
-                       % (row[1], timestamp, timestamp))
-                if row[3] != DELIM:
-                    out += ' TAGS="' + row[3][1:-1] + '"'
-                out += '>' + row[2] + '</A>\n'
-                if row[4] != '':
-                    out += '        <DD>' + row[4] + '\n'
-
-                outfp.write(out)
-                count += 1
-
-            outfp.write('    </DL><p>\n</DL><p>')
-
+            res = convert_bookmark_set(resultset, 'html')
+            count += res['count']
+            outfp.write(res['data'])
         outfp.close()
         print('%s exported' % count)
         return True
@@ -2791,6 +2760,65 @@ PROMPT KEYS:
 # ----------------
 # Helper functions
 # ----------------
+
+
+def convert_bookmark_set(bookmark_set: List[Tuple[Any, Any, Any, Any, Any, Any]], export_type: str) -> Dict[str, Any]:
+    """Convert list of bookmark set into multiple data format.
+
+    Parameters
+    ----------
+        bookmark_set: bookmark set
+        export type: one of supported type: markdown, html, org
+
+    Returns
+    -------
+        converted data and count of converted bookmark set
+    """
+    assert export_type in ['markdown', 'html', 'org']
+    #  compatibility
+    resultset = bookmark_set
+
+    count = 0
+    out = ''
+    if export_type == 'markdown':
+        for row in resultset:
+            if row[2] == '':
+                out += '- [Untitled](' + row[1] + ')\n'
+            else:
+                out += '- [' + row[2] + '](' + row[1] + ')\n'
+            count += 1
+    elif export_type == 'org':
+        for row in resultset:
+            if row[2] == '':
+                out += '- [Untitled](' + row[1] + ')\n'
+            else:
+                out += '- [' + row[2] + '](' + row[1] + ')\n'
+            count += 1
+    elif export_type == 'html':
+        timestamp = str(int(time.time()))
+        out = (
+            '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
+            '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
+            '<TITLE>Bookmarks</TITLE>\n'
+            '<H1>Bookmarks</H1>\n\n'
+            '<DL><p>\n'
+            '    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" '
+            'PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
+            '    <DL><p>\n'.format(timestamp, timestamp))
+
+        for row in resultset:
+            out += ('        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row[1], timestamp, timestamp))
+            if row[3] != DELIM:
+                out += ' TAGS="' + row[3][1:-1] + '"'
+            out += '>' + row[2] + '</A>\n'
+            if row[4] != '':
+                out += '        <DD>' + row[4] + '\n'
+            count += 1
+
+        out += '    </DL><p>\n</DL><p>'
+
+    return {'data': out, 'count': count}
+
 
 def get_firefox_profile_name(path):
     """List folder and detect default Firefox profile name.
