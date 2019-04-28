@@ -20,11 +20,6 @@ test-template: &test-template
           python3 -m pytest ./tests/test_*.py --cov buku -vv --durations=0
 
 jobs:
-  py34:
-    docker:
-      - image: python:3.4-slim
-    <<: *test-template
-
   py35:
     docker:
       - image: python:3.5-slim
@@ -63,7 +58,6 @@ workflows:
 
   test:
     jobs: &all-tests
-      - py34
       - py35
       - py36
       - py37

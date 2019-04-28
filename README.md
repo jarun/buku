@@ -87,7 +87,7 @@ There are several [projects based on `buku`](#related-projects), including a bro
 
 | Feature | Dependency |
 | --- | --- |
-| Scripting language | Python 3.4+ |
+| Scripting language | Python 3.5+ |
 | HTTPS | certifi, urllib3 |
 | Encryption | cryptography |
 | HTML | beautifulsoup4, html5lib |

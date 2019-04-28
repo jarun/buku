@@ -2197,11 +2197,7 @@ class BukuDb:
         """
 
         # Connect to input DB
-        if sys.version_info >= (3, 4, 4):
-            # Python 3.4.4 and above
-            conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True)
-        else:
-            conn = sqlite3.connect(path)
+        conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True)
 
         cur = conn.cursor()
         res = cur.execute('SELECT DISTINCT fk, parent, title FROM moz_bookmarks WHERE type=1')
@@ -2454,11 +2450,7 @@ class BukuDb:
 
         try:
             # Connect to input DB
-            if sys.version_info >= (3, 4, 4):
-                # Python 3.4.4 and above
-                indb_conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True)
-            else:
-                indb_conn = sqlite3.connect(path)
+            indb_conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True)
 
             indb_cur = indb_conn.cursor()
             indb_cur.execute('SELECT * FROM bookmarks')
