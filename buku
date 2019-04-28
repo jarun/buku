@@ -43,10 +43,10 @@ except ImportError:
     pass
 from bs4 import BeautifulSoup
 import certifi
-from mypy_extensions import TypedDict
 import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
+from mypy_extensions import TypedDict
 
 __version__ = '4.1'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -2805,9 +2805,9 @@ def convert_bookmark_set(
             '<TITLE>Bookmarks</TITLE>\n'
             '<H1>Bookmarks</H1>\n\n'
             '<DL><p>\n'
-            '    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" '
+            '    <DT><H3 ADD_DATE="{0}" LAST_MODIFIED="{0}" '
             'PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
-            '    <DL><p>\n'.format(timestamp, timestamp))
+            '    <DL><p>\n'.format(timestamp))
 
         for row in resultset:
             out += ('        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row[1], timestamp, timestamp))
