@@ -34,6 +34,7 @@ from subprocess import Popen, PIPE, DEVNULL
 import sys
 import threading
 import time
+from typing import Any, Dict, List, Optional, Tuple
 import webbrowser
 try:
     import readline
@@ -45,6 +46,10 @@ import certifi
 import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
+try:
+    from mypy_extensions import TypedDict
+except ImportError:
+    TypedDict = None  # type: ignore
 
 __version__ = '4.1'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -328,6 +333,9 @@ class BukuCrypt:
             sys.exit(1)
 
 
+BookmarkVar = Tuple[int, str, str, str, str, int]
+
+
 class BukuDb:
     """Abstracts all database operations.
 
@@ -343,7 +351,9 @@ class BukuDb:
         Sets the verbosity of the APIs. Default is False.
     """
 
-    def __init__(self, json=False, field_filter=0, chatty=False, dbfile=None, colorize=True):
+    def __init__(
+            self, json: Optional[bool] = False, field_filter: Optional[int] = 0, chatty: Optional[bool] = False,
+            dbfile: Optional[str] = None, colorize: Optional[bool] = True) -> None:
         """Database initialization API.
 
         Parameters
@@ -394,7 +404,7 @@ class BukuDb:
         return os.path.join(data_home, 'buku')
 
     @staticmethod
-    def initdb(dbfile=None, chatty=False):
+    def initdb(dbfile: Optional[str] = None, chatty: Optional[bool] = False) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
         """Initialize the database connection.
 
         Create DB file and/or bookmarks table if they don't exist.
@@ -515,7 +525,7 @@ class BukuDb:
         resultset = self.cur.fetchall()
         return resultset[0][0] if resultset else -1
 
-    def get_max_id(self):
+    def get_max_id(self) -> int:
         """Fetch the ID of the last record.
 
         Returns
@@ -530,13 +540,13 @@ class BukuDb:
 
     def add_rec(
             self,
-            url,
-            title_in=None,
-            tags_in=None,
-            desc=None,
-            immutable=0,
-            delay_commit=False,
-            fetch=True):
+            url: str,
+            title_in: Optional[str] = None,
+            tags_in: Optional[str] = None,
+            desc: Optional[str] = None,
+            immutable: Optional[int] = 0,
+            delay_commit: Optional[bool] = False,
+            fetch: Optional[bool] = True) -> int:
         """Add a new bookmark.
 
         Parameters
@@ -2025,7 +2035,7 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath, resultset=None):
+    def exportdb(self, filepath: str, resultset: Optional[List[BookmarkVar]] = None) -> bool:
         """Export DB bookmarks to file.
         Exports full DB, if resultset is None
 
@@ -2053,7 +2063,6 @@ class BukuDb:
         """
 
         count = 0
-        timestamp = str(int(time.time()))
 
         if not resultset:
             resultset = self.get_rec_all()
@@ -2074,12 +2083,9 @@ class BukuDb:
             qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
             for row in resultset:
                 outdb.cur.execute(qry, (row[1], row[2], row[3], row[4], row[5]))
+                count += 1
             outdb.conn.commit()
             outdb.close()
-
-            count = self.get_max_id()
-            if count == -1:
-                count = 0
             print('%s exported' % count)
             return True
 
@@ -2089,48 +2095,19 @@ class BukuDb:
             LOGERR(e)
             return False
 
+        res = {}  # type: Dict
         if filepath.endswith('.md'):
-            for row in resultset:
-                if row[2] == '':
-                    out = '- [Untitled](' + row[1] + ')\n'
-                else:
-                    out = '- [' + row[2] + '](' + row[1] + ')\n'
-                outfp.write(out)
-                count += 1
-
+            res = convert_bookmark_set(resultset, 'markdown')
+            count += res['count']
+            outfp.write(res['data'])
         elif filepath.endswith('.org'):
-            for row in resultset:
-                if row[2] == '':
-                    out = '* [[{}][Untitled]]\n'.format(row[1])
-                else:
-                    out = '* [[{}][{}]]\n'.format(row[1], row[2])
-                outfp.write(out)
-                count += 1
+            res = convert_bookmark_set(resultset, 'org')
+            count += res['count']
+            outfp.write(res['data'])
         else:
-            outfp.write('<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
-                        '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
-                        '<TITLE>Bookmarks</TITLE>\n'
-                        '<H1>Bookmarks</H1>\n\n'
-                        '<DL><p>\n'
-                        '    <DT><H3 ADD_DATE="%s" LAST_MODIFIED="%s" '
-                        'PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
-                        '    <DL><p>\n'
-                        % (timestamp, timestamp))
-
-            for row in resultset:
-                out = ('        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"'
-                       % (row[1], timestamp, timestamp))
-                if row[3] != DELIM:
-                    out += ' TAGS="' + row[3][1:-1] + '"'
-                out += '>' + row[2] + '</A>\n'
-                if row[4] != '':
-                    out += '        <DD>' + row[4] + '\n'
-
-                outfp.write(out)
-                count += 1
-
-            outfp.write('    </DL><p>\n</DL><p>')
-
+            res = convert_bookmark_set(resultset, 'html')
+            count += res['count']
+            outfp.write(res['data'])
         outfp.close()
         print('%s exported' % count)
         return True
@@ -2788,6 +2765,70 @@ PROMPT KEYS:
 # ----------------
 # Helper functions
 # ----------------
+
+
+ConverterResult = TypedDict('ConverterResult', {'data': str, 'count': int}) if TypedDict else Dict[str, Any]
+
+
+def convert_bookmark_set(
+        bookmark_set: List[BookmarkVar],
+        export_type: str) -> ConverterResult:  # type: ignore
+    """Convert list of bookmark set into multiple data format.
+
+    Parameters
+    ----------
+        bookmark_set: bookmark set
+        export type: one of supported type: markdown, html, org
+
+    Returns
+    -------
+        converted data and count of converted bookmark set
+    """
+    assert export_type in ['markdown', 'html', 'org']
+    #  compatibility
+    resultset = bookmark_set
+
+    count = 0
+    out = ''
+    if export_type == 'markdown':
+        for row in resultset:
+            if row[2] == '':
+                out += '- [Untitled](' + row[1] + ')\n'
+            else:
+                out += '- [' + row[2] + '](' + row[1] + ')\n'
+            count += 1
+    elif export_type == 'org':
+        for row in resultset:
+            if row[2] == '':
+                out += '* [[{}][Untitled]]\n'.format(row[1])
+            else:
+                out += '* [[{}][{}]]\n'.format(row[1], row[2])
+            count += 1
+    elif export_type == 'html':
+        timestamp = str(int(time.time()))
+        out = (
+            '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
+            '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
+            '<TITLE>Bookmarks</TITLE>\n'
+            '<H1>Bookmarks</H1>\n\n'
+            '<DL><p>\n'
+            '    <DT><H3 ADD_DATE="{0}" LAST_MODIFIED="{0}" '
+            'PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
+            '    <DL><p>\n'.format(timestamp))
+
+        for row in resultset:
+            out += ('        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row[1], timestamp, timestamp))
+            if row[3] != DELIM:
+                out += ' TAGS="' + row[3][1:-1] + '"'
+            out += '>' + row[2] + '</A>\n'
+            if row[4] != '':
+                out += '        <DD>' + row[4] + '\n'
+            count += 1
+
+        out += '    </DL><p>\n</DL><p>'
+
+    return {'data': out, 'count': count}
+
 
 def get_firefox_profile_name(path):
     """List folder and detect default Firefox profile name.

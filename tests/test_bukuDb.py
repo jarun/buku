@@ -13,7 +13,7 @@ import urllib
 import zipfile
 from genericpath import exists
 from itertools import product
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 from unittest import mock
 import unittest
@@ -1415,6 +1415,50 @@ def test_exclude_results_from_search(search_results, exclude_results, exp_res):
     res = bdb.exclude_results_from_search(
         search_results, [], True)
     assert exp_res == res
+
+
+def test_exportdb_empty_db():
+    with NamedTemporaryFile(delete=False) as f:
+        db = BukuDb(dbfile=f.name)
+        with NamedTemporaryFile(delete=False) as f2:
+            res = db.exportdb(f2.name)
+            assert not res
+
+
+def test_exportdb_single_rec(tmpdir):
+    with NamedTemporaryFile(delete=False) as f:
+        db = BukuDb(dbfile=f.name)
+        db.add_rec('http://example.com')
+        exp_file = tmpdir.join('export')
+        db.exportdb(exp_file.strpath)
+        with open(exp_file.strpath) as f:
+            assert f.read()
+
+
+def test_exportdb_to_db():
+    with NamedTemporaryFile(delete=False) as f1, NamedTemporaryFile(delete=False, suffix='.db') as f2:
+        db = BukuDb(dbfile=f1.name)
+        db.add_rec('http://example.com')
+        db.add_rec('http://google.com')
+        with mock.patch('builtins.input', return_value='y'):
+            db.exportdb(f2.name)
+        db2 = BukuDb(dbfile=f2.name)
+        assert db.get_rec_all() == db2.get_rec_all()
+
+
+@pytest.mark.parametrize(
+    'urls, exp_res',
+    [
+        [[], -1],
+        [['http://example.com'], 1],
+        [['htttp://example.com', 'http://google.com'], 2],
+    ])
+def test_get_max_id(urls, exp_res):
+    with NamedTemporaryFile(delete=False) as f:
+        db = BukuDb(dbfile=f.name)
+        if urls:
+            list(map(lambda x: db.add_rec(x), urls))
+        assert db.get_max_id() == exp_res
 
 
 # Helper functions for testcases

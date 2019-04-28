@@ -14,7 +14,7 @@ from flask_paginate import Pagination, get_page_parameter, get_per_page_paramete
 from markupsafe import Markup
 import click
 import flask
-from flask import (
+from flask import (  # type: ignore
     __version__ as flask_version,
     abort,
     current_app,

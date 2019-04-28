@@ -10,7 +10,7 @@ if os.path.isfile('buku'):
     shutil.copyfile('buku', 'buku.py')
 
 with open('buku.py', encoding='utf-8') as f:
-    version = re.search('__version__ = \'([^\']+)\'', f.read()).group(1)
+    version = re.search('__version__ = \'([^\']+)\'', f.read()).group(1)  # type: ignore
 
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
@@ -20,11 +20,13 @@ tests_require = [
     'beautifulsoup4>=4.6.0',
     'flake8>=3.4.1',
     'hypothesis>=3.7.0',
+    'mypy-extensions==0.4.1',
     'py>=1.5.0',
     'pylint>=1.7.2',
     'pytest-cov',
     'pytest>=3.4.2',
     'PyYAML>=4.2b1',
+    'setuptools>=41.0.1',
     'vcrpy>=1.13.0',
 ]
 
