@@ -13,7 +13,7 @@ import urllib
 import zipfile
 from genericpath import exists
 from itertools import product
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 from unittest import mock
 import unittest
@@ -1415,6 +1415,24 @@ def test_exclude_results_from_search(search_results, exclude_results, exp_res):
     res = bdb.exclude_results_from_search(
         search_results, [], True)
     assert exp_res == res
+
+
+def test_exportdb_empty_db():
+    with NamedTemporaryFile(delete=False) as f:
+        db = BukuDb(dbfile=f.name)
+        with NamedTemporaryFile(delete=False) as f2:
+            res = db.exportdb(f2.name)
+            assert not res
+
+
+def test_exportdb_single_rec(tmpdir):
+    with NamedTemporaryFile(delete=False) as f:
+        db = BukuDb(dbfile=f.name)
+        db.add_rec('http://example.com')
+        exp_file = tmpdir.join('export')
+        db.exportdb(exp_file.strpath)
+        with open(exp_file) as f:
+            assert f.read()
 
 
 # Helper functions for testcases
