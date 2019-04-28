@@ -49,7 +49,7 @@ from urllib3.util import parse_url, make_headers
 try:
     from mypy_extensions import TypedDict
 except ImportError:
-    TypedDict = None
+    TypedDict = None  # type: ignore
 
 __version__ = '4.1'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -331,6 +331,9 @@ class BukuCrypt:
         except Exception as e:
             LOGERR(e)
             sys.exit(1)
+
+
+BookmarkVar = Tuple[int, str, str, str, str, int]
 
 
 class BukuDb:
@@ -2032,7 +2035,7 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath: str, resultset: Optional[List[Tuple[Any, Any, Any, Any, Any, Any]]] = None) -> bool:
+    def exportdb(self, filepath: str, resultset: Optional[List[BookmarkVar]] = None) -> bool:
         """Export DB bookmarks to file.
         Exports full DB, if resultset is None
 
@@ -2092,6 +2095,7 @@ class BukuDb:
             LOGERR(e)
             return False
 
+        res = {}  # type: Dict
         if filepath.endswith('.md'):
             res = convert_bookmark_set(resultset, 'markdown')
             count += res['count']
@@ -2767,8 +2771,8 @@ ConverterResult = TypedDict('ConverterResult', {'data': str, 'count': int}) if T
 
 
 def convert_bookmark_set(
-        bookmark_set: List[Tuple[Any, Any, Any, Any, Any, Any]],
-        export_type: str) -> ConverterResult:
+        bookmark_set: List[BookmarkVar],
+        export_type: str) -> ConverterResult:  # type: ignore
     """Convert list of bookmark set into multiple data format.
 
     Parameters
