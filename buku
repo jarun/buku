@@ -518,7 +518,7 @@ class BukuDb:
         resultset = self.cur.fetchall()
         return resultset[0][0] if resultset else -1
 
-    def get_max_id(self):
+    def get_max_id(self) -> int:
         """Fetch the ID of the last record.
 
         Returns

@@ -1435,6 +1435,21 @@ def test_exportdb_single_rec(tmpdir):
             assert f.read()
 
 
+@pytest.mark.parametrize(
+    'urls, exp_res',
+    [
+        [[], -1],
+        [['http://example.com'], 1],
+        [['htttp://example.com', 'http://google.com'], 2],
+    ])
+def test_get_max_id(urls, exp_res):
+    with NamedTemporaryFile(delete=False) as f:
+        db = BukuDb(dbfile=f.name)
+        if urls:
+            list(map(lambda x: db.add_rec(x), urls))
+        assert db.get_max_id() == exp_res
+
+
 # Helper functions for testcases
 
 
