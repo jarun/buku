@@ -34,6 +34,7 @@ from subprocess import Popen, PIPE, DEVNULL
 import sys
 import threading
 import time
+from typing import Any, Optional, Tuple
 import webbrowser
 try:
     import readline
@@ -343,7 +344,9 @@ class BukuDb:
         Sets the verbosity of the APIs. Default is False.
     """
 
-    def __init__(self, json=False, field_filter=0, chatty=False, dbfile=None, colorize=True):
+    def __init__(
+            self, json: Optional[bool] = False, field_filter: Optional[int] = 0, chatty: Optional[bool] = False,
+            dbfile: Optional[str] = None, colorize: Optional[bool] = True) -> None:
         """Database initialization API.
 
         Parameters
@@ -394,7 +397,7 @@ class BukuDb:
         return os.path.join(data_home, 'buku')
 
     @staticmethod
-    def initdb(dbfile=None, chatty=False):
+    def initdb(dbfile: Optional[str]=None, chatty: Optional[bool]=False) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
         """Initialize the database connection.
 
         Create DB file and/or bookmarks table if they don't exist.
@@ -530,13 +533,13 @@ class BukuDb:
 
     def add_rec(
             self,
-            url,
-            title_in=None,
-            tags_in=None,
-            desc=None,
-            immutable=0,
-            delay_commit=False,
-            fetch=True):
+            url: str,
+            title_in: Optional[str] = None,
+            tags_in: Optional[str] = None,
+            desc: Optional[str] = None,
+            immutable: Optional[int] = 0,
+            delay_commit: Optional[bool]=False,
+            fetch: Optional[bool] = True) -> int:
         """Add a new bookmark.
 
         Parameters
@@ -2025,7 +2028,7 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath, resultset=None):
+    def exportdb(self, filepath: str, resultset: Optional[Tuple[Any]]=None) -> bool:
         """Export DB bookmarks to file.
         Exports full DB, if resultset is None
 
