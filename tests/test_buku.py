@@ -727,3 +727,39 @@ def test_copy_to_clipboard(platform, params):
             m_popen_retval.communicate.assert_called_once_with(content)
         else:
             m_popen.assert_not_called()
+
+
+@pytest.mark.parametrize('export_type, exp_res', [
+    [
+        'html',
+        '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
+        '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
+        '<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n\n<DL><p>\n'
+        '    <DT><H3 ADD_DATE="1556430615" LAST_MODIFIED="1556430615" PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
+        '    <DL><p>\n'
+        '        <DT><A HREF="htttp://example.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
+        '        <DT><A HREF="http://google.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615">Google</A>\n'
+        '    </DL><p>\n</DL><p>'
+    ],
+    ['org', '- [Untitled](htttp://example.com)\n- [Google](http://google.com)\n'],
+    ['markdown', '- [Untitled](htttp://example.com)\n- [Google](http://google.com)\n'],
+    ['random', None],
+])
+def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
+    from buku import convert_bookmark_set
+    import buku
+    bms = [
+        (1, 'htttp://example.com', '', ',', '', 0),
+        (2, 'http://google.com', 'Google', ',', '', 0)]
+    if export_type == 'random':
+        with pytest.raises(AssertionError):
+            convert_bookmark_set(bms, export_type=export_type)
+    else:
+
+        def return_fixed_number():
+            return 1556430615
+        monkeypatch.setattr(buku.time, 'time', return_fixed_number)
+        res = convert_bookmark_set(bms, export_type=export_type)
+        assert res['count'] == 2
+        assert exp_res == res['data']
+
