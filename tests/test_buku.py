@@ -742,7 +742,7 @@ def test_copy_to_clipboard(platform, params):
         '        <DT><A HREF="http://google.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615">Google</A>\n'
         '    </DL><p>\n</DL><p>'
     ],
-    ['org', '* [[htttp://example.com][]]\n* [[htttp://example.org][None]]\n* [[http://google.com][Untitled]]\n'],
+    ['org', '* [[htttp://example.com][Untitled]]\n* [[htttp://example.org][Untitled]]\n* [[http://google.com][Google]]\n'],
     ['markdown', '- [Untitled](htttp://example.com)\n- [Untitled](htttp://example.org)\n- [Google](http://google.com)\n'],
     ['random', None],
 ])

@@ -2791,7 +2791,7 @@ def convert_bookmark_set(
             count += 1
     elif export_type == 'org':
         for row in resultset:
-            if row[2]:
+            if not row[2]:
                 out += '* [[{}][Untitled]]\n'.format(row[1])
             else:
                 out += '* [[{}][{}]]\n'.format(row[1], row[2])
