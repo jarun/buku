@@ -2812,7 +2812,7 @@ def convert_bookmark_set(
             out += ('        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row[1], timestamp, timestamp))
             if row[3] != DELIM:
                 out += ' TAGS="' + row[3][1:-1] + '"'
-            out += '>' + row[2] + '</A>\n'
+            out += '>' + row[2] if row[2] else '' + '</A>\n'
             if row[4] != '':
                 out += '        <DD>' + row[4] + '\n'
             count += 1

@@ -750,6 +750,7 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
     import buku
     bms = [
         (1, 'htttp://example.com', '', ',', '', 0),
+        (1, 'htttp://example.com', None, ',', '', 0),
         (2, 'http://google.com', 'Google', ',', '', 0)]
     if export_type == 'random':
         with pytest.raises(AssertionError):
