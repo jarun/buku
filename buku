@@ -51,7 +51,7 @@ try:
 except ImportError:
     TypedDict = None  # type: ignore
 
-__version__ = '4.2'
+__version__ = '4.2.1'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
