@@ -3,7 +3,6 @@ from itertools import product
 from unittest import mock
 from urllib.parse import urlparse
 import json
-import logging
 import os
 import signal
 import sys
@@ -727,7 +726,7 @@ def test_copy_to_clipboard(platform, params):
                 params, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             m_popen_retval.communicate.assert_called_once_with(content)
         else:
-            logging.info('popen is called {} on unrecognized platform'.format(m_popen.call_count))
+            m_popen.assert_not_called()
 
 
 @pytest.mark.parametrize('export_type, exp_res', [
@@ -739,12 +738,11 @@ def test_copy_to_clipboard(platform, params):
         '    <DT><H3 ADD_DATE="1556430615" LAST_MODIFIED="1556430615" PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
         '    <DL><p>\n'
         '        <DT><A HREF="htttp://example.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
-        '        <DT><A HREF="htttp://example.org" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
         '        <DT><A HREF="http://google.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615">Google</A>\n'
         '    </DL><p>\n</DL><p>'
     ],
-    ['org', '* [[htttp://example.com][Untitled]]\n* [[htttp://example.org][Untitled]]\n* [[http://google.com][Google]]\n'],
-    ['markdown', '- [Untitled](htttp://example.com)\n- [Untitled](htttp://example.org)\n- [Google](http://google.com)\n'],
+    ['org', '* [[htttp://example.com][Untitled]]\n* [[http://google.com][Google]]\n'],
+    ['markdown', '- [Untitled](htttp://example.com)\n- [Google](http://google.com)\n'],
     ['random', None],
 ])
 def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
@@ -752,7 +750,6 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
     import buku
     bms = [
         (1, 'htttp://example.com', '', ',', '', 0),
-        (1, 'htttp://example.org', None, ',', '', 0),
         (2, 'http://google.com', 'Google', ',', '', 0)]
     if export_type == 'random':
         with pytest.raises(AssertionError):
@@ -763,5 +760,5 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
             return 1556430615
         monkeypatch.setattr(buku.time, 'time', return_fixed_number)
         res = convert_bookmark_set(bms, export_type=export_type)
-        assert res['count'] == 3
+        assert res['count'] == 2
         assert exp_res == res['data']
