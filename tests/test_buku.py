@@ -738,11 +738,12 @@ def test_copy_to_clipboard(platform, params):
         '    <DT><H3 ADD_DATE="1556430615" LAST_MODIFIED="1556430615" PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
         '    <DL><p>\n'
         '        <DT><A HREF="htttp://example.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
+        '        <DT><A HREF="htttp://example.org" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
         '        <DT><A HREF="http://google.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615">Google</A>\n'
         '    </DL><p>\n</DL><p>'
     ],
-    ['org', '* [[htttp://example.com][Untitled]]\n* [[http://google.com][Google]]\n'],
-    ['markdown', '- [Untitled](htttp://example.com)\n- [Google](http://google.com)\n'],
+    ['org', '* [[htttp://example.com][]]\n* [[htttp://example.org][None]]\n* [[http://google.com][Untitled]]\n'],
+    ['markdown', '- [Untitled](htttp://example.com)\n- [Untitled](htttp://example.org)\n- [Google](http://google.com)\n'],
     ['random', None],
 ])
 def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
@@ -750,7 +751,7 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
     import buku
     bms = [
         (1, 'htttp://example.com', '', ',', '', 0),
-        (1, 'htttp://example.com', None, ',', '', 0),
+        (1, 'htttp://example.org', None, ',', '', 0),
         (2, 'http://google.com', 'Google', ',', '', 0)]
     if export_type == 'random':
         with pytest.raises(AssertionError):
@@ -761,5 +762,5 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
             return 1556430615
         monkeypatch.setattr(buku.time, 'time', return_fixed_number)
         res = convert_bookmark_set(bms, export_type=export_type)
-        assert res['count'] == 2
+        assert res['count'] == 3
         assert exp_res == res['data']
