@@ -68,7 +68,7 @@ There are several [projects based on `buku`](#related-projects), including a bro
 ### Features
 
 - Store bookmarks with auto-fetched title, tags and description
-- Auto-import from Firefox, Google Chrome and Chromium
+- Auto-import from Firefox, Waterfox, Google Chrome and Chromium
 - Open bookmarks and search results in browser
 - Shorten, expand URLs, browse cached page from Wayback Machine
 - Text editor integration
@@ -217,7 +217,7 @@ ENCRYPTION OPTIONS:
       -k, --unlock [N]     decrypt DB in N (default 8) # iterations
 
 POWER TOYS:
-      --ai                 auto-import from Firefox/Chrome/Chromium
+      --ai                 auto-import from Firefox/Waterfox/Chrome/Chromium
       -e, --export file    export bookmarks to Firefox format HTML
                            export Markdown, if file ends with '.md'
                            format: [title](url), 1 entry per line

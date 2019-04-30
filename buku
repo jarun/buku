@@ -2253,7 +2253,7 @@ class BukuDb:
     def auto_import_from_browser(self):
         """Import bookmarks from a browser default database file.
 
-        Supports Firefox and Google Chrome.
+        Supports Firefox, Waterfox and Google Chrome.
 
         Returns
         -------
@@ -2271,6 +2271,11 @@ class BukuDb:
             profile = get_firefox_profile_name(default_ff_folder)
             if profile:
                 ff_bm_db_path = '~/.mozilla/firefox/{}/places.sqlite'.format(profile)
+
+            default_wf_folder = os.path.expanduser('~/.waterfox')
+            profile = get_firefox_profile_name(default_wf_folder)
+            if profile:
+                wf_bm_db_path = '~/.waterfox/{}/places.sqlite'.format(profile)
         elif sys.platform == 'darwin':
             gc_bm_db_path = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             cb_bm_db_path = '~/Library/Application Support/Chromium/Default/Bookmarks'
@@ -2279,6 +2284,12 @@ class BukuDb:
             profile = get_firefox_profile_name(default_ff_folder)
             if profile:
                 ff_bm_db_path = ('~/Library/Application Support/Firefox/'
+                                 '{}/places.sqlite'.format(profile))
+
+            default_wf_folder = os.path.expanduser('~/Library/Application Support/Waterfox')
+            profile = get_firefox_profile_name(default_wf_folder)
+            if profile:
+                wf_bm_db_path = ('~/Library/Application Support/Waterfox/'
                                  '{}/places.sqlite'.format(profile))
         elif sys.platform == 'win32':
             username = os.getlogin()
@@ -2291,6 +2302,11 @@ class BukuDb:
             profile = get_firefox_profile_name(default_ff_folder)
             if profile:
                 ff_bm_db_path = os.path.join(default_ff_folder, '{}/places.sqlite'.format(profile))
+
+            default_wf_folder = 'C:/Users/{}/AppData/Roaming/Waterfox/'.format(username)
+            profile = get_firefox_profile_name(default_wf_folder)
+            if profile:
+                wf_bm_db_path = os.path.join(default_wf_folder, '{}/places.sqlite'.format(profile))
         else:
             LOGERR('Buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
@@ -2337,6 +2353,17 @@ class BukuDb:
                 self.load_firefox_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception:
             print('Could not import bookmarks from Firefox.')
+
+        try:
+            if self.chatty:
+                resp = input('Import bookmarks from Waterfox? (y/n): ')
+            if resp == 'y':
+                bookmarks_database = os.path.expanduser(wf_bm_db_path)
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
+                self.load_firefox_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+        except Exception:
+            print('Could not import bookmarks from Waterfox.')
 
         self.conn.commit()
 
@@ -4813,7 +4840,7 @@ POSITIONAL ARGUMENTS:
 
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
-        description='''    --ai                 auto-import from Firefox/Chrome/Chromium
+        description='''    --ai                 auto-import from Firefox/Waterfox/Chrome/Chromium
     -e, --export file    export bookmarks to Firefox format HTML
                          export Markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
