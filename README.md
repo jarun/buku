@@ -231,9 +231,9 @@ POWER TOYS:
                            print all bookmarks, if no arguments
                            -n shows the last n results (like tail)
       -f, --format N       limit fields in -p or JSON search output
-                           N=1: URL, N=2: URL and tag, N=3: title,
-                           N=4: URL, title and tag. To omit DB index,
-                           use N0, e.g., 10, 20, 30, 40.
+                           N=1: URL; N=2: URL, tag; N=3: title;
+                           N=4: URL, title, tag; N=5: title, tag;
+                           N0 (10, 20, 30, 40, 50) omits DB index
       -j, --json           JSON formatted output for -p and search
       --colors COLORS      set output colors in five-letter string
       --nc                 disable color output

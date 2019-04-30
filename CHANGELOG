@@ -1,3 +1,14 @@
+Buku v4.2
+2019-04-30
+
+- Disabled appending tags from page on update
+- Improved Windows color support using colorama (optional dep)
+- New format option to show only title and tag
+- Python 3.4 is EOL, support discontinued
+- Several fixes and code refactor
+
+-------------------------------------------------------------------------------
+
 Buku v4.1
 2019-01-15
 
