@@ -4323,9 +4323,7 @@ def read_in(msg):
     disable_sigint_handler()
     message = None
     try:
-        # Delibrately dong this to better support Windows colorizing
-        print(msg, end='')
-        message = input()
+        message = input(msg)
     except KeyboardInterrupt:
         print('Interrupted.')
 
@@ -4861,6 +4859,9 @@ POSITIONAL ARGUMENTS:
         except ImportError:
             if args.colorstr is None and colorstr_env is not None:
                 args.nc = True
+    elif not args.nc:
+        # Enable prompt with reverse video
+        PROMPTMSG = '\x1b[7mbuku (? for help)\x1b[0m '
 
     # Handle color output preference
     if args.nc:
@@ -4886,9 +4887,6 @@ POSITIONAL ARGUMENTS:
 
         # Enable color in logs
         setup_logger(LOGGER)
-
-        # Enable prompt with reverse video
-        PROMPTMSG = '\x1b[7mbuku (? for help)\x1b[0m '
 
     # Enable browser output in case of a text based browser
     if os.getenv('BROWSER') in TEXT_BROWSERS:
