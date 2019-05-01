@@ -4356,9 +4356,7 @@ def read_in(msg):
     disable_sigint_handler()
     message = None
     try:
-        # Delibrately dong this to better support Windows colorizing
-        print(msg, end='')
-        message = input()
+        message = input(msg)
     except KeyboardInterrupt:
         print('Interrupted.')
 
@@ -4888,12 +4886,8 @@ POSITIONAL ARGUMENTS:
     # only ConEmu is supported. If the user does not use ConEmu, colors are
     # disabled unless --colors or %BUKU_COLORS% is specified.
     if sys.platform == 'win32' and os.environ.get('ConemuDir') is None:
-        try:
-            import colorama
-            colorama.init()
-        except ImportError:
-            if args.colorstr is None and colorstr_env is not None:
-                args.nc = True
+        if args.colorstr is None and colorstr_env is not None:
+            args.nc = True
 
     # Handle color output preference
     if args.nc:
