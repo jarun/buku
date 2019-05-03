@@ -103,6 +103,7 @@ To copy url to clipboard at the prompt `Buku` uses `xsel` (or `xclip`) on Linux,
 
 #### From a package manager
 
+- [Alpine Linux](https://github.com/alpinelinux/aports/blob/master/testing/buku/APKBUILD) (`apk add buku`)
 - [AUR](https://aur.archlinux.org/packages/buku/) (`yay -S buku`)
 - [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1) (`apt-get install buku`)
 - [Fedora](https://apps.fedoraproject.org/packages/buku) (`dnf install buku`)
