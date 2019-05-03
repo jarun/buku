@@ -795,6 +795,7 @@ class BukuDb:
         tag_modified = False
         ret = False
 
+        preserve_title = False
         if preserve is not None:
             for option in preserve:
                 if option == "url":
@@ -805,6 +806,7 @@ class BukuDb:
                     desc = None
                 elif option == "title":
                     title_in = None
+                    preserve_title = True
 
         # Update URL if passed as argument
         if url is not None and url != '':
@@ -871,7 +873,7 @@ class BukuDb:
         ptags = None
         if title_in is not None:
             title_to_insert = title_in
-        elif url is not None and url != '':
+        elif url is not None and url != '' and not preserve_title:
             title_to_insert, pdesc, ptags, mime, bad = network_handler(url)
             if bad:
                 print('Malformed URL')
