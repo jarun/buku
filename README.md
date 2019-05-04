@@ -454,9 +454,12 @@ PROMPT KEYS:
         buku (? for help) g > 5 3-2
         // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 << 5 3-2
-37. **Update** URL but **Preserve** title 
+37. **Update** URL but **preserve** title 
 
         $ buku -u 479 --preserve title --url https://example.com
+37. **Update** URL but **preserve** title and comment
+
+        $ buku -u 479 --preserve title comment --url https://example.com
 38. List bookmarks with **colored output**:
 
         $ buku --colors oKlxm -p
