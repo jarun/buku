@@ -62,6 +62,7 @@ _buku () {
         -i --import
         --immutable
         -n --count
+        --preserve
         -r --sreg
         --replace
         -s --sany

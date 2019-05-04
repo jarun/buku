@@ -755,7 +755,8 @@ class BukuDb:
             tags_in=None,
             desc=None,
             immutable=-1,
-            threads=4):
+            threads=4,
+            preserve=None):
         """Update an existing record at index.
 
         Update all records if index is 0 and url is not specified.
@@ -779,6 +780,8 @@ class BukuDb:
             Disable title fetch from web if 1. Default is -1.
         threads : int, optional
             Number of threads to use to refresh full DB. Default is 4.
+        preserve : array of str, optional
+            Values to preserve. Can be "url","title","tag","tags", and "comment"
 
         Returns
         -------
@@ -791,6 +794,23 @@ class BukuDb:
         to_update = False
         tag_modified = False
         ret = False
+
+        preserve_title = False
+        preserve_desc = False
+        if preserve is not None:
+            if len(preserve) == 0:
+                preserve = ['url', 'tag', 'comment', 'title']
+            for option in preserve:
+                if option == "url":
+                    url = None
+                elif option in ('tag', 'tags'):
+                    tags_in = None
+                elif option == "comment":
+                    desc = None
+                    preserve_desc = True
+                elif option == "title":
+                    title_in = None
+                    preserve_title = True
 
         # Update URL if passed as argument
         if url is not None and url != '':
@@ -868,7 +888,7 @@ class BukuDb:
             else:
                 LOGDBG('Title: [%s]', title_to_insert)
 
-            if not desc:
+            if not desc and not preserve_desc:
                 if not pdesc:
                     pdesc = ''
                 query += ' desc = ?,'
@@ -880,7 +900,7 @@ class BukuDb:
                 self.print_rec(index)
             return ret
 
-        if title_to_insert is not None:
+        if title_to_insert is not None and not preserve_title:
             query += ' metadata = ?,'
             arguments += (title_to_insert,)
             to_update = True
@@ -4763,6 +4783,7 @@ POSITIONAL ARGUMENTS:
     addarg('--title', nargs='*', help=hide)
     addarg('-c', '--comment', nargs='*', help=hide)
     addarg('--immutable', type=int, default=-1, choices={0, 1}, help=hide)
+    addarg('--preserve', nargs='*', help=hide)
 
     # --------------------
     # SEARCH OPTIONS GROUP
@@ -5223,7 +5244,7 @@ POSITIONAL ARGUMENTS:
         if not args.update:
             # Update all records only if search was not opted
             if not search_opted:
-                bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads)
+                bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads, args.preserve)
             elif update_search_results and search_results is not None:
                 if not args.tacit:
                     print('Updated results:\n')
@@ -5238,7 +5259,8 @@ POSITIONAL ARGUMENTS:
                         tags,
                         desc_in,
                         args.immutable,
-                        args.threads
+                        args.threads,
+                        args.preserve
                     )
 
                     # Commit at every 200th removal
@@ -5256,7 +5278,8 @@ POSITIONAL ARGUMENTS:
                         tags,
                         desc_in,
                         args.immutable,
-                        args.threads
+                        args.threads,
+                        args.preserve
                     )
                 elif '-' in idx:
                     try:
@@ -5273,7 +5296,8 @@ POSITIONAL ARGUMENTS:
                                 tags,
                                 desc_in,
                                 args.immutable,
-                                args.threads
+                                args.threads,
+                                args.preserve
                             )
                         else:
                             for _id in range(vals[0], vals[1] + 1):
@@ -5284,7 +5308,8 @@ POSITIONAL ARGUMENTS:
                                     tags,
                                     desc_in,
                                     args.immutable,
-                                    args.threads
+                                    args.threads,
+                                    args.preserve
                                 )
                                 if INTERRUPTED:
                                     break

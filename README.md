@@ -195,6 +195,7 @@ EDIT OPTIONS:
                            clears description, if no arguments
       --immutable N        disable web-fetch during auto-refresh
                            N=0: mutable (default), N=1: immutable
+      --preserve [...]     values to preserve for -u
 
 SEARCH OPTIONS:
       -s, --sany [...]     find records with ANY matching keyword
@@ -453,10 +454,16 @@ PROMPT KEYS:
         buku (? for help) g > 5 3-2
         // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 << 5 3-2
-37. List bookmarks with **colored output**:
+37. **Update** URL but **preserve** title 
+
+        $ buku -u 479 --preserve title --url https://example.com
+37. **Update** URL but **preserve** title and comment
+
+        $ buku -u 479 --preserve title comment --url https://example.com
+38. List bookmarks with **colored output**:
 
         $ buku --colors oKlxm -p
-38. More **help**:
+39. More **help**:
 
         $ buku -h
         $ man buku
