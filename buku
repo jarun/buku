@@ -796,7 +796,10 @@ class BukuDb:
         ret = False
 
         preserve_title = False
+        preserve_desc = False
         if preserve is not None:
+            if len(preserve) == 0:
+                preserve = ['url', 'tag', 'comment', 'title']
             for option in preserve:
                 if option == "url":
                     url = None
@@ -804,6 +807,7 @@ class BukuDb:
                     tags_in = None
                 elif option == "comment":
                     desc = None
+                    preserve_desc = True
                 elif option == "title":
                     title_in = None
                     preserve_title = True
@@ -873,7 +877,7 @@ class BukuDb:
         ptags = None
         if title_in is not None:
             title_to_insert = title_in
-        elif url is not None and url != '' and not preserve_title:
+        elif url is not None and url != '':
             title_to_insert, pdesc, ptags, mime, bad = network_handler(url)
             if bad:
                 print('Malformed URL')
@@ -884,7 +888,7 @@ class BukuDb:
             else:
                 LOGDBG('Title: [%s]', title_to_insert)
 
-            if not desc:
+            if not desc and not preserve_desc:
                 if not pdesc:
                     pdesc = ''
                 query += ' desc = ?,'
@@ -896,7 +900,7 @@ class BukuDb:
                 self.print_rec(index)
             return ret
 
-        if title_to_insert is not None:
+        if title_to_insert is not None and not preserve_title:
             query += ' metadata = ?,'
             arguments += (title_to_insert,)
             to_update = True
