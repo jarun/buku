@@ -30,7 +30,6 @@ args=(
     '(--np)--np[noninteractive mode]'
     '(-o --open)'{-o,--open}'[open bookmarks in browser]'
     '(--oa)--oa[browse all search results immediately]'
-    '(--preserve)--preserve[preserve options]'
     '(-p --print)'{-p,--print}'[show bookmark details]'
     '(-r --sreg)'{-r,--sreg}'[match a regular exression]:regex'
     '(--replace)--replace[replace a tag]:tag to replace'
