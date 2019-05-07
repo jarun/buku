@@ -516,7 +516,7 @@ def search_bookmarks():
     return res
 
 
-def create_app(config_filename=None):
+def create_app(db_file=None):
     """create app."""
     app = FlaskAPI(__name__)
     per_page = int(os.getenv('BUKUSERVER_PER_PAGE', str(views.DEFAULT_PER_PAGE)))
@@ -527,7 +527,7 @@ def create_app(config_filename=None):
         url_render_mode = views.DEFAULT_URL_RENDER_MODE
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
-    app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE')
+    app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE') or db_file
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
