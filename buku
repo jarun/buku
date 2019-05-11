@@ -4915,7 +4915,7 @@ POSITIONAL ARGUMENTS:
         setup_logger(LOGGER)
 
         # Enable prompt with reverse video
-        PROMPTMSG = '\x1b[7mbuku (? for help)\x1b[0m '
+        PROMPTMSG = '\001\x1b[7\002mbuku (? for help)\001\x1b[0m\002 '
 
     # Enable browser output in case of a text based browser
     if os.getenv('BROWSER') in TEXT_BROWSERS:
