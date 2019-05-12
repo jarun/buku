@@ -34,7 +34,7 @@ from subprocess import Popen, PIPE, DEVNULL
 import sys
 import threading
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 import webbrowser
 try:
     import readline
@@ -333,7 +333,7 @@ class BukuCrypt:
             sys.exit(1)
 
 
-BookmarkVar = Tuple[int, str, str, str, str, int]
+BookmarkVar = Tuple[int, str, Union[str, None], str, str, int]
 
 
 class BukuDb:
