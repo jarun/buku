@@ -184,14 +184,11 @@ def bookmarks():
             create_bookmarks_form.tags.data,
             create_bookmarks_form.description.data
         )
-        if request.path.startswith('/api/'):
-            res = [
-                jsonify(response.response_template['success']), status.HTTP_200_OK,
-                {'ContentType': 'application/json'}
-            ] if result_flag != -1 else [
-                jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST,
-                {'ContentType': 'application/json'}
-            ]
+        if request.path.startswith('/api/') and result_flag != -1:
+            res = jsonify(response.response_template['success'])
+        elif request.path.startswith('/api/') and result_flag == -1:
+            res = jsonify(response.response_template['failure'])
+            res.status_code = status.HTTP_400_BAD_REQUEST
         else:
             bm_text = '[<a href="{0}">{0}</a>]'.format(url_data)
             if result_flag != -1:
