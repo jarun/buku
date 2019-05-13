@@ -749,13 +749,13 @@ class BukuDb:
 
     def update_rec(
             self,
-            index,
-            url=None,
-            title_in=None,
-            tags_in=None,
-            desc=None,
-            immutable=-1,
-            threads=4):
+            index: int,
+            url: Optional[str] = None,
+            title_in: Optional[str] = None,
+            tags_in: Optional[str] = None,
+            desc: Optional[str] = None,
+            immutable: Optional[int] = -1,
+            threads: Optional[int]=4) -> bool:
         """Update an existing record at index.
 
         Update all records if index is 0 and url is not specified.
@@ -786,7 +786,7 @@ class BukuDb:
             True on success, False on Failure.
         """
 
-        arguments = []
+        arguments = []  # type: List[Any]
         query = 'UPDATE bookmarks SET'
         to_update = False
         tag_modified = False
@@ -1163,7 +1163,13 @@ class BukuDb:
             return None
         return self.cur.fetchall()
 
-    def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
+    def searchdb(
+            self,
+            keywords: List[str],
+            all_keywords: Optional[bool] = False,
+            deep: Optional[bool] = False,
+            regex: Optional[bool] = False
+    ) -> Union[List[Any], None]:
         """Search DB for entries where tags, URL, or title fields match keywords.
 
         Parameters
@@ -1196,7 +1202,7 @@ class BukuDb:
               'URL REGEXP ? OR '
               'metadata REGEXP ? OR '
               'desc REGEXP ?) ')
-        qargs = []
+        qargs = []  # type: List[Any]
 
         case_statement = lambda x: 'CASE WHEN ' + x + ' THEN 1 ELSE 0 END'
         if regex:
