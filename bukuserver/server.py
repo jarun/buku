@@ -9,6 +9,7 @@ from buku import BukuDb, __version__, network_handler
 from flask.cli import FlaskGroup
 from flask_admin import Admin
 from flask_api import exceptions, FlaskAPI, status
+from flask_api.response import APIResponse
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
 from markupsafe import Markup
@@ -228,7 +229,7 @@ def refresh_bookmarks():
     return res
 
 
-def bookmark_api(id):
+def bookmark_api(id: int) -> APIResponse:
     res = None
     try:
         id = int(id)
