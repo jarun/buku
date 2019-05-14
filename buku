@@ -489,7 +489,7 @@ class BukuDb:
         self.cur.execute('SELECT * FROM bookmarks')
         return self.cur.fetchall()
 
-    def get_rec_by_id(self, index):
+    def get_rec_by_id(self, index: int)-> Union[BookmarkVar, None]:
         """Get a bookmark from database by its ID.
 
         Parameters
@@ -2479,7 +2479,11 @@ class BukuDb:
 
         return True
 
-    def tnyfy_url(self, index=0, url=None, shorten=True):
+    def tnyfy_url(
+            self,
+            index: Optional[int] = 0,
+            url: Optional[str] = None,
+            shorten: Optional[bool] = True)->Union[str, None]:
         """Shorten a URL using Google URL shortener.
 
         Parameters
