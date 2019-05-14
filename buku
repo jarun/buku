@@ -1796,7 +1796,7 @@ class BukuDb:
 
         return parse_tags(tags)
 
-    def replace_tag(self, orig, new=None):
+    def replace_tag(self, orig: str, new: Union[List[str], None]=None)->bool:
         """Replace original tag by new tags in all records.
 
         Remove original tag if new tag is empty.
