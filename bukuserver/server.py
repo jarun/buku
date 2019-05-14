@@ -2,6 +2,7 @@
 # pylint: disable=wrong-import-order, ungrouped-imports
 """Server module."""
 from typing import Union
+from unittest import mock
 from urllib.parse import urlparse
 import os
 import sys
@@ -173,14 +174,13 @@ def bookmarks():
                 flash(Markup('Failed creating bookmark {}.'.format(bm_text)), 'danger')
             return redirect(url_for('bookmarks-html'))
     elif request.method == 'DELETE':
-        result_flag = bukudb.cleardb()
-        res = [
-            jsonify(response.response_template['success']), status.HTTP_200_OK,
-            {'ContentType': 'application/json'}
-        ] if result_flag else [
-            jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST,
-            {'ContentType': 'application/json'}
-        ]
+        with mock.patch('buku.read_in', return_value='y'):
+            result_flag = bukudb.cleardb()
+        if result_flag:
+            res = jsonify(response.response_template['success'])
+        else:
+            res = jsonify(response.response_template['failure'])
+            res.status_code = status.HTTP_400_BAD_REQUEST
     return res
 
 
