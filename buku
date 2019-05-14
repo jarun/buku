@@ -3449,7 +3449,10 @@ def get_PoolManager():
         ca_certs=ca_certs)
 
 
-def network_handler(url, http_head=False):
+def network_handler(
+        url: str,
+        http_head: Optional[bool] = False
+)->Tuple[Union[str, None], Union[str, None], Union[str, None], int, int]:
     """Handle server connection and redirections.
 
     Parameters
