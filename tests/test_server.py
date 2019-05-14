@@ -3,6 +3,7 @@ import flask
 import pytest
 
 from bukuserver import server
+from bukuserver.response import response_template
 
 @pytest.mark.parametrize(
     'args,word',
@@ -48,10 +49,10 @@ def test_api_empty_db(client, url, exp_res):
 @pytest.mark.parametrize(
     'url, exp_res, status_code, method', [
         ['/api/tags/1', {'message': 'This resource does not exist.'}, 404, 'get'],
-        ['/api/tags/1', {'message': 'failure', 'status': 1}, 400, 'put'],
-        ['/api/bookmarks/1', {'message': 'failure', 'status': 1}, 400, 'get'],
-        ['/api/bookmarks/1', None, 400, 'put'],
-        ['/api/bookmarks/1', {'message': 'failure', 'status': 1}, 400, 'delete'],
+        ['/api/tags/1', response_template['failure'], 400, 'put'],
+        ['/api/bookmarks/1', response_template['failure'], 400, 'get'],
+        ['/api/bookmarks/1', response_template['failure'], 400, 'put'],
+        ['/api/bookmarks/1', response_template['failure'], 400, 'delete'],
     ]
 )
 def test_invalid_id(client, url, exp_res, status_code, method):
@@ -64,7 +65,7 @@ def test_tag_api(client):
     url = 'http://google.com'
     rd = client.post('/api/bookmarks', data={'url': url, 'tags': 'tag1,tag2'})
     assert rd.status_code == 200
-    assert rd.get_json() == {'message': 'success', 'status': 0}
+    assert rd.get_json() == response_template['success']
     rd = client.get('/api/tags')
     assert rd.status_code == 200
     assert rd.get_json() == {'tags': ['tag1', 'tag2']}
@@ -73,13 +74,13 @@ def test_tag_api(client):
     assert rd.get_json() == {'name': 'tag1', 'usage_count': 1}
     rd = client.put('/api/tags/tag1', data={'tags': 'tag3,tag4'})
     assert rd.status_code == 200
-    assert rd.get_json() == {'message': 'success', 'status': 0}
+    assert rd.get_json() == response_template['success']
     rd = client.get('/api/tags')
     assert rd.status_code == 200
     assert rd.get_json() == {'tags': ['tag2', 'tag3 tag4']}
     rd = client.put('/api/tags/tag2', data={'tags': 'tag5'})
     assert rd.status_code == 200
-    assert rd.get_json() == {'message': 'success', 'status': 0}
+    assert rd.get_json() == response_template['success']
     rd = client.get('/api/tags')
     assert rd.status_code == 200
     assert rd.get_json() == {'tags': ['tag3 tag4', 'tag5']}
@@ -94,18 +95,25 @@ def test_bookmark_api(client):
     url = 'http://google.com'
     rd = client.post('/api/bookmarks', data={'url': url})
     assert rd.status_code == 200
-    assert rd.get_json() == {'message': 'success', 'status': 0}
+    assert rd.get_json() == response_template['success']
     rd = client.post('/api/bookmarks', data={'url': url})
     assert rd.status_code == 400
-    assert rd.get_json() == {'message': 'failure', 'status': 1}
-    rd = client.get('/api/bookmarks/search', query_string={'keywords': 'google.com'})
+    assert rd.get_json() == response_template['failure']
+    rd = client.get('/api/bookmarks')
     assert rd.status_code == 200
-    assert rd.get_json() == {'bookmarks': [
-        {'description': '', 'id': 1, 'tags': [], 'title': '', 'url': url}]}
+    assert rd.get_json() == {'bookmarks': [{
+        'description': '', 'tags': [], 'title': '', 'url': 'http://google.com'}]}
     rd = client.get('/api/bookmarks/1')
     assert rd.status_code == 200
     assert rd.get_json() == {
         'description': '', 'tags': [], 'title': '', 'url': 'http://google.com'}
+    rd = client.put('/api/bookmarks/1', data={'tags': [',tag1,tag2,']})
+    assert rd.status_code == 200
+    assert rd.get_json() == response_template['success']
+    rd = client.get('/api/bookmarks/1')
+    assert rd.status_code == 200
+    assert rd.get_json() == {
+        'description': '', 'tags': ['tag1', 'tag2'], 'title': '', 'url': 'http://google.com'}
 
 
 @pytest.mark.parametrize('d_url', ['/api/bookmarks', '/api/bookmarks/1'])
