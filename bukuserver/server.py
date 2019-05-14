@@ -109,46 +109,16 @@ def refresh_bookmark(rec_id: Union[int, None]):
     return res
 
 
-def get_tiny_url(id):
-    try:
-        id = int(id)
-    except ValueError:
-        return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-               {'ContentType': 'application/json'}
-    res = None
-    if request.method == 'GET':
-        shortened_url = getattr(flask.g, 'bukudb', get_bukudb()).tnyfy_url(id)
-        if shortened_url is not None:
-            result = {
-                'url': shortened_url
-            }
-            res = jsonify(result)
-        else:
-            res = (jsonify(response.response_template['failure']),
-                   status.HTTP_400_BAD_REQUEST,
-                   {'ContentType': 'application/json'})
-    return res
-
-
-def get_long_url(id):
-    try:
-        id = int(id)
-    except ValueError:
-        return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-               {'ContentType': 'application/json'}
-
-    res = None
-    if request.method == 'GET':
-        bookmark = getattr(flask.g, 'bukudb', get_bukudb()).get_rec_by_id(id)
-        if bookmark is not None:
-            result = {
-                'url': bookmark[1],
-            }
-            res = jsonify(result)
-        else:
-            res = (jsonify(response.response_template['failure']),
-                   status.HTTP_400_BAD_REQUEST,
-                   {'ContentType': 'application/json'})
+def get_tiny_url(rec_id):
+    shortened_url = getattr(flask.g, 'bukudb', get_bukudb()).tnyfy_url(rec_id)
+    if shortened_url is not None:
+        result = {'url': shortened_url}
+        res = jsonify(result)
+    else:
+        res = (
+            jsonify(response.response_template['failure']),
+            status.HTTP_400_BAD_REQUEST,
+            {'ContentType': 'application/json'})
     return res
 
 
@@ -335,8 +305,7 @@ def create_app(db_file=None):
     app.add_url_rule('/api/bookmarks/<int:rec_id>', view_func=bookmark_api_view, methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmark', refresh_bookmark, defaults={'rec_id': None}, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<int:rec_id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
-    app.add_url_rule('/api/bookmarks/<id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
-    app.add_url_rule('/api/bookmarks/<id>/long', 'get_long_url', get_long_url, methods=['GET'])
+    app.add_url_rule('/api/bookmarks/<int:rec_id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
     app.add_url_rule(
         '/api/network_handle',
         'network_handle',

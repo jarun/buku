@@ -59,6 +59,7 @@ def test_api_empty_db(client, url, exp_res):
         ['/api/bookmarks/1', response_template['failure'], 400, 'put'],
         ['/api/bookmarks/1', response_template['failure'], 400, 'delete'],
         ['/api/bookmarks/1/refresh', response_template['failure'], 400, 'post'],
+        ['/api/bookmarks/1/tiny', response_template['failure'], 400, 'get'],
     ]
 )
 def test_invalid_id(client, url, exp_res, status_code, method):
@@ -146,3 +147,17 @@ def test_refresh_bookmark(client, api_url):
     assert rd.status_code == 200
     assert rd.get_json() == {
         'description': '', 'tags': [], 'title': 'Google', 'url': 'http://google.com'}
+
+
+@pytest.mark.parametrize(
+    'url, exp_res, status_code', [
+        ['http://google.com', {'url': 'http://tny.im/2'}, 200],
+        ['chrome://bookmarks/', response_template['failure'], 400],
+    ])
+def test_get_tiny_url(client, url, exp_res, status_code):
+    rd = client.post('/api/bookmarks', data={'url': url})
+    assert rd.status_code == 200
+    assert rd.get_json() == response_template['success']
+    rd = client.get('/api/bookmarks/1/tiny')
+    assert rd.status_code == status_code
+    assert rd.get_json() == exp_res
