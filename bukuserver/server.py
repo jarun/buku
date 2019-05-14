@@ -82,7 +82,11 @@ def tag_detail(tag):
     elif request.method == 'PUT':
         res = None
         try:
-            new_tags = request.data.get('tags').split(',')
+            new_tags = request.data.get('tags')
+            if new_tags:
+                new_tags = new_tags.split(',')
+            else:
+                return response.response_template['failure'], status.HTTP_400_BAD_REQUEST
         except AttributeError as e:
             raise exceptions.ParseError(detail=str(e))
         result_flag = bukudb.replace_tag(tag, new_tags)

@@ -46,18 +46,21 @@ def test_api_empty_db(client, url, exp_res):
 
 
 @pytest.mark.parametrize(
-    'url, exp_res, status_code', [
-        ['/api/tags/1', {'message': 'This resource does not exist.'}, 404],
-        ['/api/bookmarks/1', {'message': 'failure', 'status': 1}, 400],
+    'url, exp_res, status_code, method', [
+        ['/api/tags/1', {'message': 'This resource does not exist.'}, 404, 'get'],
+        ['/api/tags/1', {'message': 'failure', 'status': 1}, 400, 'put'],
+        ['/api/bookmarks/1', {'message': 'failure', 'status': 1}, 400, 'get'],
+        ['/api/bookmarks/1', None, 400, 'put'],
+        ['/api/bookmarks/1', {'message': 'failure', 'status': 1}, 400, 'delete'],
     ]
 )
-def test_invalid_id(client, url, exp_res, status_code):
-    rd = client.get(url)
+def test_invalid_id(client, url, exp_res, status_code, method):
+    rd = getattr(client, method)(url)
     assert rd.status_code == status_code
     assert rd.get_json() == exp_res
 
 
-def test_api(client):
+def test_bookmark_api(client):
     url = 'http://google.com'
     rd = client.post('/api/bookmarks', data={'url': url})
     assert rd.status_code == 200
