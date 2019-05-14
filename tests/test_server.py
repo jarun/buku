@@ -161,3 +161,22 @@ def test_get_tiny_url(client, url, exp_res, status_code):
     rd = client.get('/api/bookmarks/1/tiny')
     assert rd.status_code == status_code
     assert rd.get_json() == exp_res
+
+
+@pytest.mark.parametrize('kwargs, status_code, exp_res', [
+    [
+        dict(data={'url': 'http://google.com'}),
+        200,
+        {'bad url': None, 'recognized mime': None, 'title': 'Google'}
+    ],
+    [{}, 400, response_template['failure']],
+    [
+        dict(data={'url': 'chrome://bookmarks/'}),
+        200,
+        {'bad url': None, 'recognized mime': None, 'title': None}
+    ],
+])
+def test_network_handle(client, kwargs, status_code, exp_res):
+    rd = client.post('/api/network_handle', **kwargs)
+    assert rd.status_code == status_code
+    assert rd.get_json() == exp_res

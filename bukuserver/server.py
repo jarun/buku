@@ -55,7 +55,7 @@ def get_tags():
     return res
 
 
-def network_handle_detail():
+def handle_network():
     failed_resp = response.response_template['failure'], status.HTTP_400_BAD_REQUEST
     url = request.data.get('url', None)
     if not url:
@@ -306,11 +306,7 @@ def create_app(db_file=None):
     app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmark', refresh_bookmark, defaults={'rec_id': None}, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<int:rec_id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<int:rec_id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
-    app.add_url_rule(
-        '/api/network_handle',
-        'network_handle',
-        network_handle_detail,
-        methods=['POST'])
+    app.add_url_rule('/api/network_handle', 'network_handle', handle_network, methods=['POST'])
     app.add_url_rule(
         '/api/bookmarks/<starting_id>/<ending_id>',
         'bookmark_range_operations', bookmark_range_operations, methods=['GET', 'PUT', 'DELETE'])
