@@ -93,44 +93,19 @@ def update_tag(tag):
     return res
 
 
-def refresh_bookmarks():
-    res = None
-    if request.method == 'POST':
-        print(request.form['index'])
-        print(request.form['threads'])
-        result_flag = getattr(
-            flask.g,
-            'bukudb',
-            get_bukudb()).refreshdb(request.form['index'], request.form['threads'])
-        if result_flag:
-            res = (jsonify(response.response_template['success']),
-                   status.HTTP_200_OK,
-                   {'ContentType': 'application/json'})
-        else:
-            res = (jsonify(response.response_template['failure']),
-                   status.HTTP_400_BAD_REQUEST,
-                   {'ContentType': 'application/json'})
-    return res
-
-
-def refresh_bookmark(id):
-    try:
-        id = int(id)
-    except ValueError:
-        return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-               {'ContentType': 'application/json'}
-    res = None
-    if request.method == 'POST':
-        result_flag = getattr(flask.g, 'bukudb',
-                              get_bukudb()).refreshdb(id, request.form['threads'])
-        if result_flag:
-            res = (jsonify(response.response_template['success']),
-                   status.HTTP_200_OK,
-                   {'ContentType': 'application/json'})
-        else:
-            res = (jsonify(response.response_template['failure']),
-                   status.HTTP_400_BAD_REQUEST,
-                   {'ContentType': 'application/json'})
+def refresh_bookmark(rec_id: Union[int, None]):
+    if rec_id is not None:
+        result_flag = getattr(flask.g, 'bukudb', get_bukudb()).refreshdb(rec_id, request.form.get('threads', 4))
+    else:
+        result_flag = getattr(flask.g, 'bukudb', get_bukudb()).refreshdb(0, request.form.get('threads', 4))
+    if result_flag:
+        res = (jsonify(response.response_template['success']),
+               status.HTTP_200_OK,
+               {'ContentType': 'application/json'})
+    else:
+        res = (jsonify(response.response_template['failure']),
+               status.HTTP_400_BAD_REQUEST,
+               {'ContentType': 'application/json'})
     return res
 
 
@@ -358,8 +333,8 @@ def create_app(db_file=None):
     bookmark_api_view = ApiBookmarkView.as_view('bookmark_api')
     app.add_url_rule('/api/bookmarks', defaults={'rec_id': None}, view_func=bookmark_api_view, methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/api/bookmarks/<int:rec_id>', view_func=bookmark_api_view, methods=['GET', 'PUT', 'DELETE'])
-    app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmarks', refresh_bookmarks, methods=['POST'])
-    app.add_url_rule('/api/bookmarks/<id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
+    app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmark', refresh_bookmark, defaults={'rec_id': None}, methods=['POST'])
+    app.add_url_rule('/api/bookmarks/<int:rec_id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
     app.add_url_rule('/api/bookmarks/<id>/long', 'get_long_url', get_long_url, methods=['GET'])
     app.add_url_rule(
