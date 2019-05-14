@@ -37,12 +37,17 @@ def test_home(client):
     'url, exp_res', [
         ['/api/tags', {'tags': []}],
         ['/api/bookmarks', {'bookmarks': []}],
-        ['/api/bookmarks/search', {'bookmarks': []}]
+        ['/api/bookmarks/search', {'bookmarks': []}],
+        ['/api/bookmarks/refresh', response_template['failure']]
     ]
 )
 def test_api_empty_db(client, url, exp_res):
-    rd = client.get(url)
-    assert rd.status_code == 200
+    if url == '/api/bookmarks/refresh':
+        rd = client.post(url)
+        assert rd.status_code == 400
+    else:
+        rd = client.get(url)
+        assert rd.status_code == 200
     assert rd.get_json() == exp_res
 
 
@@ -53,6 +58,7 @@ def test_api_empty_db(client, url, exp_res):
         ['/api/bookmarks/1', response_template['failure'], 400, 'get'],
         ['/api/bookmarks/1', response_template['failure'], 400, 'put'],
         ['/api/bookmarks/1', response_template['failure'], 400, 'delete'],
+        ['/api/bookmarks/1/refresh', response_template['failure'], 400, 'post'],
     ]
 )
 def test_invalid_id(client, url, exp_res, status_code, method):
