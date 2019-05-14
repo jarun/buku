@@ -60,6 +60,36 @@ def test_invalid_id(client, url, exp_res, status_code, method):
     assert rd.get_json() == exp_res
 
 
+def test_tag_api(client):
+    url = 'http://google.com'
+    rd = client.post('/api/bookmarks', data={'url': url, 'tags': 'tag1,tag2'})
+    assert rd.status_code == 200
+    assert rd.get_json() == {'message': 'success', 'status': 0}
+    rd = client.get('/api/tags')
+    assert rd.status_code == 200
+    assert rd.get_json() == {'tags': ['tag1', 'tag2']}
+    rd = client.get('/api/tags/tag1')
+    assert rd.status_code == 200
+    assert rd.get_json() == {'name': 'tag1', 'usage_count': 1}
+    rd = client.put('/api/tags/tag1', data={'tags': 'tag3,tag4'})
+    assert rd.status_code == 200
+    assert rd.get_json() == {'message': 'success', 'status': 0}
+    rd = client.get('/api/tags')
+    assert rd.status_code == 200
+    assert rd.get_json() == {'tags': ['tag2', 'tag3 tag4']}
+    rd = client.put('/api/tags/tag2', data={'tags': 'tag5'})
+    assert rd.status_code == 200
+    assert rd.get_json() == {'message': 'success', 'status': 0}
+    rd = client.get('/api/tags')
+    assert rd.status_code == 200
+    assert rd.get_json() == {'tags': ['tag3 tag4', 'tag5']}
+    rd = client.get('/api/bookmarks/1')
+    assert rd.status_code == 200
+    assert rd.get_json() == {
+        'description': '', 'tags': ['tag3 tag4', 'tag5'], 'title': '',
+        'url': 'http://google.com'}
+
+
 def test_bookmark_api(client):
     url = 'http://google.com'
     rd = client.post('/api/bookmarks', data={'url': url})

@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # pylint: disable=wrong-import-order, ungrouped-imports
 """Server module."""
+from typing import Union
+from urllib.parse import urlparse
 import os
 import sys
-from urllib.parse import urlparse
 
 from buku import BukuDb, __version__, network_handler
 from flask.cli import FlaskGroup
+from flask.views import MethodView
 from flask_admin import Admin
 from flask_api import exceptions, FlaskAPI, status
 from flask_api.response import APIResponse
@@ -64,37 +66,6 @@ def network_handle_detail():
     except Exception as e:
         current_app.logger.debug(str(e))
     return failed_resp
-
-
-def tag_list():
-    tags = get_bukudb().get_tag_all()
-    result = {'tags': tags[0]}
-    return result
-
-
-def tag_detail(tag):
-    bukudb = get_bukudb()
-    if request.method == 'GET':
-        tags = bukudb.get_tag_all()
-        if tag not in tags[1]:
-            raise exceptions.NotFound()
-        res = dict(name=tag, usage_count=tags[1][tag])
-    elif request.method == 'PUT':
-        res = None
-        try:
-            new_tags = request.data.get('tags')
-            if new_tags:
-                new_tags = new_tags.split(',')
-            else:
-                return response.response_template['failure'], status.HTTP_400_BAD_REQUEST
-        except AttributeError as e:
-            raise exceptions.ParseError(detail=str(e))
-        result_flag = bukudb.replace_tag(tag, new_tags)
-        if result_flag:
-            res = response.response_template['success'], status.HTTP_200_OK
-        else:
-            res = response.response_template['failure'], status.HTTP_400_BAD_REQUEST
-    return res
 
 
 def update_tag(tag):
@@ -550,29 +521,18 @@ def create_app(db_file=None):
     )
     # routing
     #  api
-    app.add_url_rule('/api/tags', 'get_tags', tag_list, methods=['GET'])
-    app.add_url_rule('/api/tags/<tag>', 'update_tag', tag_detail, methods=['GET', 'PUT'])
+    tag_api_view = ApiTagView.as_view('tag_api')
+    app.add_url_rule('/api/tags', defaults={'tag': None}, view_func=tag_api_view, methods=['GET'])
+    app.add_url_rule('/api/tags/<tag>', view_func=tag_api_view, methods=['GET', 'PUT'])
     app.add_url_rule(
         '/api/network_handle',
-        'networkk_handle',
+        'network_handle',
         network_handle_detail,
         methods=['POST'])
     app.add_url_rule('/api/bookmarks', 'bookmarks', bookmarks, methods=['GET', 'POST', 'DELETE'])
-    app.add_url_rule(
-        '/api/bookmarks/refresh',
-        'refresh_bookmarks',
-        refresh_bookmarks,
-        methods=['POST'])
-    app.add_url_rule(
-        '/api/bookmarks/<id>',
-        'bookmark_api',
-        bookmark_api,
-        methods=['GET', 'PUT', 'DELETE'])
-    app.add_url_rule(
-        '/api/bookmarks/<id>/refresh',
-        'refresh_bookmark',
-        refresh_bookmark,
-        methods=['POST'])
+    app.add_url_rule('/api/bookmarks/<id>', 'bookmark_api', bookmark_api, methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmarks', refresh_bookmarks, methods=['POST'])
+    app.add_url_rule('/api/bookmarks/<id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
     app.add_url_rule('/api/bookmarks/<id>/long', 'get_long_url', get_long_url, methods=['GET'])
     app.add_url_rule(
@@ -591,6 +551,39 @@ def create_app(db_file=None):
     admin.add_view(views.StatisticView(
         bukudb, 'Statistic', endpoint='statistic'))
     return app
+
+
+class ApiTagView(MethodView):
+
+    def get(self, tag: Union[str, None]):
+        bukudb = get_bukudb()
+        if tag is None:
+            tags = bukudb.get_tag_all()
+            result = {'tags': tags[0]}
+            return result
+        tags = bukudb.get_tag_all()
+        if tag not in tags[1]:
+            raise exceptions.NotFound()
+        res = dict(name=tag, usage_count=tags[1][tag])
+        return res
+
+    def put(self, tag):
+        bukudb = get_bukudb()
+        res = None
+        try:
+            new_tags = request.data.get('tags')
+            if new_tags:
+                new_tags = new_tags.split(',')
+            else:
+                return response.response_template['failure'], status.HTTP_400_BAD_REQUEST
+        except AttributeError as e:
+            raise exceptions.ParseError(detail=str(e))
+        result_flag = bukudb.replace_tag(tag, new_tags)
+        if result_flag:
+            res = response.response_template['success'], status.HTTP_200_OK
+        else:
+            res = response.response_template['failure'], status.HTTP_400_BAD_REQUEST
+        return res
 
 
 class CustomFlaskGroup(FlaskGroup):  # pylint: disable=too-few-public-methods
