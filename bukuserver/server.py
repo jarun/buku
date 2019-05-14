@@ -62,7 +62,9 @@ def handle_network():
         return failed_resp
     try:
         res = network_handler(url)
-        return {'title': res[0], 'recognized mime': res[1], 'bad url': res[2]}
+        keys = ['title', 'description', 'tags', 'recognized mime', 'bad url']
+        res_dict = dict(zip(keys, res))
+        return jsonify(res_dict)
     except Exception as e:
         current_app.logger.debug(str(e))
     return failed_resp

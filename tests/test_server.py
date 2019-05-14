@@ -167,13 +167,19 @@ def test_get_tiny_url(client, url, exp_res, status_code):
     [
         dict(data={'url': 'http://google.com'}),
         200,
-        {'bad url': None, 'recognized mime': None, 'title': 'Google'}
+        {
+            'bad url': 0, 'description': None,
+            'recognized mime': 0, 'tags': None,
+            'title': 'Google'}
     ],
     [{}, 400, response_template['failure']],
     [
         dict(data={'url': 'chrome://bookmarks/'}),
         200,
-        {'bad url': None, 'recognized mime': None, 'title': None}
+        {
+            'bad url': 1, 'description': None,
+            'recognized mime': 0, 'tags': None,
+            'title': None}
     ],
 ])
 def test_network_handle(client, kwargs, status_code, exp_res):
