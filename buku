@@ -921,7 +921,7 @@ class BukuDb:
 
         return True
 
-    def refreshdb(self, index, threads):
+    def refreshdb(self, index: int, threads: int)->bool:
         """Refresh ALL records in the database.
 
         Fetch title for each bookmark from the web and update the records.
