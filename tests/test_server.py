@@ -131,3 +131,18 @@ def test_bookmark_api_delete(client, d_url):
     rd = client.delete(d_url)
     assert rd.status_code == 200
     assert rd.get_json() == response_template['success']
+
+
+@pytest.mark.parametrize('api_url', ['/api/bookmarks/refresh', '/api/bookmarks/1/refresh'])
+def test_refresh_bookmark(client, api_url):
+    url = 'http://google.com'
+    rd = client.post('/api/bookmarks', data={'url': url})
+    assert rd.status_code == 200
+    assert rd.get_json() == response_template['success']
+    rd = client.post(api_url)
+    assert rd.status_code == 200
+    assert rd.get_json() == response_template['success']
+    rd = client.get('/api/bookmarks/1')
+    assert rd.status_code == 200
+    assert rd.get_json() == {
+        'description': '', 'tags': [], 'title': 'Google', 'url': 'http://google.com'}
