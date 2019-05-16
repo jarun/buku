@@ -51,9 +51,9 @@ server_require = [
     'packaging>=16.8',
     'pyasn1>=0.2.3',
     'pycparser>=2.17',
-    'requests>=2.20.0',
+    'requests>=2.21.0',
     'six>=1.10.0',
-    'urllib3>=1.23',
+    'urllib3>=1.25.2',
     'Werkzeug>=0.11.15',
 ]
 
