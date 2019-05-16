@@ -256,11 +256,8 @@ def create_app(db_file=None):
     app.add_url_rule(
         '/api/bookmarks/<int:starting_id>/<int:ending_id>',
         view_func=bookmark_range_api_view, methods=['GET', 'PUT', 'DELETE'])
-    app.add_url_rule(
-        '/api/bookmarks/search',
-        'search_bookmarks',
-        search_bookmarks,
-        methods=['GET', 'DELETE'])
+    bookmark_search_api_view = ApiBookmarkSearchView.as_view('bookmark_search_api')
+    app.add_url_rule('/api/bookmarks/search', view_func=bookmark_search_api_view, methods=['GET', 'DELETE'])
     #  non api
     admin.add_view(views.BookmarkModelView(
         bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
@@ -451,6 +448,75 @@ class ApiBookmarkRangeView(MethodView):
             res = jsonify(response.response_template['failure'])
             res.status_code = status.HTTP_400_BAD_REQUEST
         else:
+            res = jsonify(response.response_template['success'])
+        return res
+
+
+class ApiBookmarkSearchView(MethodView):
+
+    def get(self):
+        arg_obj = request.args
+        keywords = arg_obj.getlist('keywords')
+        all_keywords = arg_obj.get('all_keywords')
+        deep = arg_obj.get('deep')
+        regex = arg_obj.get('regex')
+        # api request is more strict
+        all_keywords = False if all_keywords is None else all_keywords
+        deep = False if deep is None else deep
+        regex = False if regex is None else regex
+        all_keywords = (
+            all_keywords if isinstance(all_keywords, bool) else
+            all_keywords.lower() == 'true'
+        )
+        deep = deep if isinstance(deep, bool) else deep.lower() == 'true'
+        regex = regex if isinstance(regex, bool) else regex.lower() == 'true'
+
+        result = {'bookmarks': []}
+        bukudb = getattr(flask.g, 'bukudb', get_bukudb())
+        found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
+        found_bookmarks = [] if found_bookmarks is None else found_bookmarks
+        res = None
+        if found_bookmarks is not None:
+            for bookmark in found_bookmarks:
+                result_bookmark = {
+                    'id': bookmark[0],
+                    'url': bookmark[1],
+                    'title': bookmark[2],
+                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                    'description': bookmark[4]
+                }
+                result['bookmarks'].append(result_bookmark)
+        current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks'])))
+        res = jsonify(result)
+        return res
+
+    def delete(self):
+        arg_obj = request.form
+        keywords = arg_obj.getlist('keywords')
+        all_keywords = arg_obj.get('all_keywords')
+        deep = arg_obj.get('deep')
+        regex = arg_obj.get('regex')
+        # api request is more strict
+        all_keywords = False if all_keywords is None else all_keywords
+        deep = False if deep is None else deep
+        regex = False if regex is None else regex
+        all_keywords = (
+            all_keywords if isinstance(all_keywords, bool) else
+            all_keywords.lower() == 'true'
+        )
+        deep = deep if isinstance(deep, bool) else deep.lower() == 'true'
+        regex = regex if isinstance(regex, bool) else regex.lower() == 'true'
+        bukudb = getattr(flask.g, 'bukudb', get_bukudb())
+        found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
+        found_bookmarks = [] if found_bookmarks is None else found_bookmarks
+        res = None
+        if found_bookmarks is not None:
+            for bookmark in found_bookmarks:
+                result_flag = bukudb.delete_rec(bookmark[0])
+                if result_flag is False:
+                    res = jsonify(response.response_template['failure'])
+                    res.status = status.HTTP_400_BAD_REQUEST
+        if res is None:
             res = jsonify(response.response_template['success'])
         return res
 

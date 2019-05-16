@@ -217,3 +217,19 @@ def test_bookmark_range_api(client):
     assert rd.get_json() == response_template['success']
     rd = client.get('/api/bookmarks')
     assert rd.get_json() == {'bookmarks': []}
+
+
+def test_bookmark_search(client):
+    status_code = 200
+    rd = client.post('/api/bookmarks', data={'url': 'http://google.com'})
+    assert rd.status_code == status_code
+    assert rd.get_json() == response_template['success']
+    rd = client.get('/api/bookmarks/search', query_string={'keywords': ['google']})
+    assert rd.status_code == status_code
+    assert rd.get_json() == {'bookmarks': [
+        {'description': '', 'id': 1, 'tags': [], 'title': '', 'url': 'http://google.com'}]}
+    rd = client.delete('/api/bookmarks/search', data={'keywords': ['google']})
+    assert rd.status_code == status_code
+    assert rd.get_json() == response_template['success']
+    rd = client.get('/api/bookmarks')
+    assert rd.get_json() == {'bookmarks': []}
