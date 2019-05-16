@@ -150,8 +150,9 @@ def test_refresh_bookmark(client, api_url):
     assert rd.get_json() == response_template['success']
     rd = client.get('/api/bookmarks/1')
     assert rd.status_code == 200
-    assert rd.get_json() == {
-        'description': '', 'tags': [], 'title': 'Google', 'url': 'http://google.com'}
+    json_data = rd.get_json()
+    json_data.pop('description')
+    assert json_data == {'tags': [], 'title': 'Google', 'url': 'http://google.com'}
 
 
 @pytest.mark.parametrize(
@@ -173,24 +174,24 @@ def test_get_tiny_url(client, url, exp_res, status_code):
         dict(data={'url': 'http://google.com'}),
         200,
         {
-            'bad url': 0, 'description': None,
-            'recognized mime': 0, 'tags': None,
-            'title': 'Google'}
+            'bad url': 0, 'recognized mime': 0,
+            'tags': None, 'title': 'Google'}
     ],
     [{}, 400, response_template['failure']],
     [
         dict(data={'url': 'chrome://bookmarks/'}),
         200,
         {
-            'bad url': 1, 'description': None,
-            'recognized mime': 0, 'tags': None,
-            'title': None}
+            'bad url': 1, 'recognized mime': 0,
+            'tags': None, 'title': None}
     ],
 ])
 def test_network_handle(client, kwargs, status_code, exp_res):
     rd = client.post('/api/network_handle', **kwargs)
     assert rd.status_code == status_code
-    assert rd.get_json() == exp_res
+    rd_json = rd.get_json()
+    rd_json.pop('description', None)
+    assert rd_json == exp_res
 
 
 def test_bookmark_range_api(client):
