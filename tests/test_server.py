@@ -1,3 +1,5 @@
+import json
+
 from click.testing import CliRunner
 import flask
 import pytest
@@ -60,6 +62,9 @@ def test_api_empty_db(client, url, exp_res):
         ['/api/bookmarks/1', response_template['failure'], 400, 'delete'],
         ['/api/bookmarks/1/refresh', response_template['failure'], 400, 'post'],
         ['/api/bookmarks/1/tiny', response_template['failure'], 400, 'get'],
+        ['/api/bookmarks/1/2', response_template['failure'], 400, 'get'],
+        ['/api/bookmarks/1/2', response_template['failure'], 400, 'put'],
+        ['/api/bookmarks/1/2', response_template['failure'], 400, 'delete'],
     ]
 )
 def test_invalid_id(client, url, exp_res, status_code, method):
@@ -186,3 +191,29 @@ def test_network_handle(client, kwargs, status_code, exp_res):
     rd = client.post('/api/network_handle', **kwargs)
     assert rd.status_code == status_code
     assert rd.get_json() == exp_res
+
+
+def test_bookmark_range_api(client):
+    status_code = 200
+    kwargs_list = [
+        dict(data={'url': 'http://google.com'}),
+        dict(data={'url': 'http://example.com'})]
+    for kwargs in kwargs_list:
+        rd = client.post('/api/bookmarks', **kwargs)
+        assert rd.status_code == status_code
+    rd = client.get('/api/bookmarks/1/2')
+    assert rd.status_code == status_code
+    assert rd.get_json() == {
+        'bookmarks': {
+            '1': {'description': '', 'tags': [], 'title': '', 'url': 'http://google.com'},
+            '2': {'description': '', 'tags': [], 'title': '', 'url': 'http://example.com'}}}
+    put_data = json.dumps({1: {'tags': 'tag1'}, 2: {'tags': 'tag2'}})
+    headers = {'content-type': 'application/json'}
+    rd = client.put('/api/bookmarks/1/2', data=put_data, headers=headers)
+    assert rd.status_code == status_code
+    assert rd.get_json() == response_template['success']
+    rd = client.delete('/api/bookmarks/1/2')
+    assert rd.status_code == status_code
+    assert rd.get_json() == response_template['success']
+    rd = client.get('/api/bookmarks')
+    assert rd.get_json() == {'bookmarks': []}
