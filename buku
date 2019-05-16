@@ -1433,12 +1433,12 @@ class BukuDb:
                     print('Index %d moved to %d' % (row[0], index))
 
     def delete_rec(
-        self,
-        index: int,
-        low: Optional[int] = 0,
-        high: Optional[int] = 0,
-        is_range: Optional[bool] = False,
-        delay_commit: Optional[bool] = False
+            self,
+            index: int,
+            low: Optional[int] = 0,
+            high: Optional[int] = 0,
+            is_range: Optional[bool] = False,
+            delay_commit: Optional[bool] = False
     ) -> bool:
         """Delete a single record or remove the table if index is None.
 
@@ -3416,7 +3416,7 @@ def gen_headers():
         'Accept': '*/*',
         'Cookie': '',
         'DNT': '1'
-                }
+    }
 
     MYPROXY = os.environ.get('https_proxy')
     if MYPROXY:
