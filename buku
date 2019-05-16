@@ -1432,7 +1432,14 @@ class BukuDb:
                 if self.chatty:
                     print('Index %d moved to %d' % (row[0], index))
 
-    def delete_rec(self, index, low=0, high=0, is_range=False, delay_commit=False):
+    def delete_rec(
+        self,
+        index: int,
+        low: Optional[int] = 0,
+        high: Optional[int] = 0,
+        is_range: Optional[bool] = False,
+        delay_commit: Optional[bool] = False
+    )->bool:
         """Delete a single record or remove the table if index is None.
 
         Parameters
