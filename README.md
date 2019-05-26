@@ -123,7 +123,7 @@ To copy url to clipboard at the prompt `Buku` uses `xsel` (or `xclip`) on Linux,
 
 #### Release packages
 
-Packages for Arch Linux, CentOS, Debian, Fedora, openSUSE Leap and Ubuntu are available with the [latest stable release](https://github.com/jarun/Buku/releases/latest).
+Auto-generated packages (with only the cli component) for Arch Linux, CentOS, Debian, Fedora, openSUSE Leap and Ubuntu are available with the [latest stable release](https://github.com/jarun/Buku/releases/latest).
 
 NOTE: CentOS may not have the python3-beautifulsoup4 package in the repos. Install it using pip3.
 
@@ -131,7 +131,7 @@ NOTE: CentOS may not have the python3-beautifulsoup4 package in the repos. Insta
 
 If you have git installed, clone this repository. Otherwise download the [latest stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip) (*risky*).
 
-Install to default location (`/usr/local`):
+Install the cli component to default location (`/usr/local`):
 
     $ sudo make install
 

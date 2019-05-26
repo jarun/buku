@@ -1,4 +1,4 @@
-name: buku
+name: buku-cli
 maintainer: Arun Prakash Jana <engineerarun@gmail.com>
 license: GPLv3
 summary: Bookmark manager like a text-based mini-web.
