@@ -381,7 +381,7 @@ class TagModelView(BaseModelView):
 
     def scaffold_form(self):
         class CustomForm(FlaskForm):  # pylint: disable=too-few-public-methods
-            name = wtforms.StringField(validators=[wtforms.validators.required()])
+            name = wtforms.StringField(validators=[wtforms.validators.DataRequired()])
 
         return CustomForm
 

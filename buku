@@ -34,7 +34,7 @@ from subprocess import Popen, PIPE, DEVNULL
 import sys
 import threading
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 import webbrowser
 try:
     import readline
@@ -333,7 +333,7 @@ class BukuCrypt:
             sys.exit(1)
 
 
-BookmarkVar = Tuple[int, str, str, str, str, int]
+BookmarkVar = Tuple[int, str, Union[str, None], str, str, int]
 
 
 class BukuDb:
@@ -489,7 +489,7 @@ class BukuDb:
         self.cur.execute('SELECT * FROM bookmarks')
         return self.cur.fetchall()
 
-    def get_rec_by_id(self, index):
+    def get_rec_by_id(self, index: int) -> Union[BookmarkVar, None]:
         """Get a bookmark from database by its ID.
 
         Parameters
@@ -749,13 +749,13 @@ class BukuDb:
 
     def update_rec(
             self,
-            index,
-            url=None,
-            title_in=None,
-            tags_in=None,
-            desc=None,
-            immutable=-1,
-            threads=4):
+            index: int,
+            url: Optional[str] = None,
+            title_in: Optional[str] = None,
+            tags_in: Optional[str] = None,
+            desc: Optional[str] = None,
+            immutable: Optional[int] = -1,
+            threads: Optional[int] = 4) -> bool:
         """Update an existing record at index.
 
         Update all records if index is 0 and url is not specified.
@@ -786,7 +786,7 @@ class BukuDb:
             True on success, False on Failure.
         """
 
-        arguments = []
+        arguments = []  # type: List[Any]
         query = 'UPDATE bookmarks SET'
         to_update = False
         tag_modified = False
@@ -921,7 +921,7 @@ class BukuDb:
 
         return True
 
-    def refreshdb(self, index, threads):
+    def refreshdb(self, index: int, threads: int) -> bool:
         """Refresh ALL records in the database.
 
         Fetch title for each bookmark from the web and update the records.
@@ -1163,7 +1163,13 @@ class BukuDb:
             return None
         return self.cur.fetchall()
 
-    def searchdb(self, keywords, all_keywords=False, deep=False, regex=False):
+    def searchdb(
+            self,
+            keywords: List[str],
+            all_keywords: Optional[bool] = False,
+            deep: Optional[bool] = False,
+            regex: Optional[bool] = False
+    ) -> Union[List[Any], None]:
         """Search DB for entries where tags, URL, or title fields match keywords.
 
         Parameters
@@ -1196,7 +1202,7 @@ class BukuDb:
               'URL REGEXP ? OR '
               'metadata REGEXP ? OR '
               'desc REGEXP ?) ')
-        qargs = []
+        qargs = []  # type: List[Any]
 
         case_statement = lambda x: 'CASE WHEN ' + x + ' THEN 1 ELSE 0 END'
         if regex:
@@ -1426,7 +1432,14 @@ class BukuDb:
                 if self.chatty:
                     print('Index %d moved to %d' % (row[0], index))
 
-    def delete_rec(self, index, low=0, high=0, is_range=False, delay_commit=False):
+    def delete_rec(
+            self,
+            index: int,
+            low: Optional[int] = 0,
+            high: Optional[int] = 0,
+            is_range: Optional[bool] = False,
+            delay_commit: Optional[bool] = False
+    ) -> bool:
         """Delete a single record or remove the table if index is None.
 
         Parameters
@@ -1790,7 +1803,7 @@ class BukuDb:
 
         return parse_tags(tags)
 
-    def replace_tag(self, orig, new=None):
+    def replace_tag(self, orig: str, new: Union[List[str], None] = None) -> bool:
         """Replace original tag by new tags in all records.
 
         Remove original tag if new tag is empty.
@@ -2473,7 +2486,11 @@ class BukuDb:
 
         return True
 
-    def tnyfy_url(self, index=0, url=None, shorten=True):
+    def tnyfy_url(
+            self,
+            index: Optional[int] = 0,
+            url: Optional[str] = None,
+            shorten: Optional[bool] = True) -> Union[str, None]:
         """Shorten a URL using Google URL shortener.
 
         Parameters
@@ -3399,7 +3416,7 @@ def gen_headers():
         'Accept': '*/*',
         'Cookie': '',
         'DNT': '1'
-                }
+    }
 
     MYPROXY = os.environ.get('https_proxy')
     if MYPROXY:
@@ -3439,7 +3456,10 @@ def get_PoolManager():
         ca_certs=ca_certs)
 
 
-def network_handler(url, http_head=False):
+def network_handler(
+        url: str,
+        http_head: Optional[bool] = False
+) -> Tuple[Union[str, None], Union[str, None], Union[str, None], int, int]:
     """Handle server connection and redirections.
 
     Parameters

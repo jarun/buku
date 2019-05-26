@@ -18,6 +18,7 @@ with open('README.md', encoding='utf-8') as f:
 tests_require = [
     'attrs>=17.4.0',
     'beautifulsoup4>=4.6.0',
+    'Click>=7.0',
     'flake8>=3.4.1',
     'hypothesis>=3.7.0',
     'mypy-extensions==0.4.1',
@@ -50,9 +51,9 @@ server_require = [
     'packaging>=16.8',
     'pyasn1>=0.2.3',
     'pycparser>=2.17',
-    'requests>=2.20.0',
+    'requests>=2.21.0',
     'six>=1.10.0',
-    'urllib3>=1.23',
+    'urllib3>=1.25.2',
     'Werkzeug>=0.11.15',
 ]
 
@@ -82,7 +83,7 @@ setup(
         'console_scripts': ['buku=buku:main', 'bukuserver=bukuserver.server:cli']
     },
     extras_require={
-        'tests': tests_require,
+        'tests': tests_require + server_require,
         'server': server_require,
         'packaging': ['twine>=1.11.0']
     },

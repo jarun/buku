@@ -299,7 +299,7 @@
       }],
       // These labels appear in the legend and in the tooltips when hovering different arcs
       labels: [
-        {% for val in most_common_titles %} "{{val.0}}", {% endfor %}
+        {% for val in most_common_titles %} "{{val.0|trim}}", {% endfor %}
       ]
     },
     options: {
