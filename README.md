@@ -494,6 +494,7 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/i
 - [buku_run](https://github.com/carnager/buku_run), rofi front-end
 - [pinku](https://github.com/mosegontar/pinku), a Pinboard-to-Buku import utility
 - [buku-dmenu](https://gitlab.com/benoliver999/buku-dmenu), a simple bash dmenu wrapper
+- [poku](https://github.com/shanedabes/poku), sync between Pocket and Buku
 
 <a href="http://buku.readthedocs.io/en/stable/?badge=stable"><img src="https://img.shields.io/badge/docs-stable-brightgreen.svg?maxAge=2592000" alt="Stable Docs" /></a>
 
