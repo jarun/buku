@@ -221,6 +221,7 @@ def create_app(db_file=None):
         url_render_mode = views.DEFAULT_URL_RENDER_MODE
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
+    app.config['BUKUSERVER_DISABLE_FAVICON'] = bool(os.getenv('BUKUSERVER_DISABLE_FAVICON', False))
     app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE') or db_file
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.app_context().push()

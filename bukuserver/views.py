@@ -1,11 +1,13 @@
 """views module."""
+from argparse import Namespace
 from collections import Counter
 from types import SimpleNamespace
+from typing import Any
 from urllib.parse import urlparse
 import itertools
 import logging
 
-from flask import flash, redirect, request, url_for
+from flask import current_app, flash, redirect, request, url_for
 from flask_admin.babel import gettext
 from flask_admin.base import AdminIndexView, BaseView, expose
 from flask_admin.model import BaseModelView
@@ -75,7 +77,8 @@ class BookmarkModelView(BaseModelView):
     def _create_ajax_loader(self, name, options):
         pass
 
-    def _list_entry(self, context, model, name):
+    def _list_entry(
+            self, context: Any, model: Namespace, name: str) -> Markup:
         parsed_url = urlparse(model.url)
         netloc, scheme = parsed_url.netloc, parsed_url.scheme
         is_scheme_valid = scheme in ('http', 'https')
@@ -91,9 +94,11 @@ class BookmarkModelView(BaseModelView):
             """.format(
                 model, ''.join(tag_text), Markup.escape(model.url)
             ))
-        netloc_tmpl = '<img src="{}{}"/> '
-        res = netloc_tmpl.format(
-            'http://www.google.com/s2/favicons?domain=', netloc)
+        res = ''
+        if not current_app.config.get('BUKUSERVER_DISABLE_FAVICON', False):
+            netloc_tmpl = '<img src="{}{}"/> '
+            res = netloc_tmpl.format(
+                'http://www.google.com/s2/favicons?domain=', netloc)
         title = model.title if model.title else '&lt;EMPTY TITLE&gt;'
         if is_scheme_valid:
             res += '<a href="{0.url}">{1}</a>'.format(model, title)
