@@ -57,6 +57,7 @@ Following are available os env config available for bukuserver.
 | URL_RENDER_MODE | url render mode | `full` or `netloc` [default: `full`] |
 | DB_FILE | full path to db file | path string [default: standard path for buku] |
 | DISABLE_FAVICON | disable favicon | boolean [default: `false`] |
+| OPEN_IN_NEW_TAB | url link open in new tab | boolean [default: `false`] |
 
 Note: `BUKUSERVER_` is the common prefix.
 

@@ -100,7 +100,10 @@ class BookmarkModelView(BaseModelView):
             res = netloc_tmpl.format(
                 'http://www.google.com/s2/favicons?domain=', netloc)
         title = model.title if model.title else '&lt;EMPTY TITLE&gt;'
-        if is_scheme_valid:
+        open_in_new_tab = current_app.config.get('BUKUSERVER_OPEN_IN_NEW_TAB', False)
+        if is_scheme_valid and open_in_new_tab:
+            res += '<a href="{0.url}" target="_blank">{1}</a>'.format(model, title)
+        elif is_scheme_valid and not open_in_new_tab:
             res += '<a href="{0.url}">{1}</a>'.format(model, title)
         else:
             res += title
