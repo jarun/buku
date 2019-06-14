@@ -8,3 +8,4 @@ dist
 build
 buku.py
 .tox
+.history
