@@ -1318,7 +1318,7 @@ def test_load_chrome_database(chrome_db, add_pt):
     dump_data = False  # NOTE: change this value to dump data
     if not dump_data:
         with open(res_yaml_file, 'r') as f:
-            res_yaml = yaml.load(f)
+            res_yaml = yaml.load(f, Loader=yaml.FullLoader)
     # init
     import buku
     bdb = buku.BukuDb()
