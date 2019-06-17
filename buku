@@ -36,7 +36,6 @@ import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 import webbrowser
-import pyreadline
 try:
     import readline
 except ImportError:
