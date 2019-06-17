@@ -38,10 +38,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import webbrowser
 import pyreadline
 try:
-    from pyreadline import Readline
-    readline = Readline()
+    import readline
 except ImportError:
-    pass
+    import pyreadline as readline
 from bs4 import BeautifulSoup
 import certifi
 import urllib3
