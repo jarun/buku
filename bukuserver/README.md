@@ -79,11 +79,11 @@ ENV BUKUSERVER_PER_PAGE=100
 
 ### Bookmarklet
 
-Here is simple bookmarlet to add current url
+Here is simple bookmarlet to add current url.
 
 <a href="javascript:void function(){var e="http://127.0.0.1:5001/api/bookmarks",t=new XMLHttpRequest;t.open("POST",e),t.setRequestHeader("Content-Type","application/json"),t.send(JSON.stringify({url:document.location.href}))}();">add bookmark</a>
 
-this require bukuserver to run on 127.0.0.1:5001
+This require bukuserver to run on 127.0.0.1:5001
 
 Javascript code
 
@@ -95,7 +95,7 @@ t.setRequestHeader("Content-Type","application/json"),
 t.send(JSON.stringify({url:document.location.href}))
 ```
 
-to change bookmarklet so it use another bukuserver url, 
+To modify the bookmarklet to use another bukuserver url,
 copy the code above and edit the bukuserver url variable.
 
 after that put the code to bookmarklet generator such as http://bookmarklets.org/maker/
