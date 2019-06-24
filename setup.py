@@ -3,6 +3,8 @@
 import os
 import re
 import shutil
+import setuptools
+import py2exe
 
 from setuptools import setup, find_packages
 
@@ -105,5 +107,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Topic :: Internet :: WWW/HTTP :: Indexing/Search',
         'Topic :: Utilities'
-    ]
+    ],
+    options = {'py2exe': {'bundle_files': 1, 'compressed': True}},
+    windows = [{'script': "single.py"}]
 )
