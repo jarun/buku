@@ -36,10 +36,9 @@ import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 import webbrowser
-import pyreadline
 try:
-    from pyreadline import Readline
-    readline = Readline()
+    import readline
+    readline
 except ImportError:
     pass
 from bs4 import BeautifulSoup
@@ -2182,7 +2181,7 @@ class BukuDb:
             True if bookmark parent folders should be added as tags else False.
         """
 
-        with open(path, 'r', encoding="utf8") as datafile:
+        with open(path, 'r') as datafile:
             data = json.load(datafile)
 
         roots = data['roots']
