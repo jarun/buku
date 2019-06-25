@@ -38,9 +38,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import webbrowser
 try:
     import readline
-    readline
 except ImportError:
-    pass
+    import pyreadline as readline
 from bs4 import BeautifulSoup
 import certifi
 import urllib3
@@ -2181,7 +2180,7 @@ class BukuDb:
             True if bookmark parent folders should be added as tags else False.
         """
 
-        with open(path, 'r') as datafile:
+        with open(path, 'r', encoding="utf8") as datafile:
             data = json.load(datafile)
 
         roots = data['roots']
