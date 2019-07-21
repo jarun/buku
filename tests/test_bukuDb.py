@@ -64,6 +64,16 @@ def setup():
         os.remove(TEST_TEMP_DBFILE_PATH)
 
 
+class PrettySafeLoader(yaml.SafeLoader):
+    def construct_python_tuple(self, node):
+        return tuple(self.construct_sequence(node))
+
+
+PrettySafeLoader.add_constructor(
+    u'tag:yaml.org,2002:python/tuple',
+    PrettySafeLoader.construct_python_tuple)
+
+
 class TestBukuDb(unittest.TestCase):
 
     def setUp(self):
@@ -1321,7 +1331,7 @@ def test_load_chrome_database(chrome_db, add_pt):
             try:
                 res_yaml = yaml.load(f, Loader=yaml.FullLoader)
             except RuntimeError:
-                res_yaml = yaml.safe_load(f)
+                res_yaml = yaml.load(f, Loader=PrettySafeLoader)
     # init
     import buku
     bdb = buku.BukuDb()
@@ -1365,7 +1375,7 @@ def test_load_firefox_database(firefox_db, add_pt):
             try:
                 res_yaml = yaml.load(f)
             except RuntimeError:
-                res_yaml = yaml.safe_load(f)
+                res_yaml = yaml.load(f, Loader=PrettySafeLoader)
     # init
     import buku
     bdb = buku.BukuDb()
