@@ -1318,7 +1318,10 @@ def test_load_chrome_database(chrome_db, add_pt):
     dump_data = False  # NOTE: change this value to dump data
     if not dump_data:
         with open(res_yaml_file, 'r') as f:
-            res_yaml = yaml.load(f, Loader=yaml.FullLoader)
+            try:
+                res_yaml = yaml.load(f, Loader=yaml.FullLoader)
+            except RuntimeError:
+                res_yaml = yaml.safe_load(f)
     # init
     import buku
     bdb = buku.BukuDb()
@@ -1359,7 +1362,10 @@ def test_load_firefox_database(firefox_db, add_pt):
     res_yaml_file = firefox_db[1] if add_pt else firefox_db[2]
     if not dump_data:
         with open(res_yaml_file, 'r') as f:
-            res_yaml = yaml.load(f)
+            try:
+                res_yaml = yaml.load(f)
+            except RuntimeError:
+                res_yaml = yaml.safe_load(f)
     # init
     import buku
     bdb = buku.BukuDb()
