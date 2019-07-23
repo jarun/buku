@@ -64,7 +64,7 @@ def setup():
         os.remove(TEST_TEMP_DBFILE_PATH)
 
 
-class PrettySafeLoader(yaml.SafeLoader):
+class PrettySafeLoader(yaml.SafeLoader):   # pylint: disable=too-many-ancestors
     def construct_python_tuple(self, node):
         return tuple(self.construct_sequence(node))
 
