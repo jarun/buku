@@ -13,9 +13,10 @@ RUN set -ex \
     libffi-dev \
   && pip install -U --no-cache-dir \
     pip \
+    gunicorn \
   && cd Buku \
   && pip install --no-cache-dir .[server]
 
-ENTRYPOINT FLASK_ENV=production FLASK_APP=/Buku/bukuserver/server.py flask run --host 0.0.0.0 --port 5001
+ENTRYPOINT gunicorn --bind 0.0.0.0:5001 "Buku.bukuserver.server:create_app()"
 EXPOSE 5001
 
