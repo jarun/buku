@@ -224,6 +224,9 @@ def create_app(db_file=None):
     disable_favicon = os.getenv('BUKUSERVER_DISABLE_FAVICON', 'false')
     app.config['BUKUSERVER_DISABLE_FAVICON'] = \
         False if disable_favicon.lower() in ['false', '0'] else bool(disable_favicon)
+    open_in_new_tab = os.getenv('BUKUSERVER_OPEN_IN_NEW_TAB', 'false')
+    app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \
+        False if open_in_new_tab.lower() in ['false', '0'] else bool(open_in_new_tab)
     app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE') or db_file
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.app_context().push()
