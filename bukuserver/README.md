@@ -6,6 +6,7 @@
   - [Dependencies](#dependencies)
   - [From PyPi](#from-pypi)
   - [From source](#from-source)
+  - [Using Docker](#using-docker)
 - [Webserver options](#webserver-options)
 - [Configuration](#configuration)
 - [Screenshots](#screenshots)
@@ -35,6 +36,26 @@ $ git clone https://github.com/jarun/Buku
 $ cd Buku
 $ pip3 install .[server]
 ```
+
+#### Using Docker
+
+To build the image execute the command from the root directory of the project:
+
+```sh
+docker build -t bukuserver .
+```
+
+To run the generated image.
+
+```sh
+docker run -it --rm -v ~/.local/share/buku:/root/.local/share/buku -p 5001:5001 bukuserver
+```
+
+All the data generated will be stored in the `~/.local/share/buku` directory.
+Feel free to change it to the full path of the location you want to store the
+database.
+
+Visit `127.0.0.1:5001` in your browser to access your bookmarks.
 
 ### Webserver options
 
