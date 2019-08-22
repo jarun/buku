@@ -2,21 +2,20 @@ FROM python:alpine
 
 MAINTAINER Ameya Shenoy "shenoy.ameya@gmail.com"
 
+COPY . /Buku
+
 RUN set -ex \
-  && apk add --no-cache \
-    git \
+  && apk add --no-cache --virtual .build-deps \
     gcc \
     openssl-dev \
     musl-dev \
     libffi-dev \
   && pip install -U --no-cache-dir \
     pip \
-    gunicorn
+    gunicorn \
+    Buku[server] \
+  && apk del .build-deps
 
-COPY . /Buku
-RUN cd Buku \
-  && pip install --no-cache-dir .[server]
-
-ENTRYPOINT gunicorn --bind 0.0.0.0:5001 --log-level DEBUG "Buku.bukuserver.server:create_app()"
+ENTRYPOINT gunicorn --bind 0.0.0.0:5001 "Buku.bukuserver.server:create_app()"
 EXPOSE 5001
 
