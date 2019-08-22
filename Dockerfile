@@ -13,9 +13,10 @@ RUN set -ex \
   && pip install -U --no-cache-dir \
     pip \
     gunicorn \
-    Buku[server] \
-  && apk del .build-deps
+    /Buku[server] \
+  && apk del .build-deps \
+  && rm -rf /Buku
 
-ENTRYPOINT gunicorn --bind 0.0.0.0:5001 "Buku.bukuserver.server:create_app()"
+ENTRYPOINT gunicorn --bind 0.0.0.0:5001 "bukuserver.server:create_app()"
 EXPOSE 5001
 
