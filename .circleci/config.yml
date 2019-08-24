@@ -123,12 +123,16 @@ workflows:
     jobs:
       - build-docker-image:
           filters:
+            tags:
+              only: /^v.*/
             branches:
-              only: master
+              ignore: /.*/
       - publish-on-docker-hub:
           requires:
             - build-docker-image
           filters:
+            tags:
+              only: /^v.*/
             branches:
-              only: master
+              ignore: /.*/
 
