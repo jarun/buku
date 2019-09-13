@@ -79,14 +79,6 @@ setup(
     ],
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
-    entry_points={
-        'console_scripts': ['buku=buku:main', 'bukuserver=bukuserver.server:cli']
-    },
-    extras_require={
-        'tests': tests_require + server_require,
-        'server': server_require,
-        'packaging': ['twine>=1.11.0']
-    },
     test_suite='tests',
     tests_require=tests_require,
     keywords='cli bookmarks tag utility',
