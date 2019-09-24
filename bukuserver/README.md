@@ -7,6 +7,7 @@
   - [From PyPi](#from-pypi)
   - [From source](#from-source)
   - [Using Docker](#using-docker)
+  - [Using Docker Compose](#using-docker-compose)
 - [Webserver options](#webserver-options)
 - [Configuration](#configuration)
 - [Screenshots](#screenshots)
@@ -56,6 +57,36 @@ Feel free to change it to the full path of the location you want to store the
 database.
 
 Visit `127.0.0.1:5001` in your browser to access your bookmarks.
+
+#### Using Docker Compose
+
+There is a `docker-compose.yml` file present in the `docker-compose` directory
+in the root of this project. You may modify the configurations in this file to
+your liking, and then simply execute the below command.
+
+```sh
+docker-compose up -d
+```
+
+You will have you bukuserver running on port port 80 of the host.
+
+To stop simply run
+
+```sh
+docker-compose down
+```
+
+In case you want to add basic auth to your hosted instance you may do so by
+creating a `.htpasswd` file in the `data/basic_auth` directory. Add a user to
+the file using
+
+```sh
+htpasswd -c data/basic_auth/.htpasswd your_username
+```
+
+And then comment out the basic auth lines from the `data/nginx/nginx.conf` file.
+
+For more information please refer the [nginx docs](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
 
 ### Webserver options
 
