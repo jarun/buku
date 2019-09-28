@@ -6,6 +6,7 @@ disable=
   fixme,
   global-statement,
   import-error,
+  import-outside-toplevel,
   invalid-name,
   len-as-condition,
   logging-format-interpolation,
