@@ -20,6 +20,7 @@
 from enum import Enum
 from itertools import chain
 import argparse
+import calendar
 import cgi
 import collections
 import json
@@ -29,9 +30,11 @@ import re
 import shutil
 import signal
 import sqlite3
+import struct
 import subprocess
 from subprocess import Popen, PIPE, DEVNULL
 import sys
+import tempfile
 import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -151,7 +154,6 @@ class BukuCrypt:
             from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
-            import struct
         except ImportError:
             LOGERR('cryptography lib(s) missing')
             sys.exit(1)
@@ -220,7 +222,7 @@ class BukuCrypt:
                     chunk = infp.read(BukuCrypt.CHUNKSIZE)
                     if len(chunk) == 0:
                         break
-                    elif len(chunk) % 16 != 0:
+                    if len(chunk) % 16 != 0:
                         chunk = '%s%s' % (chunk, ' ' * (16 - len(chunk) % 16))
 
                     outfp.write(encryptor.update(chunk) + encryptor.finalize())
@@ -250,7 +252,6 @@ class BukuCrypt:
             from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
-            import struct
         except ImportError:
             LOGERR('cryptography lib(s) missing')
             sys.exit(1)
@@ -3661,10 +3662,8 @@ def gen_auto_tag():
         New tag as YYYYMonDD.
     """
 
-    import calendar as cal
-
     t = time.localtime()
-    return '%d%s%02d' % (t.tm_year, cal.month_abbr[t.tm_mon], t.tm_mday)
+    return '%d%s%02d' % (t.tm_year, calendar.month_abbr[t.tm_mon], t.tm_mday)
 
 
 def edit_at_prompt(obj, nav, suggest=False):
@@ -4009,7 +4008,6 @@ def copy_to_clipboard(content):
 
     # GNU Screen paste buffer
     if os.getenv('STY'):
-        import tempfile
         copier_params = ['screen', '-X', 'readbuf', '-e', 'utf8']
         tmpfd, tmppath = tempfile.mkstemp()
         try:
@@ -4550,7 +4548,7 @@ def parse_temp_file_content(content):
 
     comments = []
     if len(content) > 3:
-        comments = [c for c in content[3:]]
+        comments = list(content[3:])
         # need to remove all empty line that are at the end
         # and not those in the middle of the text
         for i in range(len(comments) - 1, -1, -1):
@@ -4592,8 +4590,6 @@ def edit_rec(editor, url, title_in, tags_in, desc):
     tuple
         Parsed results from parse_temp_file_content().
     """
-
-    import tempfile
 
     temp_file_content = to_temp_file_content(url, title_in, tags_in, desc)
 

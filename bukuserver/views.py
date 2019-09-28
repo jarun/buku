@@ -399,7 +399,7 @@ class TagModelView(BaseModelView):
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
         tags = bukudb.get_tag_all()[1]
-        tags = [(x, y) for x, y in tags.items()]
+        tags = dict(tags.items())
         tags = self._apply_filters(tags, filters)
         if sort_field == 'usage_count':
             tags = sorted(tags, key=lambda x: x[1], reverse=sort_desc)
