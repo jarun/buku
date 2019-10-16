@@ -1037,7 +1037,7 @@ def test_update_rec_index_0(caplog):
 
 
 @pytest.mark.parametrize(
-    'kwargs, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37',
+    'kwargs, exp_query, exp_query_p38, exp_arguments, exp_arguments_p38',
     [
         [
             {'index': 1, 'url': 'http://example.com'},
@@ -1089,25 +1089,25 @@ def test_update_rec_index_0(caplog):
         ],
     ]
 )
-def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37):
+def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_query_p38, exp_arguments, exp_arguments_p38):
     """test method."""
-    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+    if (sys.version_info.major, sys.version_info.minor) == (3, 8):
         caplog.set_level(logging.DEBUG)
-        exp_query = exp_query_p37
-        exp_arguments = exp_arguments_p37
+        exp_query = exp_query_p38
+        exp_arguments = exp_arguments_p38
     bdb = BukuDb()
     res = bdb.update_rec(**kwargs)
     assert res
 
     exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
-    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+    if (sys.version_info.major, sys.version_info.minor) == (3, 8):
         exp_log = 'update_rec ' + exp_log
     try:
         assert caplog.records[-1].getMessage() == exp_log
         assert caplog.records[-1].levelname == 'DEBUG'
     except IndexError as e:
         # TODO: fix test
-        if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6)]:
+        if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6), (3, 7)]:
             print('caplog records: {}'.format(caplog.records))
             for idx, record in enumerate(caplog.records):
                 print('idx:{};{};message:{};levelname:{}'.format(
@@ -1117,7 +1117,7 @@ def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_query_p37, exp_argum
 
 
 @pytest.mark.parametrize(
-    'tags_to_search, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37',
+    'tags_to_search, exp_query, exp_query_p38, exp_arguments, exp_arguments_p38',
     [
         [
             'tag1, tag2',
@@ -1160,14 +1160,14 @@ def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_query_p37, exp_argum
         ]
     ]
 )
-def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_query_p37, exp_arguments, exp_arguments_p37):
+def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_query_p38, exp_arguments, exp_arguments_p38):
     """test that the correct query and argments are constructed"""
-    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+    if (sys.version_info.major, sys.version_info.minor) == (3, 8):
         caplog.set_level(logging.DEBUG)
-        if exp_query_p37:
-            exp_query = exp_query_p37
-        if exp_arguments_p37:
-            exp_arguments = exp_arguments_p37
+        if exp_query_p38:
+            exp_query = exp_query_p38
+        if exp_arguments_p38:
+            exp_arguments = exp_arguments_p38
     bdb = BukuDb()
     bdb.search_by_tag(tags_to_search)
     exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
@@ -1176,7 +1176,7 @@ def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_query_p37, e
         assert caplog.records[-1].levelname == 'DEBUG'
     except IndexError as e:
         # TODO: fix test
-        if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6)]:
+        if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6), (3, 7)]:
             print('caplog records: {}'.format(caplog.records))
             for idx, record in enumerate(caplog.records):
                 print('idx:{};{};message:{};levelname:{}'.format(
@@ -1223,7 +1223,7 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
 @pytest.mark.parametrize('read_in_retval', ['y', 'n', ''])
 def test_update_rec_update_all_bookmark(caplog, read_in_retval):
     """test method."""
-    if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+    if (sys.version_info.major, sys.version_info.minor) == (3, 8):
         caplog.set_level(logging.DEBUG)
     with mock.patch('buku.read_in', return_value=read_in_retval):
         import buku
@@ -1234,7 +1234,7 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
             return
         assert res
         try:
-            if (sys.version_info.major, sys.version_info.minor) == (3, 7):
+            if (sys.version_info.major, sys.version_info.minor) == (3, 8):
                 assert caplog.records[0].getMessage() == \
                        'update_rec query: "UPDATE bookmarks SET tags = ?", args: [\',tags1,\']'
             else:
@@ -1243,7 +1243,7 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
             assert caplog.records[0].levelname == 'DEBUG'
         except IndexError as e:
             # TODO: fix test
-            if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6)]:
+            if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6), (3, 7)]:
                 print('caplog records: {}'.format(caplog.records))
                 for idx, record in enumerate(caplog.records):
                     print('idx:{};{};message:{};levelname:{}'.format(
