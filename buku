@@ -2326,7 +2326,8 @@ class BukuDb:
                 if not os.path.exists(bookmarks_database):
                     raise FileNotFoundError
                 self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
-        except Exception:
+        except Exception as e:
+            LOGERR(e)
             print('Could not import bookmarks from google-chrome')
 
         try:
@@ -2337,7 +2338,8 @@ class BukuDb:
                 if not os.path.exists(bookmarks_database):
                     raise FileNotFoundError
                 self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
-        except Exception:
+        except Exception as e:
+            LOGERR(e)
             print('Could not import bookmarks from chromium')
 
         try:
@@ -2348,7 +2350,8 @@ class BukuDb:
                 if not os.path.exists(bookmarks_database):
                     raise FileNotFoundError
                 self.load_firefox_database(bookmarks_database, newtag, add_parent_folder_as_tag)
-        except Exception:
+        except Exception as e:
+            LOGERR(e)
             print('Could not import bookmarks from Firefox.')
 
         self.conn.commit()
@@ -2859,6 +2862,15 @@ def get_firefox_profile_name(path):
     if os.path.exists(profile_path):
         config = ConfigParser()
         config.read(profile_path)
+
+        install_names = [section for section in config.sections() if section.startswith('Install')]
+        for name in install_names:
+            try:
+                profile_path = config.get(name, 'default')
+                return profile_path
+            except NoOptionError:
+                pass
+
         profiles_names = [section for section in config.sections() if section.startswith('Profile')]
         if not profiles_names:
             return None
