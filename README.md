@@ -2,19 +2,11 @@
 
 <p align="center">
 <a href="https://github.com/jarun/Buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg?maxAge=600" alt="Latest release" /></a>
-<a href="https://aur.archlinux.org/packages/buku"><img src="https://img.shields.io/aur/version/buku.svg?maxAge=600" alt="AUR" /></a>
-<a href="http://formulae.brew.sh/formula/buku"><img src="https://img.shields.io/homebrew/v/buku.svg?maxAge=600" alt="Homebrew" /></a>
-<a href="https://pypi.python.org/pypi/buku"><img src="https://img.shields.io/pypi/v/buku.svg?maxAge=600" alt="PyPI" /></a>
-<a href="https://packages.debian.org/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/debian-9+-blue.svg?maxAge=2592000" alt="Debian Stretch+" /></a>
-<a href="https://apps.fedoraproject.org/packages/buku"><img src="https://img.shields.io/badge/fedora-27+-blue.svg?maxAge=2592000" alt="Fedora 27+" /></a>
-<a href="https://software.opensuse.org/search?q=buku"><img src="https://img.shields.io/badge/opensuse%20leap-15.0+-blue.svg?maxAge=2592000" alt="openSUSE Leap 15.0+" /></a>
-<a href="https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1"><img src="https://img.shields.io/badge/ubuntu-17.04+-blue.svg?maxAge=2592000" alt="Ubuntu Zesty+" /></a>
-</p>
-
-<p align="center">
 <a href="https://repology.org/metapackage/buku"><img src="https://repology.org/badge/tiny-repos/buku.svg" alt="Availability"></a>
+<a href="https://pypi.python.org/pypi/buku"><img src="https://img.shields.io/pypi/v/buku.svg?maxAge=600" alt="PyPI" /></a>
 <a href="https://circleci.com/gh/jarun/workflows/Buku"><img src="https://img.shields.io/circleci/project/github/jarun/Buku.svg" alt="Build Status" /></a>
 <a href="http://buku.readthedocs.io/en/latest/?badge=latest"><img src="https://readthedocs.org/projects/buku/badge/?version=latest" alt="Docs Status" /></a>
+<a href="https://en.wikipedia.org/wiki/Privacy-invasive_software"><img src="https://img.shields.io/badge/privacy-aware-crimson" alt="Privacy Awareness" /></a>
 <a href="https://github.com/jarun/buku/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-yellow.svg?maxAge=2592000" alt="License" /></a>
 </p>
 
@@ -80,6 +72,7 @@ There are several [projects based on `buku`](#related-projects), including a bro
 - Smart tag management using redirection (>>, >, <<)
 - Multithreaded full DB refresh, manual encryption support
 - Shell completion scripts, man page with handy examples
+- Privacy-aware (no unconfirmed user data collection)
 
 ### Installation
 
