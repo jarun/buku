@@ -823,8 +823,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
         return
     if (low == 0 or high == 0) and input_retval == 'y':
         assert res == exp_res
-        with pytest.raises(sqlite3.OperationalError):
-            bdb.get_rec_all()
+        assert len(bdb_dc.get_rec_all()) == 0
         # teardown
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
         return
