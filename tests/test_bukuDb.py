@@ -844,32 +844,6 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 
-@only_python_3_5
-@pytest.mark.skip(reason='Impossible case.')
-@pytest.mark.parametrize(
-    'low, high',
-    product(
-        [1, MAX_SQLITE_INT + 1],
-        [1, MAX_SQLITE_INT + 1],
-    )
-)
-def test_delete_rec_range_and_big_int(setup, low, high):
-    """test delete rec, range and big integer."""
-    bdb = BukuDb()
-    index = 0
-    is_range = True
-
-    # Fill bookmark
-    for bookmark in TEST_BOOKMARKS:
-        bdb.add_rec(*bookmark)
-    db_len = len(TEST_BOOKMARKS)
-    res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
-    if high > db_len and low > db_len:
-        assert not res
-        return
-    assert res
-
-
 @given(index=st.integers(), delay_commit=st.booleans(), input_retval=st.booleans())
 @unittest.skip('skipping')
 def test_delete_rec_index_and_delay_commit(index, delay_commit, input_retval):
