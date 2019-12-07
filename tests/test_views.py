@@ -1,7 +1,7 @@
 from argparse import Namespace
 
-from flask import current_app
 import pytest
+from flask import current_app
 
 from buku import BukuDb
 from bukuserver import server
