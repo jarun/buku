@@ -1,8 +1,8 @@
 import json
 
-from click.testing import CliRunner
-import flask
 import pytest
+import flask
+from click.testing import CliRunner
 
 from bukuserver import server
 from bukuserver.response import response_template

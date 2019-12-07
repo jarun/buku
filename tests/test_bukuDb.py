@@ -12,7 +12,6 @@ import sys
 import urllib
 import zipfile
 from genericpath import exists
-from itertools import product
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 from unittest import mock
@@ -64,7 +63,7 @@ def setup():
         os.remove(TEST_TEMP_DBFILE_PATH)
 
 
-class PrettySafeLoader(yaml.SafeLoader):   # pylint: disable=too-many-ancestors
+class PrettySafeLoader(yaml.SafeLoader):   # pylint: disable=too-many-ancestors,too-few-public-methods
     def construct_python_tuple(self, node):
         return tuple(self.construct_sequence(node))
 
@@ -779,7 +778,6 @@ def test_compactdb(setup):
 )
 @example(low=0, high=0, delay_commit=False, input_retval='y')
 @settings(max_examples=2, deadline=None)
-@unittest.skip('skipping')
 def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
@@ -824,8 +822,7 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
         return
     if (low == 0 or high == 0) and input_retval == 'y':
         assert res == exp_res
-        with pytest.raises(sqlite3.OperationalError):
-            bdb.get_rec_all()
+        assert len(bdb_dc.get_rec_all()) == 0
         # teardown
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
         return
@@ -846,34 +843,18 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 
-@only_python_3_5
-@pytest.mark.skip(reason='Impossible case.')
 @pytest.mark.parametrize(
-    'low, high',
-    product(
-        [1, MAX_SQLITE_INT + 1],
-        [1, MAX_SQLITE_INT + 1],
-    )
+    'index, delay_commit, input_retval',
+    [
+        [-1, False, False],
+        [0, False, False],
+        [1, False, True],
+        [1, False, False],
+        [1, True, True],
+        [1, True, False],
+        [100, False, True],
+    ]
 )
-def test_delete_rec_range_and_big_int(setup, low, high):
-    """test delete rec, range and big integer."""
-    bdb = BukuDb()
-    index = 0
-    is_range = True
-
-    # Fill bookmark
-    for bookmark in TEST_BOOKMARKS:
-        bdb.add_rec(*bookmark)
-    db_len = len(TEST_BOOKMARKS)
-    res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
-    if high > db_len and low > db_len:
-        assert not res
-        return
-    assert res
-
-
-@given(index=st.integers(), delay_commit=st.booleans(), input_retval=st.booleans())
-@unittest.skip('skipping')
 def test_delete_rec_index_and_delay_commit(index, delay_commit, input_retval):
     """test delete rec, index and delay commit."""
     bdb = BukuDb()
@@ -885,11 +866,6 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit, input_retval):
     db_len = len(TEST_BOOKMARKS)
 
     n_index = index
-
-    if index.bit_length() > 63:
-        with pytest.raises(OverflowError):
-            bdb.delete_rec(index=index, delay_commit=delay_commit)
-        return
 
     with mock.patch('builtins.input', return_value=input_retval):
         res = bdb.delete_rec(index=index, delay_commit=delay_commit)
