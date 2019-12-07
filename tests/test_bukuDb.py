@@ -12,7 +12,6 @@ import sys
 import urllib
 import zipfile
 from genericpath import exists
-from itertools import product
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 from unittest import mock
@@ -844,8 +843,18 @@ def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
 
 
-@given(index=st.integers(), delay_commit=st.booleans(), input_retval=st.booleans())
-@unittest.skip('skipping')
+@pytest.mark.parametrize(
+    'index, delay_commit, input_retval',
+    [
+        [-1, False, False],
+        [0, False, False],
+        [1, False, True],
+        [1, False, False],
+        [1, True, True],
+        [1, True, False],
+        [100, False, True],
+    ]
+)
 def test_delete_rec_index_and_delay_commit(index, delay_commit, input_retval):
     """test delete rec, index and delay commit."""
     bdb = BukuDb()
@@ -857,11 +866,6 @@ def test_delete_rec_index_and_delay_commit(index, delay_commit, input_retval):
     db_len = len(TEST_BOOKMARKS)
 
     n_index = index
-
-    if index.bit_length() > 63:
-        with pytest.raises(OverflowError):
-            bdb.delete_rec(index=index, delay_commit=delay_commit)
-        return
 
     with mock.patch('builtins.input', return_value=input_retval):
         res = bdb.delete_rec(index=index, delay_commit=delay_commit)
