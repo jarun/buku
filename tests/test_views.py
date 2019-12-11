@@ -1,11 +1,12 @@
 from argparse import Namespace
+from types import SimpleNamespace
 
 import pytest
 from flask import current_app
 
 from buku import BukuDb
 from bukuserver import server
-from bukuserver.views import BookmarkModelView
+from bukuserver.views import BookmarkModelView, TagModelView
 
 
 @pytest.fixture
@@ -43,3 +44,60 @@ def test_bookmark_model_view(tmp_path, client, disable_favicon):
             '<br/>randomdesc')
     exp_res = ''.join([img_html, exp_res])
     assert str(res) == exp_res
+
+
+@pytest.fixture
+def tmv_instance(tmp_path):
+    """define tag model view instance"""
+    test_db = tmp_path / 'test.db'
+    bukudb = BukuDb(dbfile=test_db.as_posix())
+    inst = TagModelView(bukudb)
+    return inst
+
+
+def test_tag_model_view_get_list_empty_db(tmv_instance):
+    res = tmv_instance.get_list(None, None, None, None, [])
+    assert res == (0, [])
+
+
+@pytest.mark.parametrize('sort_field, sort_desc, filters, exp_res', [
+    [
+        None, False, [], (3, [
+            SimpleNamespace(name='t1', usage_count=1),
+            SimpleNamespace(name='t2', usage_count=2),
+            SimpleNamespace(name='t3', usage_count=3)
+        ])
+    ],
+    [
+        None, False, [(0, 'name', 't2')], (1, [
+            SimpleNamespace(name='t2', usage_count=2)
+        ])
+    ],
+    [
+        'name', False, [], (3, [
+            SimpleNamespace(name='t1', usage_count=1),
+            SimpleNamespace(name='t2', usage_count=2),
+            SimpleNamespace(name='t3', usage_count=3)
+        ])
+    ],
+    [
+        'name', True, [], (3, [
+            SimpleNamespace(name='t3', usage_count=3),
+            SimpleNamespace(name='t2', usage_count=2),
+            SimpleNamespace(name='t1', usage_count=1),
+        ])
+    ],
+    [
+        'usage_count', True, [], (3, [
+            SimpleNamespace(name='t3', usage_count=3),
+            SimpleNamespace(name='t2', usage_count=2),
+            SimpleNamespace(name='t1', usage_count=1),
+        ])
+    ],
+])
+def test_tag_model_view_get_list(tmv_instance, sort_field, sort_desc, filters, exp_res):
+    tmv_instance.bukudb.add_rec('http://example.com/1.jpg', tags_in='t1,t2,t3')
+    tmv_instance.bukudb.add_rec('http://example.com/2.jpg', tags_in='t2,t3')
+    tmv_instance.bukudb.add_rec('http://example.com/3.jpg', tags_in='t3')
+    res = tmv_instance.get_list(0, sort_field, sort_desc, None, filters)
+    assert res == exp_res
