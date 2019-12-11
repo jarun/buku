@@ -24,7 +24,7 @@ def greater_func(query, value, index):
 
 
 def smaller_func(query, value, index):
-    return filter(lambda x: x[index] > value, query)
+    return filter(lambda x: x[index] < value, query)
 
 
 def in_list_func(query, value, index):

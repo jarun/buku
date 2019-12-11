@@ -2,7 +2,7 @@
 from argparse import Namespace
 from collections import Counter
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, List, Optional, Tuple
 from urllib.parse import urlparse
 import itertools
 import logging
@@ -396,16 +396,22 @@ class TagModelView(BaseModelView):
     def scaffold_list_form(self, widget=None, validators=None):
         pass
 
-    def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
+    def get_list(
+            self,
+            page: int,
+            sort_field: str,
+            sort_desc: bool,
+            search: Optional[Any],
+            filters: List[Tuple[int, str, str]],
+            page_size: int = None) -> Tuple[int, List[SimpleNamespace]]:
         bukudb = self.bukudb
         tags = bukudb.get_tag_all()[1]
-        tags = dict(tags.items())
+        tags = sorted(tags.items())
         tags = self._apply_filters(tags, filters)
-        if sort_field == 'usage_count':
-            tags = sorted(tags, key=lambda x: x[1], reverse=sort_desc)
-        elif sort_field == 'name':
-            tags = sorted(tags, key=lambda x: x[0], reverse=sort_desc)
-        tags = list(tags)
+        sort_field_dict = {'usage_count': 1, 'name': 0}
+        if sort_field in sort_field_dict:
+            tags = list(sorted(
+                tags, key=lambda x: x[sort_field_dict[sort_field]], reverse=sort_desc))
         count = len(tags)
         if page_size and tags:
             tags = list(chunks(tags, page_size))[page]
