@@ -406,7 +406,7 @@ class TagModelView(BaseModelView):
             page_size: int = None) -> Tuple[int, List[SimpleNamespace]]:
         bukudb = self.bukudb
         tags = bukudb.get_tag_all()[1]
-        tags = tags.items()
+        tags = sorted(tags.items())
         tags = self._apply_filters(tags, filters)
         sort_field_dict = {'usage_count': 1, 'name': 0}
         if sort_field in sort_field_dict:

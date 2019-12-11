@@ -27,7 +27,6 @@ def test_bookmark_model_view(tmp_path, client, disable_favicon):
     model = Namespace(
         description='randomdesc', id=1, tags='tags1',
         title='Example Domain', url='http://example.com')
-    #  __import__('pdb').set_trace()
     current_app.config['BUKUSERVER_DISABLE_FAVICON'] = disable_favicon
     img_html = ''
     if not disable_favicon:
@@ -65,7 +64,7 @@ def test_tag_model_view_get_list_empty_db(tmv_instance):
         None, False, [], (3, [
             SimpleNamespace(name='t1', usage_count=1),
             SimpleNamespace(name='t2', usage_count=2),
-            SimpleNamespace(name='t3', usage_count=3)
+            SimpleNamespace(name='t3', usage_count=3),
         ])
     ],
     [
@@ -77,7 +76,7 @@ def test_tag_model_view_get_list_empty_db(tmv_instance):
         'name', False, [], (3, [
             SimpleNamespace(name='t1', usage_count=1),
             SimpleNamespace(name='t2', usage_count=2),
-            SimpleNamespace(name='t3', usage_count=3)
+            SimpleNamespace(name='t3', usage_count=3),
         ])
     ],
     [
