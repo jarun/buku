@@ -1206,7 +1206,7 @@ class BukuDb:
 
         case_statement = lambda x: 'CASE WHEN ' + x + ' THEN 1 ELSE 0 END'
         if regex:
-            q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
+            q0 = 'SELECT id, url, metadata, tags, desc, flags FROM (SELECT *, '
             for token in keywords:
                 if not token:
                     continue
@@ -1225,7 +1225,7 @@ class BukuDb:
             elif len(keywords) == 1 and keywords[0] == 'immutable':
                 q0 = 'SELECT * FROM bookmarks WHERE flags & 1 == 1 '
             else:
-                q0 = 'SELECT id, url, metadata, tags, desc FROM bookmarks WHERE '
+                q0 = 'SELECT id, url, metadata, tags, desc, flags FROM bookmarks WHERE '
                 for token in keywords:
                     if not token:
                         continue
@@ -1249,7 +1249,7 @@ class BukuDb:
                 q0 = q0[:-4]
             q0 += 'ORDER BY id ASC'
         elif not all_keywords:
-            q0 = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
+            q0 = 'SELECT id, url, metadata, tags, desc, flags FROM (SELECT *, '
             for token in keywords:
                 if not token:
                     continue
@@ -1317,7 +1317,7 @@ class BukuDb:
         LOGDBG('excluded_tags: %s', excluded_tags)
 
         if search_operator == 'AND':
-            query = ("SELECT id, url, metadata, tags, desc FROM bookmarks "
+            query = ("SELECT id, url, metadata, tags, desc, flags FROM bookmarks "
                      "WHERE tags LIKE '%' || ? || '%' ")
             for tag in tags[1:]:
                 query += "{} tags LIKE '%' || ? || '%' ".format(search_operator)
@@ -1328,7 +1328,7 @@ class BukuDb:
                 query += ') AND tags NOT REGEXP ? '
             query += 'ORDER BY id ASC'
         else:
-            query = 'SELECT id, url, metadata, tags, desc FROM (SELECT *, '
+            query = 'SELECT id, url, metadata, tags, desc, flags FROM (SELECT *, '
             case_statement = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
             query += case_statement
 
@@ -1417,10 +1417,11 @@ class BukuDb:
         if max_id == -1:
             return
 
-        query1 = 'SELECT id, URL, metadata, tags, desc FROM bookmarks WHERE id = ? LIMIT 1'
+        query1 = 'SELECT id, URL, metadata, tags, desc, flags FROM bookmarks WHERE id = ? LIMIT 1'
         query2 = 'DELETE FROM bookmarks WHERE id = ?'
-        query3 = 'INSERT INTO bookmarks(id, URL, metadata, tags, desc) VALUES (?, ?, ?, ?, ?)'
+        query3 = 'INSERT INTO bookmarks(id, URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?, ?)'
 
+        # NOOP if the just deleted index was the last one
         if max_id > index:
             self.cur.execute(query1, (max_id,))
             results = self.cur.fetchall()
