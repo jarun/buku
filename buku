@@ -1399,7 +1399,7 @@ class BukuDb:
 
         return list(set(search_results) - set(self.searchdb(without, False, deep)))
 
-    def compactdb(self, index, delay_commit=False):
+    def compactdb(self, index: int, delay_commit: bool = False):
         """When an entry at index is deleted, move the
         last entry in DB to index, if index is lesser.
 
@@ -1427,7 +1427,7 @@ class BukuDb:
             results = self.cur.fetchall()
             for row in results:
                 self.cur.execute(query2, (row[0],))
-                self.cur.execute(query3, (index, row[1], row[2], row[3], row[4],))
+                self.cur.execute(query3, (index, row[1], row[2], row[3], row[4], row[5]))
                 if not delay_commit:
                     self.conn.commit()
                 if self.chatty:

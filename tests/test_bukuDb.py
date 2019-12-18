@@ -264,7 +264,7 @@ class TestBukuDb(unittest.TestCase):
                          'http://example.com/',
                          'test',
                          ',es,est,tes,test,',
-                         'a case for replace_tag test')]
+                         'a case for replace_tag test', 0)]
             results = self.bdb.search_keywords_and_filter_by_tags(
                 ['News', 'case'],
                 False,
@@ -277,12 +277,12 @@ class TestBukuDb(unittest.TestCase):
                          'http://example.com/',
                          'test',
                          ',es,est,tes,test,',
-                         'a case for replace_tag test'),
+                         'a case for replace_tag test', 0),
                         (2,
                          'http://www.zażółćgęśląjaźń.pl/',
                          'ZAŻÓŁĆ',
                          ',gęślą,jaźń,zażółć,',
-                         'Testing UTF-8, zażółć gęślą jaźń.')]
+                         'Testing UTF-8, zażółć gęślą jaźń.', 0)]
             results = self.bdb.search_keywords_and_filter_by_tags(
                 ['UTF-8', 'case'],
                 False,
@@ -307,6 +307,7 @@ class TestBukuDb(unittest.TestCase):
             # Expect a five-tuple containing all bookmark data
             # db index, URL, title, tags, description
             expected = [(i + 1,) + tuple(bookmark)]
+            expected[0] += tuple([0])
             # search db by tag, url (domain name), and title
             for keyword in (tag_search, url_search, title_search):
                 with mock.patch('buku.prompt'):
@@ -327,6 +328,7 @@ class TestBukuDb(unittest.TestCase):
                 # Expect a five-tuple containing all bookmark data
                 # db index, URL, title, tags, description
                 expected = [(i + 1,) + tuple(self.bookmarks[i])]
+                expected[0] += tuple([0])
                 self.assertEqual(results, expected)
 
     @vcr.use_cassette('tests/vcr_cassettes/test_search_by_multiple_tags_search_any.yaml')
@@ -338,7 +340,7 @@ class TestBukuDb(unittest.TestCase):
         new_bookmark = ['https://newbookmark.com',
                         'New Bookmark',
                         parse_tags(['test,old,new']),
-                        'additional bookmark to test multiple tag search']
+                        'additional bookmark to test multiple tag search', 0]
 
         self.bdb.add_rec(*new_bookmark)
 
@@ -351,11 +353,11 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (4, 'https://newbookmark.com', 'New Bookmark',
                  parse_tags([',test,old,new,']),
-                 'additional bookmark to test multiple tag search'),
+                 'additional bookmark to test multiple tag search', 0),
                 (1, 'http://slashdot.org', 'SLASHDOT',
                  parse_tags([',news,old,']),
-                 "News for old nerds, stuff that doesn't matter"),
-                (3, 'http://example.com/', 'test', ',es,est,tes,test,', 'a case for replace_tag test')
+                 "News for old nerds, stuff that doesn't matter", 0),
+                (3, 'http://example.com/', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
             ]
             self.assertEqual(results, expected)
 
@@ -380,7 +382,7 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (4, 'https://newbookmark.com', 'New Bookmark',
                  parse_tags([',test,old,new,']),
-                 'additional bookmark to test multiple tag search')
+                 'additional bookmark to test multiple tag search', 0)
             ]
             self.assertEqual(results, expected)
 
@@ -407,7 +409,7 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (1, 'https://bookmark1.com', 'Bookmark One',
                  parse_tags([',tag,two,tag+two,']),
-                 "test case for bookmark with '+' in tag")
+                 "test case for bookmark with '+' in tag", 0)
             ]
             self.assertEqual(results, expected)
             results = self.bdb.search_by_tag('tag + two')
@@ -416,10 +418,10 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (1, 'https://bookmark1.com', 'Bookmark One',
                  parse_tags([',tag,two,tag+two,']),
-                 "test case for bookmark with '+' in tag"),
+                 "test case for bookmark with '+' in tag", 0),
                 (2, 'https://bookmark2.com', 'Bookmark Two',
                  parse_tags([',tag,two,tag-two,']),
-                 "test case for bookmark with hyphenated tag"),
+                 "test case for bookmark with hyphenated tag", 0),
             ]
             self.assertEqual(results, expected)
 
@@ -444,10 +446,10 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (4, 'https://newbookmark.com', 'New Bookmark',
                  parse_tags([',test,old,new,']),
-                 'additional bookmark to test multiple tag search'),
+                 'additional bookmark to test multiple tag search', 0),
                 (1, 'http://slashdot.org', 'SLASHDOT',
                  parse_tags([',news,old,']),
-                 "News for old nerds, stuff that doesn't matter"),
+                 "News for old nerds, stuff that doesn't matter", 0),
             ]
             self.assertEqual(results, expected)
 
@@ -481,7 +483,7 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (2, 'https://bookmark2.com', 'Bookmark Two',
                  parse_tags([',tag,two,tag-two,']),
-                 "test case for bookmark with hyphenated tag"),
+                 "test case for bookmark with hyphenated tag", 0),
             ]
             self.assertEqual(results, expected)
             results = self.bdb.search_by_tag('tag - two')
@@ -490,7 +492,7 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (3, 'https://bookmark3.com', 'Bookmark Three',
                  parse_tags([',tag,tag three,']),
-                 "second test case for bookmark with hyphenated tag"),
+                 "second test case for bookmark with hyphenated tag", 0),
             ]
             self.assertEqual(results, expected)
 
