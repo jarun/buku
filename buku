@@ -3622,7 +3622,7 @@ def parse_tags(keywords=[]):
     return delim_wrap(DELIM.join(unique_tags))
 
 
-def prep_tag_search(tags: str) -> Tuple[List[str], str, Optional[str]]:
+def prep_tag_search(tags: str) -> Tuple[List[str], Optional[str], Optional[str]]:
     """Prepare list of tags to search and determine search operator.
 
     Parameters
@@ -3668,7 +3668,7 @@ def prep_tag_search(tags: str) -> Tuple[List[str], str, Optional[str]]:
     else:
         # do not allow combination of search logics in tag inclusion list
         if ' + ' in tags and ',' in tags:
-            return [], '', None
+            return [], None, None
 
         search_operator = 'OR'
         tag_delim = ','
