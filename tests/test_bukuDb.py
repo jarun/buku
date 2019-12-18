@@ -264,7 +264,7 @@ class TestBukuDb(unittest.TestCase):
                          'http://example.com/',
                          'test',
                          ',es,est,tes,test,',
-                         'a case for replace_tag test')]
+                         'a case for replace_tag test', 0)]
             results = self.bdb.search_keywords_and_filter_by_tags(
                 ['News', 'case'],
                 False,
@@ -277,12 +277,12 @@ class TestBukuDb(unittest.TestCase):
                          'http://example.com/',
                          'test',
                          ',es,est,tes,test,',
-                         'a case for replace_tag test'),
+                         'a case for replace_tag test', 0),
                         (2,
                          'http://www.zażółćgęśląjaźń.pl/',
                          'ZAŻÓŁĆ',
                          ',gęślą,jaźń,zażółć,',
-                         'Testing UTF-8, zażółć gęślą jaźń.')]
+                         'Testing UTF-8, zażółć gęślą jaźń.', 0)]
             results = self.bdb.search_keywords_and_filter_by_tags(
                 ['UTF-8', 'case'],
                 False,
@@ -307,6 +307,7 @@ class TestBukuDb(unittest.TestCase):
             # Expect a five-tuple containing all bookmark data
             # db index, URL, title, tags, description
             expected = [(i + 1,) + tuple(bookmark)]
+            expected[0] += tuple([0])
             # search db by tag, url (domain name), and title
             for keyword in (tag_search, url_search, title_search):
                 with mock.patch('buku.prompt'):
@@ -327,6 +328,7 @@ class TestBukuDb(unittest.TestCase):
                 # Expect a five-tuple containing all bookmark data
                 # db index, URL, title, tags, description
                 expected = [(i + 1,) + tuple(self.bookmarks[i])]
+                expected[0] += tuple([0])
                 self.assertEqual(results, expected)
 
     @vcr.use_cassette('tests/vcr_cassettes/test_search_by_multiple_tags_search_any.yaml')
@@ -338,7 +340,7 @@ class TestBukuDb(unittest.TestCase):
         new_bookmark = ['https://newbookmark.com',
                         'New Bookmark',
                         parse_tags(['test,old,new']),
-                        'additional bookmark to test multiple tag search']
+                        'additional bookmark to test multiple tag search', 0]
 
         self.bdb.add_rec(*new_bookmark)
 
@@ -351,11 +353,11 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (4, 'https://newbookmark.com', 'New Bookmark',
                  parse_tags([',test,old,new,']),
-                 'additional bookmark to test multiple tag search'),
+                 'additional bookmark to test multiple tag search', 0),
                 (1, 'http://slashdot.org', 'SLASHDOT',
                  parse_tags([',news,old,']),
-                 "News for old nerds, stuff that doesn't matter"),
-                (3, 'http://example.com/', 'test', ',es,est,tes,test,', 'a case for replace_tag test')
+                 "News for old nerds, stuff that doesn't matter", 0),
+                (3, 'http://example.com/', 'test', ',es,est,tes,test,', 'a case for replace_tag test', 0)
             ]
             self.assertEqual(results, expected)
 
@@ -380,7 +382,7 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (4, 'https://newbookmark.com', 'New Bookmark',
                  parse_tags([',test,old,new,']),
-                 'additional bookmark to test multiple tag search')
+                 'additional bookmark to test multiple tag search', 0)
             ]
             self.assertEqual(results, expected)
 
@@ -407,7 +409,7 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (1, 'https://bookmark1.com', 'Bookmark One',
                  parse_tags([',tag,two,tag+two,']),
-                 "test case for bookmark with '+' in tag")
+                 "test case for bookmark with '+' in tag", 0)
             ]
             self.assertEqual(results, expected)
             results = self.bdb.search_by_tag('tag + two')
@@ -416,10 +418,10 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (1, 'https://bookmark1.com', 'Bookmark One',
                  parse_tags([',tag,two,tag+two,']),
-                 "test case for bookmark with '+' in tag"),
+                 "test case for bookmark with '+' in tag", 0),
                 (2, 'https://bookmark2.com', 'Bookmark Two',
                  parse_tags([',tag,two,tag-two,']),
-                 "test case for bookmark with hyphenated tag"),
+                 "test case for bookmark with hyphenated tag", 0),
             ]
             self.assertEqual(results, expected)
 
@@ -444,10 +446,10 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (4, 'https://newbookmark.com', 'New Bookmark',
                  parse_tags([',test,old,new,']),
-                 'additional bookmark to test multiple tag search'),
+                 'additional bookmark to test multiple tag search', 0),
                 (1, 'http://slashdot.org', 'SLASHDOT',
                  parse_tags([',news,old,']),
-                 "News for old nerds, stuff that doesn't matter"),
+                 "News for old nerds, stuff that doesn't matter", 0),
             ]
             self.assertEqual(results, expected)
 
@@ -481,7 +483,7 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (2, 'https://bookmark2.com', 'Bookmark Two',
                  parse_tags([',tag,two,tag-two,']),
-                 "test case for bookmark with hyphenated tag"),
+                 "test case for bookmark with hyphenated tag", 0),
             ]
             self.assertEqual(results, expected)
             results = self.bdb.search_by_tag('tag - two')
@@ -490,7 +492,7 @@ class TestBukuDb(unittest.TestCase):
             expected = [
                 (3, 'https://bookmark3.com', 'Bookmark Three',
                  parse_tags([',tag,tag three,']),
-                 "second test case for bookmark with hyphenated tag"),
+                 "second test case for bookmark with hyphenated tag", 0),
             ]
             self.assertEqual(results, expected)
 
@@ -1011,155 +1013,6 @@ def test_update_rec_index_0(caplog):
     assert not res
     assert caplog.records[0].getMessage() == 'All URLs cannot be same'
     assert caplog.records[0].levelname == 'ERROR'
-
-
-@pytest.mark.parametrize(
-    'kwargs, exp_query, exp_query_p38, exp_arguments, exp_arguments_p38',
-    [
-        [
-            {'index': 1, 'url': 'http://example.com'},
-            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'Example Domain', 1],
-            ['http://example.com', '', 'Example Domain', 1]
-
-        ],
-        [
-            {'index': 1, 'url': 'http://example.com', 'title_in': 'randomtitle'},
-            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'randomtitle', 1],
-            ['http://example.com', 'randomtitle', 1]
-
-        ],
-        [
-            {'index': 1, 'url': 'http://example.com', 'tags_in': 'tag1'},
-            'UPDATE bookmarks SET URL = ?, tags = ?, metadata = ? WHERE id = ?',
-            'UPDATE bookmarks SET URL = ?, tags = ?, desc = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', ',tag1', 'Example Domain', 1],
-            ['http://example.com', ',tag1,', '', 'Example Domain', 1]
-
-        ],
-        [
-            {'index': 1, 'url': 'http://example.com', 'tags_in': '+,tag1'},
-            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'Example Domain', 1],
-            ['http://example.com', '', 'Example Domain', 1]
-
-        ],
-        [
-            {'index': 1, 'url': 'http://example.com', 'tags_in': '-,tag1'},
-            'UPDATE bookmarks SET URL = ?, metadata = ? WHERE id = ?',
-            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'Example Domain', 1],
-            ['http://example.com', '', 'Example Domain', 1]
-
-        ],
-        [
-            {'index': 1, 'url': 'http://example.com', 'desc': 'randomdesc'},
-            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
-            'UPDATE bookmarks SET URL = ?, desc = ?, metadata = ? WHERE id = ?',
-            ['http://example.com', 'randomdesc', 'Example Domain', 1],
-            ['http://example.com', 'randomdesc', 'Example Domain', 1]
-
-        ],
-    ]
-)
-def test_update_rec_exec_arg(caplog, kwargs, exp_query, exp_query_p38, exp_arguments, exp_arguments_p38):
-    """test method."""
-    if (sys.version_info.major, sys.version_info.minor) == (3, 8):
-        caplog.set_level(logging.DEBUG)
-        exp_query = exp_query_p38
-        exp_arguments = exp_arguments_p38
-    bdb = BukuDb()
-    res = bdb.update_rec(**kwargs)
-    assert res
-
-    exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
-    if (sys.version_info.major, sys.version_info.minor) == (3, 8):
-        exp_log = 'update_rec ' + exp_log
-    try:
-        assert caplog.records[-1].getMessage() == exp_log
-        assert caplog.records[-1].levelname == 'DEBUG'
-    except IndexError as e:
-        # TODO: fix test
-        if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6), (3, 7)]:
-            print('caplog records: {}'.format(caplog.records))
-            for idx, record in enumerate(caplog.records):
-                print('idx:{};{};message:{};levelname:{}'.format(
-                    idx, record, record.getMessage(), record.levelname))
-        else:
-            raise e
-
-
-@pytest.mark.parametrize(
-    'tags_to_search, exp_query, exp_query_p38, exp_arguments, exp_arguments_p38',
-    [
-        [
-            'tag1, tag2',
-            "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
-            "OR tags LIKE '%' || ? || '%' ORDER BY id ASC",
-            "SELECT id, url, metadata, tags, desc "
-            "FROM (SELECT *, CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END + CASE "
-            "WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END AS score "
-            "FROM bookmarks WHERE score > 0 ORDER BY score DESC)",
-            [',tag1,', ',tag2,'],
-            None
-        ],
-        [
-            'tag2+tag2,tag3, tag4',
-            "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
-            "OR tags LIKE '%' || ? || '%' OR tags LIKE '%' || ? || '%' ORDER BY id ASC",
-            "SELECT id, url, metadata, tags, desc "
-            "FROM (SELECT *, CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END + CASE "
-            "WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END + CASE "
-            "WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END AS score "
-            "FROM bookmarks WHERE score > 0 ORDER BY score DESC)",
-            [',tag1+tag2,', ',tag3,', ',tag4,'],
-            [',tag2+tag2,', ',tag3,', ',tag4,']
-        ],
-        [
-            'tag1 + tag2+tag3',
-            "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE tags LIKE '%' || ? || '%' "
-            "AND tags LIKE '%' || ? || '%' ORDER BY id ASC",
-            None,
-            [',tag1,', ',tag2+tag3,'],
-            None
-        ],
-        [
-            'tag1-tag2 + tag 3 - tag4',
-            "SELECT id, url, metadata, tags, desc FROM bookmarks WHERE (tags LIKE '%' || ? || '%' "
-            "AND tags LIKE '%' || ? || '%' ) AND tags NOT REGEXP ? ORDER BY id ASC",
-            None,
-            [',tag1-tag2,', ',tag 3,', ',tag4,'],
-            None
-        ]
-    ]
-)
-def test_search_by_tag_query(caplog, tags_to_search, exp_query, exp_query_p38, exp_arguments, exp_arguments_p38):
-    """test that the correct query and argments are constructed"""
-    if (sys.version_info.major, sys.version_info.minor) == (3, 8):
-        caplog.set_level(logging.DEBUG)
-        if exp_query_p38:
-            exp_query = exp_query_p38
-        if exp_arguments_p38:
-            exp_arguments = exp_arguments_p38
-    bdb = BukuDb()
-    bdb.search_by_tag(tags_to_search)
-    exp_log = 'query: "{}", args: {}'.format(exp_query, exp_arguments)
-    try:
-        assert caplog.records[-1].getMessage() == exp_log
-        assert caplog.records[-1].levelname == 'DEBUG'
-    except IndexError as e:
-        # TODO: fix test
-        if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6), (3, 7)]:
-            print('caplog records: {}'.format(caplog.records))
-            for idx, record in enumerate(caplog.records):
-                print('idx:{};{};message:{};levelname:{}'.format(
-                    idx, record, record.getMessage(), record.levelname))
-        else:
-            raise e
 
 
 def test_update_rec_only_index():

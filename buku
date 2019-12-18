@@ -37,7 +37,7 @@ import sys
 import tempfile
 import threading
 import time
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 import webbrowser
 try:
     import readline
@@ -333,7 +333,7 @@ class BukuCrypt:
             sys.exit(1)
 
 
-BookmarkVar = Tuple[int, str, Union[str, None], str, str, int]
+BookmarkVar = Tuple[int, str, Optional[str], str, str, int]
 
 
 class BukuDb:
@@ -489,7 +489,7 @@ class BukuDb:
         self.cur.execute('SELECT * FROM bookmarks')
         return self.cur.fetchall()
 
-    def get_rec_by_id(self, index: int) -> Union[BookmarkVar, None]:
+    def get_rec_by_id(self, index: int) -> Optional[BookmarkVar]:
         """Get a bookmark from database by its ID.
 
         Parameters
@@ -755,7 +755,7 @@ class BukuDb:
             tags_in: Optional[str] = None,
             desc: Optional[str] = None,
             immutable: Optional[int] = -1,
-            threads: Optional[int] = 4) -> bool:
+            threads: int = 4) -> bool:
         """Update an existing record at index.
 
         Update all records if index is 0 and url is not specified.
@@ -1169,7 +1169,7 @@ class BukuDb:
             all_keywords: Optional[bool] = False,
             deep: Optional[bool] = False,
             regex: Optional[bool] = False
-    ) -> Union[List[Any], None]:
+    ) -> Optional[Iterable[Any]]:
         """Search DB for entries where tags, URL, or title fields match keywords.
 
         Parameters
@@ -1285,7 +1285,7 @@ class BukuDb:
 
         return self.cur.fetchall()
 
-    def search_by_tag(self, tags):
+    def search_by_tag(self, tags) -> Optional[List[BookmarkVar]]:
         """Search bookmarks for entries with given tags.
 
         Parameters
@@ -1347,7 +1347,13 @@ class BukuDb:
         self.cur.execute(query, tuple(tags, ))
         return self.cur.fetchall()
 
-    def search_keywords_and_filter_by_tags(self, keywords, all_keywords, deep, regex, stag):
+    def search_keywords_and_filter_by_tags(
+            self,
+            keywords: List[str],
+            all_keywords: bool,
+            deep: bool,
+            regex: bool,
+            stag: str) -> Optional[List[BookmarkVar]]:
         """Search bookmarks for entries with keywords and specified
         criteria while filtering out entries with matching tags.
 
@@ -1376,7 +1382,9 @@ class BukuDb:
         """
 
         keyword_results = self.searchdb(keywords, all_keywords, deep, regex)
+        keyword_results = keyword_results if keyword_results is not None else []
         stag_results = self.search_by_tag(''.join(stag))
+        stag_results = stag_results if stag_results is not None else []
         return list(set(keyword_results) & set(stag_results))
 
     def exclude_results_from_search(self, search_results, without, deep):
@@ -1399,7 +1407,7 @@ class BukuDb:
 
         return list(set(search_results) - set(self.searchdb(without, False, deep)))
 
-    def compactdb(self, index, delay_commit=False):
+    def compactdb(self, index: int, delay_commit: bool = False):
         """When an entry at index is deleted, move the
         last entry in DB to index, if index is lesser.
 
@@ -1427,7 +1435,7 @@ class BukuDb:
             results = self.cur.fetchall()
             for row in results:
                 self.cur.execute(query2, (row[0],))
-                self.cur.execute(query3, (index, row[1], row[2], row[3], row[4],))
+                self.cur.execute(query3, (index, row[1], row[2], row[3], row[4], row[5]))
                 if not delay_commit:
                     self.conn.commit()
                 if self.chatty:
@@ -1436,10 +1444,10 @@ class BukuDb:
     def delete_rec(
             self,
             index: int,
-            low: Optional[int] = 0,
-            high: Optional[int] = 0,
-            is_range: Optional[bool] = False,
-            delay_commit: Optional[bool] = False
+            low: int = 0,
+            high: int = 0,
+            is_range: bool = False,
+            delay_commit: bool = False
     ) -> bool:
         """Delete a single record or remove the table if index is None.
 
@@ -1804,7 +1812,7 @@ class BukuDb:
 
         return parse_tags(tags)
 
-    def replace_tag(self, orig: str, new: Union[List[str], None] = None) -> bool:
+    def replace_tag(self, orig: str, new: Optional[List[str]] = None) -> bool:
         """Replace original tag by new tags in all records.
 
         Remove original tag if new tag is empty.
@@ -2494,7 +2502,7 @@ class BukuDb:
             self,
             index: Optional[int] = 0,
             url: Optional[str] = None,
-            shorten: Optional[bool] = True) -> Union[str, None]:
+            shorten: Optional[bool] = True) -> Optional[str]:
         """Shorten a URL using Google URL shortener.
 
         Parameters
@@ -2528,6 +2536,7 @@ class BukuDb:
 
         from urllib.parse import quote_plus as qp
 
+        url = url if url is not None else ''
         urlbase = 'https://tny.im/yourls-api.php?action='
         if shorten:
             _u = urlbase + 'shorturl&format=simple&url=' + qp(url)
@@ -2805,7 +2814,7 @@ def convert_bookmark_set(
     out = ''
     if export_type == 'markdown':
         for row in resultset:
-            if not row[2]:
+            if not row[2] or row[2] is None:
                 out += '- [Untitled](' + row[1] + ')'
             else:
                 out += '- [' + row[2] + '](' + row[1] + ')'
@@ -3478,7 +3487,7 @@ def get_PoolManager():
 def network_handler(
         url: str,
         http_head: Optional[bool] = False
-) -> Tuple[Union[str, None], Union[str, None], Union[str, None], int, int]:
+) -> Tuple[Optional[str], Optional[str], Optional[str], int, int]:
     """Handle server connection and redirections.
 
     Parameters
