@@ -42,7 +42,7 @@ import webbrowser
 try:
     import readline
 except ImportError:
-    import pyreadline as readline
+    import pyreadline as readline  # type: ignore
 from bs4 import BeautifulSoup
 import certifi
 import urllib3
@@ -1285,7 +1285,7 @@ class BukuDb:
 
         return self.cur.fetchall()
 
-    def search_by_tag(self, tags) -> Optional[List[BookmarkVar]]:
+    def search_by_tag(self, tags: Optional[str]) -> Optional[List[BookmarkVar]]:
         """Search bookmarks for entries with given tags.
 
         Parameters
@@ -1307,23 +1307,23 @@ class BukuDb:
         if tags is None or tags == DELIM or tags == '':
             return None
 
-        tags, search_operator, excluded_tags = prep_tag_search(tags)
+        tags_, search_operator, excluded_tags = prep_tag_search(tags)
         if search_operator is None:
             LOGERR("Cannot use both '+' and ',' in same search")
             return None
 
-        LOGDBG('tags: %s', tags)
+        LOGDBG('tags: %s', tags_)
         LOGDBG('search_operator: %s', search_operator)
         LOGDBG('excluded_tags: %s', excluded_tags)
 
         if search_operator == 'AND':
             query = ("SELECT id, url, metadata, tags, desc, flags FROM bookmarks "
                      "WHERE tags LIKE '%' || ? || '%' ")
-            for tag in tags[1:]:
+            for tag in tags_[1:]:
                 query += "{} tags LIKE '%' || ? || '%' ".format(search_operator)
 
             if excluded_tags:
-                tags.append(excluded_tags)
+                tags_.append(excluded_tags)
                 query = query.replace('WHERE tags', 'WHERE (tags')
                 query += ') AND tags NOT REGEXP ? '
             query += 'ORDER BY id ASC'
@@ -1332,19 +1332,19 @@ class BukuDb:
             case_statement = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
             query += case_statement
 
-            for tag in tags[1:]:
+            for tag in tags_[1:]:
                 query += ' + ' + case_statement
 
             query += ' AS score FROM bookmarks WHERE score > 0'
 
             if excluded_tags:
-                tags.append(excluded_tags)
+                tags_.append(excluded_tags)
                 query += ' AND tags NOT REGEXP ? '
 
             query += ' ORDER BY score DESC)'
 
-        LOGDBG('query: "%s", args: %s', query, tags)
-        self.cur.execute(query, tuple(tags, ))
+        LOGDBG('query: "%s", args: %s', query, tags_)
+        self.cur.execute(query, tuple(tags_, ))
         return self.cur.fetchall()
 
     def search_keywords_and_filter_by_tags(
@@ -3622,7 +3622,7 @@ def parse_tags(keywords=[]):
     return delim_wrap(DELIM.join(unique_tags))
 
 
-def prep_tag_search(tags):
+def prep_tag_search(tags: str) -> Tuple[List[str], Optional[str], Optional[str]]:
     """Prepare list of tags to search and determine search operator.
 
     Parameters
@@ -3664,11 +3664,11 @@ def prep_tag_search(tags):
 
     if exclude_only:
         search_operator = 'OR'
-        tags = ['']
+        tags_ = ['']
     else:
         # do not allow combination of search logics in tag inclusion list
         if ' + ' in tags and ',' in tags:
-            return None, None, None
+            return [], None, None
 
         search_operator = 'OR'
         tag_delim = ','
@@ -3676,9 +3676,9 @@ def prep_tag_search(tags):
             search_operator = 'AND'
             tag_delim = ' + '
 
-        tags = [delim_wrap(t.strip()) for t in tags.split(tag_delim)]
+        tags_ = [delim_wrap(t.strip()) for t in tags.split(tag_delim)]
 
-    return tags, search_operator, excluded_tags
+    return tags_, search_operator, excluded_tags
 
 
 def gen_auto_tag():
