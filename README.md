@@ -3,7 +3,7 @@
 <p align="center">
 <a href="https://github.com/jarun/Buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg?maxAge=600" alt="Latest release" /></a>
 <a href="https://repology.org/project/buku/versions"><img src="https://repology.org/badge/tiny-repos/buku.svg" alt="Availability"></a>
-<a href="https://pypi.python.org/pypi/buku"><img src="https://img.shields.io/pypi/v/buku.svg?maxAge=600" alt="PyPI" /></a>
+<a href="https://pypi.org/project/buku/"><img src="https://img.shields.io/pypi/v/buku.svg?maxAge=600" alt="PyPI" /></a>
 <a href="https://circleci.com/gh/jarun/workflows/Buku"><img src="https://img.shields.io/circleci/project/github/jarun/Buku.svg" alt="Build Status" /></a>
 <a href="http://buku.readthedocs.io/en/latest/?badge=latest"><img src="https://readthedocs.org/projects/buku/badge/?version=latest" alt="Docs Status" /></a>
 <a href="https://en.wikipedia.org/wiki/Privacy-invasive_software"><img src="https://img.shields.io/badge/privacy-✓-crimson" alt="Privacy Awareness" /></a>
@@ -111,24 +111,6 @@ Unlisted packagers:
 ● Termux (<code>pip3 install buku</code>)<br>
 </p>
 </details>
-
-- [Alpine Linux](https://github.com/alpinelinux/aports/blob/master/testing/buku/APKBUILD) (`apk add buku`)
-- [AUR](https://aur.archlinux.org/packages/buku/) (`yay -S buku`)
-- [Debian](https://packages.debian.org/search?keywords=buku&searchon=names&exact=1) (`apt-get install buku`)
-- [Fedora](https://apps.fedoraproject.org/packages/buku) (`dnf install buku`)
-- [FreeBSD](https://www.freshports.org/www/py-buku/) (`pkg install www/py-buku`)
-- [Gentoo](https://packages.gentoo.org/packages/www-misc/buku) (`emerge buku`)
-- [macOS/Homebrew](http://formulae.brew.sh/formula/buku) (`brew install buku`)
-- [macOS/MacPorts](https://www.macports.org/ports.php?by=name&substr=buku) (`port install buku`)
-- [NixOS](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/misc/buku) (`nix-env -i buku`)
-- [OpenBSD](https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/buku/) (`pkg_add buku`)
-- [openSUSE](https://software.opensuse.org/search?q=buku) (`zypper in python3-buku`)
-- [PyPI](https://pypi.python.org/pypi/buku/) (`pip3 install buku`)
-- [Raspbian Testing](https://archive.raspbian.org/raspbian/pool/main/b/buku/) (`apt-get install buku`)
-- [Slackware](http://slackbuilds.org/repository/14.2/desktop/Buku/) (`slackpkg install buku`)
-- [Termux](https://pypi.python.org/pypi/buku/) (`pip3 install buku`)
-- [Ubuntu](https://packages.ubuntu.com/search?keywords=buku&searchon=names&exact=1) (`apt-get install buku`)
-- [Void Linux](https://github.com/voidlinux/void-packages/tree/master/srcpkgs/buku) (`xbps-install -S buku`)
 
 #### Release packages
 
