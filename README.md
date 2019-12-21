@@ -2,11 +2,11 @@
 
 <p align="center">
 <a href="https://github.com/jarun/Buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg?maxAge=600" alt="Latest release" /></a>
-<a href="https://repology.org/metapackage/buku"><img src="https://repology.org/badge/tiny-repos/buku.svg" alt="Availability"></a>
+<a href="https://repology.org/project/buku/versions"><img src="https://repology.org/badge/tiny-repos/buku.svg" alt="Availability"></a>
 <a href="https://pypi.python.org/pypi/buku"><img src="https://img.shields.io/pypi/v/buku.svg?maxAge=600" alt="PyPI" /></a>
 <a href="https://circleci.com/gh/jarun/workflows/Buku"><img src="https://img.shields.io/circleci/project/github/jarun/Buku.svg" alt="Build Status" /></a>
 <a href="http://buku.readthedocs.io/en/latest/?badge=latest"><img src="https://readthedocs.org/projects/buku/badge/?version=latest" alt="Docs Status" /></a>
-<a href="https://en.wikipedia.org/wiki/Privacy-invasive_software"><img src="https://img.shields.io/badge/privacy-aware-crimson" alt="Privacy Awareness" /></a>
+<a href="https://en.wikipedia.org/wiki/Privacy-invasive_software"><img src="https://img.shields.io/badge/privacy-✓-crimson" alt="Privacy Awareness" /></a>
 <a href="https://github.com/jarun/buku/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-yellow.svg?maxAge=2592000" alt="License" /></a>
 </p>
 
@@ -95,6 +95,22 @@ or on Ubuntu:
 To copy url to clipboard at the prompt `Buku` uses `xsel` (or `xclip`) on Linux, `pbcopy` (default installed) on OS X, `clip` (default installed) on Windows, `termux-clipboard` on Termux (terminal emulation for Android). If X11 is missing, GNU Screen or tmux copy-paste buffers are recognized.
 
 #### From a package manager
+
+Install `Buku` from your package manager. If the version available is dated try an alternative installation method.
+
+<details><summary>Packaging status (expand)</summary>
+<p>
+<br>
+<a href="https://repology.org/project/buku/versions"><img src="https://repology.org/badge/vertical-allrepos/buku.svg" alt="Packaging status"></a>
+</p>
+Unlisted packagers:
+<p>
+<br>
+● <a href="https://software.opensuse.org/search?q=buku">openSUSE</a> (<code>zypper in python3-buku</code>)<br>
+● <a href="https://pypi.org/project/buku/">PyPI</a> (<code>pip3 install buku</code>)<br>
+● Termux (<code>pip3 install buku</code>)<br>
+</p>
+</details>
 
 - [Alpine Linux](https://github.com/alpinelinux/aports/blob/master/testing/buku/APKBUILD) (`apk add buku`)
 - [AUR](https://aur.archlinux.org/packages/buku/) (`yay -S buku`)
