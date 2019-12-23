@@ -106,7 +106,6 @@ Install `Buku` from your package manager. If the version available is dated try 
 Unlisted packagers:
 <p>
 <br>
-● <a href="https://software.opensuse.org/search?q=buku">openSUSE</a> (<code>zypper in python3-buku</code>)<br>
 ● <a href="https://pypi.org/project/buku/">PyPI</a> (<code>pip3 install buku</code>)<br>
 ● Termux (<code>pip3 install buku</code>)<br>
 </p>
