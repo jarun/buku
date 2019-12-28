@@ -28,6 +28,10 @@ from flask import (  # type: ignore
     request,
     url_for,
 )
+try:
+    from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
+except ImportError:
+    ReverseProxyPrefixFix = None
 
 try:
     from . import response, forms, views
@@ -228,6 +232,9 @@ def create_app(db_file=None):
     app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \
         False if open_in_new_tab.lower() in ['false', '0'] else bool(open_in_new_tab)
     app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE') or db_file
+    if ReverseProxyPrefixFix is not None:
+        app.config['REVERSE_PROXY_PATH'] = os.getenv('BUKUSERVER_REVERSE_PROXY_PATH')
+        ReverseProxyPrefixFix(app)
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
