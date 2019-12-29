@@ -110,10 +110,11 @@ Following are available os env config available for bukuserver.
 | DB_FILE | full path to db file | path string [default: standard path for buku] |
 | DISABLE_FAVICON | disable favicon | boolean [default: `false`] |
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean [default: `false`] |
+| REVERSE_PROXY_PATH | reverse proxy path | string |
 
 Note: `BUKUSERVER_` is the common prefix.
 
-Note: if input is invalid, the default value will be used
+Note: if input is invalid, the default value will be used if defined
 
 e.g. to set bukuserver to show 100 item per page run the following command
 
@@ -127,6 +128,10 @@ $ SET BUKUSERVER_PER_PAGE=100
 # in dockerfile
 ENV BUKUSERVER_PER_PAGE=100
 ```
+
+Note: the value for BUKUSERVER_REVERSE_PROXY_PATH 
+is recommended to include preceding slash and not have trailing slash
+(i.e. use `/foo` not `/foo/`)
 
 ### Screenshots
 

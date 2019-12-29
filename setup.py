@@ -42,6 +42,7 @@ server_require = [
     'Flask-API>=0.6.9',
     'Flask-Bootstrap>=3.3.7.1',
     'flask-paginate>=0.5.1',
+    'flask-reverse-proxy-fix>=0.2.1',
     'Flask-WTF>=0.14.2',
     'Flask>=1.0.2',
     'idna>=2.5',
