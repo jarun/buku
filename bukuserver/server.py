@@ -14,6 +14,7 @@ from flask_admin import Admin
 from flask_api import exceptions, FlaskAPI, status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
+from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
 from markupsafe import Markup
 import click
 import flask
@@ -28,10 +29,6 @@ from flask import (  # type: ignore
     request,
     url_for,
 )
-try:
-    from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
-except ImportError:
-    ReverseProxyPrefixFix = None
 
 try:
     from . import response, forms, views
@@ -232,8 +229,13 @@ def create_app(db_file=None):
     app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \
         False if open_in_new_tab.lower() in ['false', '0'] else bool(open_in_new_tab)
     app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE') or db_file
-    if ReverseProxyPrefixFix is not None:
-        app.config['REVERSE_PROXY_PATH'] = os.getenv('BUKUSERVER_REVERSE_PROXY_PATH')
+    reverse_proxy_path = os.getenv('BUKUSERVER_REVERSE_PROXY_PATH')
+    if reverse_proxy_path:
+        if not reverse_proxy_path.startswith('/'):
+            print('Warning: reverse proxy path should include preceding slash')
+        if reverse_proxy_path.endswith('/'):
+            print('Warning: reverse proxy path should not include trailing slash')
+        app.config['REVERSE_PROXY_PATH'] = reverse_proxy_path
         ReverseProxyPrefixFix(app)
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.app_context().push()
