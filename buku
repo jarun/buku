@@ -39,7 +39,6 @@ import threading
 import time
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 import webbrowser
-import ipdb
 try:
     import readline
 except ImportError:
