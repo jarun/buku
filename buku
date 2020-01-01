@@ -2836,7 +2836,7 @@ def convert_bookmark_set(
                 out += ' :{}:\n'.format(':'.join(row[3].split(DELIM)[1:-1]))
             else:
                 out += '\n'
-                
+
             count += 1
     elif export_type == 'html':
         timestamp = str(int(time.time()))
@@ -2984,7 +2984,7 @@ def import_org(filepath, newtag):
     tuple
         Parsed result.
     """
-    
+
     with open(filepath, mode='r', encoding='utf-8') as infp:
         # Supported Markdown format: * [[url][title]] :tags:
         # Find position of url end, title start delimiter combo
