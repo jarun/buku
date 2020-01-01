@@ -39,6 +39,7 @@ import threading
 import time
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 import webbrowser
+import ipdb
 try:
     import readline
 except ImportError:
@@ -2828,9 +2829,15 @@ def convert_bookmark_set(
     elif export_type == 'org':
         for row in resultset:
             if not row[2]:
-                out += '* [[{}][Untitled]]\n'.format(row[1])
+                out += '* [[{}][Untitled]]'.format(row[1])
             else:
-                out += '* [[{}][{}]]\n'.format(row[1], row[2])
+                out += '* [[{}][{}]]'.format(row[1], row[2])
+
+            if row[3] != DELIM:
+                out += ' :{}:\n'.format(':'.join(row[3].split(DELIM)[1:-1]))
+            else:
+                out += '\n'
+                
             count += 1
     elif export_type == 'html':
         timestamp = str(int(time.time()))
@@ -2978,8 +2985,9 @@ def import_org(filepath, newtag):
     tuple
         Parsed result.
     """
+    
     with open(filepath, mode='r', encoding='utf-8') as infp:
-        # Supported Markdown format: * [[url][title]]
+        # Supported Markdown format: * [[url][title]] :tags:
         # Find position of url end, title start delimiter combo
         for line in infp:
             index = line.find('][')
@@ -2994,11 +3002,17 @@ def import_org(filepath, newtag):
                     title = line[index + 2: index + 2 + title_end_delim]
                     # Parse url
                     url = line[url_start_delim + 2:index]
+                    # Parse Tags
+                    tags = DELIM.join(line[(index + 2 + title_end_delim):].split(':')[1:-1])
+
                     if is_nongeneric_url(url):
                         continue
 
+                    if newtag:
+                        tags = (newtag + DELIM) + tags
+
                     yield (
-                        url, title, delim_wrap(newtag)
+                        url, title, delim_wrap(tags)
                         if newtag else None, None, 0, True
                     )
 
@@ -4859,7 +4873,7 @@ POSITIONAL ARGUMENTS:
                          export Markdown, if file ends with '.md'
                          format: [title](url), 1 entry per line
                          export Orgfile, if file ends with '.org'
-                         format: *[[url][title]], 1 entry per line
+                         format: *[[url][title]] :tags:, 1 entry per line
                          export buku DB, if file ends with '.db'
                          combines with search results, if opted
     -i, --import file    import bookmarks based on file extension
