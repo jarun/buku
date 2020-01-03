@@ -3039,16 +3039,18 @@ def import_org(filepath, newtag):
                     # Parse url
                     url = line[url_start_delim + 2:index]
                     # Parse Tags
-                    tags = DELIM.join(get_org_tags(line[(index + 4 + title_end_delim):]))
+                    tags = list(dict.fromkeys(get_org_tags(line[(index + 4 + title_end_delim):])))
+                    tags_string = DELIM.join(tags)
 
                     if is_nongeneric_url(url):
                         continue
 
                     if newtag:
-                        tags = (newtag + DELIM) + tags
+                        if newtag.lower() not in tags:
+                            tags_string = (newtag + DELIM) + tags_string
 
                     yield (
-                        url, title, delim_wrap(tags)
+                        url, title, delim_wrap(tags_string)
                         if newtag else None, None, 0, True
                     )
 
