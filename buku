@@ -2833,7 +2833,12 @@ def convert_bookmark_set(
                 out += '* [[{}][{}]]'.format(row[1], row[2])
 
             if row[3] != DELIM:
-                out += ' :{}:\n'.format(':'.join(row[3].split(DELIM)[1:-1]))
+                # add additional whitespaces for tags that end or start with a colon
+                tag_string = row[3].replace(',:', ', ,:').replace(':,', ':, ,')
+                buku_tags = tag_string.split(DELIM)[1:-1]
+                # if colons are inside a tag, add one additional colon
+                buku_tags = [re.sub(r'(?<=[\w,\:]):(?=\w)', '::', tag) for tag in buku_tags]
+                out += ' :{}:\n'.format(':'.join(buku_tags))
             else:
                 out += '\n'
 
@@ -2984,6 +2989,38 @@ def import_org(filepath, newtag):
     tuple
         Parsed result.
     """
+    def get_org_tags(tag_string):
+        """Extracts tags from Org
+
+        Parameters
+        ----------
+        tag_string: str
+             string of tags in Org-format
+
+        Syntax: Org splits tags with colons. If colons are part of a buku-tag, this is indicated by using
+                multiple colons in org. If a buku-tag starts or ends with a colon, this is indicated by a
+                preceding or trailing whitespace
+
+        Returns
+        -------
+        list
+            List of tags
+        """
+        tag_list_raw = [i for i in re.split(r'(?<!\:)\:', tag_string) if i]
+        tag_list_cleaned = []
+        for i in range(len(tag_list_raw)):
+            if tag_list_raw[i] == ' ':
+                continue
+            elif tag_list_raw[i].startswith(":"):
+                if tag_list_raw[i-1] == ' ':
+                    tag_list_cleaned.append(tag_list_raw[i].strip())
+                else:
+                    new_item = tag_list_cleaned[-1] + tag_list_raw[i]
+                    del tag_list_cleaned[-1]
+                    tag_list_cleaned.append(new_item.strip())
+            else:
+                tag_list_cleaned.append(tag_list_raw[i].strip())
+        return tag_list_cleaned
 
     with open(filepath, mode='r', encoding='utf-8') as infp:
         # Supported Markdown format: * [[url][title]] :tags:
@@ -3002,7 +3039,7 @@ def import_org(filepath, newtag):
                     # Parse url
                     url = line[url_start_delim + 2:index]
                     # Parse Tags
-                    tags = DELIM.join(line[(index + 2 + title_end_delim):].split(':')[1:-1])
+                    tags = DELIM.join(get_org_tags(line[(index + 4 + title_end_delim):]))
 
                     if is_nongeneric_url(url):
                         continue
