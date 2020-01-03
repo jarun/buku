@@ -3008,16 +3008,16 @@ def import_org(filepath, newtag):
         """
         tag_list_raw = [i for i in re.split(r'(?<!\:)\:', tag_string) if i]
         tag_list_cleaned = []
-        for i in range(len(tag_list_raw)):
-            if tag_list_raw[i].startswith(":"):
+        for i, tag in enumerate(tag_list_raw):
+            if tag.startswith(":"):
                 if tag_list_raw[i-1] == ' ':
-                    tag_list_cleaned.append(tag_list_raw[i].strip())
+                    tag_list_cleaned.append(tag.strip())
                 else:
-                    new_item = tag_list_cleaned[-1] + tag_list_raw[i]
+                    new_item = tag_list_cleaned[-1] + tag
                     del tag_list_cleaned[-1]
                     tag_list_cleaned.append(new_item.strip())
-            elif tag_list_raw[i] != ' ':
-                tag_list_cleaned.append(tag_list_raw[i].strip())
+            elif tag != ' ':
+                tag_list_cleaned.append(tag.strip())
         return tag_list_cleaned
 
     with open(filepath, mode='r', encoding='utf-8') as infp:
