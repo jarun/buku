@@ -601,6 +601,20 @@ def test_import_md(tmpdir, newtag, exp_res):
     res = list(import_md(p.strpath, newtag))
     assert res[0] == exp_res
 
+@pytest.mark.parametrize(
+    'newtag, exp_res',
+    [
+        (None, ('http://example.com', 'text1', None, None, 0, True)),
+        ('tag0', ('http://example.com', 'text1', ',tag0,tag1,:tag2,tag:3,tag4:,tag::5,tag:6:,', None, 0, True)),
+    ]
+)
+def test_import_org(tmpdir, newtag, exp_res):
+    from buku import import_org
+    p = tmpdir.mkdir("importorg").join("test.org")
+    p.write("[[http://example.com][text1]] :tag1: ::tag2:tag::3:tag4:: :tag:::5:tag::6:: :")
+    res = list(import_org(p.strpath, newtag))
+    assert res[0] == exp_res
+
 
 @pytest.mark.parametrize(
     'html_text, exp_res',
