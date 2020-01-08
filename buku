@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Buku.  If not, see <http://www.gnu.org/licenses/>.
+# along with buku.  If not, see <http://www.gnu.org/licenses/>.
 
 from enum import Enum
 from itertools import chain
@@ -2062,7 +2062,7 @@ class BukuDb:
         Exports full DB, if resultset is None
 
         If destination file name ends with '.db', bookmarks are
-        exported to a Buku database file.
+        exported to a buku database file.
         If destination file name ends with '.md', bookmarks are
         exported to a Markdown file.
         If destination file name ends with '.org' bookmarks are
@@ -2314,7 +2314,7 @@ class BukuDb:
             if profile:
                 ff_bm_db_path = os.path.join(default_ff_folder, '{}/places.sqlite'.format(profile))
         else:
-            LOGERR('Buku does not support {} yet'.format(sys.platform))
+            LOGERR('buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
 
         if self.chatty:
@@ -2373,7 +2373,7 @@ class BukuDb:
 
         Supports Firefox, Google Chrome, and IE exported HTML bookmarks.
         Supports Markdown files with extension '.md, .org'.
-        Supports importing bookmarks from another Buku database file.
+        Supports importing bookmarks from another buku database file.
 
         Parameters
         ----------
@@ -2460,7 +2460,7 @@ class BukuDb:
         return True
 
     def mergedb(self, path):
-        """Merge bookmarks from another Buku database file.
+        """Merge bookmarks from another buku database file.
 
         Parameters
         ----------
@@ -2708,7 +2708,7 @@ SYMBOLS:
 Version %s
 Copyright © 2015-2020 %s
 License: %s
-Webpage: https://github.com/jarun/Buku
+Webpage: https://github.com/jarun/buku
 ''' % (__version__, __author__, __license__))
 
     @staticmethod
@@ -2852,7 +2852,7 @@ def convert_bookmark_set(
             '<H1>Bookmarks</H1>\n\n'
             '<DL><p>\n'
             '    <DT><H3 ADD_DATE="{0}" LAST_MODIFIED="{0}" '
-            'PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
+            'PERSONAL_TOOLBAR_FOLDER="true">buku bookmarks</H3>\n'
             '    <DL><p>\n'.format(timestamp))
 
         for row in resultset:
@@ -4974,7 +4974,7 @@ POSITIONAL ARGUMENTS:
         argparser.print_help(sys.stdout)
         sys.exit(0)
 
-    # By default, Buku uses ANSI colors. As Windows does not really use them,
+    # By default, buku uses ANSI colors. As Windows does not really use them,
     # we'd better check for known working console emulators first. Currently,
     # only ConEmu is supported. If the user does not use ConEmu, colors are
     # disabled unless --colors or %BUKU_COLORS% is specified.
@@ -5028,7 +5028,7 @@ POSITIONAL ARGUMENTS:
     # Set up debugging
     if args.debug:
         LOGGER.setLevel(logging.DEBUG)
-        LOGDBG('Buku v%s', __version__)
+        LOGDBG('buku v%s', __version__)
         LOGDBG('Python v%s', ('%d.%d.%d' % sys.version_info[:3]))
     else:
         logging.disable(logging.WARNING)

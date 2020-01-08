@@ -66,7 +66,7 @@ setup(
     long_description_content_type="text/markdown",
     author='Arun Prakash Jana',
     author_email='engineerarun@gmail.com',
-    url='https://github.com/jarun/Buku',
+    url='https://github.com/jarun/buku',
     license='GPLv3',
     python_requires='>=3.5',  # requires pip>=9.0.0
     platforms=['any'],

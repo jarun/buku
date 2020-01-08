@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Buku documentation build configuration file, created by
+# buku documentation build configuration file, created by
 # sphinx-quickstart on Thu Sep  7 12:54:59 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -52,7 +52,7 @@ source_suffix = ['.rst', '.md']
 master_doc = 'index'
 
 # General information about the project.
-project = 'Buku'
+project = 'buku'
 copyright = '2018, Arun Prakash Jana'
 author = 'Arun Prakash Jana'
 

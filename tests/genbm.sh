@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Scriptlet to auto-generate Buku bookmarks
+# Scriptlet to auto-generate buku bookmarks
 # Usage: genbm.sh n
 #        where, n = number of records to generate
 #

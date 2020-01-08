@@ -4,7 +4,7 @@ MAINTAINER Ameya Shenoy "shenoy.ameya@gmail.com"
 
 ENV BUKUSERVER_PORT=5001
 
-COPY . /Buku
+COPY . /buku
 
 RUN set -ex \
   && apk add --no-cache --virtual .build-deps \
@@ -15,9 +15,9 @@ RUN set -ex \
   && pip install -U --no-cache-dir \
     pip \
     gunicorn \
-    /Buku[server] \
+    /buku[server] \
   && apk del .build-deps \
-  && rm -rf /Buku
+  && rm -rf /buku
 
 HEALTHCHECK --interval=1m --timeout=10s \
   CMD nc -z localhost ${BUKUSERVER_PORT} || exit 1

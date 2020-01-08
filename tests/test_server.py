@@ -11,7 +11,7 @@ from bukuserver.response import response_template
     'args,word',
     [
         ('--help', 'bukuserver'),
-        ('--version', 'Buku')
+        ('--version', 'buku')
     ]
 )
 def test_cli(args, word):

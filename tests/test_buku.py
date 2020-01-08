@@ -741,7 +741,7 @@ def test_copy_to_clipboard(platform, params):
         '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
         '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
         '<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n\n<DL><p>\n'
-        '    <DT><H3 ADD_DATE="1556430615" LAST_MODIFIED="1556430615" PERSONAL_TOOLBAR_FOLDER="true">Buku bookmarks</H3>\n'
+        '    <DT><H3 ADD_DATE="1556430615" LAST_MODIFIED="1556430615" PERSONAL_TOOLBAR_FOLDER="true">buku bookmarks</H3>\n'
         '    <DL><p>\n'
         '        <DT><A HREF="htttp://example.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
         '        <DT><A HREF="htttp://example.org" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'

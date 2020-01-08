@@ -250,7 +250,7 @@ def create_app(db_file=None):
 
     Bootstrap(app)
     admin = Admin(
-        app, name='Buku Server', template_mode='bootstrap3',
+        app, name='buku server', template_mode='bootstrap3',
         index_view=views.CustomAdminIndexView(
             template='bukuserver/home.html', url='/'
         )
@@ -548,7 +548,7 @@ def get_custom_version(ctx, param, value):
         return
     message = '%(app_name)s %(app_version)s\nFlask %(version)s\nPython %(python_version)s'
     click.echo(message % {
-        'app_name': 'Buku',
+        'app_name': 'buku',
         'app_version': __version__,
         'version': flask_version,
         'python_version': sys.version,

@@ -1,5 +1,5 @@
 #
-# Fish completion definition for Buku.
+# Fish completion definition for buku.
 #
 # Author:
 #   Arun Prakash Jana <engineerarun@gmail.com>

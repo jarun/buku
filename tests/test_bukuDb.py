@@ -1180,7 +1180,7 @@ def test_load_chrome_database(chrome_db, add_pt):
 
 @pytest.fixture()
 def firefox_db(tmpdir):
-    zip_url = 'https://github.com/jarun/Buku/files/1319933/bookmarks.zip'
+    zip_url = 'https://github.com/jarun/buku/files/1319933/bookmarks.zip'
     dir_path = os.path.dirname(os.path.realpath(__file__))
     res_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res.yaml')
     res_nopt_yaml_file = os.path.join(dir_path, 'test_bukuDb', 'firefox_res_nopt.yaml')

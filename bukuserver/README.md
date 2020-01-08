@@ -33,8 +33,8 @@ $ source env/bin/activate
 #### From source
 
 ```
-$ git clone https://github.com/jarun/Buku
-$ cd Buku
+$ git clone https://github.com/jarun/buku
+$ cd buku
 $ pip3 install .[server]
 ```
 
@@ -129,7 +129,7 @@ $ SET BUKUSERVER_PER_PAGE=100
 ENV BUKUSERVER_PER_PAGE=100
 ```
 
-Note: the value for BUKUSERVER_REVERSE_PROXY_PATH 
+Note: the value for BUKUSERVER_REVERSE_PROXY_PATH
 is recommended to include preceding slash and not have trailing slash
 (i.e. use `/foo` not `/foo/`)
 

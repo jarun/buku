@@ -2,7 +2,7 @@ name: buku-cli
 maintainer: Arun Prakash Jana <engineerarun@gmail.com>
 license: GPLv3
 summary: Bookmark manager like a text-based mini-web.
-homepage: https://github.com/jarun/Buku
+homepage: https://github.com/jarun/buku
 commands:
   install:
     - make PREFIX="/usr" install DESTDIR="${BP_DESTDIR}"

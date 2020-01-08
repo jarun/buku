@@ -1,30 +1,30 @@
-<h1 align="center">Buku</h1>
+<h1 align="center">buku</h1>
 
 <p align="center">
-<a href="https://github.com/jarun/Buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg?maxAge=600" alt="Latest release" /></a>
+<a href="https://github.com/jarun/buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg?maxAge=600" alt="Latest release" /></a>
 <a href="https://repology.org/project/buku/versions"><img src="https://repology.org/badge/tiny-repos/buku.svg" alt="Availability"></a>
 <a href="https://pypi.org/project/buku/"><img src="https://img.shields.io/pypi/v/buku.svg?maxAge=600" alt="PyPI" /></a>
-<a href="https://circleci.com/gh/jarun/workflows/Buku"><img src="https://img.shields.io/circleci/project/github/jarun/Buku.svg" alt="Build Status" /></a>
+<a href="https://circleci.com/gh/jarun/workflows/buku"><img src="https://img.shields.io/circleci/project/github/jarun/buku.svg" alt="Build Status" /></a>
 <a href="http://buku.readthedocs.io/en/latest/?badge=latest"><img src="https://readthedocs.org/projects/buku/badge/?version=latest" alt="Docs Status" /></a>
 <a href="https://en.wikipedia.org/wiki/Privacy-invasive_software"><img src="https://img.shields.io/badge/privacy-✓-crimson" alt="Privacy Awareness" /></a>
 <a href="https://github.com/jarun/buku/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-yellow.svg?maxAge=2592000" alt="License" /></a>
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/137065"><img src="https://asciinema.org/a/137065.png" alt="Buku in action!" width="734"/></a>
+<a href="https://asciinema.org/a/137065"><img src="https://asciinema.org/a/137065.png" alt="buku in action!" width="734"/></a>
 </p>
 
-<p align="center"><i>Buku in action!</i></p>
+<p align="center"><i>buku in action!</i></p>
 
 ### Introduction
 
-`buku` is a powerful bookmark manager written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible command-line solution with a private, portable, merge-able database along with seamless GUI integration. Hence, `Buku` (after my son's nickname, meaning *close to the heart* in my language).
+`buku` is a powerful bookmark manager written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible command-line solution with a private, portable, merge-able database along with seamless GUI integration. Hence, `buku` (after my son's nickname, meaning *close to the heart* in my language).
 
-[bukuserver](https://github.com/jarun/Buku/tree/master/bukuserver) exposes a browsable front-end on a local web host server.
+[bukuserver](https://github.com/jarun/buku/tree/master/bukuserver) exposes a browsable front-end on a local web host server.
 
 `buku` can auto-import bookmarks from your browser(s) or fetch the title and description of a bookmarked url from the web. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. `buku` can look up the latest snapshot of a broken link on the Wayback Machine. There's an Easter egg to revisit random forgotten bookmarks too! *Buku* is too busy to track you: no hidden history, obsolete records, usage analytics or homing.
 
-To get started right away, jump to the [Quickstart](#quickstart) section. We have one of the best documentation around. You'll find handy examples in the man page too. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/Buku/wiki/Operational-notes).
+To get started right away, jump to the [Quickstart](#quickstart) section. We have one of the best documentation around. You'll find handy examples in the man page too. For more details, please refer to the wiki page on [operational notes](https://github.com/jarun/buku/wiki/Operational-notes).
 
 There are several [projects based on `buku`](#related-projects), including a browser plug-in.
 
@@ -92,11 +92,11 @@ or on Ubuntu:
 
     # apt-get install ca-certificates python3-urllib3 python3-cryptography python3-bs4
 
-To copy url to clipboard at the prompt `Buku` uses `xsel` (or `xclip`) on Linux, `pbcopy` (default installed) on OS X, `clip` (default installed) on Windows, `termux-clipboard` on Termux (terminal emulation for Android). If X11 is missing, GNU Screen or tmux copy-paste buffers are recognized.
+To copy url to clipboard at the prompt `buku` uses `xsel` (or `xclip`) on Linux, `pbcopy` (default installed) on OS X, `clip` (default installed) on Windows, `termux-clipboard` on Termux (terminal emulation for Android). If X11 is missing, GNU Screen or tmux copy-paste buffers are recognized.
 
 #### From a package manager
 
-Install `Buku` from your package manager. If the version available is dated try an alternative installation method.
+Install `buku` from your package manager. If the version available is dated try an alternative installation method.
 
 <details><summary>Packaging status (expand)</summary>
 <p>
@@ -113,13 +113,13 @@ Unlisted packagers:
 
 #### Release packages
 
-Auto-generated packages (with only the cli component) for Arch Linux, CentOS, Debian, Fedora, openSUSE Leap and Ubuntu are available with the [latest stable release](https://github.com/jarun/Buku/releases/latest).
+Auto-generated packages (with only the cli component) for Arch Linux, CentOS, Debian, Fedora, openSUSE Leap and Ubuntu are available with the [latest stable release](https://github.com/jarun/buku/releases/latest).
 
 NOTE: CentOS may not have the python3-beautifulsoup4 package in the repos. Install it using pip3.
 
 #### From source
 
-If you have git installed, clone this repository. Otherwise download the [latest stable release](https://github.com/jarun/Buku/releases/latest) or [development version](https://github.com/jarun/Buku/archive/master.zip) (*risky*).
+If you have git installed, clone this repository. Otherwise download the [latest stable release](https://github.com/jarun/buku/releases/latest) or [development version](https://github.com/jarun/buku/archive/master.zip) (*risky*).
 
 Install the cli component to default location (`/usr/local`):
 
@@ -140,7 +140,7 @@ To remove, run:
 
 ### Shell completion
 
-Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/Buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
+Shell completion scripts for Bash, Fish and Zsh can be found in respective subdirectories of [auto-completion/](https://github.com/jarun/buku/blob/master/auto-completion). Please refer to your shell's manual for installation instructions.
 
 ### Usage
 
@@ -275,7 +275,7 @@ PROMPT KEYS:
 
 #### Colors
 
-`buku` supports custom colors. Visit the wiki page on how to [customize colors](https://github.com/jarun/Buku/wiki/Customize-colors) for more details.
+`buku` supports custom colors. Visit the wiki page on how to [customize colors](https://github.com/jarun/buku/wiki/Customize-colors) for more details.
 
 ### Quickstart
 
@@ -292,7 +292,7 @@ PROMPT KEYS:
 5. List your bookmarks with DB index.
 
        b -p
-6. For GUI and browser integration (or to sync bookmarks with your favourite bookmark management service) refer to the wiki page on [System integration](https://github.com/jarun/Buku/wiki/System-integration).
+6. For GUI and browser integration (or to sync bookmarks with your favourite bookmark management service) refer to the wiki page on [System integration](https://github.com/jarun/buku/wiki/System-integration).
 
 ### Examples
 
@@ -454,13 +454,13 @@ PROMPT KEYS:
 
 ### Automation
 
-Interactive workflows can be automated using expect. Issue [#368](https://github.com/jarun/Buku/issues/368) has a working example on automating auto-import.
+Interactive workflows can be automated using expect. Issue [#368](https://github.com/jarun/buku/issues/368) has a working example on automating auto-import.
 
 ### Troubleshooting
 
 #### Editor integration
 
-You may encounter issues with GUI editors which maintain only one instance by default and return immediately from other instances. Use the appropriate editor option to block the caller when a new document is opened. See issue [#210](https://github.com/jarun/Buku/issues/210) for gedit.
+You may encounter issues with GUI editors which maintain only one instance by default and return immediately from other instances. Use the appropriate editor option to block the caller when a new document is opened. See issue [#210](https://github.com/jarun/buku/issues/210) for gedit.
 
 ### Collaborators
 
@@ -471,21 +471,21 @@ You may encounter issues with GUI editors which maintain only one instance by de
 
 Copyright © 2015-2020 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 <br>
-<p><a href="https://gitter.im/jarun/Buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a></p>
+<p><a href="https://gitter.im/jarun/buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a></p>
 
 ### Contributions
 
-Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/Buku/issues/343) with identified tasks. Contributions are welcome! Please follow the [PR guidelines](https://github.com/jarun/Buku/wiki/PR-guidelines).
+Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/buku/issues/343) with identified tasks. Contributions are welcome! Please follow the [PR guidelines](https://github.com/jarun/buku/wiki/PR-guidelines).
 
 ### Related projects
 
 - [bukubrow](https://github.com/SamHH/bukubrow), WebExtension for browser integration
 - [oil](https://github.com/AndreiUlmeyda/oil), search-as-you-type cli front-end
 - [buku_run](https://github.com/carnager/buku_run), rofi front-end
-- [pinku](https://github.com/mosegontar/pinku), a Pinboard-to-Buku import utility
+- [pinku](https://github.com/mosegontar/pinku), a Pinboard-to-buku import utility
 - [buku-dmenu](https://gitlab.com/benoliver999/buku-dmenu), a simple bash dmenu wrapper
-- [poku](https://github.com/shanedabes/poku), sync between Pocket and Buku
-- [EBuku](https://github.com/flexibeast/ebuku), Emacs interface to Buku
+- [poku](https://github.com/shanedabes/poku), sync between Pocket and buku
+- [Ebuku](https://github.com/flexibeast/ebuku), Emacs interface to buku
 
 <a href="http://buku.readthedocs.io/en/stable/?badge=stable"><img src="https://img.shields.io/badge/docs-stable-brightgreen.svg?maxAge=2592000" alt="Stable Docs" /></a>
 
