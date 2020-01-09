@@ -123,7 +123,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Bukudoc'
+htmlhelp_basename = 'bukudoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -150,7 +150,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Buku.tex', 'Buku Documentation',
+    (master_doc, 'buku.tex', 'buku documentation',
      'Arun Prakash Jana', 'manual'),
 ]
 
@@ -160,7 +160,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'buku', 'Buku Documentation',
+    (master_doc, 'buku', 'buku documentation',
      [author], 1)
 ]
 
@@ -171,7 +171,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Buku', 'Buku Documentation',
-     author, 'Buku', 'One line description of project.',
+    (master_doc, 'buku', 'buku documentation',
+     author, 'buku', 'One line description of project.',
      'Miscellaneous'),
 ]
