@@ -492,6 +492,7 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/buku/i
 ### In the Press
 
 - [2daygeek](http://www.2daygeek.com/buku-command-line-bookmark-manager-linux/)
+- [Hacker Milk](https://hackermilk.blogspot.com/2020/01/how-to-manage-your-browsers-bookmarks.html)
 - [It's F.O.S.S.](https://itsfoss.com/buku-command-line-bookmark-manager-linux/)
 - [LinOxide](https://linoxide.com/linux-how-to/buku-browser-bookmarks-linux/)
 - [LinuxUser Magazine 01/2017 Issue](http://www.linux-community.de/LU/2017/01/Das-Beste-aus-zwei-Welten)
