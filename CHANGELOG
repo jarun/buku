@@ -11,6 +11,7 @@ Buku v4.3
 - Fix Firefox default profile detection
 - Fix export to DB failing after search
 - Fix broken prompt colors
+- User agent updated
 
 -------------------------------------------------------------------------------
 
