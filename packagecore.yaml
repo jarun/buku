@@ -39,15 +39,6 @@ packages:
 #     - python-certifi
       - python-cryptography
       - python-urllib3
-  centos8.0:
-    builddeps:
-      - make
-    deps:
-      - python
-#     - python-beautifulsoup4
-#     - python-certifi
-      - python-cryptography
-      - python-urllib3
   debian9:
     builddeps:
       - make
