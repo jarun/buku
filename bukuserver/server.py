@@ -14,7 +14,10 @@ from flask_admin import Admin
 from flask_api import exceptions, FlaskAPI, status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
-from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
+try:
+    from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
+except ModuleNotFoundError:
+    ReverseProxyPrefixFix = None
 from markupsafe import Markup
 import click
 import flask
@@ -236,7 +239,10 @@ def create_app(db_file=None):
         if reverse_proxy_path.endswith('/'):
             print('Warning: reverse proxy path should not include trailing slash')
         app.config['REVERSE_PROXY_PATH'] = reverse_proxy_path
-        ReverseProxyPrefixFix(app)
+        if ReverseProxyPrefixFix:
+            ReverseProxyPrefixFix(app)
+        else:
+            raise ModuleNotFoundError
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
