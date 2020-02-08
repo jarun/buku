@@ -242,7 +242,7 @@ def create_app(db_file=None):
         if ReverseProxyPrefixFix:
             ReverseProxyPrefixFix(app)
         else:
-            raise ModuleNotFoundError
+            raise ModuleNotFoundError('Failed to import ReverseProxyPrefixFix')
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
