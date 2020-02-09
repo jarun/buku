@@ -16,7 +16,7 @@ from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
 try:
     from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
-except ModuleNotFoundError:
+except ImportError:
     ReverseProxyPrefixFix = None
 from markupsafe import Markup
 import click
@@ -242,7 +242,7 @@ def create_app(db_file=None):
         if ReverseProxyPrefixFix:
             ReverseProxyPrefixFix(app)
         else:
-            raise ModuleNotFoundError('Failed to import ReverseProxyPrefixFix')
+            raise ImportError('Failed to import ReverseProxyPrefixFix')
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
