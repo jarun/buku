@@ -85,12 +85,9 @@ There are several [projects based on `buku`](#related-projects), including a bro
 | Encryption | cryptography |
 | HTML | beautifulsoup4, html5lib |
 
-To install package dependencies using pip3, run:
+To install using pip3, run:
 
-    # pip3 install certifi urllib3 cryptography beautifulsoup4
-or on Ubuntu:
-
-    # apt-get install ca-certificates python3-urllib3 python3-cryptography python3-bs4
+    # pip3 install buku
 
 To copy url to clipboard at the prompt `buku` uses `xsel` (or `xclip`) on Linux, `pbcopy` (default installed) on OS X, `clip` (default installed) on Windows, `termux-clipboard` on Termux (terminal emulation for Android). If X11 is missing, GNU Screen or tmux copy-paste buffers are recognized.
 
