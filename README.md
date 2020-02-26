@@ -85,15 +85,15 @@ There are several [projects based on `buku`](#related-projects), including a bro
 | Encryption | cryptography |
 | HTML | beautifulsoup4, html5lib |
 
-To install using pip3, run:
-
-    # pip3 install buku
-
 To copy url to clipboard at the prompt `buku` uses `xsel` (or `xclip`) on Linux, `pbcopy` (default installed) on OS X, `clip` (default installed) on Windows, `termux-clipboard` on Termux (terminal emulation for Android). If X11 is missing, GNU Screen or tmux copy-paste buffers are recognized.
 
 #### From a package manager
 
-Install `buku` from your package manager. If the version available is dated try an alternative installation method.
+To install buku with all its dependencies from PyPI, run:
+
+    # pip3 install buku
+
+You can also install `buku` from your package manager. If the version available is dated try an alternative installation method.
 
 <details><summary>Packaging status (expand)</summary>
 <p>
@@ -117,6 +117,10 @@ NOTE: CentOS may not have the python3-beautifulsoup4 package in the repos. Insta
 #### From source
 
 If you have git installed, clone this repository. Otherwise download the [latest stable release](https://github.com/jarun/buku/releases/latest) or [development version](https://github.com/jarun/buku/archive/master.zip) (*risky*).
+
+Install the dependencies. For example, on Ubuntu:
+
+    $ apt-get install ca-certificates python3-urllib3 python3-cryptography python3-bs4
 
 Install the cli component to default location (`/usr/local`):
 
