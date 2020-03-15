@@ -2318,7 +2318,11 @@ class BukuDb:
             self.close_quit(1)
 
         if self.chatty:
-            newtag = gen_auto_tag()
+            resp = input('Generate auto-tag (YYYYMonDD)? (y/n): ')
+            if resp == 'y':
+                newtag = gen_auto_tag()
+            else:
+                newtag = None
             resp = input('Add parent folder names as tags? (y/n): ')
         else:
             newtag = None
@@ -2395,7 +2399,11 @@ class BukuDb:
             return self.mergedb(filepath)
 
         if not tacit:
-            newtag = gen_auto_tag()
+            resp = input('Generate auto-tag (YYYYMonDD)? (y/n): ')
+            if resp == 'y':
+                newtag = gen_auto_tag()
+            else:
+                newtag = None
         else:
             newtag = None
 
