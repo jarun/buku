@@ -80,7 +80,6 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - URLs starting with `place:`, `file://` and `apt:` are ignored during import.
   - Parent folder (and subfolder) names are automatically imported as tags if --tacit is used.
   - Tags are merged even if bookmark URL exists when --tacit is used.
-  - An auto-generated tag in the format 'YYYYMonDD' is added if --tacit is not used in HTML, JSON, Markdown or Orgfile import.
 .PP
 .IP 10. 4
 \fBEncryption\fR is optional and manual. AES256 algorithm is used. To use encryption, the database file should be unlocked (-k) before using \fBbuku\fR and locked (-l) afterwards. Between these 2 operations, the database file lies unencrypted on the disk, and NOT in memory. Also, note that the database file is \fBunencrypted on creation\fR.
