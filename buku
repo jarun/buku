@@ -44,13 +44,11 @@ import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
 from bs4 import BeautifulSoup
-READLINE_ERROR = ImportError
-# note: replace this when python3.5 is not supported
-if sys.version_info.major == 3 and sys.version_info.minor > 5:
-    READLINE_ERROR = (ImportError, ModuleNotFoundError)  # type: ignore
+# note catch ModuleNotFoundError instead Exception
+# when python3.5 not supported
 try:
     import readline
-except READLINE_ERROR:
+except Exception:
     import pyreadline as readline  # type: ignore
 try:
     from mypy_extensions import TypedDict
