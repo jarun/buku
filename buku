@@ -4411,7 +4411,7 @@ def regexp(expr, item):
     Returns
     -------
     bool
-        True if result of search is not None, returns None otherwise.
+        True if result of search is not None, else False.
     """
 
     if expr is None or item is None:
