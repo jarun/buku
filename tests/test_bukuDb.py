@@ -20,7 +20,6 @@ import pytest
 import yaml
 from hypothesis import given, example, settings
 from hypothesis import strategies as st
-import vcr
 
 from buku import BukuDb, parse_tags, prompt
 
@@ -73,7 +72,24 @@ PrettySafeLoader.add_constructor(
     PrettySafeLoader.construct_python_tuple)
 
 
-class TestBukuDb(unittest.TestCase):
+class FixtureInjector(unittest.TestCase):
+
+    fixture_names = ()
+
+    @pytest.fixture(autouse=True)
+    def auto_injector_fixture(self, request):
+        if type(self.fixture_names) == str:
+            setattr(self, self.fixture_names,
+                    request.getfixturevalue(self.fixture_names))
+        else:
+            names = self.fixture_names
+            for name in names:
+                setattr(self, name, request.getfixturevalue(name))
+
+
+class TestBukuDb(FixtureInjector):
+
+    fixture_names = ('vcr')
 
     def setUp(self):
         os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
@@ -331,7 +347,6 @@ class TestBukuDb(unittest.TestCase):
                 expected[0] += tuple([0])
                 self.assertEqual(results, expected)
 
-    @vcr.use_cassette('tests/vcr_cassettes/test_search_by_multiple_tags_search_any.yaml')
     def test_search_by_multiple_tags_search_any(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -361,7 +376,6 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
-    @vcr.use_cassette('tests/vcr_cassettes/test_search_by_multiple_tags_search_all.yaml')
     def test_search_by_multiple_tags_search_all(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -453,7 +467,6 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
-    @vcr.use_cassette('tests/vcr_cassettes/test_search_by_tags_enforces_space_seprations_exclusion.yaml')
     def test_search_by_tags_enforces_space_seprations_exclusion(self):
 
         bookmark1 = ['https://bookmark1.com',
@@ -522,7 +535,6 @@ class TestBukuDb(unittest.TestCase):
                 # checking if browse called with expected arguments
                 self.assertEqual(arg_list, expected)
 
-    @vcr.use_cassette('tests/vcr_cassettes/test_search_and_open_all_in_browser.yaml')
     def test_search_and_open_all_in_browser(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -675,7 +687,7 @@ def refreshdb_fixture():
         ['random title', 'Example Domain'],
     ]
 )
-def test_refreshdb(refreshdb_fixture, title_in, exp_res):
+def test_refreshdb(vcr, refreshdb_fixture, title_in, exp_res):
     bdb = refreshdb_fixture
     args = ["http://example.com"]
     if title_in:
@@ -693,7 +705,7 @@ def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     is_range=st.booleans(),
 )
 @settings(deadline=None)
-def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
+def test_print_rec_hypothesis(vcr, caplog, setup, index, low, high, is_range):
     """test when index, low or high is less than 0."""
     # setup
     caplog.handler.records.clear()
@@ -771,7 +783,6 @@ def test_compactdb(setup):
     assert bdb.get_rec_by_id(3) is None
 
 
-@vcr.use_cassette('tests/vcr_cassettes/test_delete_rec_range_and_delay_commit.yaml')
 @given(
     low=st.integers(min_value=-10, max_value=10),
     high=st.integers(min_value=-10, max_value=10),
@@ -780,7 +791,7 @@ def test_compactdb(setup):
 )
 @example(low=0, high=0, delay_commit=False, input_retval='y')
 @settings(max_examples=2, deadline=None)
-def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
+def test_delete_rec_range_and_delay_commit(vcr, setup, low, high, delay_commit, input_retval):
     """test delete rec, range and delay commit."""
     bdb = BukuDb()
     bdb_dc = BukuDb()  # instance for delay_commit check.
@@ -997,7 +1008,7 @@ def test_add_rec_add_invalid_url(caplog, url):
         ],
     ]
 )
-def test_add_rec_exec_arg(kwargs, exp_arg):
+def test_add_rec_exec_arg(vcr, kwargs, exp_arg):
     """test func."""
     bdb = BukuDb()
     bdb.cur = mock.Mock()
@@ -1098,7 +1109,6 @@ def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp
         assert res == exp_res
 
 
-@vcr.use_cassette('tests/vcr_cassettes/test_browse_by_index.yaml')
 @given(
     low=st.integers(min_value=-2, max_value=3),
     high=st.integers(min_value=-2, max_value=3),
@@ -1108,7 +1118,7 @@ def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp
 )
 @example(low=0, high=0, index=0, is_range=False, empty_database=True)
 @settings(max_examples=2, deadline=None)
-def test_browse_by_index(low, high, index, is_range, empty_database):
+def test_browse_by_index(vcr, low, high, index, is_range, empty_database):
     """test method."""
     n_low, n_high = (high, low) if low > high else (low, high)
     with mock.patch('buku.browse'):
@@ -1195,7 +1205,7 @@ def firefox_db(tmpdir):
 
 
 @pytest.mark.parametrize('add_pt', [True, False])
-def test_load_firefox_database(firefox_db, add_pt):
+def test_load_firefox_database(vcr, firefox_db, add_pt):
     # compatibility
     ff_db_path = firefox_db[0]
     dump_data = False  # NOTE: change this value to dump data

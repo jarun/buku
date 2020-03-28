@@ -557,7 +557,7 @@ def test_sigint_handler(capsys):
         ],
     ]
 )
-def test_network_handler_with_url(url, exp_res):
+def test_network_handler_with_url(vcr, url, exp_res):
     """test func."""
     import buku
     import urllib3

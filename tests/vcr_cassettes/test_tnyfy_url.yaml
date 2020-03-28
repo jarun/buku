@@ -1,0 +1,88 @@
+interactions:
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0
+      content-type:
+      - application/json
+    method: POST
+    uri: https://tny.im/yourls-api.php?action=shorturl&format=simple&url=https%3A%2F%2Fwww.google.com
+  response:
+    body:
+      string: http://tny.im/yt
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      CF-Cache-Status:
+      - DYNAMIC
+      CF-RAY:
+      - 57c44f8fdb078271-ATL
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/plain; charset=utf-8
+      Date:
+      - Mon, 30 Mar 2020 19:41:55 GMT
+      Expect-CT:
+      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cfduid=d6baf1a9d303b4d6b9bc2ed61cbdeb6c31585597314; expires=Wed, 29-Apr-20
+        19:41:54 GMT; path=/; domain=.tny.im; HttpOnly; SameSite=Lax
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0
+      content-type:
+      - application/json
+    method: POST
+    uri: https://tny.im/yourls-api.php?action=expand&format=simple&shorturl=http%3A%2F%2Ftny.im%2Fyt
+  response:
+    body:
+      string: https://www.google.com
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      CF-Cache-Status:
+      - DYNAMIC
+      CF-RAY:
+      - 57c44f9629d8d314-ATL
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/plain; charset=utf-8
+      Date:
+      - Mon, 30 Mar 2020 19:41:56 GMT
+      Expect-CT:
+      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cfduid=d069d3452449abe26edf5ccc40f6aaea21585597315; expires=Wed, 29-Apr-20
+        19:41:55 GMT; path=/; domain=.tny.im; HttpOnly; SameSite=Lax
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
