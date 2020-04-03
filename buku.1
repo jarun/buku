@@ -45,7 +45,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - Comma (',') is the tag delimiter in DB. A tag cannot have comma(s) in it. Tags are filtered (for unique tags) and sorted. Tags are stored in lower case and can be replaced, appended or deleted.
   - Page keywords having a word to comma ratio > 3 are appended to description rather than tags.
   - Parent folder (and subfolder) names are converted to all-lowercase tags during bookmarks HTML import.
-  - Releases prior to v2.7 support both capital and lower cases in tags. From v2.7 all tags are stored in lowercase. An undocumented option --\fIfixtags\fR is introduced to modify the older tags. It also fixes another issue where the same tag appears multiple times in the tagset of a record. Run \fBbuku --fixtags\fR once.
+  - Releases prior to v2.7 support both capital and lower cases in tags. From v2.7 all tags are stored in lowercase. An undocumented option --fixtags is introduced to modify the older tags. It also fixes another issue where the same tag appears multiple times in the tagset of a record. Run \fBbuku --fixtags\fR once.
   - Tags can be edited from the prompt very easily using '>>' (append), '>' (overwrite) and '<<' (remove) symbols. The LHS of the operands denotes the indices and ranges of tags to apply (as listed by --tag or key 't' at prompt) and the RHS denotes the actual DB indices and ranges of the bookmarks to apply the change to.
 .PP
 .IP 6. 4
@@ -92,6 +92,10 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 .PP
 .IP 12. 4
 \fBProxy\fR support: please refer to the \fBENVIRONMENT\fR section.
+.PP
+.IP 13. 4
+\fBAlternative DB file\fR:
+  - The option --db (to specify an alternative database file location) is app-only. Manual usage is prone to issues arising from human error.
 .SH GENERAL OPTIONS
 .TP
 .BI \-a " " \--add " URL [tag, ...]"

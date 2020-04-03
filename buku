@@ -4971,7 +4971,9 @@ POSITIONAL ARGUMENTS:
     addarg('-V', dest='upstream', action='store_true', help=hide)
     addarg('-z', '--debug', action='store_true', help=hide)
     # Undocumented APIs
+    # Fix uppercase tags allowed in releases before v2.7
     addarg('--fixtags', action='store_true', help=hide)
+    # App-use only, not for manual usage
     addarg('--db', nargs=1, help=hide)
 
     # Parse the arguments
