@@ -39,15 +39,17 @@ import threading
 import time
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 import webbrowser
-try:
-    import readline
-except ImportError:
-    import pyreadline as readline  # type: ignore
-from bs4 import BeautifulSoup
 import certifi
 import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers
+from bs4 import BeautifulSoup
+# note catch ModuleNotFoundError instead Exception
+# when python3.5 not supported
+try:
+    import readline
+except Exception:
+    import pyreadline as readline  # type: ignore
 try:
     from mypy_extensions import TypedDict
 except ImportError:
