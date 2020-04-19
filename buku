@@ -345,8 +345,10 @@ class BukuDb:
     ----------
     conn : sqlite database connection.
     cur : sqlite database cursor.
-    json : bool
-        True if results should be printed in JSON format else False.
+    json : string
+        Empty string if results should be printed in JSON format to stdout.
+        Nonempty string if results should be printed in JSON format to file. The string has to be a valid path.
+        None if the results should be printed as human-readable plaintext.
     field_filter : int
         Indicates format for displaying bookmarks. Default is 0.
     chatty : bool
@@ -354,14 +356,16 @@ class BukuDb:
     """
 
     def __init__(
-            self, json: Optional[bool] = False, field_filter: Optional[int] = 0, chatty: Optional[bool] = False,
+            self, json: Optional[str] = None, field_filter: Optional[int] = 0, chatty: Optional[bool] = False,
             dbfile: Optional[str] = None, colorize: Optional[bool] = True) -> None:
         """Database initialization API.
 
         Parameters
         ----------
-        json : bool, optional
-            True if results should be printed in JSON format else False.
+        json : string
+            Empty string if results should be printed in JSON format to stdout.
+            Nonempty string if results should be printed in JSON format to file. The string has to be a valid path.
+            None if the results should be printed as human-readable plaintext.
         field_filter : int, optional
             Indicates format for displaying bookmarks. Default is 0.
         chatty : bool, optional
@@ -1703,8 +1707,10 @@ class BukuDb:
                 LOGERR('No matching index %d', index)
                 return False
 
-            if not self.json:
+            if self.json is None:
                 print_rec_with_filter(results, self.field_filter)
+            elif self.json:
+                write_string_to_file(format_json(results, True, self.field_filter), self.json)
             else:
                 print(format_json(results, True, self.field_filter))
 
@@ -1717,8 +1723,10 @@ class BukuDb:
             LOGERR('0 records')
             return True
 
-        if not self.json:
+        if self.json is None:
             print_rec_with_filter(resultset, self.field_filter)
+        elif self.json:
+            write_string_to_file(format_json(resultset, field_filter=self.field_filter), self.json)
         else:
             print(format_json(resultset, field_filter=self.field_filter))
 
@@ -4204,6 +4212,27 @@ def print_single_rec(row, idx=0):  # NOQA
         sys.stdout = os.fdopen(1)
         sys.exit(1)
 
+def write_string_to_file(content, filepath):
+    """Writes given content to file
+
+    Parameters
+    ----------
+    content : str
+    filepath : str
+
+    Returns
+    -------
+    None
+    """
+    try:
+        outfp = open(filepath, mode='w', encoding='utf-8')
+    except Exception as e:
+        LOGERR(e)
+        return
+
+    outfp.write(content)
+    outfp.close()
+
 
 def format_json(resultset, single_record=False, field_filter=0):
     """Return results in JSON format.
@@ -4931,7 +4960,9 @@ POSITIONAL ARGUMENTS:
                          N=1: URL; N=2: URL, tag; N=3: title;
                          N=4: URL, title, tag; N=5: title, tag;
                          N0 (10, 20, 30, 40, 50) omits DB index
-    -j, --json           JSON formatted output for -p and search
+    -j, --json [file]    JSON formatted output for -p and search.
+                         prints to stdout if no arguments are provided.
+                         otherwise writes to given file
     --colors COLORS      set output colors in five-letter string
     --nc                 disable color output
     -n, --count N        show N results per page (default 10)
@@ -4956,7 +4987,7 @@ POSITIONAL ARGUMENTS:
     addarg('-i', '--import', nargs=1, dest='importfile', help=hide)
     addarg('-p', '--print', nargs='*', help=hide)
     addarg('-f', '--format', type=int, default=0, choices={1, 2, 3, 4, 5, 10, 20, 30, 40, 50}, help=hide)
-    addarg('-j', '--json', action='store_true', help=hide)
+    addarg('-j', '--json', nargs='?', default=None, const='', help=hide)
     addarg('--colors', dest='colorstr', type=argparser.is_colorstr, metavar='COLORS', help=hide)
     addarg('--nc', action='store_true', help=hide)
     addarg('-n', '--count', nargs='?', const=10, type=int, default=0, help=hide)
@@ -5285,11 +5316,13 @@ POSITIONAL ARGUMENTS:
                 (args.update is not None and not args.update)):
             oneshot = True
 
-        if not args.json and not args.format:
+        if args.json is None and not args.format:
             num = 10 if not args.count else args.count
             prompt(bdb, search_results, oneshot, args.deep, num=num)
-        elif not args.json:
+        elif args.json is None:
             print_rec_with_filter(search_results, field_filter=args.format)
+        elif args.json:
+            write_string_to_file(format_json(search_results, field_filter=args.format), args.json)
         else:
             # Printing in JSON format is non-interactive
             print(format_json(search_results, field_filter=args.format))
