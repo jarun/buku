@@ -228,6 +228,9 @@ POWER TOYS:
                            N=4: URL, title, tag; N=5: title, tag;
                            N0 (10, 20, 30, 40, 50) omits DB index
       -j, --json           JSON formatted output for -p and search
+      -j, --json [file]    JSON formatted output for -p and search.
+                           prints to stdout if no arguments provided.
+                           otherwise writes to given file
       --colors COLORS      set output colors in five-letter string
       --nc                 disable color output
       -n, --count N        show N results per page (default 10)

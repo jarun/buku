@@ -22,7 +22,7 @@ args=(
     '(-h --help)'{-h,--help}'[show help]'
     '(-i --import)'{-i,--import}'[import bookmarks]:html/md/db input file'
     '(--immutable)--immutable[disable title update from web]:value'
-    '(-j --json)'{-j,--json}'[show JSON output for print and search]'
+    '(-j --json)'{-j,--json}'[show JSON output for print and search]:file'
     '(-k --unlock)'{-k,--unlock}'[decrypt database]'
     '(-l --lock)'{-l,--lock}'[encrypt database]'
     '(-n --count)'{-n,--count}'[results per page]:value'
