@@ -4212,7 +4212,7 @@ def print_single_rec(row, idx=0):  # NOQA
         sys.stdout = os.fdopen(1)
         sys.exit(1)
 
-def write_string_to_file(content, filepath):
+def write_string_to_file(content: str, filepath: str):
     """Writes given content to file
 
     Parameters
@@ -4225,14 +4225,10 @@ def write_string_to_file(content, filepath):
     None
     """
     try:
-        outfp = open(filepath, mode='w', encoding='utf-8')
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(content)
     except Exception as e:
         LOGERR(e)
-        return
-
-    outfp.write(content)
-    outfp.close()
-
 
 def format_json(resultset, single_record=False, field_filter=0):
     """Return results in JSON format.
