@@ -26,10 +26,10 @@ is a command-line utility to store, tag, search and organize bookmarks.
 .PP
 .IP 1. 4
 The database file is stored in:
-  - \fI$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined (first preference) or
-  - \fI$HOME/.local/share/buku/bookmarks.db\fR, if HOME is defined (second preference) or
-  - \fI%APPDATA%\buku\bookmarks.db\fR, if you are on Windows or
-  - \fIthe current directory\fR.
+  - \fI$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined (first preference), or
+  - \fI$HOME/.local/share/buku/bookmarks.db\fR, if HOME is defined (second preference), or
+  - \fI%APPDATA%\\buku\\bookmarks.db\fR, if you are on Windows, or
+  - the current directory.
 .PP
 .IP 2. 4
 If the URL contains characters like ';', '&' or brackets they may be interpreted specially by the shell. To avoid it, add the URL within single or double quotes ('/").
@@ -193,22 +193,24 @@ Decrypt (unlock) the DB file with
 Auto-import bookmarks from Firefox, Google Chrome and Chromium browsers.
 .TP
 .BI \-e " " \--export " file"
-Export bookmarks to Firefox bookmarks formatted HTML. Works with all search options. Markdown is used if
-.I file
-has extension '.md'.
+Export bookmarks to Firefox bookmarks formatted HTML. Works with all search options.
 .br
-Markdown format: [title](url), 1 entry per line. Orgfile is used if
+Markdown is used if
 .I file
-has extension '.org'
+has extension '.md'. Markdown format: [title](url), 1 entry per line.
 .br
-Orgfile format: * [[url][title]], 1 entry per line. A buku database is generated if
+Orgfile is used if
+.I file
+has extension '.org' Orgfile format: * [[url][title]], 1 entry per line.
+.br
+A buku database is generated if
 .I file
 has extension '.db'.
 .TP
 .BI \-i " " \--import " file"
 Import bookmarks from Firefox bookmarks formatted HTML.
 .I file
-is considered Firefox-exported JSON if it has '.md' extension, Markdown (compliant with --export format) if it is '.md', Orgfile if the extension is '.org' or another buku database if the extension is '.db'.
+is considered Firefox-exported JSON if it has '.json' extension, Markdown (compliant with --export format) if it is '.md', Orgfile if the extension is '.org' or another buku database if the extension is '.db'.
 .TP
 .BI \-p " " \--print " [...]"
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. A negative value (introduced for convenience) behaves like the tail utility, e.g., -n shows the details of the last n bookmarks.
