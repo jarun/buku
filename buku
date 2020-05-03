@@ -42,7 +42,7 @@ import webbrowser
 import certifi
 import urllib3
 from urllib3.exceptions import LocationParseError
-from urllib3.util import parse_url, make_headers
+from urllib3.util import parse_url, make_headers, Retry
 from bs4 import BeautifulSoup
 # note catch ModuleNotFoundError instead Exception
 # when python3.5 not supported
@@ -3591,7 +3591,7 @@ def network_handler(
         manager = get_PoolManager()
 
         while True:
-            resp = manager.request(method, url)
+            resp = manager.request(method, url, retries=urllib3.util.Retry(redirect=10))
 
             if resp.status == 200:
                 if method == 'GET':
