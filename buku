@@ -3591,7 +3591,7 @@ def network_handler(
         manager = get_PoolManager()
 
         while True:
-            resp = manager.request(method, url, retries=urllib3.util.Retry(redirect=10))
+            resp = manager.request(method, url, retries=Retry(redirect=10))
 
             if resp.status == 200:
                 if method == 'GET':
