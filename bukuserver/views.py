@@ -588,6 +588,6 @@ class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
         )
 
 
-def chunks(l, n):
+def chunks(arr, n):
     n = max(1, n)
-    return (l[i:i+n] for i in range(0, len(l), n))
+    return (arr[i:i+n] for i in range(0, len(arr), n))
