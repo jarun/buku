@@ -26,6 +26,7 @@ import collections
 import json
 import logging
 import os
+import platform
 import re
 import shutil
 import signal
@@ -4353,7 +4354,8 @@ def browse(url):
         _stderr = os.dup(2)
         os.close(2)
         _stdout = os.dup(1)
-        os.close(1)
+        if "microsoft" not in platform.uname()[3].lower():
+            os.close(1)
         fd = os.open(os.devnull, os.O_RDWR)
         os.dup2(fd, 2)
         os.dup2(fd, 1)
@@ -4374,7 +4376,8 @@ def browse(url):
         if browse.suppress_browser_output:
             os.close(fd)
             os.dup2(_stderr, 2)
-            os.dup2(_stdout, 1)
+            if "microsoft" not in platform.uname()[3].lower():
+                os.dup2(_stdout, 1)
 
     if browse.override_text_browser:
         browse.suppress_browser_output = browser_output
