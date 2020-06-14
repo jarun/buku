@@ -4376,8 +4376,7 @@ def browse(url):
         if browse.suppress_browser_output:
             os.close(fd)
             os.dup2(_stderr, 2)
-            if "microsoft" not in platform.uname()[3].lower():
-                os.dup2(_stdout, 1)
+            os.dup2(_stdout, 1)
 
     if browse.override_text_browser:
         browse.suppress_browser_output = browser_output
