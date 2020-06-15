@@ -227,7 +227,6 @@ POWER TOYS:
                            N=1: URL; N=2: URL, tag; N=3: title;
                            N=4: URL, title, tag; N=5: title, tag;
                            N0 (10, 20, 30, 40, 50) omits DB index
-      -j, --json           JSON formatted output for -p and search
       -j, --json [file]    JSON formatted output for -p and search.
                            prints to stdout if no arguments provided.
                            otherwise writes to given file

@@ -1,3 +1,17 @@
+buku v4.4
+2020-06-16
+
+- optionally specify output file with `--json`
+- confirm auto-tag generation in chatty mode
+- unblock GUI browsers when running on WSL
+- handle up to 10 server redirects (#452)
+- fix issue with reverse proxy (#435)
+- use ImportError instead ModuleNotFoundError (#437)
+- import pyreadline on windows (#441)
+- auto-generated package refresh
+
+-------------------------------------------------------------------------------
+
 Buku v4.3
 2020-01-31
 
