@@ -4211,6 +4211,8 @@ def print_single_rec(row, idx=0):  # NOQA
 
     try:
         print(''.join(str_list))
+    except UnicodeEncodeError:
+        sys.stdout.buffer.write((''.join(str_list) + '\n').encode('utf-8'))
     except BrokenPipeError:
         sys.stdout = os.fdopen(1)
         sys.exit(1)
