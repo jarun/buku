@@ -554,7 +554,7 @@ class BookmarkletView(MethodView):
         rec_id = bukudb.get_rec_id(url)
         if rec_id >= 0:
             return redirect(url_for('bookmark.edit_view', id=rec_id))
-        return redirect(url_for('bookmark.create_view',url=url, title=title, description=description))
+        return redirect(url_for('bookmark.create_view', url=url, title=title, description=description))
 
 
 class CustomFlaskGroup(FlaskGroup):  # pylint: disable=too-few-public-methods
