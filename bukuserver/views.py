@@ -152,8 +152,8 @@ class BookmarkModelView(BaseModelView):
         self.url_render_mode = kwargs.pop('url_render_mode', DEFAULT_URL_RENDER_MODE)
         super().__init__(*args, **kwargs)
 
-    def create_form(self):
-        form = super().create_form()
+    def create_form(self, obj=None):
+        form = super().create_form(obj)
         if 'url' in request.args.keys():
             form.url.data = request.args.get("url")
         if 'title' in request.args.keys():
