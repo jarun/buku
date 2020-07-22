@@ -279,6 +279,8 @@ def create_app(db_file=None):
         view_func=bookmark_range_api_view, methods=['GET', 'PUT', 'DELETE'])
     bookmark_search_api_view = ApiBookmarkSearchView.as_view('bookmark_search_api')
     app.add_url_rule('/api/bookmarks/search', view_func=bookmark_search_api_view, methods=['GET', 'DELETE'])
+    bookmarklet_view = BookmarkletView.as_view('bookmarklet')
+    app.add_url_rule('/bookmarklet', view_func=bookmarklet_view, methods=['GET'])
     #  non api
     admin.add_view(views.BookmarkModelView(
         bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
@@ -540,6 +542,19 @@ class ApiBookmarkSearchView(MethodView):
         if res is None:
             res = jsonify(response.response_template['success'])
         return res
+
+
+class BookmarkletView(MethodView):
+    def get(self):
+        url = request.args.get('url')
+        title = request.args.get('title')
+        description = request.args.get('description')
+
+        bukudb = getattr(flask.g, 'bukudb', get_bukudb())
+        rec_id = bukudb.get_rec_id(url)
+        if rec_id >= 0:
+                return redirect(url_for('bookmark.edit_view', id=rec_id))
+        return redirect(url_for('bookmark.create_view',url=url, title=title, description=description))
 
 
 class CustomFlaskGroup(FlaskGroup):  # pylint: disable=too-few-public-methods

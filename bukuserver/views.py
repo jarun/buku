@@ -152,6 +152,16 @@ class BookmarkModelView(BaseModelView):
         self.url_render_mode = kwargs.pop('url_render_mode', DEFAULT_URL_RENDER_MODE)
         super().__init__(*args, **kwargs)
 
+    def create_form(self):
+        form = super().create_form()
+        if 'url' in request.args.keys():
+            form.url.data = request.args.get("url")
+        if 'title' in request.args.keys():
+            form.title.data = request.args.get("title")
+        if 'description' in request.args.keys():
+            form.description.data = request.args.get("description")
+        return form
+
     def create_model(self, form):
         try:
             model = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
