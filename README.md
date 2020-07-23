@@ -233,7 +233,7 @@ POWER TOYS:
       --colors COLORS      set output colors in five-letter string
       --nc                 disable color output
       -n, --count N        show N results per page (default 10)
-      --np                 do not show the prompt, run and exit
+      --np                 do not show the subprompt, run and exit
       -o, --open [...]     browse bookmarks by indices and ranges
                            open a random bookmark, if no arguments
       --oa                 browse all search results immediately
@@ -243,7 +243,7 @@ POWER TOYS:
       --expand index|URL   expand a tny.im shortened url
       --cached index|URL   browse a cached page from Wayback Machine
       --suggest            show similar tags when adding bookmarks
-      --tacit              reduce verbosity
+      --tacit              reduce verbosity, skip some confirmations
       --threads N          max network connections in full refresh
                            default N=4, min N=1, max N=10
       -V                   check latest upstream version available
@@ -366,7 +366,7 @@ PROMPT KEYS:
 
         $ buku -d 15012014
         Index 15012020 moved to 15012014
-    The last index is moved to the deleted index to keep the DB compact.
+    The last index is moved to the deleted index to keep the DB compact. Add `--tacit` to delete without confirmation.
 14. **Delete all** bookmarks:
 
         $ buku -d
