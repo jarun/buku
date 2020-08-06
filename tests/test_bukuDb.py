@@ -936,16 +936,14 @@ def test_delete_rec_on_non_interger(index, low, high, is_range):
 
     for bookmark in TEST_BOOKMARKS:
         bdb.add_rec(*bookmark)
-    db_len = len(TEST_BOOKMARKS)
 
     if is_range and not (isinstance(low, int) and isinstance(high, int)):
         with pytest.raises(TypeError):
             bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
         return
     if not is_range and not isinstance(index, int):
-        res = bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
-        assert not res
-        assert len(bdb.get_rec_all()) == db_len
+        with pytest.raises(TypeError):
+            bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
     else:
         assert bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
 
