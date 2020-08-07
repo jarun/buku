@@ -1474,6 +1474,11 @@ class BukuDb:
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
 
+        Raises
+        ------
+        TypeError
+            If any of index, low, or high variable is not integer.
+
         Returns
         -------
         bool
