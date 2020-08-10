@@ -1051,33 +1051,15 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
 @pytest.mark.parametrize('read_in_retval', ['y', 'n', ''])
 def test_update_rec_update_all_bookmark(caplog, read_in_retval):
     """test method."""
-    if (sys.version_info.major, sys.version_info.minor) == (3, 8):
-        caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.DEBUG)
     with mock.patch('buku.read_in', return_value=read_in_retval):
-        import buku
-        bdb = buku.BukuDb()
+        bdb = BukuDb()
         res = bdb.update_rec(index=0, tags_in='tags1')
-        if read_in_retval != 'y':
-            assert not res
-            return
-        assert res
-        try:
-            if (sys.version_info.major, sys.version_info.minor) == (3, 8):
-                assert caplog.records[0].getMessage() == \
-                       'update_rec query: "UPDATE bookmarks SET tags = ?", args: [\',tags1,\']'
-            else:
-                assert caplog.records[0].getMessage() == \
-                       'query: "UPDATE bookmarks SET tags = ?", args: [\',tags1\']'
-            assert caplog.records[0].levelname == 'DEBUG'
-        except IndexError as e:
-            # TODO: fix test
-            if (sys.version_info.major, sys.version_info.minor) in [(3, 4), (3, 5), (3, 6), (3, 7)]:
-                print('caplog records: {}'.format(caplog.records))
-                for idx, record in enumerate(caplog.records):
-                    print('idx:{};{};message:{};levelname:{}'.format(
-                        idx, record, record.getMessage(), record.levelname))
-            else:
-                raise e
+        assert res if read_in_retval == 'y' else not res
+        if read_in_retval == 'y':
+            assert caplog.records[0].getMessage() == \
+                "update_rec query: " \
+                "\"UPDATE bookmarks SET tags = ?\", args: [',tags1,']"
 
 
 @pytest.mark.parametrize(
