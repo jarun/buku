@@ -1060,6 +1060,8 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
             assert caplog.records[0].getMessage() == \
                 "update_rec query: " \
                 "\"UPDATE bookmarks SET tags = ?\", args: [',tags1,']"
+        else:
+            assert not caplog.records
 
 
 @pytest.mark.parametrize(
