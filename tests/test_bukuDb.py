@@ -11,11 +11,11 @@ import sqlite3
 import sys
 import urllib
 import zipfile
-from genericpath import exists
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 from unittest import mock
 import unittest
+from genericpath import exists
 import pytest
 import yaml
 from hypothesis import given, example, settings

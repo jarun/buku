@@ -2794,8 +2794,8 @@ PROMPT KEYS:
             assert len(arg) == 5
             for c in arg:
                 assert c in COLORMAP
-        except AssertionError:
-            raise argparse.ArgumentTypeError('%s is not a valid color string' % arg)
+        except AssertionError as e:
+            raise argparse.ArgumentTypeError('%s is not a valid color string' % arg) from e
         return arg
 
     # Help
@@ -2807,7 +2807,7 @@ PROMPT KEYS:
         file : file, optional
             File to write program info to. Default is sys.stdout.
         """
-        super(ExtendedArgumentParser, self).print_help(file)
+        super().print_help(file)
         self.program_info(file)
 
 
