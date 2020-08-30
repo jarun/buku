@@ -1951,7 +1951,7 @@ class BukuDb:
         id_list = cmdstr[:index].split()
         try:
             tags = self.get_tagstr_from_taglist(id_list, taglist)
-            if tags == DELIM:
+            if tags == DELIM and flag != 2:
                 return -1
         except ValueError:
             return -1
