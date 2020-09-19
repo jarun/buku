@@ -770,3 +770,17 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
         res = convert_bookmark_set(bms, export_type=export_type)
         assert res['count'] == 3
         assert exp_res == res['data']
+
+
+@pytest.mark.parametrize('tags,data', [
+    [',', '\n'],
+    [',tag1,tag2,', ' :tag1:tag2:\n'],
+    [',word1 word2,', ' :word1_word2:\n'],
+    [',word1:word2,', ' :word1_word2:\n'],
+    [',##tag##,', ' :_tag_:\n'],
+    [',##tag##,!!tag!!,', ' :_tag_:\n'],
+])
+def test_convert_tags_to_org_mode_tags(tags, data):
+    from buku import convert_tags_to_org_mode_tags
+    res = convert_tags_to_org_mode_tags(tags)
+    assert res == data
