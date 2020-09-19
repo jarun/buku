@@ -779,6 +779,7 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
     [',word1:word2,', ' :word1_word2:\n'],
     [',##tag##,', ' :_tag_:\n'],
     [',##tag##,!!tag!!,', ' :_tag_:\n'],
+    [',home / personal,', ' :home_personal:\n'],
 ])
 def test_convert_tags_to_org_mode_tags(tags, data):
     from buku import convert_tags_to_org_mode_tags
