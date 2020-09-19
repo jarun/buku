@@ -2423,12 +2423,9 @@ class BukuDb:
                 newtag = gen_auto_tag()
             else:
                 newtag = None
-        else:
-            newtag = None
-
-        if not tacit:
             append_tags_resp = input('Append tags when bookmark exist? (y/n): ')
         else:
+            newtag = None
             append_tags_resp = 'y'
 
         items = []
