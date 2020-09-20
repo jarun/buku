@@ -2822,7 +2822,7 @@ def convert_tags_to_org_mode_tags(tags: str) -> str:
         buku_tags = tags.split(DELIM)[1:-1]
         buku_tags = [re.sub(r'[^a-zA-Z0-9_@]', ' ', tag) for tag in buku_tags]
         buku_tags = [re.sub(r'\s+', ' ', tag) for tag in buku_tags]
-        buku_tags = list(sorted({[x.replace(' ', '_') for x in buku_tags]}, reverse=False))
+        buku_tags = list(sorted(filter(lambda x: x.replace(' ', '_'), buku_tags), reverse=False))
         if buku_tags:
             return ' :{}:\n'.format(':'.join(buku_tags))
     return '\n'
