@@ -590,7 +590,7 @@ def test_is_nongeneric_url(url, exp_res):
 @pytest.mark.parametrize(
     'newtag, exp_res',
     [
-        (None, ('http://example.com', 'text1', None, None, 0, True)),
+        (None, ('http://example.com', 'text1', ',', None, 0, True)),
         ('tag1', ('http://example.com', 'text1', ',tag1,', None, 0, True)),
     ]
 )
@@ -604,7 +604,7 @@ def test_import_md(tmpdir, newtag, exp_res):
 @pytest.mark.parametrize(
     'newtag, exp_res',
     [
-        (None, ('http://example.com', 'text1', None, None, 0, True)),
+        (None, ('http://example.com', 'text1', ',tag1,:tag2,tag:3,tag4:,tag::5,tag:6:,', None, 0, True)),
         ('tag0', ('http://example.com', 'text1', ',tag0,tag1,:tag2,tag:3,tag4:,tag::5,tag:6:,', None, 0, True)),
     ]
 )
