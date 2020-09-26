@@ -2417,16 +2417,12 @@ class BukuDb:
         if filepath.endswith('.db'):
             return self.mergedb(filepath)
 
+        newtag = None
+        append_tags_resp = 'y'
         if not tacit:
-            resp = input('Generate auto-tag (YYYYMonDD)? (y/n): ')
-            if resp == 'y':
+            if input('Generate auto-tag (YYYYMonDD)? (y/n): ') == 'y':
                 newtag = gen_auto_tag()
-            else:
-                newtag = None
             append_tags_resp = input('Append tags when bookmark exist? (y/n): ')
-        else:
-            newtag = None
-            append_tags_resp = 'y'
 
         items = []
         if filepath.endswith('.md'):
@@ -2962,14 +2958,14 @@ def walk(root):
             walk(element)
 
 
-def import_md(filepath, newtag):
+def import_md(filepath: str, newtag: Optional[str]):
     """Parse bookmark Markdown file.
 
     Parameters
     ----------
     filepath : str
         Path to Markdown file.
-    newtag : str
+    newtag : str, optional
         New tag for bookmarks in Markdown file.
 
     Returns
@@ -2996,19 +2992,16 @@ def import_md(filepath, newtag):
                     if is_nongeneric_url(url):
                         continue
 
-                    yield (
-                        url, title, delim_wrap(newtag)
-                        if newtag else None, None, 0, True
-                    )
+                    yield (url, title, delim_wrap(newtag), None, 0, True)
 
-def import_org(filepath, newtag):
+def import_org(filepath: str, newtag: Optional[str]):
     """Parse bookmark org file.
 
     Parameters
     ----------
     filepath : str
         Path to org file.
-    newtag : str
+    newtag : str, optional
         New tag for bookmarks in org file.
 
     Returns
@@ -3074,10 +3067,7 @@ def import_org(filepath, newtag):
                         if newtag.lower() not in tags:
                             tags_string = (newtag + DELIM) + tags_string
 
-                    yield (
-                        url, title, delim_wrap(tags_string)
-                        if newtag else None, None, 0, True
-                    )
+                    yield (url, title, delim_wrap(tags_string), None, 0, True)
 
 def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None):
     """Open Firefox JSON export file and import data.
