@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/137065"><img src="https://asciinema.org/a/137065.png" alt="buku in action!" width="734"/></a>
+<a href="https://asciinema.org/a/137065"><img src="https://asciinema.org/a/137065.svg" alt="buku in action!" width="734"/></a>
 </p>
 
 <p align="center"><i>buku in action!</i></p>
@@ -31,7 +31,7 @@ There are several [projects based on `buku`](#related-projects), including a bro
 *Love smart and efficient utilities? Explore [my repositories](https://github.com/jarun?tab=repositories). Buy me a cup of coffee if they help you.*
 
 <p align="center">
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/PayPal-donate-1eb0fc.svg" alt="Donate via PayPal!" /></a>
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/donate-@PayPal-1eb0fc.svg" alt="Donate via PayPal!" /></a>
 </p>
 
 ### Table of Contents
