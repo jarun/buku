@@ -48,6 +48,6 @@ args=(
     '(-v --version)'{-v,--version}'[show program version]'
     '(-w --write)'{-w,--write}'[open editor]'
     '(-x --exclude)'{-x,--exclude}'[exclude keywords]:keyword(s)'
-    '(-z --debug)'{-z,--debug}'[enable debugging mode]'
+    '(-g --debug)'{-g,--debug}'[enable debugging mode]'
 )
 _arguments -S -s $args

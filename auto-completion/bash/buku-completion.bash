@@ -50,7 +50,7 @@ _buku () {
         -v --version
         -w --write
         -x --exclude
-        -z --debug
+        -g --debug
     )
     opts_with_arg=(
         -a --add

@@ -4980,7 +4980,7 @@ POSITIONAL ARGUMENTS:
     --threads N          max network connections in full refresh
                          default N=4, min N=1, max N=10
     -V                   check latest upstream version available
-    -z, --debug          show debug information and verbose logs''')
+    -g, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
     addarg('--ai', action='store_true', help=hide)
     addarg('-e', '--export', nargs=1, help=hide)
@@ -5002,7 +5002,7 @@ POSITIONAL ARGUMENTS:
     addarg('--tacit', action='store_true', help=hide)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=hide)
     addarg('-V', dest='upstream', action='store_true', help=hide)
-    addarg('-z', '--debug', action='store_true', help=hide)
+    addarg('-g', '--debug', action='store_true', help=hide)
     # Undocumented APIs
     # Fix uppercase tags allowed in releases before v2.7
     addarg('--fixtags', action='store_true', help=hide)

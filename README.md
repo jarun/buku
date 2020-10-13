@@ -247,7 +247,7 @@ POWER TOYS:
       --threads N          max network connections in full refresh
                            default N=4, min N=1, max N=10
       -V                   check latest upstream version available
-      -z, --debug          show debug information and verbose logs
+      -g, --debug          show debug information and verbose logs
 
 SYMBOLS:
       >                    url

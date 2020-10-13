@@ -43,4 +43,4 @@ complete -c buku -s V               --description 'check latest upstream release
 complete -c buku -s v -l version    --description 'show program version'
 complete -c buku -s w -l write      --description 'open editor'
 complete -c buku -s x -l exclude -r --description 'exclude keywords'
-complete -c buku -s z -l debug      --description 'enable debugging mode'
+complete -c buku -s g -l debug      --description 'enable debugging mode'
