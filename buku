@@ -4961,7 +4961,7 @@ POSITIONAL ARGUMENTS:
                          N=4: URL, title, tag; N=5: title, tag;
                          N0 (10, 20, 30, 40, 50) omits DB index
     -j, --json [file]    JSON formatted output for -p and search.
-                         prints to stdout if no arguments are provided.
+                         prints to stdout if argument missing.
                          otherwise writes to given file
     --colors COLORS      set output colors in five-letter string
     --nc                 disable color output
