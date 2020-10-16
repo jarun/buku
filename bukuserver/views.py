@@ -219,7 +219,10 @@ class BookmarkModelView(BaseModelView):
             bookmarks = sorted(bookmarks, key=lambda x: x[key_idx], reverse=sort_desc)
         count = len(bookmarks)
         if page_size and bookmarks:
-            bookmarks = list(chunks(bookmarks, page_size))[page]
+            try:
+                bookmarks = list(chunks(bookmarks, page_size))[page]
+            except IndexError:
+                bookmarks = []
         data = []
         for bookmark in bookmarks:
             bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
