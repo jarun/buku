@@ -154,12 +154,13 @@ class BookmarkModelView(BaseModelView):
 
     def create_form(self, obj=None):
         form = super().create_form(obj)
-        if 'url' in request.args.keys() and not request.args.get("url").startswith('/bookmark/'):
-            form.url.data = request.args.get("url")
-        if 'title' in request.args.keys():
-            form.title.data = request.args.get("title")
-        if 'description' in request.args.keys():
-            form.description.data = request.args.get("description")
+        args = request.args
+        if 'url' in args.keys() and not args.get("url").startswith('/bookmark/'):
+            form.url.data = args.get("url")
+        if 'title' in args.keys():
+            form.title.data = args.get("title")
+        if 'description' in args.keys():
+            form.description.data = args.get("description")
         return form
 
     def create_model(self, form):
