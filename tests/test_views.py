@@ -2,7 +2,7 @@ from argparse import Namespace
 from types import SimpleNamespace
 
 import pytest
-from flask import current_app
+from flask import current_app, request
 
 from buku import BukuDb
 from bukuserver import server
@@ -100,3 +100,22 @@ def test_tag_model_view_get_list(tmv_instance, sort_field, sort_desc, filters, e
     tmv_instance.bukudb.add_rec('http://example.com/3.jpg', tags_in='t3')
     res = tmv_instance.get_list(0, sort_field, sort_desc, None, filters)
     assert res == exp_res
+
+
+@pytest.fixture
+def bmv_instance(tmp_path):
+    """define tag model view instance"""
+    test_db = tmp_path / 'test.db'
+    bukudb = BukuDb(dbfile=test_db.as_posix())
+    inst = BookmarkModelView(bukudb)
+    return inst
+
+
+@pytest.mark.parametrize('url, exp_url', [
+    ['http://example.com', 'http://example.com'],
+    ['/bookmark/', None],
+])
+def test_bmv_create_form(bmv_instance, url, exp_url):
+    request.args = {'url': url}
+    form = bmv_instance.create_form()
+    assert form.url.data == exp_url
