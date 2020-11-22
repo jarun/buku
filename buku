@@ -226,9 +226,11 @@ class BukuCrypt:
                     if len(chunk) == 0:
                         break
                     if len(chunk) % 16 != 0:
-                        chunk = '%s%s' % (chunk, ' ' * (16 - len(chunk) % 16))
+                        chunk = b'%b%b' % (chunk, b' ' * (16 - len(chunk) % 16))
 
-                    outfp.write(encryptor.update(chunk) + encryptor.finalize())
+                    outfp.write(encryptor.update(chunk))
+
+                outfp.write(encryptor.finalize())
 
             os.remove(dbfile)
             print('File encrypted')
