@@ -234,6 +234,7 @@ class BukuCrypt:
             print('File encrypted')
             sys.exit(0)
         except Exception as e:
+            os.remove(encfile)
             LOGERR(e)
             sys.exit(1)
 
@@ -329,9 +330,11 @@ class BukuCrypt:
                 os.remove(encfile)
                 print('File decrypted')
         except struct.error:
+            os.remove(dbfile)
             LOGERR('Tainted file')
             sys.exit(1)
         except Exception as e:
+            os.remove(dbfile)
             LOGERR(e)
             sys.exit(1)
 
