@@ -23,6 +23,7 @@ import argparse
 import calendar
 import cgi
 import collections
+import contextlib
 import json
 import logging
 import os
@@ -236,7 +237,8 @@ class BukuCrypt:
             print('File encrypted')
             sys.exit(0)
         except Exception as e:
-            os.remove(encfile)
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(encfile)
             LOGERR(e)
             sys.exit(1)
 
@@ -317,9 +319,8 @@ class BukuCrypt:
                         chunk = infp.read(BukuCrypt.CHUNKSIZE)
                         if len(chunk) == 0:
                             break
-
-                        outfp.write(decryptor.update(chunk) + decryptor.finalize())
-
+                        outfp.write(decryptor.update(chunk))
+                    outfp.write(decryptor.finalize())
                     outfp.truncate(size)
 
             # Match hash of generated file with that of original DB file
@@ -332,11 +333,13 @@ class BukuCrypt:
                 os.remove(encfile)
                 print('File decrypted')
         except struct.error:
-            os.remove(dbfile)
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(dbfile)
             LOGERR('Tainted file')
             sys.exit(1)
         except Exception as e:
-            os.remove(dbfile)
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(dbfile)
             LOGERR(e)
             sys.exit(1)
 
