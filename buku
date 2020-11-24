@@ -317,9 +317,8 @@ class BukuCrypt:
                         chunk = infp.read(BukuCrypt.CHUNKSIZE)
                         if len(chunk) == 0:
                             break
-
-                        outfp.write(decryptor.update(chunk) + decryptor.finalize())
-
+                        outfp.write(decryptor.update(chunk))
+                    outfp.write(decryptor.finalize())
                     outfp.truncate(size)
 
             # Match hash of generated file with that of original DB file
