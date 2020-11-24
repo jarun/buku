@@ -1,6 +1,7 @@
 """test module."""
 from unittest import mock
 import os
+import random
 
 import pytest
 
@@ -16,20 +17,23 @@ def test_get_filehash(tmpdir):
     assert res == exp_res
 
 
-def touch(fname):
-    """touch implementation for python."""
-    if os.path.exists(fname):
-        os.utime(fname, None)
-    else:
-        open(fname, 'a').close()
-
-
-def test_encrypt_decrypt(tmpdir):
+@pytest.mark.parametrize(
+    'filesize',
+    list(range(0, 17)) + [511, 512, 513, 1023, 1024, 1025, 524288, 524289, 1000000, 1048576, 2097152, 4194304]
+)
+def test_encrypt_decrypt(tmpdir, filesize):
     """test method."""
     dbfile = os.path.join(tmpdir.strpath, 'test_encrypt_decrypt_dbfile')
-    touch(dbfile)
+    content = bytes(random.getrandbits(8) for _ in range(filesize))
+    with open(dbfile, 'wb') as fp:
+        fp.write(content)
+    assert os.stat(dbfile).st_size == filesize
     with mock.patch('getpass.getpass', return_value='password'):
         from buku import BukuCrypt
         with pytest.raises(SystemExit):
             BukuCrypt.encrypt_file(1, dbfile=dbfile)
         BukuCrypt.decrypt_file(1, dbfile=dbfile)
+    assert os.path.exists(dbfile)
+    with open(dbfile, 'rb') as fp:
+        roundtrip_content = fp.read()
+    assert roundtrip_content == content
