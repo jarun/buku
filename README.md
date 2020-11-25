@@ -481,7 +481,7 @@ Copyright © 2015-2020 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 
 ### Contributions
 
-Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/buku/issues/343) with identified tasks. Contributions are welcome! Please follow the [PR guidelines](https://github.com/jarun/buku/wiki/PR-guidelines).
+Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/buku/issues/484) with identified tasks. Contributions are welcome! Please follow the [PR guidelines](https://github.com/jarun/buku/wiki/PR-guidelines).
 
 ### Related projects
 
