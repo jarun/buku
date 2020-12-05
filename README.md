@@ -495,6 +495,11 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/buku/i
 
 <a href="http://buku.readthedocs.io/en/stable/?badge=stable"><img src="https://img.shields.io/badge/docs-stable-brightgreen.svg?maxAge=2592000" alt="Stable Docs" /></a>
 
+### Videos
+
+- [Buku: Take Your Bookmarks Everywhere You Go](https://www.youtube.com/embed/9HzEHrUBQXE)
+- [Buku is a great open-source bookmark manager](https://www.youtube.com/embed/7VxgKMWm-J8)
+
 ### In the Press
 
 - [2daygeek](http://www.2daygeek.com/buku-command-line-bookmark-manager-linux/)
