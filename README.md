@@ -296,9 +296,22 @@ PROMPT KEYS:
 
        b -p
 6. For GUI and browser integration (or to sync bookmarks with your favourite bookmark management service) refer to the wiki page on [System integration](https://github.com/jarun/buku/wiki/System-integration).
-7. Handy (bash/zsh) command to fuzzy search all URLs and open the selected one in Firefox:
+7. Handy (bash/zsh) commands to fuzzy search all URLs and open the selected one in Firefox:
 
        firefox $(buku -p -f 10 | fzf)
+       firefox $(buku -p -f 40 | fzf | cut -f1)
+
+   POSIX script to allow cancellation as well:
+
+   ```sh
+   #!/usr/bin/env sh
+
+   url=$(buku -p -f 40 | fzf | cut -f1)
+
+   if [ -n "$url" ]; then
+       firefox "$url"
+   fi
+   ```
 
 ### Examples
 
