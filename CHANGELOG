@@ -1,3 +1,19 @@
+buku v4.5
+2020-12-29
+
+- Fix encryption and decryption (#480)
+- Fix Wayback Machine API query
+- Support wayland native copier `wl-copy`
+- Add bookmarklet for bukuserver (#385)
+- Delete by tag without prompting for each bookmark (#458)
+- Fix issue with utf-8 characters in bookmark titles (#456)
+- Fix reomve all tags from prompt (#467)
+- Example to fuzzy search and preview in Quickstart section
+- Replace debug option `-z` with `-g`
+- Support python 3.9, retire python 3.5
+
+-------------------------------------------------------------------------------
+
 buku v4.4
 2020-06-16
 
