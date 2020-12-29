@@ -31,6 +31,7 @@ disable=
   ungrouped-imports,
   unidiomatic-typecheck,
   unnecessary-lambda,
+  unsubscriptable-object,
   unsupported-assignment-operation,
   unused-argument,
   unused-variable,
