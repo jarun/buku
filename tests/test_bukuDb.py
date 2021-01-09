@@ -33,6 +33,7 @@ TEST_TEMP_DIR_PATH = TEST_TEMP_DIR_OBJ.name
 TEST_TEMP_DBDIR_PATH = os.path.join(TEST_TEMP_DIR_PATH, 'buku')
 TEST_TEMP_DBFILE_PATH = os.path.join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
 MAX_SQLITE_INT = int(math.pow(2, 63) - 1)
+TEST_PRINT_REC = ("https://example.com", "", parse_tags(['cat,ant,bee,1']), "")
 
 TEST_BOOKMARKS = [
     ['http://slashdot.org',
@@ -690,7 +691,7 @@ def test_print_db(tmp_path):
     bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
     # clear all record first before testing
     bdb.delete_rec_all()
-    bdb.add_rec("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
+    bdb.add_rec
     yield bdb
     bdb.delete_rec(index=1)
 
@@ -702,28 +703,39 @@ def test_print_caplog(caplog):
     yield caplog
 
 
-@pytest.mark.parametrize('kwargs, exp_res', [
-    [{}, (True, [])],
-    [{'is_range': True}, (True, [])],
-    [{'index': 0}, (True, [])],
-    [{'index': -1}, (True, [])],
-    [{'index': -2}, (True, [])],
-    [{'index': 2}, (False, [('root', 40, 'No matching index 2')])],
+@pytest.mark.parametrize('kwargs, rec, exp_res', [
+    [{}, TEST_PRINT_REC, (True, [])],
+    [{'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'index': 0}, TEST_PRINT_REC, (True, [])],
+    [{'index': -1}, TEST_PRINT_REC, (True, [])],
+    [{'index': -2}, TEST_PRINT_REC, (True, [])],
+    [{'index': 2}, TEST_PRINT_REC, (False, [('root', 40, 'No matching index 2')])],
+    [{'low': -1, 'high': -1}, TEST_PRINT_REC, (True, [])],
+    [{'low': -1, 'high': -1, 'is_range': True}, TEST_PRINT_REC, (False, [('root', 40, 'Negative range boundary')])],
+    [{'low': 0, 'high': 0, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'low': 0, 'high': 1, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'low': 0, 'high': 2, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'low': 2, 'high': 2, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'low': 2, 'high': 3, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    # empty database
+    [{'is_range': True}, None, (True, [])],
+    [{'index': 0}, None, (True, [('root', 40, '0 records')])],
+    [{'index': -1}, None, (False, [('root', 40, 'Empty database')])],
+    [{'index': 1}, None, (False, [('root', 40, 'No matching index 1')])],
+    [{'low': -1, 'high': -1}, TEST_PRINT_REC, (True, [])],
+    [{'low': -1, 'high': -1, 'is_range': True}, None, (False, [('root', 40, 'Negative range boundary')])],
+    [{'low': 0, 'high': 0, 'is_range': True}, None, (True, [])],
+    [{'low': 0, 'high': 1, 'is_range': True}, None, (True, [])],
+    [{'low': 0, 'high': 2, 'is_range': True}, None, (True, [])],
+    [{'low': 2, 'high': 2, 'is_range': True}, None, (True, [])],
+    [{'low': 2, 'high': 3, 'is_range': True}, None, (True, [])],
 ])
-def test_print_rec(kwargs, exp_res, test_print_db, caplog):
-    bdb = test_print_db
+def test_print_rec(setup, kwargs, rec, exp_res, tmp_path, caplog):
+    bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
+    if rec:
+        bdb.add_rec(*rec)
     # run the function
     assert (bdb.print_rec(**kwargs), caplog.record_tuples) == exp_res
-
-
-@pytest.mark.parametrize('index, exp_res', [
-    [0, (True, [('root', 40, '0 records')])],
-    [-1, (False, [('root', 40, 'Empty database')])],
-    [1, (False, [('root', 40, 'No matching index 1')])],
-])
-def test_print_rec_on_empty_db(tmp_path, caplog, index, exp_res):
-    bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
-    assert (bdb.print_rec(index=index), caplog.record_tuples) == exp_res
 
 
 def test_list_tags(capsys, setup):
