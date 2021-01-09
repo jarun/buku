@@ -1658,7 +1658,7 @@ class BukuDb:
 
         return False
 
-    def print_rec(self, index=0, low=0, high=0, is_range=False):
+    def print_rec(self, index : int = 0 , low : int = 0, high : int = 0, is_range : bool = False) -> bool:
         """Print bookmark details at index or all bookmarks if index is 0.
 
         A negative index behaves like tail, if title is blank show "Untitled".
