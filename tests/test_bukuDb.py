@@ -12,9 +12,9 @@ import sys
 import unittest
 import urllib
 import zipfile
-from genericpath import exists
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import mock
+from genericpath import exists
 
 import pytest
 import vcr
