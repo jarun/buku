@@ -9,21 +9,20 @@ import re
 import shutil
 import sqlite3
 import sys
+import unittest
 import urllib
 import zipfile
-from tempfile import TemporaryDirectory, NamedTemporaryFile
-
-from unittest import mock
-import unittest
 from genericpath import exists
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from unittest import mock
+
 import pytest
-import yaml
-from hypothesis import given, example, settings
-from hypothesis import strategies as st
 import vcr
+import yaml
+from hypothesis import HealthCheck, example, given, settings
+from hypothesis import strategies as st
 
 from buku import BukuDb, parse_tags, prompt
-
 
 logging.basicConfig()  # you need to initialize logging, otherwise you will not see anything from vcrpy
 vcr_log = logging.getLogger("vcr")
@@ -686,54 +685,45 @@ def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     assert from_db[2] == exp_res, 'from_db: {}'.format(from_db)
 
 
-@given(
-    index=st.integers(min_value=-10, max_value=10),
-    low=st.integers(min_value=-10, max_value=10),
-    high=st.integers(min_value=-10, max_value=10),
-    is_range=st.booleans(),
-)
-@settings(deadline=None)
-def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
-    """test when index, low or high is less than 0."""
-    # setup
-    caplog.handler.records.clear()
-    caplog.records.clear()
-
-    bdb = BukuDb()
+@pytest.fixture
+def test_print_db(tmp_path):
+    bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
     # clear all record first before testing
     bdb.delete_rec_all()
     bdb.add_rec("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
-    db_len = 1
-    bdb.print_rec(index=index, low=low, high=high, is_range=is_range)
-
-    check_print = False
-    err_msg = ['Actual log:']
-    err_msg.extend(['{}:{}'.format(x.levelname, x.getMessage()) for x in caplog.records])
-
-    if index < 0 or (0 <= index <= db_len and not is_range):
-        check_print = True
-    # negative index/range on is_range
-    elif (is_range and any([low < 0, high < 0])):
-        assert any([x.levelname == "ERROR" for x in caplog.records]), \
-            '\n'.join(err_msg)
-        assert any([x.getMessage() == "Negative range boundary" for x in caplog.records]), \
-            '\n'.join(err_msg)
-    elif is_range:
-        check_print = True
-    else:
-        assert any([x.levelname == "ERROR" for x in caplog.records]), \
-            '\n'.join(err_msg)
-        assert any([x.getMessage().startswith("No matching index") for x in caplog.records]), \
-            '\n'.join(err_msg)
-
-    if check_print:
-        assert not any([x.levelname == "ERROR" for x in caplog.records]), \
-            '\n'.join(err_msg)
-
-    # teardown
+    yield bdb
     bdb.delete_rec(index=1)
+
+
+@pytest.fixture
+def test_print_caplog(caplog):
     caplog.handler.records.clear()
     caplog.records.clear()
+    yield caplog
+
+
+@pytest.mark.parametrize('kwargs, exp_res', [
+    [{}, (True, [])],
+    [{'is_range': True}, (True, [])],
+    [{'index': 0}, (True, [])],
+    [{'index': -1}, (True, [])],
+    [{'index': -2}, (True, [])],
+    [{'index': 2}, (False, [('root', 40, 'No matching index 2')])],
+])
+def test_print_rec(kwargs, exp_res, test_print_db, caplog):
+    bdb = test_print_db
+    # run the function
+    assert (bdb.print_rec(**kwargs), caplog.record_tuples) == exp_res
+
+
+@pytest.mark.parametrize('index, exp_res', [
+    [0, (True, [('root', 40, '0 records')])],
+    [-1, (False, [('root', 40, 'Empty database')])],
+    [1, (False, [('root', 40, 'No matching index 1')])],
+])
+def test_print_rec_on_empty_db(tmp_path, caplog, index, exp_res):
+    bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
+    assert (bdb.print_rec(index=index), caplog.record_tuples) == exp_res
 
 
 def test_list_tags(capsys, setup):
