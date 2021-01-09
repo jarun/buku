@@ -9,21 +9,20 @@ import re
 import shutil
 import sqlite3
 import sys
+import unittest
 import urllib
 import zipfile
-from tempfile import TemporaryDirectory, NamedTemporaryFile
-
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import mock
-import unittest
 from genericpath import exists
+
 import pytest
-import yaml
-from hypothesis import given, example, settings
-from hypothesis import strategies as st
 import vcr
+import yaml
+from hypothesis import example, given, settings
+from hypothesis import strategies as st
 
 from buku import BukuDb, parse_tags, prompt
-
 
 logging.basicConfig()  # you need to initialize logging, otherwise you will not see anything from vcrpy
 vcr_log = logging.getLogger("vcr")
@@ -34,6 +33,7 @@ TEST_TEMP_DIR_PATH = TEST_TEMP_DIR_OBJ.name
 TEST_TEMP_DBDIR_PATH = os.path.join(TEST_TEMP_DIR_PATH, 'buku')
 TEST_TEMP_DBFILE_PATH = os.path.join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
 MAX_SQLITE_INT = int(math.pow(2, 63) - 1)
+TEST_PRINT_REC = ("https://example.com", "", parse_tags(['cat,ant,bee,1']), "")
 
 TEST_BOOKMARKS = [
     ['http://slashdot.org',
@@ -686,54 +686,46 @@ def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     assert from_db[2] == exp_res, 'from_db: {}'.format(from_db)
 
 
-@given(
-    index=st.integers(min_value=-10, max_value=10),
-    low=st.integers(min_value=-10, max_value=10),
-    high=st.integers(min_value=-10, max_value=10),
-    is_range=st.booleans(),
-)
-@settings(deadline=None)
-def test_print_rec_hypothesis(caplog, setup, index, low, high, is_range):
-    """test when index, low or high is less than 0."""
-    # setup
+@pytest.fixture
+def test_print_caplog(caplog):
     caplog.handler.records.clear()
     caplog.records.clear()
+    yield caplog
 
-    bdb = BukuDb()
-    # clear all record first before testing
-    bdb.delete_rec_all()
-    bdb.add_rec("http://one.com", "", parse_tags(['cat,ant,bee,1']), "")
-    db_len = 1
-    bdb.print_rec(index=index, low=low, high=high, is_range=is_range)
 
-    check_print = False
-    err_msg = ['Actual log:']
-    err_msg.extend(['{}:{}'.format(x.levelname, x.getMessage()) for x in caplog.records])
-
-    if index < 0 or (0 <= index <= db_len and not is_range):
-        check_print = True
-    # negative index/range on is_range
-    elif (is_range and any([low < 0, high < 0])):
-        assert any([x.levelname == "ERROR" for x in caplog.records]), \
-            '\n'.join(err_msg)
-        assert any([x.getMessage() == "Negative range boundary" for x in caplog.records]), \
-            '\n'.join(err_msg)
-    elif is_range:
-        check_print = True
-    else:
-        assert any([x.levelname == "ERROR" for x in caplog.records]), \
-            '\n'.join(err_msg)
-        assert any([x.getMessage().startswith("No matching index") for x in caplog.records]), \
-            '\n'.join(err_msg)
-
-    if check_print:
-        assert not any([x.levelname == "ERROR" for x in caplog.records]), \
-            '\n'.join(err_msg)
-
-    # teardown
-    bdb.delete_rec(index=1)
-    caplog.handler.records.clear()
-    caplog.records.clear()
+@pytest.mark.parametrize('kwargs, rec, exp_res', [
+    [{}, TEST_PRINT_REC, (True, [])],
+    [{'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'index': 0}, TEST_PRINT_REC, (True, [])],
+    [{'index': -1}, TEST_PRINT_REC, (True, [])],
+    [{'index': -2}, TEST_PRINT_REC, (True, [])],
+    [{'index': 2}, TEST_PRINT_REC, (False, [('root', 40, 'No matching index 2')])],
+    [{'low': -1, 'high': -1}, TEST_PRINT_REC, (True, [])],
+    [{'low': -1, 'high': -1, 'is_range': True}, TEST_PRINT_REC, (False, [('root', 40, 'Negative range boundary')])],
+    [{'low': 0, 'high': 0, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'low': 0, 'high': 1, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'low': 0, 'high': 2, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'low': 2, 'high': 2, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    [{'low': 2, 'high': 3, 'is_range': True}, TEST_PRINT_REC, (True, [])],
+    # empty database
+    [{'is_range': True}, None, (True, [])],
+    [{'index': 0}, None, (True, [('root', 40, '0 records')])],
+    [{'index': -1}, None, (False, [('root', 40, 'Empty database')])],
+    [{'index': 1}, None, (False, [('root', 40, 'No matching index 1')])],
+    [{'low': -1, 'high': -1}, TEST_PRINT_REC, (True, [])],
+    [{'low': -1, 'high': -1, 'is_range': True}, None, (False, [('root', 40, 'Negative range boundary')])],
+    [{'low': 0, 'high': 0, 'is_range': True}, None, (True, [])],
+    [{'low': 0, 'high': 1, 'is_range': True}, None, (True, [])],
+    [{'low': 0, 'high': 2, 'is_range': True}, None, (True, [])],
+    [{'low': 2, 'high': 2, 'is_range': True}, None, (True, [])],
+    [{'low': 2, 'high': 3, 'is_range': True}, None, (True, [])],
+])
+def test_print_rec(setup, kwargs, rec, exp_res, tmp_path, caplog):
+    bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
+    if rec:
+        bdb.add_rec(*rec)
+    # run the function
+    assert (bdb.print_rec(**kwargs), caplog.record_tuples) == exp_res
 
 
 def test_list_tags(capsys, setup):
@@ -772,74 +764,30 @@ def test_compactdb(setup):
 
 
 @vcr.use_cassette('tests/vcr_cassettes/test_delete_rec_range_and_delay_commit.yaml')
-@given(
-    low=st.integers(min_value=-10, max_value=10),
-    high=st.integers(min_value=-10, max_value=10),
-    delay_commit=st.booleans(),
-    input_retval=st.characters()
-)
-@example(low=0, high=0, delay_commit=False, input_retval='y')
-@settings(max_examples=2, deadline=None)
-def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
+@pytest.mark.parametrize('low, high, delay_commit, input_retval, exp_res', [
+    #  delay_commit, y input_retval
+    [0, 0, True, 'y', (True, [])],
+    #  delay_commit, non-y input_retval
+    [0, 0, True, 'x', (False, [tuple([x] + y + [0]) for x, y in zip(range(1, 4), TEST_BOOKMARKS)])],
+    #  non delay_commit, y input_retval
+    [0, 0, False, 'y', (True, [])],
+    #  non delay_commit, non-y input_retval
+    [0, 0, False, 'x', (False, [tuple([x] + y + [0]) for x, y in zip(range(1, 4), TEST_BOOKMARKS)])],
+])
+def test_delete_rec_range_and_delay_commit(setup, tmp_path, low, high, delay_commit, input_retval, exp_res):
     """test delete rec, range and delay commit."""
-    bdb = BukuDb()
-    bdb_dc = BukuDb()  # instance for delay_commit check.
-    index = 0
-    is_range = True
+    bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
+    kwargs = {'is_range': True, 'low': low, 'high': high, 'delay_commit': delay_commit}
+    kwargs['index'] = 0
 
     # Fill bookmark
     for bookmark in TEST_BOOKMARKS:
         bdb.add_rec(*bookmark)
-    db_len = len(TEST_BOOKMARKS)
-
-    # use normalized high and low variable
-    n_low, n_high = normalize_range(db_len=db_len, low=low, high=high)
-
-    exp_res = True
-    if n_high > db_len >= n_low:
-        exp_db_len = db_len - (db_len + 1 - n_low)
-    elif n_high == n_low > db_len:
-        exp_db_len = db_len
-        exp_res = False
-    elif n_high == n_low <= db_len:
-        exp_db_len = db_len - 1
-    else:
-        exp_db_len = db_len - (n_high + 1 - n_low)
 
     with mock.patch('builtins.input', return_value=input_retval):
-        res = bdb.delete_rec(
-            index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
+        res = bdb.delete_rec(**kwargs)
 
-    if n_low < 0:
-        assert not res
-        assert len(bdb_dc.get_rec_all()) == db_len
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    if (low == 0 or high == 0) and input_retval != 'y':
-        assert not res
-        assert len(bdb_dc.get_rec_all()) == db_len
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    if (low == 0 or high == 0) and input_retval == 'y':
-        assert res == exp_res
-        assert len(bdb_dc.get_rec_all()) == 0
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    if n_low > db_len and n_low > 0:
-        assert not res
-        assert len(bdb_dc.get_rec_all()) == db_len
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    assert res == exp_res
-    assert len(bdb.get_rec_all()) == exp_db_len
-    if delay_commit:
-        assert len(bdb_dc.get_rec_all()) == db_len
-    else:
-        assert len(bdb_dc.get_rec_all()) == exp_db_len
+    assert (res, bdb.get_rec_all()) == exp_res
 
     # teardown
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
