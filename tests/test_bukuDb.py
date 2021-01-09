@@ -687,16 +687,6 @@ def test_refreshdb(refreshdb_fixture, title_in, exp_res):
 
 
 @pytest.fixture
-def test_print_db(tmp_path):
-    bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
-    # clear all record first before testing
-    bdb.delete_rec_all()
-    bdb.add_rec
-    yield bdb
-    bdb.delete_rec(index=1)
-
-
-@pytest.fixture
 def test_print_caplog(caplog):
     caplog.handler.records.clear()
     caplog.records.clear()
