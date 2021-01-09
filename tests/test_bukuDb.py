@@ -19,7 +19,7 @@ from unittest import mock
 import pytest
 import vcr
 import yaml
-from hypothesis import HealthCheck, example, given, settings
+from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from buku import BukuDb, parse_tags, prompt
@@ -778,16 +778,16 @@ def test_compactdb(setup):
     #  delay_commit, y input_retval
     [0, 0, True, 'y', (True, [])],
     #  delay_commit, non-y input_retval
-    [0, 0, True, 'x', (False, [tuple([x] + y + [0]) for x,y in zip(range(1, 4), TEST_BOOKMARKS)])],
+    [0, 0, True, 'x', (False, [tuple([x] + y + [0]) for x, y in zip(range(1, 4), TEST_BOOKMARKS)])],
     #  non delay_commit, y input_retval
     [0, 0, False, 'y', (True, [])],
     #  non delay_commit, non-y input_retval
-    [0, 0, False, 'x', (False, [tuple([x] + y + [0]) for x,y in zip(range(1, 4), TEST_BOOKMARKS)])],
+    [0, 0, False, 'x', (False, [tuple([x] + y + [0]) for x, y in zip(range(1, 4), TEST_BOOKMARKS)])],
 ])
 def test_delete_rec_range_and_delay_commit(setup, tmp_path, low, high, delay_commit, input_retval, exp_res):
     """test delete rec, range and delay commit."""
     bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
-    kwargs = {'is_range': True, 'low': low, 'high': high, 'delay_commit': delay_commit} 
+    kwargs = {'is_range': True, 'low': low, 'high': high, 'delay_commit': delay_commit}
     kwargs['index'] = 0
 
     # Fill bookmark
