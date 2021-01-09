@@ -774,74 +774,30 @@ def test_compactdb(setup):
 
 
 @vcr.use_cassette('tests/vcr_cassettes/test_delete_rec_range_and_delay_commit.yaml')
-@given(
-    low=st.integers(min_value=-10, max_value=10),
-    high=st.integers(min_value=-10, max_value=10),
-    delay_commit=st.booleans(),
-    input_retval=st.characters()
-)
-@example(low=0, high=0, delay_commit=False, input_retval='y')
-@settings(max_examples=2, deadline=None)
-def test_delete_rec_range_and_delay_commit(setup, low, high, delay_commit, input_retval):
+@pytest.mark.parametrize('low, high, delay_commit, input_retval, exp_res', [
+    #  delay_commit, y input_retval
+    [0, 0, True, 'y', (True, [])],
+    #  delay_commit, non-y input_retval
+    [0, 0, True, 'x', (False, [tuple([x] + y + [0]) for x,y in zip(range(1, 4), TEST_BOOKMARKS)])],
+    #  non delay_commit, y input_retval
+    [0, 0, False, 'y', (True, [])],
+    #  non delay_commit, non-y input_retval
+    [0, 0, False, 'x', (False, [tuple([x] + y + [0]) for x,y in zip(range(1, 4), TEST_BOOKMARKS)])],
+])
+def test_delete_rec_range_and_delay_commit(setup, tmp_path, low, high, delay_commit, input_retval, exp_res):
     """test delete rec, range and delay commit."""
-    bdb = BukuDb()
-    bdb_dc = BukuDb()  # instance for delay_commit check.
-    index = 0
-    is_range = True
+    bdb = BukuDb(dbfile=tmp_path / 'tmp.db')
+    kwargs = {'is_range': True, 'low': low, 'high': high, 'delay_commit': delay_commit} 
+    kwargs['index'] = 0
 
     # Fill bookmark
     for bookmark in TEST_BOOKMARKS:
         bdb.add_rec(*bookmark)
-    db_len = len(TEST_BOOKMARKS)
-
-    # use normalized high and low variable
-    n_low, n_high = normalize_range(db_len=db_len, low=low, high=high)
-
-    exp_res = True
-    if n_high > db_len >= n_low:
-        exp_db_len = db_len - (db_len + 1 - n_low)
-    elif n_high == n_low > db_len:
-        exp_db_len = db_len
-        exp_res = False
-    elif n_high == n_low <= db_len:
-        exp_db_len = db_len - 1
-    else:
-        exp_db_len = db_len - (n_high + 1 - n_low)
 
     with mock.patch('builtins.input', return_value=input_retval):
-        res = bdb.delete_rec(
-            index=index, low=low, high=high, is_range=is_range, delay_commit=delay_commit)
+        res = bdb.delete_rec(**kwargs)
 
-    if n_low < 0:
-        assert not res
-        assert len(bdb_dc.get_rec_all()) == db_len
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    if (low == 0 or high == 0) and input_retval != 'y':
-        assert not res
-        assert len(bdb_dc.get_rec_all()) == db_len
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    if (low == 0 or high == 0) and input_retval == 'y':
-        assert res == exp_res
-        assert len(bdb_dc.get_rec_all()) == 0
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    if n_low > db_len and n_low > 0:
-        assert not res
-        assert len(bdb_dc.get_rec_all()) == db_len
-        # teardown
-        os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
-        return
-    assert res == exp_res
-    assert len(bdb.get_rec_all()) == exp_db_len
-    if delay_commit:
-        assert len(bdb_dc.get_rec_all()) == db_len
-    else:
-        assert len(bdb_dc.get_rec_all()) == exp_db_len
+    assert (res, bdb.get_rec_all()) == exp_res
 
     # teardown
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
