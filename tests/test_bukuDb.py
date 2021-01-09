@@ -54,6 +54,12 @@ only_python_3_5 = pytest.mark.skipif(
     sys.version_info < (3, 5), reason="requires Python 3.5 or later")
 
 
+@pytest.fixture(scope='module')
+def vcr_cassette_dir(request):
+    # Put all cassettes in vhs/{module}/{test}.yaml
+    return os.path.join('tests', 'vcr_cassettes', request.module.__name__)
+
+
 @pytest.fixture()
 def setup():
     os.environ['XDG_DATA_HOME'] = TEST_TEMP_DIR_PATH
@@ -773,7 +779,7 @@ def test_compactdb(setup):
     assert bdb.get_rec_by_id(3) is None
 
 
-@vcr.use_cassette('tests/vcr_cassettes/test_delete_rec_range_and_delay_commit.yaml')
+@pytest.mark.vcr()
 @pytest.mark.parametrize('low, high, delay_commit, input_retval, exp_res', [
     #  delay_commit, y input_retval
     [0, 0, True, 'y', (True, [])],
