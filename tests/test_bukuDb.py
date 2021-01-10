@@ -12,9 +12,9 @@ import sys
 import unittest
 import urllib
 import zipfile
+from genericpath import exists
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import mock
-from genericpath import exists
 
 import pytest
 import vcr
@@ -22,6 +22,7 @@ import yaml
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
+import buku
 from buku import BukuDb, parse_tags, prompt
 
 logging.basicConfig()  # you need to initialize logging, otherwise you will not see anything from vcrpy
@@ -1047,29 +1048,36 @@ def test_delete_rec_on_empty_database(setup, index, is_range, low, high):
 
 
 @pytest.mark.parametrize(
-    "index, low, high, is_range",
+    "kwargs, exp_res, raise_error",
     [
-        ["a", "a", 1, True],
-        ["a", "a", 1, False],
-        ["a", 1, "a", True],
+        [dict(index="a", low="a", high=1, is_range=True), None, True],
+        [dict(index="a", low="a", high=1, is_range=False), None, True],
+        [dict(index="a", low=1, high="a", is_range=True), None, True],
+        [dict(index="a", is_range=False), None, True],
+        [dict(index="a", is_range=True), None, True],
     ],
 )
-def test_delete_rec_on_non_interger(index, low, high, is_range):
+def test_delete_rec_on_non_integer(
+    setup, tmp_path, monkeypatch, kwargs, exp_res, raise_error
+):
     """test delete rec on non integer arg."""
-    bdb = BukuDb()
+    bdb = BukuDb(dbfile=tmp_path / "tmp.db")
 
     for bookmark in TEST_BOOKMARKS:
         bdb.add_rec(*bookmark)
 
-    if is_range and not (isinstance(low, int) and isinstance(high, int)):
+    def mockreturn():
+        return "y"
+
+    exp_res = None
+    res = None
+    monkeypatch.setattr(buku, "read_in", mockreturn)
+    if raise_error:
         with pytest.raises(TypeError):
-            bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
-        return
-    if not is_range and not isinstance(index, int):
-        with pytest.raises(TypeError):
-            bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
+            res = bdb.delete_rec(**kwargs)
     else:
-        assert bdb.delete_rec(index=index, low=low, high=high, is_range=is_range)
+        res = bdb.delete_rec(**kwargs)
+    assert res == exp_res
 
 
 @pytest.mark.parametrize("url", ["", False, None, 0])
