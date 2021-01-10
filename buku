@@ -1663,6 +1663,8 @@ class BukuDb:
 
         A negative index behaves like tail, if title is blank show "Untitled".
 
+        Empty database check will run when `index` < 0 and `is_range` is False.
+
         Parameters
         -----------
         index : int, optional
@@ -1673,16 +1675,48 @@ class BukuDb:
             Actual higher index of range.
         is_range : bool, optional
             A range is passed using low and high arguments.
-            An index is ignored if is_range is True (use dummy index).
+            An index is ignored if is_range is True.
             Default is False.
 
         Returns
         -------
         bool
             True on success, False on failure.
-        """
 
-        if index < 0:
+        Examples
+        --------
+        >>> import buku
+        >>> from tempfile import NamedTemporaryFile
+        >>> edb = buku.BukuDb(dbfile=NamedTemporaryFile().name)  # empty database
+        >>> edb.print_rec()
+        0 records
+        True
+
+        Print negative index on empty database will log error and return False
+
+        >>> edb.print_rec(-3)
+        Empty database
+        False
+
+        print non empty database with default argument.
+
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)  # single record database
+        >>> sdb.add_rec('https://example.com')
+        >>> assert sdb.print_rec()
+        1. Example Domain
+           > https://example.com
+
+        Negative number on `high` and `low` paramaters when is_range is True
+        will log error and return False
+
+        >>> sdb.print_rec(low=-1, high=-1, is_range=True)
+        Negative range boundary
+        False
+        >>> edb.print_rec(low=-1, high=-1, is_range=True)
+        Negative range boundary
+        False
+        """
+        if not is_range and index < 0:
             # Show the last n records
             _id = self.get_max_id()
             if _id == -1:
