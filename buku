@@ -1460,17 +1460,17 @@ class BukuDb:
 
     def delete_rec(
             self,
-            index: int,
+            index: int = None,
             low: int = 0,
             high: int = 0,
             is_range: bool = False,
             delay_commit: bool = False
     ) -> bool:
-        """Delete a single record or remove the table if index is None.
+        """Delete a single record or remove the table if index is 0.
 
         Parameters
         ----------
-        index : int
+        index : int, optional
             DB index of deleted entry.
         low : int, optional
             Actual lower index of range.
@@ -1478,8 +1478,7 @@ class BukuDb:
             Actual higher index of range.
         is_range : bool, optional
             A range is passed using low and high arguments.
-            An index is ignored if is_range is True (use dummy index).
-            Default is False.
+            An index is ignored if is_range is True.
         delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
@@ -1493,7 +1492,54 @@ class BukuDb:
         -------
         bool
             True on success, False on failure.
+
+        Examples
+        --------
+        >>> from tempfile import NamedTemporaryFile
+        >>> import buku
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)  # single record database
+        >>> sdb.add_rec('https://example.com')
+        >>> sdb.delete_rec(1)
+        Index 1 deleted
+        True
+
+        Delete record with default range.
+
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
+        >>> sdb.add_rec('https://example.com')
+        >>> sdb.delete_rec(is_range=True)
+        Remove ALL bookmarks? (y/n): y
+        All bookmarks deleted
+        True
+
+        Running the function without any parameter will raise TypeError.
+
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
+        >>> sdb.add_rec('https://example.com')
+        >>> sdb.delete_rec()
+        TypeError: index, low, or high variable is not integer
+
+        Negative number on `high` and `low` paramaters when is_range is True
+        will log error and return False
+
+        >>> edb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
+        >>> edb.delete_rec(low=-1, high=-1, is_range=True)
+        Negative range boundary
+        False
+
+        Remove the table
+
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
+        >>> sdb.delete_rec(0)
+        Remove ALL bookmarks? (y/n): y
+        All bookmarks deleted
+        True
         """
+        params = [low, high]
+        if not is_range:
+            params.append(index)
+        if any(map(lambda x: not isinstance(x, int), params)):
+            raise TypeError('index, low, or high variable is not integer')
 
         if is_range:  # Delete a range of indices
             if low < 0 or high < 0:
