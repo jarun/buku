@@ -12,9 +12,12 @@ import sys
 import unittest
 import urllib
 import zipfile
-from genericpath import exists
+
+# fmt: off
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import mock
+from genericpath import exists
+# fmt: on
 
 import pytest
 import vcr
