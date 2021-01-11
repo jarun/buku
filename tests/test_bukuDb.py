@@ -1062,6 +1062,7 @@ def test_delete_rec_on_non_integer(
 ):
     """test delete rec on non integer arg."""
     import buku
+
     bdb = BukuDb(dbfile=tmp_path / "tmp.db")
 
     for bookmark in TEST_BOOKMARKS:
@@ -1143,13 +1144,16 @@ def test_update_rec_index_0(caplog):
     assert caplog.records[0].levelname == "ERROR"
 
 
-@pytest.mark.parametrize('kwargs, exp_res', [
-    [dict(index=1), False],
-    [dict(index=1, url='url'), False],
-    [dict(index=1, url=''), False],
-])
+@pytest.mark.parametrize(
+    "kwargs, exp_res",
+    [
+        [dict(index=1), False],
+        [dict(index=1, url="url"), False],
+        [dict(index=1, url=""), False],
+    ],
+)
 def test_update_rec(tmp_path, kwargs, exp_res):
-    bdb = BukuDb(tmp_path / 'tmp.db')
+    bdb = BukuDb(tmp_path / "tmp.db")
     res = bdb.update_rec(**kwargs)
     assert res == exp_res
 
@@ -1177,15 +1181,20 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
             raise e
 
 
-@pytest.mark.parametrize("read_in_retval, exp_res, record_tuples", [
-    ["y", False, [('root', 40, 'No matching index 0')]],
-    ["n", False, []],
-    ["", False, []],
-])
-def test_update_rec_update_all_bookmark(caplog, tmp_path, setup, read_in_retval, exp_res, record_tuples):
+@pytest.mark.parametrize(
+    "read_in_retval, exp_res, record_tuples",
+    [
+        ["y", False, [("root", 40, "No matching index 0")]],
+        ["n", False, []],
+        ["", False, []],
+    ],
+)
+def test_update_rec_update_all_bookmark(
+    caplog, tmp_path, setup, read_in_retval, exp_res, record_tuples
+):
     """test method."""
     with mock.patch("buku.read_in", return_value=read_in_retval):
-        bdb = BukuDb(tmp_path / 'tmp.db')
+        bdb = BukuDb(tmp_path / "tmp.db")
         res = bdb.update_rec(index=0, tags_in="tags1")
         assert (res, caplog.record_tuples) == (exp_res, record_tuples)
 
