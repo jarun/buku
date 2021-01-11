@@ -1143,19 +1143,15 @@ def test_update_rec_index_0(caplog):
     assert caplog.records[0].levelname == "ERROR"
 
 
-def test_update_rec_only_index():
-    """test method."""
-    bdb = BukuDb()
-    res = bdb.update_rec(index=1)
-    assert res
-
-
-@pytest.mark.parametrize("url", [None, ""])
-def test_update_rec_invalid_url(url):
-    """test method."""
-    bdb = BukuDb()
-    res = bdb.update_rec(index=1, url=url)
-    assert res
+@pytest.mark.parametrize('kwargs, exp_res', [
+    [dict(index=1), False],
+    [dict(index=1, url='url'), False],
+    [dict(index=1, url=''), False],
+])
+def test_update_rec(tmp_path, kwargs, exp_res):
+    bdb = BukuDb(tmp_path / 'tmp.db')
+    res = bdb.update_rec(**kwargs)
+    assert res == exp_res
 
 
 @pytest.mark.parametrize("invalid_tag", ["+,", "-,"])
