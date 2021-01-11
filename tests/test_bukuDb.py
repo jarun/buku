@@ -1177,21 +1177,17 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
             raise e
 
 
-@pytest.mark.parametrize("read_in_retval", ["y", "n", ""])
-def test_update_rec_update_all_bookmark(caplog, read_in_retval):
+@pytest.mark.parametrize("read_in_retval, exp_res, record_tuples", [
+    ["y", False, [('root', 40, 'No matching index 0')]],
+    ["n", False, []],
+    ["", False, []],
+])
+def test_update_rec_update_all_bookmark(caplog, tmp_path, setup, read_in_retval, exp_res, record_tuples):
     """test method."""
-    caplog.set_level(logging.DEBUG)
     with mock.patch("buku.read_in", return_value=read_in_retval):
-        bdb = BukuDb()
+        bdb = BukuDb(tmp_path / 'tmp.db')
         res = bdb.update_rec(index=0, tags_in="tags1")
-        assert res if read_in_retval == "y" else not res
-        if read_in_retval == "y":
-            assert (
-                caplog.records[0].getMessage() == "update_rec query: "
-                "\"UPDATE bookmarks SET tags = ?\", args: [',tags1,']"
-            )
-        else:
-            assert not caplog.records
+        assert (res, caplog.record_tuples) == (exp_res, record_tuples)
 
 
 @pytest.mark.parametrize(
