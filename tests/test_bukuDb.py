@@ -25,7 +25,6 @@ import yaml
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
-import buku
 from buku import BukuDb, parse_tags, prompt
 
 logging.basicConfig()  # you need to initialize logging, otherwise you will not see anything from vcrpy
@@ -1062,6 +1061,7 @@ def test_delete_rec_on_non_integer(
     setup, tmp_path, monkeypatch, kwargs, exp_res, raise_error
 ):
     """test delete rec on non integer arg."""
+    import buku
     bdb = BukuDb(dbfile=tmp_path / "tmp.db")
 
     for bookmark in TEST_BOOKMARKS:
