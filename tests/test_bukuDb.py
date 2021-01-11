@@ -1208,6 +1208,8 @@ def test_update_rec_update_all_bookmark(caplog, read_in_retval):
 def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp_res):
     """test method."""
     with mock.patch("buku.get_system_editor", return_value=get_system_editor_retval):
+        import buku
+
         bdb = buku.BukuDb()
         res = bdb.edit_update_rec(index=index)
         assert res == exp_res
@@ -1227,6 +1229,8 @@ def test_browse_by_index(low, high, index, is_range, empty_database):
     """test method."""
     n_low, n_high = (high, low) if low > high else (low, high)
     with mock.patch("buku.browse"):
+        import buku
+
         bdb = buku.BukuDb()
         bdb.delete_rec_all()
         db_len = 0
@@ -1277,6 +1281,8 @@ def test_load_chrome_database(chrome_db, add_pt):
             except RuntimeError:
                 res_yaml = yaml.load(f, Loader=PrettySafeLoader)
     # init
+    import buku
+
     bdb = buku.BukuDb()
     bdb.add_rec = mock.Mock()
     bdb.load_chrome_database(json_file, None, add_pt)
@@ -1322,6 +1328,8 @@ def test_load_firefox_database(firefox_db, add_pt):
             except RuntimeError:
                 res_yaml = yaml.load(f, Loader=PrettySafeLoader)
     # init
+    import buku
+
     bdb = buku.BukuDb()
     bdb.add_rec = mock.Mock()
     bdb.load_firefox_database(ff_db_path, None, add_pt)
@@ -1346,6 +1354,8 @@ def test_load_firefox_database(firefox_db, add_pt):
 def test_search_keywords_and_filter_by_tags(keyword_results, stag_results, exp_res):
     """test method."""
     # init
+    import buku
+
     bdb = buku.BukuDb()
     bdb.searchdb = mock.Mock(return_value=keyword_results)
     bdb.search_by_tag = mock.Mock(return_value=stag_results)
@@ -1368,6 +1378,8 @@ def test_search_keywords_and_filter_by_tags(keyword_results, stag_results, exp_r
 def test_exclude_results_from_search(search_results, exclude_results, exp_res):
     """test method."""
     # init
+    import buku
+
     bdb = buku.BukuDb()
     bdb.searchdb = mock.Mock(return_value=exclude_results)
     # test
