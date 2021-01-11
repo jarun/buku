@@ -25,7 +25,7 @@ tests_require = [
     'py>=1.5.0',
     'pylint>=1.7.2',
     'pytest-cov',
-    'pytest-vcr>=1.0.2'
+    'pytest-vcr>=1.0.2',
     'pytest>=6.2.1',
     'PyYAML>=4.2b1',
     'setuptools>=41.0.1',
