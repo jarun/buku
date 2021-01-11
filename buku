@@ -1722,7 +1722,6 @@ class BukuDb:
         is_range : bool, optional
             A range is passed using low and high arguments.
             An index is ignored if is_range is True.
-            Default is False.
 
         Returns
         -------
