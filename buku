@@ -1499,6 +1499,7 @@ class BukuDb:
         >>> import buku
         >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)  # single record database
         >>> sdb.add_rec('https://example.com')
+        1
         >>> sdb.delete_rec(1)
         Index 1 deleted
         True
@@ -1507,7 +1508,8 @@ class BukuDb:
 
         >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
         >>> sdb.add_rec('https://example.com')
-        >>> sdb.delete_rec(is_range=True)
+        1
+        >>> sdb.delete_rec(is_range=True)  # doctest: +SKIP
         Remove ALL bookmarks? (y/n): y
         All bookmarks deleted
         True
@@ -1516,7 +1518,10 @@ class BukuDb:
 
         >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
         >>> sdb.add_rec('https://example.com')
+        1
         >>> sdb.delete_rec()
+        Traceback (most recent call last):
+        ...
         TypeError: index, low, or high variable is not integer
 
         Negative number on `high` and `low` paramaters when is_range is True
@@ -1524,13 +1529,12 @@ class BukuDb:
 
         >>> edb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
         >>> edb.delete_rec(low=-1, high=-1, is_range=True)
-        Negative range boundary
         False
 
         Remove the table
 
         >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
-        >>> sdb.delete_rec(0)
+        >>> sdb.delete_rec(0)  # doctest: +SKIP
         Remove ALL bookmarks? (y/n): y
         All bookmarks deleted
         True
@@ -1734,31 +1738,29 @@ class BukuDb:
         >>> from tempfile import NamedTemporaryFile
         >>> edb = buku.BukuDb(dbfile=NamedTemporaryFile().name)  # empty database
         >>> edb.print_rec()
-        0 records
         True
 
         Print negative index on empty database will log error and return False
 
         >>> edb.print_rec(-3)
-        Empty database
         False
 
         print non empty database with default argument.
 
         >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)  # single record database
         >>> sdb.add_rec('https://example.com')
+        1
         >>> assert sdb.print_rec()
         1. Example Domain
            > https://example.com
+        <BLANKLINE>
 
         Negative number on `high` and `low` paramaters when is_range is True
         will log error and return False
 
         >>> sdb.print_rec(low=-1, high=-1, is_range=True)
-        Negative range boundary
         False
         >>> edb.print_rec(low=-1, high=-1, is_range=True)
-        Negative range boundary
         False
         """
         if not is_range and index < 0:
