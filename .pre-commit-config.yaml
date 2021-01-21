@@ -1,0 +1,20 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.4.0
+    hooks:
+    # -   id: trailing-whitespace
+    # -   id: end-of-file-fixer
+    # -   id: check-yaml
+    -   id: check-added-large-files
+-   repo: https://github.com/PyCQA/pylint/
+    rev: '2.6'
+    hooks:
+    -   id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        args: ['--rcfile', 'tests/.pylintrc']
+        # exclude: tests/functional/|tests/input|tests/extensions/data|tests/regrtest_data/|tests/data/|doc/

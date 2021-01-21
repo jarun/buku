@@ -1460,17 +1460,17 @@ class BukuDb:
 
     def delete_rec(
             self,
-            index: int,
+            index: int = None,
             low: int = 0,
             high: int = 0,
             is_range: bool = False,
             delay_commit: bool = False
     ) -> bool:
-        """Delete a single record or remove the table if index is None.
+        """Delete a single record or remove the table if index is 0.
 
         Parameters
         ----------
-        index : int
+        index : int, optional
             DB index of deleted entry.
         low : int, optional
             Actual lower index of range.
@@ -1478,8 +1478,7 @@ class BukuDb:
             Actual higher index of range.
         is_range : bool, optional
             A range is passed using low and high arguments.
-            An index is ignored if is_range is True (use dummy index).
-            Default is False.
+            An index is ignored if is_range is True.
         delay_commit : bool, optional
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
@@ -1493,7 +1492,58 @@ class BukuDb:
         -------
         bool
             True on success, False on failure.
+
+        Examples
+        --------
+        >>> from tempfile import NamedTemporaryFile
+        >>> import buku
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)  # single record database
+        >>> sdb.add_rec('https://example.com')
+        1
+        >>> sdb.delete_rec(1)
+        Index 1 deleted
+        True
+
+        Delete record with default range.
+
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
+        >>> sdb.add_rec('https://example.com')
+        1
+        >>> sdb.delete_rec(is_range=True)  # doctest: +SKIP
+        Remove ALL bookmarks? (y/n): y
+        All bookmarks deleted
+        True
+
+        Running the function without any parameter will raise TypeError.
+
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
+        >>> sdb.add_rec('https://example.com')
+        1
+        >>> sdb.delete_rec()
+        Traceback (most recent call last):
+        ...
+        TypeError: index, low, or high variable is not integer
+
+        Negative number on `high` and `low` paramaters when is_range is True
+        will log error and return False
+
+        >>> edb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
+        >>> edb.delete_rec(low=-1, high=-1, is_range=True)
+        False
+
+        Remove the table
+
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
+        >>> sdb.delete_rec(0)  # doctest: +SKIP
+        Remove ALL bookmarks? (y/n): y
+        All bookmarks deleted
+        True
         """
+        params = [low, high]
+        if not is_range:
+            params.append(index)
+        if any(map(lambda x: not isinstance(x, int), params)):
+            raise TypeError('index, low, or high variable is not integer')
 
         if is_range:  # Delete a range of indices
             if low < 0 or high < 0:
@@ -1663,6 +1713,8 @@ class BukuDb:
 
         A negative index behaves like tail, if title is blank show "Untitled".
 
+        Empty database check will run when `index` < 0 and `is_range` is False.
+
         Parameters
         -----------
         index : int, optional
@@ -1673,16 +1725,45 @@ class BukuDb:
             Actual higher index of range.
         is_range : bool, optional
             A range is passed using low and high arguments.
-            An index is ignored if is_range is True (use dummy index).
-            Default is False.
+            An index is ignored if is_range is True.
 
         Returns
         -------
         bool
             True on success, False on failure.
-        """
 
-        if index < 0:
+        Examples
+        --------
+        >>> import buku
+        >>> from tempfile import NamedTemporaryFile
+        >>> edb = buku.BukuDb(dbfile=NamedTemporaryFile().name)  # empty database
+        >>> edb.print_rec()
+        True
+
+        Print negative index on empty database will log error and return False
+
+        >>> edb.print_rec(-3)
+        False
+
+        print non empty database with default argument.
+
+        >>> sdb = buku.BukuDb(dbfile=NamedTemporaryFile().name)  # single record database
+        >>> sdb.add_rec('https://example.com')
+        1
+        >>> assert sdb.print_rec()
+        1. Example Domain
+           > https://example.com
+        <BLANKLINE>
+
+        Negative number on `high` and `low` paramaters when is_range is True
+        will log error and return False
+
+        >>> sdb.print_rec(low=-1, high=-1, is_range=True)
+        False
+        >>> edb.print_rec(low=-1, high=-1, is_range=True)
+        False
+        """
+        if not is_range and index < 0:
             # Show the last n records
             _id = self.get_max_id()
             if _id == -1:
