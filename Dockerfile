@@ -12,7 +12,7 @@ RUN set -ex \
     openssl-dev \
     musl-dev \
     libffi-dev \
-  && pip install -U --no-cache-dir \
+  && CRYPTOGRAPHY_DONT_BUILD_RUST=1 pip install -U --no-cache-dir \
     pip \
     gunicorn \
     /buku[server] \
