@@ -6,13 +6,15 @@ ENV BUKUSERVER_PORT=5001
 
 COPY . /buku
 
+ARG CRYPTOGRAPHY_DONT_BUILD_RUST=1
+
 RUN set -ex \
   && apk add --no-cache --virtual .build-deps \
     gcc \
     openssl-dev \
     musl-dev \
     libffi-dev \
-  && CRYPTOGRAPHY_DONT_BUILD_RUST=1 pip install -U --no-cache-dir \
+  && pip install -U --no-cache-dir \
     pip \
     gunicorn \
     /buku[server] \
