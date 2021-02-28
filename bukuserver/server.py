@@ -239,9 +239,8 @@ def create_app(db_file=None):
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
     app.config['BUKUSERVER_DISABLE_FAVICON'] = \
         get_bool_from_env_var('BUKUSERVER_DISABLE_FAVICON', True)
-    open_in_new_tab = os.getenv('BUKUSERVER_OPEN_IN_NEW_TAB', 'false')
     app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \
-        False if open_in_new_tab.lower() in ['false', '0'] else bool(open_in_new_tab)
+        get_bool_from_env_var('BUKUSERVER_OPEN_IN_NEW_TAB', False)
     app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE') or db_file
     reverse_proxy_path = os.getenv('BUKUSERVER_REVERSE_PROXY_PATH')
     if reverse_proxy_path:
