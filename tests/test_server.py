@@ -6,6 +6,8 @@ from click.testing import CliRunner
 
 from bukuserver import server
 from bukuserver.response import response_template
+from bukuserver.server import get_bool_from_env_var
+
 
 @pytest.mark.parametrize(
     'args,word',
@@ -234,3 +236,18 @@ def test_bookmark_search(client):
     assert rd.get_json() == response_template['success']
     rd = client.get('/api/bookmarks')
     assert rd.get_json() == {'bookmarks': []}
+
+
+@pytest.mark.parametrize('env_val, exp_val', [
+    ['true', True],
+    ['false', False],
+    ['0', False],
+    ['1', True],
+    [None, True],
+    ['random', True]
+])
+def test_get_bool_from_env_var(monkeypatch, env_val, exp_val):
+    key = 'BUKUSERVER_TEST'
+    if env_val is not None:
+        monkeypatch.setenv(key, env_val)
+    assert get_bool_from_env_var(key, True) == exp_val
