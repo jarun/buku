@@ -108,7 +108,7 @@ Following are available os env config available for bukuserver.
 | SECRET_KEY | server secret key | string [default: os.urandom(24)] |
 | URL_RENDER_MODE | url render mode | `full` or `netloc` [default: `full`] |
 | DB_FILE | full path to db file | path string [default: standard path for buku] |
-| DISABLE_FAVICON | disable favicon | boolean [default: `false`] |
+| DISABLE_FAVICON | disable favicon | boolean [default: `true`] |
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path | string |
 
