@@ -214,6 +214,18 @@ def search_bookmarks():
     return res
 
 
+def get_bool_from_env_var(key: str, default_value: bool)->bool:
+    """Get bool value from env var."""
+    value = os.getenv(key)
+    if value is None:
+        return default_value
+    if value.lower() in ['true', '1']:
+        return True
+    if value.lower() in ['false', '0']:
+        return False
+    return default_value
+
+
 def create_app(db_file=None):
     """create app."""
     app = FlaskAPI(__name__)
@@ -225,9 +237,8 @@ def create_app(db_file=None):
         url_render_mode = views.DEFAULT_URL_RENDER_MODE
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
-    disable_favicon = os.getenv('BUKUSERVER_DISABLE_FAVICON', 'true')
     app.config['BUKUSERVER_DISABLE_FAVICON'] = \
-        True if disable_favicon.lower() in ['true', '1'] else bool(disable_favicon)
+        get_bool_from_env_var('BUKUSERVER_DISABLE_FAVICON', True)
     open_in_new_tab = os.getenv('BUKUSERVER_OPEN_IN_NEW_TAB', 'false')
     app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \
         False if open_in_new_tab.lower() in ['false', '0'] else bool(open_in_new_tab)
