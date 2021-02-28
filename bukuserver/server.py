@@ -214,7 +214,7 @@ def search_bookmarks():
     return res
 
 
-def get_bool_from_env_var(key: str, default_value: bool)->bool:
+def get_bool_from_env_var(key: str, default_value: bool) -> bool:
     """Get bool value from env var."""
     value = os.getenv(key)
     if value is None:
