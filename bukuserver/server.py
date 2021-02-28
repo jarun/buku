@@ -173,7 +173,7 @@ def search_bookmarks():
                     'id': bookmark[0],
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                    'tags': list(filter(lambda x: x, bookmark[3].split(','))),
                     'description': bookmark[4]
                 }
                 result['bookmarks'].append(result_bookmark)
@@ -214,6 +214,18 @@ def search_bookmarks():
     return res
 
 
+def get_bool_from_env_var(key: str, default_value: bool) -> bool:
+    """Get bool value from env var."""
+    value = os.getenv(key)
+    if value is None:
+        return default_value
+    if value.lower() in ['true', '1']:
+        return True
+    if value.lower() in ['false', '0']:
+        return False
+    return default_value
+
+
 def create_app(db_file=None):
     """create app."""
     app = FlaskAPI(__name__)
@@ -225,12 +237,10 @@ def create_app(db_file=None):
         url_render_mode = views.DEFAULT_URL_RENDER_MODE
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
-    disable_favicon = os.getenv('BUKUSERVER_DISABLE_FAVICON', 'false')
     app.config['BUKUSERVER_DISABLE_FAVICON'] = \
-        False if disable_favicon.lower() in ['false', '0'] else bool(disable_favicon)
-    open_in_new_tab = os.getenv('BUKUSERVER_OPEN_IN_NEW_TAB', 'false')
+        get_bool_from_env_var('BUKUSERVER_DISABLE_FAVICON', True)
     app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \
-        False if open_in_new_tab.lower() in ['false', '0'] else bool(open_in_new_tab)
+        get_bool_from_env_var('BUKUSERVER_OPEN_IN_NEW_TAB', False)
     app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE') or db_file
     reverse_proxy_path = os.getenv('BUKUSERVER_REVERSE_PROXY_PATH')
     if reverse_proxy_path:
@@ -335,7 +345,7 @@ class ApiBookmarkView(MethodView):
                 result_bookmark = {
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                    'tags': list(filter(lambda x: x, bookmark[3].split(','))),
                     'description': bookmark[4]
                 }
                 if not request.path.startswith('/api/'):
@@ -349,7 +359,7 @@ class ApiBookmarkView(MethodView):
                 result = {
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                    'tags': list(filter(lambda x: x, bookmark[3].split(','))),
                     'description': bookmark[4]
                 }
                 res = jsonify(result)
@@ -431,7 +441,7 @@ class ApiBookmarkRangeView(MethodView):
             result['bookmarks'][i] = {
                 'url': bookmark[1],
                 'title': bookmark[2],
-                'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                'tags': list(filter(lambda x: x, bookmark[3].split(','))),
                 'description': bookmark[4]
             }
         res = jsonify(result)
@@ -505,7 +515,7 @@ class ApiBookmarkSearchView(MethodView):
                     'id': bookmark[0],
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                    'tags': list(filter(lambda x: x, bookmark[3].split(','))),
                     'description': bookmark[4]
                 }
                 result['bookmarks'].append(result_bookmark)
