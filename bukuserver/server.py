@@ -173,7 +173,7 @@ def search_bookmarks():
                     'id': bookmark[0],
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                    'tags': filter(lambda x: x, bookmark[3].split(',')),
                     'description': bookmark[4]
                 }
                 result['bookmarks'].append(result_bookmark)
@@ -335,7 +335,7 @@ class ApiBookmarkView(MethodView):
                 result_bookmark = {
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                    'tags': filter(lambda x: x, bookmark[3].split(',')),
                     'description': bookmark[4]
                 }
                 if not request.path.startswith('/api/'):
@@ -349,7 +349,7 @@ class ApiBookmarkView(MethodView):
                 result = {
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                    'tags': filter(lambda x: x, bookmark[3].split(',')),
                     'description': bookmark[4]
                 }
                 res = jsonify(result)
@@ -431,7 +431,7 @@ class ApiBookmarkRangeView(MethodView):
             result['bookmarks'][i] = {
                 'url': bookmark[1],
                 'title': bookmark[2],
-                'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                'tags': filter(lambda x: x, bookmark[3].split(',')),
                 'description': bookmark[4]
             }
         res = jsonify(result)
@@ -505,7 +505,7 @@ class ApiBookmarkSearchView(MethodView):
                     'id': bookmark[0],
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list([_f for _f in bookmark[3].split(',') if _f]),
+                    'tags': filter(lambda x: x, bookmark[3].split(',')),
                     'description': bookmark[4]
                 }
                 result['bookmarks'].append(result_bookmark)
