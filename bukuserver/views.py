@@ -314,7 +314,7 @@ class BookmarkModelView(BaseModelView):
             def tags_not_contain_func(query, value, index):
                 for item in query:
                     for tag in item[index].split(','):
-                        if tag and tag == value:
+                        if tag and tag != value:
                             yield item
 
             res.extend([
