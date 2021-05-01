@@ -31,8 +31,11 @@ logging.basicConfig()  # you need to initialize logging, otherwise you will not 
 vcr_log = logging.getLogger("vcr")
 vcr_log.setLevel(logging.INFO)
 
-TEST_TEMP_DIR_OBJ = TemporaryDirectory(prefix="bukutest_")
-TEST_TEMP_DIR_PATH = TEST_TEMP_DIR_OBJ.name
+def get_temp_dir_path():
+    with TemporaryDirectory(prefix="bukutest_") as dir_obj:
+        return dir_obj
+
+TEST_TEMP_DIR_PATH = get_temp_dir_path()
 TEST_TEMP_DBDIR_PATH = os.path.join(TEST_TEMP_DIR_PATH, "buku")
 TEST_TEMP_DBFILE_PATH = os.path.join(TEST_TEMP_DBDIR_PATH, "bookmarks.db")
 MAX_SQLITE_INT = int(math.pow(2, 63) - 1)
@@ -1311,8 +1314,8 @@ def firefox_db(tmpdir):
             tmp_zip.strpath, "wb"
         ) as out_file:
             shutil.copyfileobj(response, out_file)
-        zip_obj = zipfile.ZipFile(tmp_zip.strpath)
-        zip_obj.extractall(path=os.path.join(dir_path, "test_bukuDb"))
+        with zipfile.ZipFile(tmp_zip.strpath) as zip_obj:
+            zip_obj.extractall(path=os.path.join(dir_path, "test_bukuDb"))
     return ff_db_path, res_yaml_file, res_nopt_yaml_file
 
 

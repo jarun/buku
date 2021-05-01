@@ -2219,28 +2219,23 @@ class BukuDb:
             print('%s exported' % count)
             return True
 
-        try:
-            outfp = open(filepath, mode='w', encoding='utf-8')
-        except Exception as e:
-            LOGERR(e)
-            return False
-
-        res = {}  # type: Dict
-        if filepath.endswith('.md'):
-            res = convert_bookmark_set(resultset, 'markdown')
-            count += res['count']
-            outfp.write(res['data'])
-        elif filepath.endswith('.org'):
-            res = convert_bookmark_set(resultset, 'org')
-            count += res['count']
-            outfp.write(res['data'])
-        else:
-            res = convert_bookmark_set(resultset, 'html')
-            count += res['count']
-            outfp.write(res['data'])
-        outfp.close()
-        print('%s exported' % count)
-        return True
+        with open(filepath, mode='w', encoding='utf-8') as outfp:
+            res = {}  # type: Dict
+            if filepath.endswith('.md'):
+                res = convert_bookmark_set(resultset, 'markdown')
+                count += res['count']
+                outfp.write(res['data'])
+            elif filepath.endswith('.org'):
+                res = convert_bookmark_set(resultset, 'org')
+                count += res['count']
+                outfp.write(res['data'])
+            else:
+                res = convert_bookmark_set(resultset, 'html')
+                count += res['count']
+                outfp.write(res['data'])
+            print('%s exported' % count)
+            return True
+        return False
 
     def traverse_bm_folder(self, sublist, unique_tag, folder_name, add_parent_folder_as_tag):
         """Traverse bookmark folders recursively and find bookmarks.
