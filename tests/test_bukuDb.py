@@ -1327,10 +1327,7 @@ def test_load_firefox_database(firefox_db, add_pt):
     res_yaml_file = firefox_db[1] if add_pt else firefox_db[2]
     if not dump_data:
         with open(res_yaml_file, "r") as f:
-            try:
-                res_yaml = yaml.load(f)
-            except RuntimeError:
-                res_yaml = yaml.load(f, Loader=PrettySafeLoader)
+            res_yaml = yaml.load(f, Loader=PrettySafeLoader)
     # init
     import buku
 
