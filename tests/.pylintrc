@@ -1,5 +1,6 @@
 [MESSAGES CONTROL]
 disable=
+  assigning-non-slot,
   broad-except,
   dangerous-default-value,
   expression-not-assigned,
