@@ -96,6 +96,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 .IP 13. 4
 \fBAlternative DB file\fR:
   - The option --db (to specify an alternative database file location) is app-only. Manual usage is prone to issues arising from human error.
+  - Note that this option is useful if you want to store the db file in cloud synced location. Another mechanism could be to have the db file synced and create a symlink to it at the default location.
 .SH GENERAL OPTIONS
 .TP
 .BI \-a " " \--add " URL [tag, ...]"
