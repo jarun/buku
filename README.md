@@ -20,7 +20,7 @@
 
 `buku` is a powerful bookmark manager written in Python3 and SQLite3. When I started writing it, I couldn't find a flexible command-line solution with a private, portable, merge-able database along with seamless GUI integration. Hence, `buku` (after my son's nickname, meaning *close to the heart* in my language).
 
-[bukuserver](https://github.com/jarun/buku/tree/master/bukuserver) exposes a browsable front-end on a local web host server.
+[bukuserver](https://github.com/jarun/buku/tree/master/bukuserver#readme) exposes a browsable front-end on a local web host server.
 
 `buku` can auto-import bookmarks from your browser(s) or fetch the title and description of a bookmarked url from the web. You can use your favourite editor to compose and update bookmarks. With multiple search options, including regex and a deep scan mode (particularly for URLs), it can find any bookmark instantly. `buku` can look up the latest snapshot of a broken link on the Wayback Machine. There's an Easter egg to revisit random forgotten bookmarks too! *Buku* is too busy to track you: no hidden history, obsolete records, usage analytics or homing.
 
