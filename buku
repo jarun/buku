@@ -3952,6 +3952,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                     for row in results[cur_index:next_index]:
                         count += 1
                         print_single_rec(row, count)
+                    print('%d-%d/%d' % (cur_index + 1, next_index, total_results))
                 else:
                     print('No more results')
             else:
