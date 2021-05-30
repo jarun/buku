@@ -4905,20 +4905,6 @@ def setup_logger(LOGGER):
     LOGGER.addHandler(sh)
 
 
-def piped_input(argv, pipeargs=None):
-    """Handle piped input.
-
-    Parameters
-    ----------
-    pipeargs : str
-    """
-    if not sys.stdin.isatty():
-        pipeargs += argv
-        print('waiting for input')
-        for s in sys.stdin:
-            pipeargs += s.split()
-
-
 def setcolors(args):
     """Get colors from user and separate into 'result' list for use in arg.colors.
 
@@ -5040,17 +5026,7 @@ def main():
     title_in = None
     tags_in = None
     desc_in = None
-    pipeargs = []
     colorstr_env = os.getenv('BUKU_COLORS')
-
-    try:
-        piped_input(sys.argv, pipeargs)
-    except KeyboardInterrupt:
-        pass
-
-    # If piped input, set argument vector
-    if pipeargs:
-        sys.argv = pipeargs
 
     # Setup custom argument parser
     argparser = ExtendedArgumentParser(
