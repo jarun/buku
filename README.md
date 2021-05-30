@@ -244,6 +244,7 @@ POWER TOYS:
       --cached index|URL   browse a cached page from Wayback Machine
       --suggest            show similar tags when adding bookmarks
       --tacit              reduce verbosity, skip some confirmations
+      --nostdin            do not wait for input (must be first arg)
       --threads N          max network connections in full refresh
                            default N=4, min N=1, max N=10
       -V                   check latest upstream version available

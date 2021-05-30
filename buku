@@ -4914,7 +4914,7 @@ def piped_input(argv, pipeargs=None):
     """
     if not sys.stdin.isatty():
         pipeargs += argv
-        print('waiting for input')
+        print('buku: waiting for input (unexpected? try --nostdin)')
         for s in sys.stdin:
             pipeargs += s.split()
 
@@ -5043,14 +5043,15 @@ def main():
     pipeargs = []
     colorstr_env = os.getenv('BUKU_COLORS')
 
-    try:
-        piped_input(sys.argv, pipeargs)
-    except KeyboardInterrupt:
-        pass
+    if len(sys.argv) >= 2 and sys.argv[1] != '--nostdin':
+        try:
+            piped_input(sys.argv, pipeargs)
+        except KeyboardInterrupt:
+            pass
 
-    # If piped input, set argument vector
-    if pipeargs:
-        sys.argv = pipeargs
+        # If piped input, set argument vector
+        if pipeargs:
+            sys.argv = pipeargs
 
     # Setup custom argument parser
     argparser = ExtendedArgumentParser(
@@ -5203,6 +5204,7 @@ POSITIONAL ARGUMENTS:
     --cached index|URL   browse a cached page from Wayback Machine
     --suggest            show similar tags when adding bookmarks
     --tacit              reduce verbosity, skip some confirmations
+    --nostdin            do not wait for input (must be first arg)
     --threads N          max network connections in full refresh
                          default N=4, min N=1, max N=10
     -V                   check latest upstream version available
@@ -5226,6 +5228,7 @@ POSITIONAL ARGUMENTS:
     addarg('--cached', nargs=1, help=hide)
     addarg('--suggest', action='store_true', help=hide)
     addarg('--tacit', action='store_true', help=hide)
+    addarg('--nostdin', action='store_true', help=hide)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=hide)
     addarg('-V', dest='upstream', action='store_true', help=hide)
     addarg('-g', '--debug', action='store_true', help=hide)
@@ -5291,7 +5294,7 @@ POSITIONAL ARGUMENTS:
     browse.override_text_browser = False
 
     # Fallback to prompt if no arguments
-    if len(sys.argv) == 1:
+    if len(sys.argv) <= 2 and (len(sys.argv) == 1 or (len(sys.argv) == 2 and args.nostdin)):
         bdb = BukuDb()
         prompt(bdb, None)
         bdb.close_quit(0)
