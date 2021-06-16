@@ -1,3 +1,14 @@
+buku v4.6
+2021-06-16
+
+- use textwrap to wrap comments and tags when printing in terminal
+- show listing start and end index over prompt in interactive mode
+- option `--nostdin`: don't wait for input (must be first arg) (#513)
+- user-friendly prompt message when watiing for input in non-tty mode
+- several test framework improvements
+
+-------------------------------------------------------------------------------
+
 buku v4.5
 2020-12-29
 

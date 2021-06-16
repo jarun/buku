@@ -47,23 +47,23 @@ jobs:
       - image: python:3.9-slim
     <<: *test-template
 
-  package-and-publish:
-    machine: true
-    working_directory: ~/Buku
-    steps:
-      - checkout
-      - run:
-          name: "package with packagecore"
-          command: |
-            # Use latest installed python3 from pyenv
-            export PYENV_VERSION="$(pyenv versions | grep -Po '\b3\.\d+\.\d+' | tail -1)"
-            pip install packagecore
-            packagecore -o ./dist/ ${CIRCLE_TAG#v}
-      - run:
-          name: "publish to GitHub"
-          command: |
-            go get github.com/tcnksm/ghr
-            ghr -t ${GITHUB_API_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${CIRCLE_TAG} ./dist/
+#  package-and-publish:
+#    machine: true
+#    working_directory: ~/Buku
+#    steps:
+#      - checkout
+#      - run:
+#          name: "package with packagecore"
+#          command: |
+#            # Use latest installed python3 from pyenv
+#            export PYENV_VERSION="$(pyenv versions | grep -Po '\b3\.\d+\.\d+' | tail -1)"
+#            pip install packagecore
+#            packagecore -o ./dist/ ${CIRCLE_TAG#v}
+#      - run:
+#          name: "publish to GitHub"
+#          command: |
+#            go get github.com/tcnksm/ghr
+#            ghr -t ${GITHUB_API_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${CIRCLE_TAG} ./dist/
 
   build-docker-image:
     executor: docker-publisher
@@ -116,14 +116,14 @@ workflows:
                 - master
     jobs: *all-tests
 
-  publish-github-release:
-    jobs:
-      - package-and-publish:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
+#  publish-github-release:
+#    jobs:
+#      - package-and-publish:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              ignore: /.*/
 
   publish-docker-image:
     jobs:
