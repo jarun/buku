@@ -74,7 +74,6 @@ setup(
     py_modules=['buku'],
     install_requires=[
         'beautifulsoup4>=4.4.1',
-        'certifi',
         'cryptography>=1.2.3',
         'urllib3>=1.23',
         'html5lib>=1.0.1',
@@ -85,6 +84,7 @@ setup(
         'console_scripts': ['buku=buku:main', 'bukuserver=bukuserver.server:cli']
     },
     extras_require={
+        'ca-certificates': ['certifi'],
         'tests': tests_require + server_require,
         'server': server_require,
         'packaging': ['twine>=1.11.0']
