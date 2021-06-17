@@ -5082,9 +5082,10 @@ POSITIONAL ARGUMENTS:
                          - update results when used with search
                          - otherwise refresh all titles and desc
     -w, --write [editor|index]
-                         open editor to edit a fresh bookmark
+                         edit and add a new bookmark in editor
+                         else, edit bookmark at index in EDITOR
                          edit last bookmark, if index=-1
-                         to specify index, EDITOR must be set
+                         if no args, edit new bookmark in EDITOR
     -d, --delete [...]   remove bookmarks from DB
                          accepts indices or a single range
                          if no arguments:

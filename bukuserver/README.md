@@ -28,7 +28,7 @@ $ source env/bin/activate
 
 #### From PyPi
 
-    $ pip3 install buku[server]
+    $ pip3 install "buku[server]"
 
 #### From source
 
