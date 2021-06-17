@@ -45,7 +45,6 @@ import time
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 import unicodedata
 import webbrowser
-import certifi
 import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers, Retry
@@ -104,6 +103,16 @@ IGNORE_FF_BOOKMARK_FOLDERS = frozenset(["placesRoot", "bookmarksMenuFolder"])
 LOGGER = logging.getLogger()
 LOGDBG = LOGGER.debug
 LOGERR = LOGGER.error
+
+# Define the default path to ca-certificates
+# In Linux distros with openssl, it is /etc/ssl/certs/ca-certificates.crt
+# Fall back to use `certifi` otherwise
+try:
+    os.path.isfile('/etc/ssl/certs/ca-certificates.crt')
+    CA_CERTS = '/etc/ssl/certs/ca-certificates.crt'
+except Exception:
+    import certifi
+    CA_CERTS = certifi.where()
 
 
 class BukuCrypt:
@@ -2656,7 +2665,7 @@ class BukuDb:
         if MYPROXY is None:
             gen_headers()
 
-        ca_certs = os.getenv('BUKU_CA_CERTS', default=certifi.where())
+        ca_certs = os.getenv('BUKU_CA_CERTS', default=CA_CERTS)
         if MYPROXY:
             manager = urllib3.ProxyManager(
                 MYPROXY,
@@ -3628,7 +3637,7 @@ def get_PoolManager():
     ProxyManager or PoolManager
         ProxyManager if https_proxy is defined, PoolManager otherwise.
     """
-    ca_certs = os.getenv('BUKU_CA_CERTS', default=certifi.where())
+    ca_certs = os.getenv('BUKU_CA_CERTS', default=CA_CERTS)
     if MYPROXY:
         return urllib3.ProxyManager(MYPROXY, num_pools=1, headers=MYHEADERS, timeout=15,
                                     cert_reqs='CERT_REQUIRED', ca_certs=ca_certs)
@@ -4523,7 +4532,7 @@ def check_upstream_release():
     if MYPROXY is None:
         gen_headers()
 
-    ca_certs = os.getenv('BUKU_CA_CERTS', default=certifi.where())
+    ca_certs = os.getenv('BUKU_CA_CERTS', default=CA_CERTS)
     if MYPROXY:
         manager = urllib3.ProxyManager(
             MYPROXY,
