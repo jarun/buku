@@ -2488,7 +2488,7 @@ class BukuDb:
                 bookmarks_database = os.path.expanduser(br_bm_db_path)
                 if not os.path.exists(bookmarks_database):
                     raise FileNotFoundError
-                self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+                self.load_brave_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
             print('Could not import bookmarks from brave')
