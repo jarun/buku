@@ -2295,6 +2295,34 @@ class BukuDb:
                     tags += DELIM + unique_tag
                 yield (item['url'], item['name'], parse_tags([tags]), None, 0, True, False)
 
+    def load_brave_database(self, path, unique_tag, add_parent_folder_as_tag):
+        """Open Brave Bookmarks JSON file and import data.
+
+        Parameters
+        ----------
+        path : str
+            Path to Brave bookmarks file.
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format.
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False.
+        """
+
+        with open(path, 'r', encoding="utf8") as datafile:
+            data = json.load(datafile)
+
+        roots = data['roots']
+        for entry in roots:
+            # Needed to skip 'sync_transaction_version' key from roots
+            if isinstance(roots[entry], str):
+                continue
+            for item in self.traverse_bm_folder(
+                    roots[entry]['children'],
+                    unique_tag,
+                    roots[entry]['name'],
+                    add_parent_folder_as_tag):
+                self.add_rec(*item)
+
     def load_chrome_database(self, path, unique_tag, add_parent_folder_as_tag):
         """Open Chrome Bookmarks JSON file and import data.
 
@@ -2405,6 +2433,7 @@ class BukuDb:
 
         if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
             gc_bm_db_path = '~/.config/google-chrome/Default/Bookmarks'
+            br_bm_db_path = '~/.config/BraveSoftware/Brave-Browser/Default/Bookmarks'
             cb_bm_db_path = '~/.config/chromium/Default/Bookmarks'
 
             default_ff_folder = os.path.expanduser('~/.mozilla/firefox')
@@ -2413,6 +2442,7 @@ class BukuDb:
                 ff_bm_db_path = '~/.mozilla/firefox/{}/places.sqlite'.format(profile)
         elif sys.platform == 'darwin':
             gc_bm_db_path = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
+            br_bm_db_path = '~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Bookmarks'
             cb_bm_db_path = '~/Library/Application Support/Chromium/Default/Bookmarks'
 
             default_ff_folder = os.path.expanduser('~/Library/Application Support/Firefox')
@@ -2423,6 +2453,8 @@ class BukuDb:
         elif sys.platform == 'win32':
             username = os.getlogin()
             gc_bm_db_path = ('C:/Users/{}/AppData/Local/Google/Chrome/User Data/'
+                             'Default/Bookmarks'.format(username))
+            br_bm_db_path = ('C:/Users/{}/AppData/Local/BraveSoftware/Brave-Browser/User Data/'
                              'Default/Bookmarks'.format(username))
             cb_bm_db_path = ('C:/Users/{}/AppData/Local/Chromium/User Data/'
                              'Default/Bookmarks'.format(username))
@@ -2448,6 +2480,18 @@ class BukuDb:
         add_parent_folder_as_tag = (resp == 'y')
 
         resp = 'y'
+
+        try:
+            if self.chatty:
+                resp = input('Import bookmarks from brave? (y/n): ')
+            if resp == 'y':
+                bookmarks_database = os.path.expanduser(br_bm_db_path)
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
+                self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+        except Exception as e:
+            LOGERR(e)
+            print('Could not import bookmarks from brave')
 
         try:
             if self.chatty:
