@@ -1825,7 +1825,7 @@ class BukuDb:
             elif self.json:
                 write_string_to_file(format_json(results, True, self.field_filter), self.json)
             else:
-                print(format_json(results, True, self.field_filter))
+                print_json_safe(results, True, self.field_filter)
 
             return True
         else:  # Show all entries
@@ -1841,7 +1841,7 @@ class BukuDb:
         elif self.json:
             write_string_to_file(format_json(resultset, field_filter=self.field_filter), self.json)
         else:
-            print(format_json(resultset, field_filter=self.field_filter))
+            print_json_safe(resultset, field_filter=self.field_filter)
 
         return True
 
@@ -4355,6 +4355,7 @@ def print_single_rec(row: BookmarkVar, idx: Optional[int]=0, columns: Optional[i
         sys.stdout = os.fdopen(1)
         sys.exit(1)
 
+
 def write_string_to_file(content: str, filepath: str):
     """Writes given content to file
 
@@ -4373,6 +4374,7 @@ def write_string_to_file(content: str, filepath: str):
     except Exception as e:
         LOGERR(e)
 
+
 def format_json(resultset, single_record=False, field_filter=0):
     """Return results in JSON format.
 
@@ -4382,6 +4384,8 @@ def format_json(resultset, single_record=False, field_filter=0):
         Search results from DB query.
     single_record : bool, optional
         If True, indicates only one record. Default is False.
+    field_filter : int, optional
+        Indicates format for displaying bookmarks. Default is 0.
 
     Returns
     -------
@@ -4432,6 +4436,36 @@ def format_json(resultset, single_record=False, field_filter=0):
             marks.append(record)
 
     return json.dumps(marks, sort_keys=True, indent=4)
+
+
+def print_json_safe(resultset, single_record=False, field_filter=0):
+    """Prints json results and handles IOError
+
+    Parameters
+    ----------
+    resultset : list
+        Search results from DB query.
+    single_record : bool, optional
+        If True, indicates only one record. Default is False.
+    field_filter : int, optional
+        Indicates format for displaying bookmarks. Default is 0.
+
+    Returns
+    -------
+    None
+    """
+
+    try:
+        print(format_json(resultset, single_record, field_filter))
+    except IOError:
+        try:
+            sys.stdout.close()
+        except IOError:
+            pass
+        try:
+            sys.stderr.close()
+        except IOError:
+            pass
 
 
 def is_int(string):
@@ -5569,7 +5603,7 @@ POSITIONAL ARGUMENTS:
             write_string_to_file(format_json(search_results, field_filter=args.format), args.json)
         else:
             # Printing in JSON format is non-interactive
-            print(format_json(search_results, field_filter=args.format))
+            print_json_safe(search_results, field_filter=args.format)
 
         # Export the results, if opted
         if args.export is not None:
