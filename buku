@@ -2947,9 +2947,15 @@ def convert_bookmark_set(
     if export_type == 'markdown':
         for row in resultset:
             if not row[2] or row[2] is None:
-                out += '- [Untitled](' + row[1] + ')\n'
+                out += '- [Untitled](' + row[1] + ')'
             else:
-                out += '- [' + row[2] + '](' + row[1] + ')\n'
+                out += '- [' + row[2] + '](' + row[1] + ')'
+
+            if row[3] != DELIM:
+                out += ' <!-- TAGS: {} -->\n'.format(row[3][1:-1])
+            else:
+                out += '\n'
+
             count += 1
     elif export_type == 'org':
         for row in resultset:
