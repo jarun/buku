@@ -371,12 +371,12 @@ class TestBukuDb(unittest.TestCase):
 
         with mock.patch("buku.prompt"):
             get_first_tag = lambda x: "".join(x[2].split(",")[:2])
-            for i in range(len(self.bookmarks)):
+            for i, bookmark in enumerate(self.bookmarks):
                 # search for bookmark with a tag that is known to exist
-                results = self.bdb.search_by_tag(get_first_tag(self.bookmarks[i]))
+                results = self.bdb.search_by_tag(get_first_tag(bookmark))
                 # Expect a five-tuple containing all bookmark data
                 # db index, URL, title, tags, description
-                expected = [(i + 1,) + tuple(self.bookmarks[i])]
+                expected = [(i + 1,) + tuple(bookmark)]
                 expected[0] += tuple([0])
                 self.assertEqual(results, expected)
 

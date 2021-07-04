@@ -2,6 +2,7 @@
 disable=
   assigning-non-slot,
   broad-except,
+  consider-using-with,
   dangerous-default-value,
   expression-not-assigned,
   fixme,
