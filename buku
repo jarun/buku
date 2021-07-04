@@ -3091,7 +3091,19 @@ def import_md(filepath: str, newtag: Optional[str]):
                     if is_nongeneric_url(url):
                         continue
 
-                    yield (url, title, delim_wrap(newtag), None, 0, True, False)
+                    # Find tag start delimiter
+                    tag_start_delim = line.find('<!-- TAGS: ')
+                    # Reverse find tag end delimiter
+                    tag_end_delim = line.rfind(' -->')
+
+                    if tag_start_delim != -1 and tag_end_delim > 0:
+                        tags = newtag + ',' + line[tag_start_delim + 11:tag_end_delim]
+                    else:
+                        tags = newtag
+
+                    parse_tags([tags])
+
+                    yield (url, title, delim_wrap(tags), None, 0, True, False)
 
 def import_org(filepath: str, newtag: Optional[str]):
     """Parse bookmark org file.
