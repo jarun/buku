@@ -239,7 +239,7 @@ POWER TOYS:
       --nc                 disable color output
       -n, --count N        show N results per page (default 10)
       --np                 do not show the subprompt, run and exit
-      -o, --open [...]     browse bookmarks by indices and ranges
+      -o, --open [...]     open bookmarks by indices and ranges
                            open a random bookmark, if no arguments
       --oa                 browse all search results immediately
       --replace old new    replace old tag with new tag everywhere
