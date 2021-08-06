@@ -241,7 +241,7 @@ POWER TOYS:
       --np                 do not show the subprompt, run and exit
       -o, --open [...]     open bookmarks by indices and ranges
                            open a random bookmark, if no arguments
-      --oa                 browse all search results immediately
+      --oa                 open all search results immediately
       --replace old new    replace old tag with new tag everywhere
                            delete old tag, if new tag not specified
       --shorten index|URL  fetch shortened url from tny.im service
