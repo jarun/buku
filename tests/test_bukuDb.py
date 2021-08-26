@@ -40,7 +40,6 @@ TEST_TEMP_DBDIR_PATH = os.path.join(TEST_TEMP_DIR_PATH, "buku")
 TEST_TEMP_DBFILE_PATH = os.path.join(TEST_TEMP_DBDIR_PATH, "bookmarks.db")
 MAX_SQLITE_INT = int(math.pow(2, 63) - 1)
 TEST_PRINT_REC = ("https://example.com", "", parse_tags(["cat,ant,bee,1"]), "")
-OPEN_KWARGS = dict(encoding="utf8", errors="surrogateescape")
 
 TEST_BOOKMARKS = [
     [
@@ -1280,7 +1279,7 @@ def test_load_chrome_database(chrome_db, add_pt):
     res_yaml_file = chrome_db[1] if add_pt else chrome_db[2]
     dump_data = False  # NOTE: change this value to dump data
     if not dump_data:
-        with open(res_yaml_file, "r", **OPEN_KWARGS) as f:
+        with open(res_yaml_file, "r", encoding="utf8", errors="surrogateescape") as f:
             try:
                 res_yaml = yaml.load(f, Loader=yaml.FullLoader)
             except RuntimeError:
@@ -1297,7 +1296,7 @@ def test_load_chrome_database(chrome_db, add_pt):
         assert call_args_list_dict == res_yaml
     # dump data for new test
     if dump_data:
-        with open(res_yaml_file, "w", **OPEN_KWARGS) as f:
+        with open(res_yaml_file, "w", encoding="utf8", errors="surrogateescape") as f:
             yaml.dump(call_args_list_dict, f)
         print("call args list dict dumped to:{}".format(res_yaml_file))
 
@@ -1327,7 +1326,7 @@ def test_load_firefox_database(firefox_db, add_pt):
     dump_data = False  # NOTE: change this value to dump data
     res_yaml_file = firefox_db[1] if add_pt else firefox_db[2]
     if not dump_data:
-        with open(res_yaml_file, "r", **OPEN_KWARGS) as f:
+        with open(res_yaml_file, "r", encoding="utf8", errors="surrogateescape") as f:
             res_yaml = yaml.load(f, Loader=PrettySafeLoader)
     # init
     import buku
@@ -1340,7 +1339,7 @@ def test_load_firefox_database(firefox_db, add_pt):
     if not dump_data:
         assert call_args_list_dict == res_yaml
     if dump_data:
-        with open(res_yaml_file, "w", **OPEN_KWARGS) as f:
+        with open(res_yaml_file, "w", encoding="utf8", errors="surrogateescape") as f:
             yaml.dump(call_args_list_dict, f)
         print("call args list dict dumped to:{}".format(res_yaml_file))
 
@@ -1403,7 +1402,7 @@ def test_exportdb_single_rec(tmpdir):
         db.add_rec("http://example.com")
         exp_file = tmpdir.join("export")
         db.exportdb(exp_file.strpath)
-        with open(exp_file.strpath, **OPEN_KWARGS) as f:
+        with open(exp_file.strpath, encoding="utf8", errors="surrogateescape") as f:
             assert f.read()
 
 
