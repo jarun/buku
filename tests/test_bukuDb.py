@@ -90,7 +90,7 @@ class PrettySafeLoader(
 
 
 PrettySafeLoader.add_constructor(
-    u"tag:yaml.org,2002:python/tuple", PrettySafeLoader.construct_python_tuple
+    "tag:yaml.org,2002:python/tuple", PrettySafeLoader.construct_python_tuple
 )
 
 
