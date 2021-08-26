@@ -10,7 +10,7 @@ def test_get_filehash(tmpdir):
     """test method."""
     exp_res = b'\x9f\x86\xd0\x81\x88L}e\x9a/\xea\xa0\xc5Z\xd0\x15\xa3\xbfO\x1b+\x0b\x82,\xd1]l\x15\xb0\xf0\n\x08'  # NOQA
     test_file = os.path.join(tmpdir.strpath, 'my_test_file.txt')
-    with open(test_file, 'w') as f:
+    with open(test_file, 'w', encoding="utf8", errors="surrogateescape") as f:
         f.write('test')
     from buku import BukuCrypt
     res = BukuCrypt.get_filehash(test_file)
