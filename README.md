@@ -34,10 +34,6 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 
 `buku` is a library too! There are several [related projects](#related-projects), including a browser plug-in.
 
-<p align="center">
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/donate-@PayPal-1eb0fc.svg" alt="Donate via PayPal!" /></a>
-</p>
-
 ### Table of Contents
 
 - [Features](#features)

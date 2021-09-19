@@ -2,11 +2,13 @@
 disable=
   assigning-non-slot,
   broad-except,
+  consider-using-f-string,
   consider-using-with,
   dangerous-default-value,
   expression-not-assigned,
   fixme,
   global-statement,
+  global-variable-not-assigned,
   import-error,
   import-outside-toplevel,
   invalid-name,
