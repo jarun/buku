@@ -107,10 +107,9 @@ LOGERR = LOGGER.error
 # Define the default path to ca-certificates
 # In Linux distros with openssl, it is /etc/ssl/certs/ca-certificates.crt
 # Fall back to use `certifi` otherwise
-try:
-    os.path.isfile('/etc/ssl/certs/ca-certificates.crt')
+if sys.platform.startswith('linux') and os.path.isfile('/etc/ssl/certs/ca-certificates.crt'):
     CA_CERTS = '/etc/ssl/certs/ca-certificates.crt'
-except Exception:
+else:
     import certifi
     CA_CERTS = certifi.where()
 
