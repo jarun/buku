@@ -535,8 +535,8 @@ class BukuDb:
         """
 
         self.cur.execute('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', (index,))
-        resultset = self.cur.fetchall()
-        return resultset[0] if resultset else None
+        result = self.cur.fetchone()
+        return result
 
     def get_rec_id(self, url):
         """Check if URL already exists in DB.
@@ -553,8 +553,8 @@ class BukuDb:
         """
 
         self.cur.execute('SELECT id FROM bookmarks WHERE URL = ? LIMIT 1', (url,))
-        resultset = self.cur.fetchall()
-        return resultset[0][0] if resultset else -1
+        result = self.cur.fetchone()
+        return result[0] if result is not None else -1
 
     def get_max_id(self) -> int:
         """Fetch the ID of the last record.
@@ -566,8 +566,8 @@ class BukuDb:
         """
 
         self.cur.execute('SELECT MAX(id) from bookmarks')
-        resultset = self.cur.fetchall()
-        return -1 if resultset[0][0] is None else resultset[0][0]
+        resultset = self.cur.fetchone()
+        return -1 if resultset[0] is None else resultset[0]
 
     def add_rec(
             self,
@@ -1811,7 +1811,7 @@ class BukuDb:
             try:
                 query = 'SELECT * FROM bookmarks WHERE id = ? LIMIT 1'
                 self.cur.execute(query, (index,))
-                results = self.cur.fetchall()
+                results = self.cur.fetchone()
                 if not results:
                     LOGERR('No matching index %d', index)
                     return False
