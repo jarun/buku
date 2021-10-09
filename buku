@@ -48,6 +48,7 @@ import webbrowser
 import urllib3
 from urllib3.exceptions import LocationParseError
 from urllib3.util import parse_url, make_headers, Retry
+from hashlib import sha256
 from bs4 import BeautifulSoup
 # note catch ModuleNotFoundError instead Exception
 # when python3.5 not supported
@@ -143,8 +144,6 @@ class BukuCrypt:
         hash : bytes
             Hash digest of file.
         """
-
-        from hashlib import sha256
 
         with open(filepath, 'rb') as fp:
             hasher = sha256()
