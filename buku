@@ -607,7 +607,7 @@ class BukuDb:
         """
 
         # Return error for empty URL
-        if not url or url == '':
+        if not url:
             LOGERR('Invalid URL')
             return -1
 
