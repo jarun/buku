@@ -3579,10 +3579,6 @@ def get_data_from_page(resp):
 
     try:
         soup = BeautifulSoup(resp.data, 'html.parser')
-    except Exception as e:
-        LOGERR('get_data_from_page(): %s', e)
-
-    try:
         charset = None
 
         if soup.meta and soup.meta.get('charset') is not None:
