@@ -268,7 +268,7 @@ class TestBukuDb(unittest.TestCase):
             for index, tagset in from_db:
                 # checking if new tags added to bookmark
                 self.assertTrue(split_and_test_membership(new_tags, tagset))
-                # checking if old tags still exist for boomark
+                # checking if old tags still exist for bookmark
                 self.assertTrue(split_and_test_membership(old_tagsets[index], tagset))
 
     def test_delete_tag_at_index(self):
@@ -277,7 +277,7 @@ class TestBukuDb(unittest.TestCase):
             self.bdb.add_rec(*bookmark)
 
         get_tags_at_idx = lambda i: self.bdb.get_rec_by_id(i)[3]
-        # list of two-tuples, each containg bookmark index and corresponding tags
+        # list of two-tuples, each containing bookmark index and corresponding tags
         tags_by_index = [
             (i, get_tags_at_idx(i)) for i in inclusive_range(1, len(self.bookmarks))
         ]
