@@ -3096,7 +3096,10 @@ def import_md(filepath: str, newtag: Optional[str]):
                     tag_end_delim = line.rfind(' -->')
 
                     if tag_start_delim != -1 and tag_end_delim > 0:
-                        tags = newtag + ',' + line[tag_start_delim + 11:tag_end_delim]
+                        if newtag is not None:
+                            tags = newtag + ',' + line[tag_start_delim + 11:tag_end_delim]
+                        else:
+                            tags = line[tag_start_delim + 11:tag_end_delim]
                     else:
                         tags = newtag
 
