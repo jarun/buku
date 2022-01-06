@@ -81,7 +81,7 @@ class BookmarkModelView(BaseModelView):
             self, context: Any, model: Namespace, name: str) -> Markup:
         parsed_url = urlparse(model.url)
         netloc, scheme = parsed_url.netloc, parsed_url.scheme
-        is_scheme_valid = scheme in ('http', 'https')
+        is_scheme_valid = scheme in ('http', 'https', 'ftp')
         tag_text = []
         tag_tmpl = '<a class="btn btn-default" href="{1}">{0}</a>'
         for tag in model.tags.split(','):
