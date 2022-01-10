@@ -6,6 +6,7 @@ from typing import Any, List, Optional, Tuple
 from urllib.parse import urlparse
 import itertools
 import logging
+import functools
 
 from flask import current_app, flash, redirect, request, url_for
 from flask_admin.babel import gettext
@@ -77,109 +78,114 @@ class BookmarkModelView(BaseModelView):
     def _create_ajax_loader(self, name, options):
         pass
 
-    def _list_entry(
-            self, context: Any, model: Namespace, name: str) -> Markup:
+    def _list_entry(self, context: Any, model: Namespace, name: str) -> Markup:
+        LOG.debug(f"context: {context}, name: {name}")
         parsed_url = urlparse(model.url)
         netloc, scheme = parsed_url.netloc, parsed_url.scheme
-        is_scheme_valid = scheme in ('http', 'https', 'ftp')
+        is_scheme_valid = scheme in ("http", "https", "ftp")
         tag_text = []
-        tag_tmpl = '<a class="btn btn-default" href="{1}">{0}</a>'
-        for tag in model.tags.split(','):
-            if tag:
-                tag_text.append(tag_tmpl.format(tag, url_for(
-                    'bookmark.index_view', flt2_tags_contain=tag)))
+        br_tag = '<br/>'
+        get_index_view_url = functools.partial(url_for, 'bookmark.index_view')
+        for tag in filter(None, model.tags.split(",")):
+            tag_text.append(f'<a class="btn btn-default" href="{get_index_view_url(flt2_tags_contain=tag.strip())}">{tag}</a>')
+        tag_text_markup = "".join(tag_text)
         if not netloc:
-            return Markup("""\
-            {0.title}<br/>{2}<br/>{1}{0.description}
-            """.format(
-                model, ''.join(tag_text), Markup.escape(model.url)
-            ))
-        res = ''
-        if not current_app.config.get('BUKUSERVER_DISABLE_FAVICON', False):
-            netloc_tmpl = '<img src="{}{}"/> '
-            res = netloc_tmpl.format(
-                'http://www.google.com/s2/favicons?domain=', netloc)
-        title = model.title if model.title else '&lt;EMPTY TITLE&gt;'
-        open_in_new_tab = current_app.config.get('BUKUSERVER_OPEN_IN_NEW_TAB', False)
-        if is_scheme_valid and open_in_new_tab:
-            res += '<a href="{0.url}" target="_blank">{1}</a>'.format(model, title)
-        elif is_scheme_valid and not open_in_new_tab:
-            res += '<a href="{0.url}">{1}</a>'.format(model, title)
+            escaped_url = Markup.escape(model.url)
+            return Markup(
+                f"""{model.title}{br_tag}{escaped_url}{br_tag}{tag_text_markup}{model.description}"""
+            )
+        res = []
+        if not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False):
+            res.append(
+                f'<img src="http://www.google.com/s2/favicons?domain={netloc}"/>'
+            )
+        title = model.title if model.title else "&lt;EMPTY TITLE&gt;"
+        open_in_new_tab = current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False)
+        url_for_index_view_netloc = get_index_view_url(flt2_url_netloc_match=netloc)
+        if is_scheme_valid and not open_in_new_tab:
+            target = 'target="_blank"' if open_in_new_tab else ""
+            res.append(f'<a href="{model.url}"{target}>{title}</a>')
         else:
-            res += title
-        if self.url_render_mode == 'netloc':
-            res += ' (<a href="{1}">{0}</a>)'.format(
-                netloc,
-                url_for('bookmark.index_view', flt2_url_netloc_match=netloc)
-            )
-        res += '<br/>'
+            res.append(title)
+        if self.url_render_mode == "netloc":
+            res.append( f'(<a href="{url_for_index_view_netloc}">{netloc}</a>)' )
+        res.append(br_tag)
         if not is_scheme_valid:
-            res += model.url
-        elif self.url_render_mode is None or self.url_render_mode == 'full':
-            res += '<a href="{0.url}">{0.url}</a>'.format(model)
-            res += '<br/>'
-        if self.url_render_mode != 'netloc':
-            res += tag_tmpl.format(
-                'netloc:{}'.format(netloc),
-                url_for('bookmark.index_view', flt2_url_netloc_match=netloc)
-            )
-        res += ''.join(tag_text)
+            res.extend((model.url, br_tag))
+        elif self.url_render_mode is None or self.url_render_mode == "full":
+            res.extend((f'<a href="{model.url}">{model.url}</a>', br_tag))
+        if self.url_render_mode != "netloc":
+            res.append( f'<a class="btn btn-default" href="{url_for_index_view_netloc}">netloc:{netloc}</a>')
+        if tag_text_markup:
+            res.append("".join(tag_text))
         description = model.description
         if description:
-            res += '<br/>'
-            res += description.replace('\n', '<br/>')
-        return Markup(res)
+            res.extend((br_tag, description.replace("\n", br_tag)))
+        return Markup("".join(res))
 
     can_set_page_size = True
     can_view_details = True
-    column_filters = ['buku', 'id', 'url', 'title', 'tags']
-    column_formatters = {'Entry': _list_entry,}
-    column_list = ['Entry']
+    column_filters = ["buku", "id", "url", "title", "tags"]
+    column_formatters = {
+        "Entry": _list_entry,
+    }
+    column_list = ["Entry"]
     create_modal = True
-    create_modal_template = 'bukuserver/bookmark_create_modal.html'
-    create_template = 'bukuserver/bookmark_create.html'
+    create_modal_template = "bukuserver/bookmark_create_modal.html"
+    create_template = "bukuserver/bookmark_create.html"
     details_modal = True
     edit_modal = True
-    edit_modal_template = 'bukuserver/bookmark_edit_modal.html'
-    edit_template = 'bukuserver/bookmark_edit.html'
+    edit_modal_template = "bukuserver/bookmark_edit_modal.html"
+    edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
-        custom_model = CustomBukuDbModel(args[0], 'bookmark')
-        args = [custom_model, ] + list(args[1:])
-        self.page_size = kwargs.pop('page_size', DEFAULT_PER_PAGE)
-        self.url_render_mode = kwargs.pop('url_render_mode', DEFAULT_URL_RENDER_MODE)
+        custom_model = CustomBukuDbModel(args[0], "bookmark")
+        args = [
+            custom_model,
+        ] + list(args[1:])
+        self.page_size = kwargs.pop("page_size", DEFAULT_PER_PAGE)
+        self.url_render_mode = kwargs.pop("url_render_mode", DEFAULT_URL_RENDER_MODE)
         super().__init__(*args, **kwargs)
 
     def create_form(self, obj=None):
         form = super().create_form(obj)
         args = request.args
-        if 'url' in args.keys() and not args.get("url").startswith('/bookmark/'):
+        if "url" in args.keys() and not args.get("url").startswith("/bookmark/"):
             form.url.data = args.get("url")
-        if 'title' in args.keys():
+        if "title" in args.keys():
             form.title.data = args.get("title")
-        if 'description' in args.keys():
+        if "description" in args.keys():
             form.description.data = args.get("description")
         return form
 
     def create_model(self, form):
         try:
-            model = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+            model = SimpleNamespace(
+                id=None, url=None, title=None, tags=None, description=None
+            )
             form.populate_obj(model)
-            vars(model).pop('id')
+            vars(model).pop("id")
             self._on_model_change(form, model, True)
             tags_in = model.tags
-            if not tags_in.startswith(','):
-                tags_in = ',{}'.format(tags_in)
-            if not tags_in.endswith(','):
-                tags_in = '{},'.format(tags_in)
+            if not tags_in.startswith(","):
+                tags_in = ",{}".format(tags_in)
+            if not tags_in.endswith(","):
+                tags_in = "{},".format(tags_in)
             self.model.bukudb.add_rec(
-                url=model.url, title_in=model.title, tags_in=tags_in, desc=model.description)
+                url=model.url,
+                title_in=model.title,
+                tags_in=tags_in,
+                desc=model.description,
+            )
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                flash(gettext('Failed to create record. %(error)s', error=str(ex)), 'error')
-                LOG.exception('Failed to create record.')
+                flash(
+                    gettext("Failed to create record. %(error)s", error=str(ex)),
+                    "error",
+                )
+                LOG.exception("Failed to create record.")
             return False
         else:
             self.after_model_change(form, model, True)
