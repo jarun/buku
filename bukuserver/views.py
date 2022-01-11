@@ -13,16 +13,20 @@ from flask_admin.babel import gettext
 from flask_admin.base import AdminIndexView, BaseView, expose
 from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
-from jinja2 import Markup
+from jinja2 import Markup  # type: ignore
 import arrow
 import wtforms
+
+# `from jinja2 import Markup` raise following warning if not ignored:
+#  "Markup" is not exported from module "jinja2"
+#  Import from "jinja2.utils" instead
 
 try:
     from . import forms, filters as bs_filters
     from .filters import BookmarkField, FilterType
 except ImportError:
-    from bukuserver import forms, filters as bs_filters
-    from bukuserver.filters import BookmarkField, FilterType
+    from bukuserver import forms, filters as bs_filters  # type: ignore
+    from bukuserver.filters import BookmarkField, FilterType  # type: ignore
 
 
 STATISTIC_DATA = None
@@ -50,12 +54,15 @@ class CustomAdminIndexView(AdminIndexView):
         )
         op_text = bbm_filter.operation()
         values_combi = sorted(itertools.product([True, False], repeat=3))
+        choosen_idx = None
         for idx, (all_keywords, deep, regex) in enumerate(values_combi):
             if deep == form.deep.data and regex == form.regex.data and not all_keywords:
                 choosen_idx = idx
         url_op_text = op_text.replace(", ", "_").replace("  ", " ").replace(" ", "_")
-        key = "".join(["flt", str(choosen_idx), "_buku_", url_op_text])
-        kwargs = {key: form.keyword.data}
+        kwargs = {}
+        if choosen_idx:
+            key = "".join(["flt", str(choosen_idx), "_buku_", url_op_text])
+            kwargs = {key: form.keyword.data}
         url = url_for("bookmark.index_view", **kwargs)
         return redirect(url)
 
@@ -72,10 +79,11 @@ class CustomBukuDbModel:  # pylint: disable=too-few-public-methods
 
 class BookmarkModelView(BaseModelView):
     def _apply_filters(self, models, filters):
-        for idx, flt_name, value in filters:
-            flt = self._filters[idx]
-            clean_value = flt.clean(value)
-            models = list(flt.apply(models, clean_value))
+        for idx, _, value in filters:
+            if self._filters:
+                flt = self._filters[idx]
+                clean_value = flt.clean(value)
+                models = list(flt.apply(models, clean_value))
         return models
 
     def _create_ajax_loader(self, name, options):
@@ -159,8 +167,9 @@ class BookmarkModelView(BaseModelView):
     def create_form(self, obj=None):
         form = super().create_form(obj)
         args = request.args
-        if "url" in args.keys() and not args.get("url").startswith("/bookmark/"):
-            form.url.data = args.get("url")
+        args_url = args.get("url")
+        if args_url and not args_url.startswith("/bookmark/"):
+            form.url.data = args_url
         if "title" in args.keys():
             form.title.data = args.get("title")
         if "description" in args.keys():
@@ -214,7 +223,7 @@ class BookmarkModelView(BaseModelView):
             self.after_model_delete(model)
         return res
 
-    def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
+    def get_list(self, page, sort_field, sort_desc, _, filters, page_size=None):
         bukudb = self.bukudb
         contain_buku_search = any(x[1] == "buku" for x in filters)
         if contain_buku_search:
@@ -223,12 +232,16 @@ class BookmarkModelView(BaseModelView):
                 flash(gettext("Invalid search mode combination"), "error")
                 return 0, []
             keywords = [x[2] for x in filters]
+            flt = None
             for idx, flt_name, value in filters:
-                if flt_name == "buku":
+                if flt_name == "buku" and self._filters:
                     flt = self._filters[idx]
-            bookmarks = bukudb.searchdb(
-                keywords, all_keywords=flt.all_keywords, deep=flt.deep, regex=flt.regex
+            kwargs = (
+                dict(all_keywords=flt.all_keywords, deep=flt.deep, regex=flt.regex)
+                if flt
+                else {}
             )
+            bookmarks = bukudb.searchdb(keywords, **kwargs)
         else:
             bookmarks = bukudb.get_rec_all()
         bookmarks = self._apply_filters(bookmarks, filters)
@@ -431,13 +444,14 @@ class TagModelView(BaseModelView):
         pass
 
     def _apply_filters(self, models, filters):
-        for idx, flt_name, value in filters:
-            flt = self._filters[idx]
-            clean_value = flt.clean(value)
-            models = list(flt.apply(models, clean_value))
+        for idx, _, value in filters:
+            if self._filters:
+                flt = self._filters[idx]
+                clean_value = flt.clean(value)
+                models = list(flt.apply(models, clean_value))
         return models
 
-    def _name_formatter(self, context, model, name):
+    def _name_formatter(self, _, model, name):
         data = getattr(model, name)
         if not data:
             return Markup(
@@ -492,6 +506,7 @@ class TagModelView(BaseModelView):
         filters: List[Tuple[int, str, str]],
         page_size: int = None,
     ) -> Tuple[int, List[SimpleNamespace]]:
+        logging.debug("search: %s", search)
         bukudb = self.bukudb
         tags = bukudb.get_tag_all()[1]
         tags = sorted(tags.items())
