@@ -26,37 +26,41 @@ except ImportError:
 
 
 STATISTIC_DATA = None
-DEFAULT_URL_RENDER_MODE = 'full'
+DEFAULT_URL_RENDER_MODE = "full"
 DEFAULT_PER_PAGE = 10
 LOG = logging.getLogger("bukuserver.views")
 
 
 class CustomAdminIndexView(AdminIndexView):
-
-    @expose('/')
+    @expose("/")
     def index(self):
-        return self.render('bukuserver/home.html', form=forms.HomeForm())
+        return self.render("bukuserver/home.html", form=forms.HomeForm())
 
-    @expose('/', methods=['POST',])
+    @expose(
+        "/",
+        methods=[
+            "POST",
+        ],
+    )
     def search(self):
         "redirect to bookmark search"
         form = forms.HomeForm()
         bbm_filter = bs_filters.BookmarkBukuFilter(
-            all_keywords=False, deep=form.deep.data, regex=form.regex.data)
+            all_keywords=False, deep=form.deep.data, regex=form.regex.data
+        )
         op_text = bbm_filter.operation()
         values_combi = sorted(itertools.product([True, False], repeat=3))
         for idx, (all_keywords, deep, regex) in enumerate(values_combi):
             if deep == form.deep.data and regex == form.regex.data and not all_keywords:
                 choosen_idx = idx
-        url_op_text = op_text.replace(', ', '_').replace('  ', ' ').replace(' ', '_')
-        key = ''.join(['flt', str(choosen_idx), '_buku_', url_op_text])
+        url_op_text = op_text.replace(", ", "_").replace("  ", " ").replace(" ", "_")
+        key = "".join(["flt", str(choosen_idx), "_buku_", url_op_text])
         kwargs = {key: form.keyword.data}
-        url = url_for('bookmark.index_view', **kwargs)
+        url = url_for("bookmark.index_view", **kwargs)
         return redirect(url)
 
 
 class CustomBukuDbModel:  # pylint: disable=too-few-public-methods
-
     def __init__(self, bukudb_inst, name):
         self.bukudb = bukudb_inst
         self.name = name
@@ -67,7 +71,6 @@ class CustomBukuDbModel:  # pylint: disable=too-few-public-methods
 
 
 class BookmarkModelView(BaseModelView):
-
     def _apply_filters(self, models, filters):
         for idx, flt_name, value in filters:
             flt = self._filters[idx]
@@ -79,15 +82,17 @@ class BookmarkModelView(BaseModelView):
         pass
 
     def _list_entry(self, context: Any, model: Namespace, name: str) -> Markup:
-        LOG.debug(f"context: {context}, name: {name}")
+        LOG.debug("context: %s, name: %s", context, name)
         parsed_url = urlparse(model.url)
         netloc, scheme = parsed_url.netloc, parsed_url.scheme
         is_scheme_valid = scheme in ("http", "https", "ftp")
         tag_text = []
-        br_tag = '<br/>'
-        get_index_view_url = functools.partial(url_for, 'bookmark.index_view')
+        br_tag = "<br/>"
+        get_index_view_url = functools.partial(url_for, "bookmark.index_view")
         for tag in filter(None, model.tags.split(",")):
-            tag_text.append(f'<a class="btn btn-default" href="{get_index_view_url(flt2_tags_contain=tag.strip())}">{tag}</a>')
+            tag_text.append(
+                f'<a class="btn btn-default" href="{get_index_view_url(flt2_tags_contain=tag.strip())}">{tag}</a>'
+            )
         tag_text_markup = "".join(tag_text)
         if not netloc:
             escaped_url = Markup.escape(model.url)
@@ -108,14 +113,16 @@ class BookmarkModelView(BaseModelView):
         else:
             res.append(title)
         if self.url_render_mode == "netloc":
-            res.append( f'(<a href="{url_for_index_view_netloc}">{netloc}</a>)' )
+            res.append(f'(<a href="{url_for_index_view_netloc}">{netloc}</a>)')
         res.append(br_tag)
         if not is_scheme_valid:
             res.extend((model.url, br_tag))
         elif self.url_render_mode is None or self.url_render_mode == "full":
             res.extend((f'<a href="{model.url}">{model.url}</a>', br_tag))
         if self.url_render_mode != "netloc":
-            res.append( f'<a class="btn btn-default" href="{url_for_index_view_netloc}">netloc:{netloc}</a>')
+            res.append(
+                f'<a class="btn btn-default" href="{url_for_index_view_netloc}">netloc:{netloc}</a>'
+            )
         if tag_text_markup:
             res.append("".join(tag_text))
         description = model.description
@@ -197,8 +204,11 @@ class BookmarkModelView(BaseModelView):
             res = self.bukudb.delete_rec(model.id)
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                flash(gettext('Failed to delete record. %(error)s', error=str(ex)), 'error')
-                LOG.exception('Failed to delete record.')
+                flash(
+                    gettext("Failed to delete record. %(error)s", error=str(ex)),
+                    "error",
+                )
+                LOG.exception("Failed to delete record.")
             return False
         else:
             self.after_model_delete(model)
@@ -206,23 +216,26 @@ class BookmarkModelView(BaseModelView):
 
     def get_list(self, page, sort_field, sort_desc, search, filters, page_size=None):
         bukudb = self.bukudb
-        contain_buku_search = any(x[1] == 'buku' for x in filters)
+        contain_buku_search = any(x[1] == "buku" for x in filters)
         if contain_buku_search:
             mode_id = [x[0] for x in filters]
             if len(list(set(mode_id))) > 1:
-                flash(gettext('Invalid search mode combination'), 'error')
+                flash(gettext("Invalid search mode combination"), "error")
                 return 0, []
             keywords = [x[2] for x in filters]
             for idx, flt_name, value in filters:
-                if flt_name == 'buku':
+                if flt_name == "buku":
                     flt = self._filters[idx]
             bookmarks = bukudb.searchdb(
-                keywords, all_keywords=flt.all_keywords, deep=flt.deep, regex=flt.regex)
+                keywords, all_keywords=flt.all_keywords, deep=flt.deep, regex=flt.regex
+            )
         else:
             bookmarks = bukudb.get_rec_all()
         bookmarks = self._apply_filters(bookmarks, filters)
         if sort_field:
-            key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][0]
+            key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][
+                0
+            ]
             bookmarks = sorted(bookmarks, key=lambda x: x[key_idx], reverse=sort_desc)
         count = len(bookmarks)
         if page_size and bookmarks:
@@ -232,13 +245,15 @@ class BookmarkModelView(BaseModelView):
                 bookmarks = []
         data = []
         for bookmark in bookmarks:
-            bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+            bm_sns = SimpleNamespace(
+                id=None, url=None, title=None, tags=None, description=None
+            )
             for field in list(BookmarkField):
                 if field == BookmarkField.TAGS:
                     value = bookmark[field.value]
-                    if value.startswith(','):
+                    if value.startswith(","):
                         value = value[1:]
-                    if value.endswith(','):
+                    if value.endswith(","):
                         value = value[:-1]
                     setattr(bm_sns, field.name.lower(), value)
                 else:
@@ -248,13 +263,15 @@ class BookmarkModelView(BaseModelView):
 
     def get_one(self, id):
         bookmark = self.model.bukudb.get_rec_by_id(id)
-        bm_sns = SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+        bm_sns = SimpleNamespace(
+            id=None, url=None, title=None, tags=None, description=None
+        )
         for field in list(BookmarkField):
-            if field == BookmarkField.TAGS and bookmark[field.value].startswith(','):
+            if field == BookmarkField.TAGS and bookmark[field.value].startswith(","):
                 value = bookmark[field.value]
-                if value.startswith(','):
+                if value.startswith(","):
                     value = value[1:]
-                if value.endswith(','):
+                if value.endswith(","):
                     value = value[:-1]
                 setattr(bm_sns, field.name.lower(), value)
             else:
@@ -271,66 +288,102 @@ class BookmarkModelView(BaseModelView):
         pass
 
     def scaffold_sortable_columns(self):
-        return {x:x for x in self.scaffold_list_columns()}
+        return {x: x for x in self.scaffold_list_columns()}
 
     def scaffold_filters(self, name):
         res = []
-        if name == 'buku':
+        if name == "buku":
             values_combi = sorted(itertools.product([True, False], repeat=3))
             for all_keywords, deep, regex in values_combi:
                 res.append(
-                    bs_filters.BookmarkBukuFilter(all_keywords=all_keywords, deep=deep, regex=regex)
+                    bs_filters.BookmarkBukuFilter(
+                        all_keywords=all_keywords, deep=deep, regex=regex
+                    )
                 )
         elif name == BookmarkField.ID.name.lower():
-            res.extend([
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.GREATER),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.SMALLER),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.TOP_X),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.BOTTOM_X),
-            ])
+            res.extend(
+                [
+                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                    bs_filters.BookmarkBaseFilter(
+                        name, filter_type=FilterType.NOT_EQUAL
+                    ),
+                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                    bs_filters.BookmarkBaseFilter(
+                        name, filter_type=FilterType.NOT_IN_LIST
+                    ),
+                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.GREATER),
+                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.SMALLER),
+                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.TOP_X),
+                    bs_filters.BookmarkBaseFilter(
+                        name, filter_type=FilterType.BOTTOM_X
+                    ),
+                ]
+            )
         elif name == BookmarkField.URL.name.lower():
+
             def netloc_match_func(query, value, index):
                 return filter(lambda x: urlparse(x[index]).netloc == value, query)
 
-            res.extend([
-                bs_filters.BookmarkBaseFilter(name, 'netloc match', netloc_match_func),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
-            ])
+            res.extend(
+                [
+                    bs_filters.BookmarkBaseFilter(
+                        name, "netloc match", netloc_match_func
+                    ),
+                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                    bs_filters.BookmarkBaseFilter(
+                        name, filter_type=FilterType.NOT_EQUAL
+                    ),
+                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                    bs_filters.BookmarkBaseFilter(
+                        name, filter_type=FilterType.NOT_IN_LIST
+                    ),
+                ]
+            )
         elif name == BookmarkField.TITLE.name.lower():
-            res.extend([
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
-                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
-            ])
+            res.extend(
+                [
+                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                    bs_filters.BookmarkBaseFilter(
+                        name, filter_type=FilterType.NOT_EQUAL
+                    ),
+                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                    bs_filters.BookmarkBaseFilter(
+                        name, filter_type=FilterType.NOT_IN_LIST
+                    ),
+                ]
+            )
         elif name == BookmarkField.TAGS.name.lower():
+
             def tags_contain_func(query, value, index):
                 for item in query:
-                    for tag in item[index].split(','):
+                    for tag in item[index].split(","):
                         if tag and tag == value:
                             yield item
 
             def tags_not_contain_func(query, value, index):
                 for item in query:
-                    for tag in item[index].split(','):
+                    for tag in item[index].split(","):
                         if tag and tag != value:
                             yield item
 
-            res.extend([
-                bs_filters.BookmarkBaseFilter(name, 'contain', tags_contain_func),
-                bs_filters.BookmarkBaseFilter(name, 'not contain', tags_not_contain_func),
-                bs_filters.BookmarkTagNumberEqualFilter(name, 'number equal'),
-                bs_filters.BookmarkTagNumberNotEqualFilter(name, 'number not equal'),
-                bs_filters.BookmarkTagNumberGreaterFilter(name, 'number greater than'),
-                bs_filters.BookmarkTagNumberSmallerFilter(name, 'number smaller than'),
-            ])
+            res.extend(
+                [
+                    bs_filters.BookmarkBaseFilter(name, "contain", tags_contain_func),
+                    bs_filters.BookmarkBaseFilter(
+                        name, "not contain", tags_not_contain_func
+                    ),
+                    bs_filters.BookmarkTagNumberEqualFilter(name, "number equal"),
+                    bs_filters.BookmarkTagNumberNotEqualFilter(
+                        name, "number not equal"
+                    ),
+                    bs_filters.BookmarkTagNumberGreaterFilter(
+                        name, "number greater than"
+                    ),
+                    bs_filters.BookmarkTagNumberSmallerFilter(
+                        name, "number smaller than"
+                    ),
+                ]
+            )
         elif name in self.scaffold_list_columns():
             pass
         else:
@@ -349,17 +402,24 @@ class BookmarkModelView(BaseModelView):
             self._on_model_change(form, model, False)
             self.bukudb.delete_tag_at_index(model.id, original_tags)
             tags_in = model.tags
-            if not tags_in.startswith(','):
-                tags_in = ',{}'.format(tags_in)
-            if not tags_in.endswith(','):
-                tags_in = '{},'.format(tags_in)
+            if not tags_in.startswith(","):
+                tags_in = ",{}".format(tags_in)
+            if not tags_in.endswith(","):
+                tags_in = "{},".format(tags_in)
             res = self.bukudb.update_rec(
-                model.id, url=model.url, title_in=model.title, tags_in=tags_in,
-                desc=model.description)
+                model.id,
+                url=model.url,
+                title_in=model.title,
+                tags_in=tags_in,
+                desc=model.description,
+            )
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                flash(gettext('Failed to update record. %(error)s', error=str(ex)), 'error')
-                LOG.exception('Failed to update record.')
+                flash(
+                    gettext("Failed to update record. %(error)s", error=str(ex)),
+                    "error",
+                )
+                LOG.exception("Failed to update record.")
             return False
         else:
             self.after_model_change(form, model, False)
@@ -367,7 +427,6 @@ class BookmarkModelView(BaseModelView):
 
 
 class TagModelView(BaseModelView):
-
     def _create_ajax_loader(self, name, options):
         pass
 
@@ -381,31 +440,39 @@ class TagModelView(BaseModelView):
     def _name_formatter(self, context, model, name):
         data = getattr(model, name)
         if not data:
-            return Markup('<a href="{}">{}</a>'.format(
-                url_for('bookmark.index_view', flt2_tags_number_equal=0),
-                '&lt;EMPTY TAG&gt;'
-            ))
-        return Markup('<a href="{}">{}</a>'.format(
-            url_for('bookmark.index_view', flt1_tags_contain=data), data
-        ))
+            return Markup(
+                '<a href="{}">{}</a>'.format(
+                    url_for("bookmark.index_view", flt2_tags_number_equal=0),
+                    "&lt;EMPTY TAG&gt;",
+                )
+            )
+        return Markup(
+            '<a href="{}">{}</a>'.format(
+                url_for("bookmark.index_view", flt1_tags_contain=data), data
+            )
+        )
 
     can_create = False
     can_set_page_size = True
-    column_filters = ['name', 'usage_count']
-    column_formatters = {'name': _name_formatter,}
+    column_filters = ["name", "usage_count"]
+    column_formatters = {
+        "name": _name_formatter,
+    }
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
-        custom_model = CustomBukuDbModel(args[0], 'tag')
-        args = [custom_model, ] + list(args[1:])
-        self.page_size = kwargs.pop('page_size', DEFAULT_PER_PAGE)
+        custom_model = CustomBukuDbModel(args[0], "tag")
+        args = [
+            custom_model,
+        ] + list(args[1:])
+        self.page_size = kwargs.pop("page_size", DEFAULT_PER_PAGE)
         super().__init__(*args, **kwargs)
 
     def scaffold_list_columns(self):
-        return ['name', 'usage_count']
+        return ["name", "usage_count"]
 
     def scaffold_sortable_columns(self):
-        return {x:x for x in self.scaffold_list_columns()}
+        return {x: x for x in self.scaffold_list_columns()}
 
     def scaffold_form(self):
         class CustomForm(FlaskForm):  # pylint: disable=too-few-public-methods
@@ -417,21 +484,27 @@ class TagModelView(BaseModelView):
         pass
 
     def get_list(
-            self,
-            page: int,
-            sort_field: str,
-            sort_desc: bool,
-            search: Optional[Any],
-            filters: List[Tuple[int, str, str]],
-            page_size: int = None) -> Tuple[int, List[SimpleNamespace]]:
+        self,
+        page: int,
+        sort_field: str,
+        sort_desc: bool,
+        search: Optional[Any],
+        filters: List[Tuple[int, str, str]],
+        page_size: int = None,
+    ) -> Tuple[int, List[SimpleNamespace]]:
         bukudb = self.bukudb
         tags = bukudb.get_tag_all()[1]
         tags = sorted(tags.items())
         tags = self._apply_filters(tags, filters)
-        sort_field_dict = {'usage_count': 1, 'name': 0}
+        sort_field_dict = {"usage_count": 1, "name": 0}
         if sort_field in sort_field_dict:
-            tags = list(sorted(
-                tags, key=lambda x: x[sort_field_dict[sort_field]], reverse=sort_desc))
+            tags = list(
+                sorted(
+                    tags,
+                    key=lambda x: x[sort_field_dict[sort_field]],
+                    reverse=sort_desc,
+                )
+            )
         count = len(tags)
         if page_size and tags:
             tags = list(chunks(tags, page_size))[page]
@@ -459,21 +532,27 @@ class TagModelView(BaseModelView):
             most_common_item = [x[0] for x in most_common]
             return filter(lambda x: x[index] in most_common_item, query)
 
-        res.extend([
-            bs_filters.TagBaseFilter(name, filter_type=FilterType.EQUAL),
-            bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
-            bs_filters.TagBaseFilter(name, filter_type=FilterType.IN_LIST),
-            bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
-        ])
-        if name == 'usage_count':
-            res.extend([
-                bs_filters.TagBaseFilter(name, filter_type=FilterType.GREATER),
-                bs_filters.TagBaseFilter(name, filter_type=FilterType.SMALLER),
-                bs_filters.TagBaseFilter(name, filter_type=FilterType.TOP_X),
-                bs_filters.TagBaseFilter(name, filter_type=FilterType.BOTTOM_X),
-                bs_filters.TagBaseFilter(name, 'top most common', top_most_common_func),
-            ])
-        elif name == 'name':
+        res.extend(
+            [
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.EQUAL),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.IN_LIST),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+            ]
+        )
+        if name == "usage_count":
+            res.extend(
+                [
+                    bs_filters.TagBaseFilter(name, filter_type=FilterType.GREATER),
+                    bs_filters.TagBaseFilter(name, filter_type=FilterType.SMALLER),
+                    bs_filters.TagBaseFilter(name, filter_type=FilterType.TOP_X),
+                    bs_filters.TagBaseFilter(name, filter_type=FilterType.BOTTOM_X),
+                    bs_filters.TagBaseFilter(
+                        name, "top most common", top_most_common_func
+                    ),
+                ]
+            )
+        elif name == "name":
             pass
         else:
             return super().scaffold_filters(name)
@@ -486,8 +565,11 @@ class TagModelView(BaseModelView):
             res = self.bukudb.delete_tag_at_index(0, model.name, chatty=False)
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                flash(gettext('Failed to delete record. %(error)s', error=str(ex)), 'error')
-                LOG.exception('Failed to delete record.')
+                flash(
+                    gettext("Failed to delete record. %(error)s", error=str(ex)),
+                    "error",
+                )
+                LOG.exception("Failed to delete record.")
             return False
         else:
             self.after_model_delete(model)
@@ -502,8 +584,11 @@ class TagModelView(BaseModelView):
             res = self.bukudb.replace_tag(original_name, [model.name])
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                flash(gettext('Failed to update record. %(error)s', error=str(ex)), 'error')
-                LOG.exception('Failed to update record.')
+                flash(
+                    gettext("Failed to update record. %(error)s", error=str(ex)),
+                    "error",
+                )
+                LOG.exception("Failed to update record.")
             return False
         else:
             self.after_model_change(form, model, False)
@@ -514,46 +599,55 @@ class TagModelView(BaseModelView):
 
 
 class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
-
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
         args = list(args[1:])
         super().__init__(*args, **kwargs)
 
-    @expose('/', methods=('GET', 'POST'))
+    @expose("/", methods=("GET", "POST"))
     def index(self):
         bukudb = self.bukudb
         global STATISTIC_DATA
         statistic_data = STATISTIC_DATA
-        if not statistic_data or request.method == 'POST':
+        if not statistic_data or request.method == "POST":
             all_bookmarks = bukudb.get_rec_all()
             netloc = [urlparse(x[1]).netloc for x in all_bookmarks]
             tag_set = [x[3] for x in all_bookmarks]
             tag_items = []
             for tags in tag_set:
-                tag_items.extend([x.strip() for x in tags.split(',') if x.strip()])
+                tag_items.extend([x.strip() for x in tags.split(",") if x.strip()])
             tag_counter = Counter(tag_items)
             title_items = [x[2] for x in all_bookmarks]
             title_counter = Counter(title_items)
             statistic_datetime = arrow.now()
             STATISTIC_DATA = {
-                'datetime': statistic_datetime,
-                'netloc': netloc,
-                'tag_counter': tag_counter,
-                'title_counter': title_counter,
+                "datetime": statistic_datetime,
+                "netloc": netloc,
+                "tag_counter": tag_counter,
+                "title_counter": title_counter,
             }
         else:
-            netloc = statistic_data['netloc']
-            statistic_datetime = statistic_data['datetime']
-            tag_counter = statistic_data['tag_counter']
-            title_counter = statistic_data['title_counter']
+            netloc = statistic_data["netloc"]
+            statistic_datetime = statistic_data["datetime"]
+            tag_counter = statistic_data["tag_counter"]
+            title_counter = statistic_data["title_counter"]
 
         netloc_counter = Counter(netloc)
         unique_netloc_len = len(set(netloc))
         colors = [
-            "#F7464A", "#46BFBD", "#FDB45C", "#FEDCBA",
-            "#ABCDEF", "#DDDDDD", "#ABCABC", "#4169E1",
-            "#C71585", "#FF4500", "#FEDCBA", "#46BFBD"]
+            "#F7464A",
+            "#46BFBD",
+            "#FDB45C",
+            "#FEDCBA",
+            "#ABCDEF",
+            "#DDDDDD",
+            "#ABCABC",
+            "#4169E1",
+            "#C71585",
+            "#FF4500",
+            "#FEDCBA",
+            "#46BFBD",
+        ]
         show_netloc_table = False
         if unique_netloc_len > len(colors):
             max_netloc_item = len(colors)
@@ -564,7 +658,9 @@ class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
             max_netloc_item = unique_netloc_len
         most_common_netlocs = netloc_counter.most_common(max_netloc_item)
         most_common_netlocs = [
-            [val[0], val[1], netloc_colors[idx]] for idx, val in enumerate(most_common_netlocs)]
+            [val[0], val[1], netloc_colors[idx]]
+            for idx, val in enumerate(most_common_netlocs)
+        ]
 
         unique_tag_len = len(tag_counter)
         show_tag_rank_table = False
@@ -577,7 +673,9 @@ class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
             max_tag_item = unique_tag_len
         most_common_tags = tag_counter.most_common(max_tag_item)
         most_common_tags = [
-            [val[0], val[1], tag_colors[idx]] for idx, val in enumerate(most_common_tags)]
+            [val[0], val[1], tag_colors[idx]]
+            for idx, val in enumerate(most_common_tags)
+        ]
 
         unique_title_len = len(title_counter)
         show_title_rank_table = False
@@ -590,10 +688,12 @@ class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
             max_title_item = unique_title_len
         most_common_titles = title_counter.most_common(max_title_item)
         most_common_titles = [
-            [val[0], val[1], title_colors[idx]] for idx, val in enumerate(most_common_titles)]
+            [val[0], val[1], title_colors[idx]]
+            for idx, val in enumerate(most_common_titles)
+        ]
 
         return self.render(
-            'bukuserver/statistic.html',
+            "bukuserver/statistic.html",
             most_common_netlocs=most_common_netlocs,
             netloc_counter=netloc_counter,
             show_netloc_table=show_netloc_table,
@@ -604,10 +704,12 @@ class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
             title_counter=title_counter,
             show_title_rank_table=show_title_rank_table,
             datetime=statistic_datetime,
-            datetime_text=statistic_datetime.humanize(arrow.now(), granularity='second'),
+            datetime_text=statistic_datetime.humanize(
+                arrow.now(), granularity="second"
+            ),
         )
 
 
 def chunks(arr, n):
     n = max(1, n)
-    return (arr[i:i+n] for i in range(0, len(arr), n))
+    return (arr[i : i + n] for i in range(0, len(arr), n))
