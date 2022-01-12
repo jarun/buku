@@ -1,31 +1,29 @@
 """views module."""
+import functools
+import itertools
+import logging
 from argparse import Namespace
 from collections import Counter
 from types import SimpleNamespace
 from typing import Any, List, Optional, Tuple
 from urllib.parse import urlparse
-import itertools
-import logging
-import functools
 
+import arrow
+import wtforms
 from flask import current_app, flash, redirect, request, url_for
 from flask_admin.babel import gettext
 from flask_admin.base import AdminIndexView, BaseView, expose
 from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
-from jinja2 import Markup  # type: ignore
-import arrow
-import wtforms
-
-# `from jinja2 import Markup` raise following warning if not ignored:
-#  "Markup" is not exported from module "jinja2"
-#  Import from "jinja2.utils" instead
+from markupsafe import Markup
 
 try:
-    from . import forms, filters as bs_filters
+    from . import filters as bs_filters
+    from . import forms
     from .filters import BookmarkField, FilterType
 except ImportError:
-    from bukuserver import forms, filters as bs_filters  # type: ignore
+    from bukuserver import filters as bs_filters  # type: ignore
+    from bukuserver import forms
     from bukuserver.filters import BookmarkField, FilterType  # type: ignore
 
 
