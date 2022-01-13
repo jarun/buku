@@ -17,6 +17,8 @@ from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
 from markupsafe import Markup
 
+import buku
+
 try:
     from . import filters as bs_filters
     from . import forms
@@ -153,7 +155,7 @@ class BookmarkModelView(BaseModelView):
     named_filter_urls = True
 
     def __init__(self, *args, **kwargs):
-        self.bukudb = args[0]
+        self.bukudb: buku.BukuDb = args[0]
         custom_model = CustomBukuDbModel(args[0], "bookmark")
         args = [
             custom_model,
@@ -182,15 +184,10 @@ class BookmarkModelView(BaseModelView):
             form.populate_obj(model)
             vars(model).pop("id")
             self._on_model_change(form, model, True)
-            tags_in = model.tags
-            if not tags_in.startswith(","):
-                tags_in = ",{}".format(tags_in)
-            if not tags_in.endswith(","):
-                tags_in = "{},".format(tags_in)
             self.model.bukudb.add_rec(
                 url=model.url,
                 title_in=model.title,
-                tags_in=tags_in,
+                tags_in=buku.parse_tags([model.tags]),
                 desc=model.description,
             )
         except Exception as ex:
@@ -405,23 +402,16 @@ class BookmarkModelView(BaseModelView):
         cls = forms.BookmarkForm
         return cls
 
-    def update_model(self, form, model):
+    def update_model(self, form: forms.BookmarkForm, model: Namespace):
         res = False
         try:
-            original_tags = model.tags
             form.populate_obj(model)
             self._on_model_change(form, model, False)
-            self.bukudb.delete_tag_at_index(model.id, original_tags)
-            tags_in = model.tags
-            if not tags_in.startswith(","):
-                tags_in = ",{}".format(tags_in)
-            if not tags_in.endswith(","):
-                tags_in = "{},".format(tags_in)
             res = self.bukudb.update_rec(
                 model.id,
                 url=model.url,
                 title_in=model.title,
-                tags_in=tags_in,
+                tags_in=buku.parse_tags([model.tags]),
                 desc=model.description,
             )
         except Exception as ex:
