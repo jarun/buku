@@ -1,17 +1,17 @@
 """test module."""
-from itertools import product
-from unittest import mock
-from urllib.parse import urlparse
 import json
 import logging
 import os
 import signal
 import sys
 import unittest
+from itertools import product
+from unittest import mock
+from urllib.parse import urlparse
 
 import pytest
 
-from buku import is_int, parse_tags, prep_tag_search
+from buku import DELIM, is_int, parse_tags, prep_tag_search
 
 only_python_3_5 = pytest.mark.skipif(
     sys.version_info < (3, 5), reason="requires Python 3.5 or later")
@@ -77,21 +77,28 @@ def test_get_PoolManager(m_myproxy):
 @pytest.mark.parametrize(
     'keywords, exp_res',
     [
-        (None, None),
-        ([], None),
+        ('', DELIM),
+        (',', DELIM),
+        ('tag1, tag2', ',t a g 1,t a g 2,'),
+        (['tag1', 'tag2', 'tag3'], ',tag1 tag2 tag3,' ),
+        (['tag1', 'tag2'],  ',tag1 tag2,' ),
         (['tag1', 'tag2'], ',tag1 tag2,'),
+        (['tag1'], ',tag1,' ),
+        (['tag1,tag2', 'tag3'],  ',tag1,tag2 tag3,' ),
         (['tag1,tag2', 'tag3'], ',tag1,tag2 tag3,'),
+        (['tag1,tag2', 'tag3,tag4'], ',tag1,tag2 tag3,tag4,' ),
+        (['tag1,tag2'], ',tag1,tag2,' ),
     ]
 )
 def test_parse_tags(keywords, exp_res):
     """test func."""
     import buku
-    if keywords is None:
-        pass
-    elif not keywords:
-        exp_res = buku.DELIM
-    res = buku.parse_tags(keywords)
-    assert res == exp_res
+    assert buku.parse_tags(keywords) == exp_res
+
+
+def test_parse_tags_no_args():
+    import buku
+    assert buku.parse_tags() == DELIM
 
 
 @pytest.mark.parametrize(
@@ -472,6 +479,10 @@ class TestHelpers(unittest.TestCase):
 
     # @unittest.skip('skipping')
     def test_parse_tags(self):
+        """test parse tags with unittest.
+
+        Add new test case on `test_parse_tags` instead here.
+        """
         # call with None
         parsed = parse_tags(None)
         self.assertIsNone(parsed)
@@ -559,8 +570,9 @@ def test_sigint_handler(capsys):
 )
 def test_network_handler_with_url(url, exp_res):
     """test func."""
-    import buku
     import urllib3
+
+    import buku
     buku.urllib3 = urllib3
     buku.myproxy = None
     res = buku.network_handler(url)
@@ -668,8 +680,9 @@ def test_import_org(tmpdir, newtag, exp_res):
 )
 def test_import_html(html_text, exp_res):
     """test method."""
-    from buku import import_html
     from bs4 import BeautifulSoup
+
+    from buku import import_html
     html_soup = BeautifulSoup(html_text, 'html.parser')
     res = list(import_html(html_soup, False, None))
     for item, exp_item in zip(res, exp_res):
@@ -677,8 +690,9 @@ def test_import_html(html_text, exp_res):
 
 
 def test_import_html_and_add_parent():
-    from buku import import_html
     from bs4 import BeautifulSoup
+
+    from buku import import_html
     html_text = """<DT><H3>1s</H3>
 <DL><p>
 <DT><A HREF="http://example.com/"></A>"""
@@ -689,8 +703,9 @@ def test_import_html_and_add_parent():
 
 
 def test_import_html_and_new_tag():
-    from buku import import_html
     from bs4 import BeautifulSoup
+
+    from buku import import_html
     html_text = """<DT><A HREF="https://github.com/j" TAGS="tag1,tag2">GitHub</A>
 <DD>comment for the bookmark here"""
     exp_res = (
@@ -724,8 +739,9 @@ def test_copy_to_clipboard(platform, params):
             mock.patch('buku.Popen', return_value=m_popen_retval) as m_popen, \
             mock.patch('buku.shutil.which', return_value=True):
         m_sys.platform = platform
-        from buku import copy_to_clipboard
         import subprocess
+
+        from buku import copy_to_clipboard
         copy_to_clipboard(content)
         if platform_recognized:
             m_popen.assert_called_once_with(
@@ -753,8 +769,8 @@ def test_copy_to_clipboard(platform, params):
     ['random', None],
 ])
 def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
-    from buku import convert_bookmark_set
     import buku
+    from buku import convert_bookmark_set
     bms = [
         (1, 'htttp://example.com', '', ',', '', 0),
         (1, 'htttp://example.org', None, ',', '', 0),
