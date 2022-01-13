@@ -21,7 +21,7 @@ test-template: &test-template
         command: |
           pip install -e .[tests]
           pip install -r requirements.txt
-          python3 -m flake8
+          python3 -m flake8 --config tests/.flake8
           echo buku | xargs pylint --rcfile tests/.pylintrc
           find . -iname "*.py" ! -path "./api/*" | xargs pylint --rcfile tests/.pylintrc
           python3 -m pytest ./tests/test_*.py --cov buku -vv --durations=0 -c ./tests/pytest.ini
