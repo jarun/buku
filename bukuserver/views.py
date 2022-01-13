@@ -192,11 +192,12 @@ class BookmarkModelView(BaseModelView):
             )
         except Exception as ex:
             if not self.handle_view_exception(ex):
+                msg = "Failed to create record."
                 flash(
-                    gettext("Failed to create record. %(error)s", error=str(ex)),
+                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
                     "error",
                 )
-                LOG.exception("Failed to create record.")
+                LOG.exception(msg)
             return False
         else:
             self.after_model_change(form, model, True)
@@ -208,11 +209,12 @@ class BookmarkModelView(BaseModelView):
             res = self.bukudb.delete_rec(model.id)
         except Exception as ex:
             if not self.handle_view_exception(ex):
+                msg = "Failed to delete record."
                 flash(
-                    gettext("Failed to delete record. %(error)s", error=str(ex)),
+                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
                     "error",
                 )
-                LOG.exception("Failed to delete record.")
+                LOG.exception(msg)
             return False
         else:
             self.after_model_delete(model)
@@ -416,11 +418,12 @@ class BookmarkModelView(BaseModelView):
             )
         except Exception as ex:
             if not self.handle_view_exception(ex):
+                msg = "Failed to update record."
                 flash(
-                    gettext("Failed to update record. %(error)s", error=str(ex)),
+                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
                     "error",
                 )
-                LOG.exception("Failed to update record.")
+                LOG.exception(msg)
             return False
         else:
             self.after_model_change(form, model, False)
@@ -568,11 +571,12 @@ class TagModelView(BaseModelView):
             res = self.bukudb.delete_tag_at_index(0, model.name, chatty=False)
         except Exception as ex:
             if not self.handle_view_exception(ex):
+                msg = "Failed to delete record."
                 flash(
-                    gettext("Failed to delete record. %(error)s", error=str(ex)),
+                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
                     "error",
                 )
-                LOG.exception("Failed to delete record.")
+                LOG.exception(msg)
             return False
         else:
             self.after_model_delete(model)
@@ -587,11 +591,12 @@ class TagModelView(BaseModelView):
             res = self.bukudb.replace_tag(original_name, [model.name])
         except Exception as ex:
             if not self.handle_view_exception(ex):
+                msg = "Failed to update record."
                 flash(
-                    gettext("Failed to update record. %(error)s", error=str(ex)),
+                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
                     "error",
                 )
-                LOG.exception("Failed to update record.")
+                LOG.exception(msg)
             return False
         else:
             self.after_model_change(form, model, False)
