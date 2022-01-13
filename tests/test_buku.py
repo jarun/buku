@@ -11,174 +11,209 @@ from urllib.parse import urlparse
 
 import pytest
 
-from buku import DELIM, is_int, parse_tags, prep_tag_search
+from buku import DELIM, is_int, prep_tag_search
 
 only_python_3_5 = pytest.mark.skipif(
-    sys.version_info < (3, 5), reason="requires Python 3.5 or later")
+    sys.version_info < (3, 5), reason="requires Python 3.5 or later"
+)
 
 
 @pytest.mark.parametrize(
-    'url, exp_res',
+    "url, exp_res",
     [
-        ['http://example.com', False],
-        ['ftp://ftp.somedomain.org', False],
-        ['http://examplecom.', True],
-        ['http://.example.com', True],
-        ['http://example.com.', True],
-        ['about:newtab', True],
-        ['chrome://version/', True],
-    ]
+        ["http://example.com", False],
+        ["ftp://ftp.somedomain.org", False],
+        ["http://examplecom.", True],
+        ["http://.example.com", True],
+        ["http://example.com.", True],
+        ["about:newtab", True],
+        ["chrome://version/", True],
+    ],
 )
 def test_is_bad_url(url, exp_res):
     """test func."""
     import buku
+
     res = buku.is_bad_url(url)
     assert res == exp_res
 
 
 @pytest.mark.parametrize(
-    'url, exp_res',
+    "url, exp_res",
     [
-        ('http://example.com/file.pdf', True),
-        ('http://example.com/file.txt', True),
-        ('http://example.com/file.jpg', False),
-    ]
+        ("http://example.com/file.pdf", True),
+        ("http://example.com/file.txt", True),
+        ("http://example.com/file.jpg", False),
+    ],
 )
 def test_is_ignored_mime(url, exp_res):
     """test func."""
     import buku
+
     assert exp_res == buku.is_ignored_mime(url)
 
 
 def test_gen_headers():
     """test func."""
     import buku
+
     exp_myheaders = {
-        'Accept-Encoding': 'gzip,deflate',
-        'User-Agent': buku.USER_AGENT,
-        'Accept': '*/*',
-        'Cookie': '',
-        'DNT': '1'
+        "Accept-Encoding": "gzip,deflate",
+        "User-Agent": buku.USER_AGENT,
+        "Accept": "*/*",
+        "Cookie": "",
+        "DNT": "1",
     }
     buku.gen_headers()
     assert buku.MYPROXY is None
     assert buku.MYHEADERS == exp_myheaders
 
 
-@pytest.mark.parametrize('m_myproxy', [None, mock.Mock()])
+@pytest.mark.parametrize("m_myproxy", [None, mock.Mock()])
 def test_get_PoolManager(m_myproxy):
     """test func."""
-    with mock.patch('buku.urllib3'):
+    with mock.patch("buku.urllib3"):
         import buku
+
         buku.myproxy = m_myproxy
         assert buku.get_PoolManager()
 
 
 @pytest.mark.parametrize(
-    'keywords, exp_res',
+    "keywords, exp_res",
     [
-        ('', DELIM),
-        (',', DELIM),
-        ('tag1, tag2', ',t a g 1,t a g 2,'),
-        (['tag1', 'tag2', 'tag3'], ',tag1 tag2 tag3,' ),
-        (['tag1', 'tag2'],  ',tag1 tag2,' ),
-        (['tag1', 'tag2'], ',tag1 tag2,'),
-        (['tag1'], ',tag1,' ),
-        (['tag1,tag2', 'tag3'],  ',tag1,tag2 tag3,' ),
-        (['tag1,tag2', 'tag3'], ',tag1,tag2 tag3,'),
-        (['tag1,tag2', 'tag3,tag4'], ',tag1,tag2 tag3,tag4,' ),
-        (['tag1,tag2'], ',tag1,tag2,' ),
-    ]
+        ("", DELIM),
+        (",", DELIM),
+        ("tag1, tag2", ",t a g 1,t a g 2,"),
+        ([" a tag , ,   ,  ,\t,\n,\r,\x0b,\x0c"], ",a tag,"),  # whitespaces
+        ([",,,,,"], ","),  # empty tags
+        (["\"tag\",'tag',tag"], ",\"tag\",'tag',tag,"),  # escaping quotes
+        (["tag,tag, tag,  tag,tag , tag "], ",tag,"),  # duplicates, excessive spaces
+        (["tag1", "tag2", "tag3"], ",tag1 tag2 tag3,"),
+        (["tag1", "tag2"], ",tag1 tag2,"),
+        (["tag1"], ",tag1,"),
+        (["tag1,tag2", "tag3"], ",tag1,tag2 tag3,"),
+        (["tag1,tag2", "tag3,tag4"], ",tag1,tag2 tag3,tag4,"),
+        (["tag1,tag2"], ",tag1,tag2,"),
+        (["z_tag,a_tag,n_tag"], ",a_tag,n_tag,z_tag,"),  # sorting tags
+        (['  '], ","),
+        ([''], ","),
+        ([','], ","),
+        ([], ","),  # call with empty list
+        ([None], ","),
+        (None, None),  # call with None
+        # combo
+        (
+            [',,z_tag, a tag ,\t,,,  ,n_tag ,n_tag, a_tag, \na tag  ,\r, "a_tag"'],
+            ',"a_tag",a tag,a_tag,n_tag,z_tag,',
+        ),
+    ],
 )
 def test_parse_tags(keywords, exp_res):
     """test func."""
     import buku
-    assert buku.parse_tags(keywords) == exp_res
+
+    if keywords is None:
+        assert buku.parse_tags(keywords) is None
+    else:
+        assert buku.parse_tags(keywords) == exp_res
 
 
 def test_parse_tags_no_args():
     import buku
+
     assert buku.parse_tags() == DELIM
 
 
 @pytest.mark.parametrize(
-    'records, field_filter, exp_res',
+    "records, field_filter, exp_res",
     [
         [
-            [(1, 'http://url1.com', 'title1', ',tag1,'),
-             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            [
+                (1, "http://url1.com", "title1", ",tag1,"),
+                (2, "http://url2.com", "title2", ",tag1,tag2,"),
+            ],
             1,
-            ['1\thttp://url1.com', '2\thttp://url2.com']
+            ["1\thttp://url1.com", "2\thttp://url2.com"],
         ],
         [
-            [(1, 'http://url1.com', 'title1', ',tag1,'),
-             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            [
+                (1, "http://url1.com", "title1", ",tag1,"),
+                (2, "http://url2.com", "title2", ",tag1,tag2,"),
+            ],
             2,
-            ['1\thttp://url1.com\ttag1', '2\thttp://url2.com\ttag1,tag2']
+            ["1\thttp://url1.com\ttag1", "2\thttp://url2.com\ttag1,tag2"],
         ],
         [
-            [(1, 'http://url1.com', 'title1', ',tag1,'),
-             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            [
+                (1, "http://url1.com", "title1", ",tag1,"),
+                (2, "http://url2.com", "title2", ",tag1,tag2,"),
+            ],
             3,
-            ['1\ttitle1', '2\ttitle2']
+            ["1\ttitle1", "2\ttitle2"],
         ],
         [
-            [(1, 'http://url1.com', 'title1', ',tag1,'),
-             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            [
+                (1, "http://url1.com", "title1", ",tag1,"),
+                (2, "http://url2.com", "title2", ",tag1,tag2,"),
+            ],
             4,
-            ['1\thttp://url1.com\ttitle1\ttag1', '2\thttp://url2.com\ttitle2\ttag1,tag2']
+            [
+                "1\thttp://url1.com\ttitle1\ttag1",
+                "2\thttp://url2.com\ttitle2\ttag1,tag2",
+            ],
         ],
         [
-            [(1, 'http://url1.com', 'title1', ',tag1,'),
-             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            [
+                (1, "http://url1.com", "title1", ",tag1,"),
+                (2, "http://url2.com", "title2", ",tag1,tag2,"),
+            ],
             10,
-            ['http://url1.com', 'http://url2.com']
+            ["http://url1.com", "http://url2.com"],
         ],
         [
-            [(1, 'http://url1.com', 'title1', ',tag1,'),
-             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            [
+                (1, "http://url1.com", "title1", ",tag1,"),
+                (2, "http://url2.com", "title2", ",tag1,tag2,"),
+            ],
             20,
-            ['http://url1.com\ttag1', 'http://url2.com\ttag1,tag2']
+            ["http://url1.com\ttag1", "http://url2.com\ttag1,tag2"],
         ],
         [
-            [(1, 'http://url1.com', 'title1', ',tag1,'),
-             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            [
+                (1, "http://url1.com", "title1", ",tag1,"),
+                (2, "http://url2.com", "title2", ",tag1,tag2,"),
+            ],
             30,
-            ['title1', 'title2']
+            ["title1", "title2"],
         ],
         [
-            [(1, 'http://url1.com', 'title1', ',tag1,'),
-             (2, 'http://url2.com', 'title2', ',tag1,tag2,')],
+            [
+                (1, "http://url1.com", "title1", ",tag1,"),
+                (2, "http://url2.com", "title2", ",tag1,tag2,"),
+            ],
             40,
-            ['http://url1.com\ttitle1\ttag1', 'http://url2.com\ttitle2\ttag1,tag2']
-        ]
-    ]
+            ["http://url1.com\ttitle1\ttag1", "http://url2.com\ttitle2\ttag1,tag2"],
+        ],
+    ],
 )
 def test_print_rec_with_filter(records, field_filter, exp_res):
     """test func."""
-    with mock.patch('buku.print', create=True) as m_print:
+    with mock.patch("buku.print", create=True) as m_print:
         import buku
+
         buku.print_rec_with_filter(records, field_filter)
         for res in exp_res:
             m_print.assert_any_call(res)
 
 
 @pytest.mark.parametrize(
-    'taglist, exp_res',
+    "taglist, exp_res",
     [
-        [
-            'tag1, tag2+3',
-            ([',tag1,', ',tag2+3,'], 'OR', None)
-        ],
-        [
-            'tag1 + tag2-3 + tag4',
-            ([',tag1,', ',tag2-3,', ',tag4,'], 'AND', None)
-        ],
-        [
-            'tag1, tag2-3 - tag4, tag5',
-            ([',tag1,', ',tag2-3,'], 'OR', ',tag4,|,tag5,')
-        ]
-    ]
+        ["tag1, tag2+3", ([",tag1,", ",tag2+3,"], "OR", None)],
+        ["tag1 + tag2-3 + tag4", ([",tag1,", ",tag2-3,", ",tag4,"], "AND", None)],
+        ["tag1, tag2-3 - tag4, tag5", ([",tag1,", ",tag2-3,"], "OR", ",tag4,|,tag5,")],
+    ],
 )
 def test_prep_tag_search(taglist, exp_res):
     """test prep_tag_search helper function"""
@@ -478,46 +513,16 @@ def test_piped_input(argv, pipeargs, isatty):
 class TestHelpers(unittest.TestCase):
 
     # @unittest.skip('skipping')
-    def test_parse_tags(self):
-        """test parse tags with unittest.
-
-        Add new test case on `test_parse_tags` instead here.
-        """
-        # call with None
-        parsed = parse_tags(None)
-        self.assertIsNone(parsed)
-        # call with empty list
-        parsed = parse_tags([])
-        self.assertEqual(parsed, ",")
-        # empty tags
-        parsed = parse_tags([",,,,,"])
-        self.assertEqual(parsed, ",")
-        # sorting tags
-        parsed = parse_tags(["z_tag,a_tag,n_tag"])
-        self.assertEqual(parsed, ",a_tag,n_tag,z_tag,")
-        # whitespaces
-        parsed = parse_tags([" a tag , ,   ,  ,\t,\n,\r,\x0b,\x0c"])
-        self.assertEqual(parsed, ",a tag,")
-        # duplicates, excessive spaces
-        parsed = parse_tags(["tag,tag, tag,  tag,tag , tag "])
-        self.assertEqual(parsed, ",tag,")
-        # escaping quotes
-        parsed = parse_tags(["\"tag\",\'tag\',tag"])
-        self.assertEqual(parsed, ",\"tag\",\'tag\',tag,")
-        # combo
-        parsed = parse_tags([",,z_tag, a tag ,\t,,,  ,n_tag ,n_tag, a_tag, \na tag  ,\r, \"a_tag\""])
-        self.assertEqual(parsed, ",\"a_tag\",a tag,a_tag,n_tag,z_tag,")
-
-    # @unittest.skip('skipping')
     def test_is_int(self):
-        self.assertTrue(is_int('0'))
-        self.assertTrue(is_int('1'))
-        self.assertTrue(is_int('-1'))
-        self.assertFalse(is_int(''))
-        self.assertFalse(is_int('one'))
+        self.assertTrue(is_int("0"))
+        self.assertTrue(is_int("1"))
+        self.assertTrue(is_int("-1"))
+        self.assertFalse(is_int(""))
+        self.assertFalse(is_int("one"))
+
 
 # This test fails because we use os._exit() now
-@unittest.skip('skipping')
+@unittest.skip("skipping")
 def test_sigint_handler(capsys):
     try:
         # sending SIGINT to self
