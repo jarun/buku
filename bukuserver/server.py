@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # pylint: disable=wrong-import-order, ungrouped-imports
 """Server module."""
+import collections
 import os
 import sys
 import typing as T
@@ -330,30 +331,19 @@ def search_tag(
     if limit is not None and limit < 1:
         raise ValueError("limit must be positive")
     tags: T.Set[str] = set()
-    dic: T.Dict[str, int] = {}
-    query_args = None
-    base_query = "SELECT DISTINCT tags , COUNT(tags) FROM bookmarks GROUP BY tags"
-    if stag and limit is None:
-        query_args = f"{base_query} WHERE tags LIKE ?", (stag,)
-    elif stag and limit:
-        query_args = f"{base_query} WHERE tags LIKE ? LIMIT ?", (stag, limit)
-    elif not stag and limit:
-        query_args = f"{base_query} LIMIT ?", (limit,)
-    else:
-        raise ValueError(f"unknown condition: search tag: {stag}, limit: {limit}")
-
+    counter = collections.Counter()
+    query_list = ["SELECT DISTINCT tags , COUNT(tags) FROM bookmarks"]
+    if stag:
+        query_list.append("where tags LIKE :search_tag")
+    query_list.append("GROUP BY tags")
     row: T.Tuple[str, int]
-    for row in db.cur.execute(*query_args):
+    for row in db.cur.execute(" ".join(query_list), {"search_tag": f"%{stag}%"}):
         for tag in row[0].strip(buku.DELIM).split(buku.DELIM):
             if not tag:
                 continue
             tags.add(tag)
-            if tag not in dic:
-                dic[tag] = row[1]
-            else:
-                dic[tag] += row[1]
-
-    return list(sorted(tags)), dic
+            counter[tag] += row[1]
+    return list(sorted(tags)), dict(counter.most_common(limit))
 
 
 class ApiTagView(MethodView):
