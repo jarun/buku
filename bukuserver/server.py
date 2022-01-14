@@ -607,7 +607,7 @@ class ApiBookmarkSearchView(MethodView):
         return res
 
 
-class BookmarkletView(MethodView):
+class BookmarkletView(MethodView):  # pylint: disable=too-few-public-methods
     def get(self):
         url = request.args.get('url')
         title = request.args.get('title')
