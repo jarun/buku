@@ -93,7 +93,7 @@ class BookmarkModelView(BaseModelView):
         LOG.debug("context: %s, name: %s", context, name)
         parsed_url = urlparse(model.url)
         netloc, scheme = parsed_url.netloc, parsed_url.scheme
-        is_scheme_valid = scheme in ("http", "https", "ftp")
+        is_scheme_valid = scheme in ("http", "https", "ftp", "magnet")
         tag_text = []
         br_tag = "<br/>"
         get_index_view_url = functools.partial(url_for, "bookmark.index_view")
@@ -102,7 +102,7 @@ class BookmarkModelView(BaseModelView):
                 f'<a class="btn btn-default" href="{get_index_view_url(flt2_tags_contain=tag.strip())}">{tag}</a>'
             )
         tag_text_markup = "".join(tag_text)
-        if not netloc:
+        if not netloc and not is_scheme_valid:
             escaped_url = Markup.escape(model.url)
             return Markup(
                 f"""{model.title}{br_tag}{escaped_url}{br_tag}{tag_text_markup}{model.description}"""
