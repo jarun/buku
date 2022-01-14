@@ -92,8 +92,7 @@ class BookmarkModelView(BaseModelView):
     def _list_entry(self, context: Any, model: Namespace, name: str) -> Markup:
         LOG.debug("context: %s, name: %s", context, name)
         parsed_url = urlparse(model.url)
-        netloc, scheme = parsed_url.netloc, parsed_url.scheme
-        is_scheme_valid = scheme in ("http", "https", "ftp", "magnet")
+        netloc = parsed_url.netloc
         tag_text = []
         br_tag = "<br/>"
         get_index_view_url = functools.partial(url_for, "bookmark.index_view")
@@ -102,7 +101,7 @@ class BookmarkModelView(BaseModelView):
                 f'<a class="btn btn-default" href="{get_index_view_url(flt2_tags_contain=tag.strip())}">{tag}</a>'
             )
         tag_text_markup = "".join(tag_text)
-        if not netloc and not is_scheme_valid:
+        if not netloc and not parsed_url.scheme:
             escaped_url = Markup.escape(model.url)
             return Markup(
                 f"""{model.title}{br_tag}{escaped_url}{br_tag}{tag_text_markup}{model.description}"""
@@ -115,7 +114,7 @@ class BookmarkModelView(BaseModelView):
         title = model.title if model.title else "&lt;EMPTY TITLE&gt;"
         open_in_new_tab = current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False)
         url_for_index_view_netloc = get_index_view_url(flt2_url_netloc_match=netloc)
-        if is_scheme_valid and not open_in_new_tab:
+        if parsed_url.scheme and not open_in_new_tab:
             target = 'target="_blank"' if open_in_new_tab else ""
             res.append(f'<a href="{model.url}"{target}>{title}</a>')
         else:
@@ -123,7 +122,7 @@ class BookmarkModelView(BaseModelView):
         if self.url_render_mode == "netloc":
             res.append(f'(<a href="{url_for_index_view_netloc}">{netloc}</a>)')
         res.append(br_tag)
-        if not is_scheme_valid:
+        if not parsed_url.scheme:
             res.extend((model.url, br_tag))
         elif self.url_render_mode is None or self.url_render_mode == "full":
             res.extend((f'<a href="{model.url}">{model.url}</a>', br_tag))
