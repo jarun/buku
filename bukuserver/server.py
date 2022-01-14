@@ -1,28 +1,31 @@
 #!/usr/bin/env python
 # pylint: disable=wrong-import-order, ungrouped-imports
 """Server module."""
+import os
+import sys
+import typing as T
 from typing import Any, Dict, Union  # NOQA; type: ignore
 from unittest import mock
 from urllib.parse import urlparse
-import os
-import sys
 
-from buku import BukuDb, __version__, network_handler
 from flask.cli import FlaskGroup
 from flask.views import MethodView
 from flask_admin import Admin
-from flask_api import exceptions, FlaskAPI, status
+from flask_api import FlaskAPI, exceptions, status
 from flask_bootstrap import Bootstrap
 from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
+
+import buku
+from buku import BukuDb, __version__, network_handler
+
 try:
     from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
 except ImportError:
     ReverseProxyPrefixFix = None
-from markupsafe import Markup
 import click
 import flask
-from flask import (  # type: ignore
-    __version__ as flask_version,
+from flask import __version__ as flask_version  # type: ignore
+from flask import (
     abort,
     current_app,
     flash,
@@ -32,11 +35,12 @@ from flask import (  # type: ignore
     request,
     url_for,
 )
+from markupsafe import Markup
 
 try:
-    from . import response, forms, views
+    from . import forms, response, views
 except ImportError:
-    from bukuserver import response, forms, views
+    from bukuserver import forms, response, views
 
 
 STATISTIC_DATA = None
@@ -301,19 +305,74 @@ def create_app(db_file=None):
     return app
 
 
+def search_tag(
+    db: BukuDb, stag: T.Optional[str] = None, limit: T.Optional[int] = None
+) -> T.Tuple[T.List[str], T.Dict[str, int]]:
+    """search tag.
+
+    db:
+        buku db instance
+    stag:
+        search tag
+    limit:
+        positive integer limit
+
+    Returns
+    -------
+    tuple
+        list of unique tags sorted alphabetically and dictionary of tag and its usage count
+
+    Raises
+    ------
+    ValueError
+        if limit is not positive
+    """
+    if limit is not None and limit < 1:
+        raise ValueError("limit must be positive")
+    tags = []
+    unique_tags = []
+    dic = {}
+    query_args = None
+    base_query = "SELECT DISTINCT tags , COUNT(tags) FROM bookmarks GROUP BY tags"
+    if stag and limit is None:
+        query_args = f"{base_query} WHERE tags LIKE ?", (stag,)
+    elif stag and limit:
+        query_args = f"{base_query} WHERE tags LIKE ? LIMIT ?", (stag, limit)
+    elif not stag and limit:
+        query_args = f"{base_query} LIMIT ?", (limit,)
+    else:
+        raise ValueError(f"unknown condition: search tag: {stag}, limit: {limit}")
+
+    for row in db.cur.execute(*query_args):
+        tagset = row[0].strip(buku.DELIM).split(buku.DELIM)
+        for tag in tagset:
+            if tag not in tags:
+                dic[tag] = row[1]
+                tags += (tag,)
+            else:
+                dic[tag] += row[1]
+
+    if not tags:
+        return tags, dic
+
+    if tags[0] == "":
+        unique_tags = sorted(tags[1:])
+    else:
+        unique_tags = sorted(tags)
+
+    return unique_tags, dic
+
+
 class ApiTagView(MethodView):
 
-    def get(self, tag: Union[str, None]):
+    def get(self, tag: T.Optional[str]):
         bukudb = get_bukudb()
         if tag is None:
-            tags = bukudb.get_tag_all()
-            result = {'tags': tags[0]}
-            return result
-        tags = bukudb.get_tag_all()
+            return {"tags": search_tag(db=bukudb, limit=5)[0]}
+        tags = search_tag(db=bukudb, stag=tag)
         if tag not in tags[1]:
             raise exceptions.NotFound()
-        res = dict(name=tag, usage_count=tags[1][tag])
-        return res
+        return dict(name=tag, usage_count=tags[1][tag])
 
     def put(self, tag: str):
         bukudb = get_bukudb()
