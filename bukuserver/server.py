@@ -329,9 +329,8 @@ def search_tag(
     """
     if limit is not None and limit < 1:
         raise ValueError("limit must be positive")
-    tags = []
-    unique_tags = []
-    dic = {}
+    tags: T.Set[str] = set()
+    dic: T.Dict[str, int] = {}
     query_args = None
     base_query = "SELECT DISTINCT tags , COUNT(tags) FROM bookmarks GROUP BY tags"
     if stag and limit is None:
@@ -343,24 +342,19 @@ def search_tag(
     else:
         raise ValueError(f"unknown condition: search tag: {stag}, limit: {limit}")
 
+    row: T.Tuple[str, int]
     for row in db.cur.execute(*query_args):
         tagset = row[0].strip(buku.DELIM).split(buku.DELIM)
         for tag in tagset:
+            if not tag:
+                continue
+            tags.add(tag)
             if tag not in tags:
                 dic[tag] = row[1]
-                tags += (tag,)
             else:
                 dic[tag] += row[1]
 
-    if not tags:
-        return tags, dic
-
-    if tags[0] == "":
-        unique_tags = sorted(tags[1:])
-    else:
-        unique_tags = sorted(tags)
-
-    return unique_tags, dic
+    return list(sorted(tags)), dic
 
 
 class ApiTagView(MethodView):
