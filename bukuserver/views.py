@@ -107,7 +107,7 @@ class BookmarkModelView(BaseModelView):
                 f"""{model.title}{br_tag}{escaped_url}{br_tag}{tag_text_markup}{model.description}"""
             )
         res = []
-        if not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False):
+        if not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False) and netloc:
             res.append(
                 f'<img src="http://www.google.com/s2/favicons?domain={netloc}"/>'
             )
