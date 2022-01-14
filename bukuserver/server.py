@@ -344,12 +344,11 @@ def search_tag(
 
     row: T.Tuple[str, int]
     for row in db.cur.execute(*query_args):
-        tagset = row[0].strip(buku.DELIM).split(buku.DELIM)
-        for tag in tagset:
+        for tag in row[0].strip(buku.DELIM).split(buku.DELIM):
             if not tag:
                 continue
             tags.add(tag)
-            if tag not in tags:
+            if tag not in dic:
                 dic[tag] = row[1]
             else:
                 dic[tag] += row[1]
