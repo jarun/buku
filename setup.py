@@ -43,7 +43,7 @@ server_require = [
     "Flask-API>=0.6.9",
     "Flask-Bootstrap>=3.3.7.1",
     "flask-paginate>=0.5.1",
-    "https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.2rc1.zip",
+    "flask-reverse-proxy-fix @ https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.2rc1.zip",
     "Flask-WTF>=0.14.2",
     "Flask>=1.0.2,<2.0",
     "idna>=2.5",
