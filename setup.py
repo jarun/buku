@@ -4,7 +4,7 @@ import os
 import re
 import shutil
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 if os.path.isfile('buku'):
     shutil.copyfile('buku', 'buku.py')
@@ -34,29 +34,29 @@ tests_require = [
 
 
 server_require = [
-    'appdirs>=1.4.3',
-    'arrow>=0.12.1',
-    'beautifulsoup4>=4.5.3',
-    'cffi>=1.9.1',
-    'click>=6.7',
-    'Flask-Admin>=1.5.1',
-    'Flask-API>=0.6.9',
-    'Flask-Bootstrap>=3.3.7.1',
-    'flask-paginate>=0.5.1',
-    'flask-reverse-proxy-fix>=0.2.1',
-    'Flask-WTF>=0.14.2',
-    'Flask>=1.0.2,<2.0',
-    'idna>=2.5',
-    'itsdangerous>=0.24',
-    'Jinja2>=2.10.1',
-    'MarkupSafe>=1.0',
-    'packaging>=16.8',
-    'pyasn1>=0.2.3',
-    'pycparser>=2.17',
-    'requests>=2.21.0',
-    'six>=1.10.0',
-    'urllib3>=1.25.2',
-    'Werkzeug>=0.11.15',
+    "appdirs>=1.4.3",
+    "arrow>=0.12.1",
+    "beautifulsoup4>=4.5.3",
+    "cffi>=1.9.1",
+    "click>=6.7",
+    "Flask-Admin>=1.5.1",
+    "Flask-API>=0.6.9",
+    "Flask-Bootstrap>=3.3.7.1",
+    "flask-paginate>=0.5.1",
+    "https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.2rc1.zip",
+    "Flask-WTF>=0.14.2",
+    "Flask>=1.0.2,<2.0",
+    "idna>=2.5",
+    "itsdangerous>=0.24",
+    "Jinja2>=2.10.1",
+    "MarkupSafe>=1.0",
+    "packaging>=16.8",
+    "pyasn1>=0.2.3",
+    "pycparser>=2.17",
+    "requests>=2.21.0",
+    "six>=1.10.0",
+    "urllib3>=1.25.2",
+    "Werkzeug>=0.11.15",
 ]
 
 setup(
