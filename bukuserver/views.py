@@ -113,20 +113,22 @@ class BookmarkModelView(BaseModelView):
             )
         title = model.title if model.title else "&lt;EMPTY TITLE&gt;"
         open_in_new_tab = current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False)
-        url_for_index_view_netloc = get_index_view_url(flt2_url_netloc_match=netloc)
+        url_for_index_view_netloc = None
+        if netloc:
+            url_for_index_view_netloc = get_index_view_url(flt2_url_netloc_match=netloc)
         if parsed_url.scheme and not open_in_new_tab:
             target = 'target="_blank"' if open_in_new_tab else ""
             res.append(f'<a href="{model.url}"{target}>{title}</a>')
         else:
             res.append(title)
-        if self.url_render_mode == "netloc":
+        if self.url_render_mode == "netloc" and url_for_index_view_netloc:
             res.append(f'(<a href="{url_for_index_view_netloc}">{netloc}</a>)')
         res.append(br_tag)
         if not parsed_url.scheme:
             res.extend((model.url, br_tag))
         elif self.url_render_mode is None or self.url_render_mode == "full":
             res.extend((f'<a href="{model.url}">{model.url}</a>', br_tag))
-        if self.url_render_mode != "netloc":
+        if self.url_render_mode != "netloc" and url_for_index_view_netloc:
             res.append(
                 f'<a class="btn btn-default" href="{url_for_index_view_netloc}">netloc:{netloc}</a>'
             )
