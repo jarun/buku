@@ -183,12 +183,15 @@ class BookmarkModelView(BaseModelView):
             form.populate_obj(model)
             vars(model).pop("id")
             self._on_model_change(form, model, True)
-            self.model.bukudb.add_rec(
-                url=model.url,
-                title_in=model.title,
-                tags_in=buku.parse_tags([model.tags]),
-                desc=model.description,
-            )
+            if not model.url.strip():
+                raise ValueError(f"url invalid: {model.url}")
+            kwargs = {"url": model.url}
+            if model.tags.strip():
+                kwargs["tags_in"] = buku.parse_tags([model.tags])
+            for key, item in (("title_in", model.title), ("desc", model.description)):
+                if item.strip():
+                    kwargs[key] = item
+            self.model.bukudb.add_rec(**kwargs)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to create record."
