@@ -2555,13 +2555,23 @@ class BukuDb:
                 LOGERR(e)
                 return False
 
+            add_parent_folder_as_tag = False
+            use_nested_folder_structure = False
             if not tacit:
-                resp = input('Add parent folder names as tags? (y/n): ')
+                resp = input("""Add bookmark's parent folder as tag?
+y: add single, direct parent folder
+a: add all parent folders of the bookmark
+n: don't add parent folder as tag
+(y/a/[n]): """)
             else:
                 resp = 'y'
 
-            add_parent_folder_as_tag = (resp == 'y')
-            items = import_html(soup, add_parent_folder_as_tag, newtag)
+            if resp == 'y' or resp == 'a':
+                add_parent_folder_as_tag = True
+                if resp == 'a':
+                    use_nested_folder_structure = True
+
+            items = import_html(soup, add_parent_folder_as_tag, newtag, use_nested_folder_structure)
             infp.close()
 
         for item in items:
@@ -3315,7 +3325,7 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
     yield from iterate_children(None, main_entry_list)
 
 
-def import_html(html_soup, add_parent_folder_as_tag, newtag):
+def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag: str, use_nested_folder_structure: bool = False):
     """Parse bookmark HTML.
 
     Parameters
@@ -3326,6 +3336,9 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
         True if bookmark parent folders should be added as tags else False.
     newtag : str
         A new unique tag to add to imported bookmarks.
+    use_nested_folder_structure: bool
+        True if all bookmark parent folder should be added, not just direct parent else False
+        add_parent_folder_as_tag must be True for this flag to have an effect
 
     Returns
     -------
@@ -3350,19 +3363,36 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
         if comment_tag:
             desc = comment_tag.find(text=True, recursive=False)
 
-        # add parent folder as tag
         if add_parent_folder_as_tag:
-            # could be its folder or not
-            possible_folder = tag.find_previous('h3')
-            # get list of tags within that folder
-            tag_list = tag.parent.parent.find_parent('dl')
+            # add parent folder as tag
+            if use_nested_folder_structure:
+                # New method that would generalize for else case too
+                # Stucture of folders
+                # dt
+                #   h3 (folder name)
+                #   dl
+                #       dt
+                #           a (could be h3, and continue recursively)
+                parents = tag.find_parents('dl')
+                for parent in parents:
+                    header = parent.find_previous_sibling('h3')
+                    if header:
+                        if tag.has_attr('tags'):
+                            tag['tags'] += (DELIM + header.text)
+                        else:
+                            tag['tags'] = header.text
+            else:
+                # could be its folder or not
+                possible_folder = tag.find_previous('h3')
+                # get list of tags within that folder
+                tag_list = tag.parent.parent.find_parent('dl')
 
-            if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
-                # then it's the folder of this bookmark
-                if tag.has_attr('tags'):
-                    tag['tags'] += (DELIM + possible_folder.text)
-                else:
-                    tag['tags'] = possible_folder.text
+                if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
+                    # then it's the folder of this bookmark
+                    if tag.has_attr('tags'):
+                        tag['tags'] += (DELIM + possible_folder.text)
+                    else:
+                        tag['tags'] = possible_folder.text
 
         # add unique tag if opted
         if newtag:

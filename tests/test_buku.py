@@ -17,6 +17,15 @@ only_python_3_5 = pytest.mark.skipif(
     sys.version_info < (3, 5), reason="requires Python 3.5 or later")
 
 
+def check_import_html_results_contains(result, expected_result):
+    count = 0
+    for r in result:
+        for idx, exp_r in enumerate(expected_result):
+            if r == exp_r:
+                count += idx
+    n = len(expected_result) - 1
+    return count == n * (n+1)/2
+
 @pytest.mark.parametrize(
     'url, exp_res',
     [
@@ -694,6 +703,51 @@ def test_import_html_and_add_parent():
     html_soup = BeautifulSoup(html_text, 'html.parser')
     res = list(import_html(html_soup, True, None))
     assert res[0] == exp_res
+
+
+@pytest.mark.parametrize('add_all_parent, exp_res',[
+    (True,
+     [  ('http://example11.com', None, ',folder11,', None, 0, True, False),
+        ('http://example12.com', None, ',folder11,folder12,', None, 0, True, False),
+        ('http://example13.com', None, ',folder11,folder12,folder13,tag3,tag4,', None, 0, True, False),
+        ('http://example121.com', None, ',folder11,folder12,folder121,', None, 0, True, False)]
+    ),
+    (False,
+     [  ('http://example11.com', None, ',folder11,', None, 0, True, False),
+        ('http://example12.com', None, ',folder12,', None, 0, True, False),
+        ('http://example13.com', None, ',folder13,tag3,tag4,', None, 0, True, False)]
+    )
+])
+def test_import_html_and_add_all_parent(add_all_parent, exp_res):
+    from buku import import_html
+    from bs4 import BeautifulSoup
+    html_text = """
+<DL><p>
+<DT><H3>Folder01</H3><DL><p>
+    <DT><A HREF="http://example01.com"></A></DT>
+    <DT><H3>Folder02</H3><DL><p>
+        <DT><A HREF="http://example02.com"></A></DT>
+        <DT><H3>Folder03</H3><DL><p>
+            <DT><A HREF="http://example03.com" TAGS="tag1,tag2"></A></DT>
+        </DL><p></DT>
+    </DL><p></DT>
+</DL><p></DT>
+<DT><H3>Folder11</H3><DL><p>
+    <DT><A HREF="http://example11.com"></A></DT>
+    <DT><H3>Folder12</H3><DL><p>
+        <DT><H3>Folder121</H3><DL><p>
+            <DT><A HREF="http://example121.com"></A></DT>
+        </DL><p></DT>
+        <DT><A HREF="http://example12.com"></A></DT>
+        <DT><H3>Folder13</H3><DL><p>
+            <DT><A HREF="http://example13.com" TAGS="tag3,tag4"></A></DT>
+        </DL><p></DT>
+    </DL><p></DT>
+</DL><p></DT></DL>
+"""
+    html_soup = BeautifulSoup(html_text, 'html.parser')
+    res = list(import_html(html_soup, True, None, add_all_parent))
+    assert check_import_html_results_contains(res, exp_res)
 
 
 def test_import_html_and_new_tag():
