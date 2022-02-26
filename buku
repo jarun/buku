@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with buku.  If not, see <http://www.gnu.org/licenses/>.
 
-from enum import Enum
-from itertools import chain
 import argparse
 import calendar
 import cgi
@@ -36,19 +34,23 @@ import signal
 import sqlite3
 import struct
 import subprocess
-from subprocess import Popen, PIPE, DEVNULL
 import sys
 import tempfile
 import textwrap
 import threading
 import time
-from typing import Any, Dict, Iterable, List, Optional, Tuple
 import unicodedata
 import webbrowser
+from enum import Enum
+from itertools import chain
+from subprocess import DEVNULL, PIPE, Popen
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
 import urllib3
-from urllib3.exceptions import LocationParseError
-from urllib3.util import parse_url, make_headers, Retry
 from bs4 import BeautifulSoup
+from urllib3.exceptions import LocationParseError
+from urllib3.util import Retry, make_headers, parse_url
+
 # note catch ModuleNotFoundError instead Exception
 # when python3.5 not supported
 try:
@@ -168,10 +170,11 @@ class BukuCrypt:
         """
 
         try:
-            from cryptography.hazmat.backends import default_backend
-            from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
+
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except ImportError:
             LOGERR('cryptography lib(s) missing')
             sys.exit(1)
@@ -270,10 +273,11 @@ class BukuCrypt:
         """
 
         try:
-            from cryptography.hazmat.backends import default_backend
-            from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
+
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except ImportError:
             LOGERR('cryptography lib(s) missing')
             sys.exit(1)
@@ -2566,7 +2570,7 @@ n: don't add parent folder as tag
             else:
                 resp = 'y'
 
-            if resp == 'y' or resp == 'a':
+            if resp in ('y', 'a'):
                 add_parent_folder_as_tag = True
                 if resp == 'a':
                     use_nested_folder_structure = True
