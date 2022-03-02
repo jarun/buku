@@ -84,10 +84,15 @@ setup(
         'console_scripts': ['buku=buku:main', 'bukuserver=bukuserver.server:cli']
     },
     extras_require={
-        'ca-certificates': ['certifi'],
-        'tests': tests_require + server_require,
-        'server': server_require,
-        'packaging': ['twine>=1.11.0']
+        "ca-certificates": ["certifi"],
+        "tests": tests_require + server_require,
+        "server": server_require,
+        "docs": [
+            "myst-parser>=0.17.0",
+            "sphinx-rtd-theme>=1.0.0",
+            "sphinx-autobuild>=2021.3.14",
+        ],
+        "packaging": ["twine>=1.11.0"],
     },
     test_suite='tests',
     tests_require=tests_require,
