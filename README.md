@@ -68,7 +68,7 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 - Powerful search options (regex, substring...)
 - Continuous search with on the fly mode switch
 - Portable, merge-able database to sync between systems
-- Import/export bookmarks from/to HTML, Markdown or Orgfile
+- Import/export bookmarks from/to HTML, XBEL, Markdown or Orgfile
 - Smart tag management using redirection (>>, >, <<)
 - Multi-threaded full DB refresh, manual encryption support
 - Shell completion scripts, man page with examples
