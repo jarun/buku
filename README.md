@@ -213,12 +213,12 @@ ENCRYPTION OPTIONS:
 POWER TOYS:
       --ai                 auto-import from Firefox/Chrome/Chromium
       -e, --export file    export bookmarks to Firefox format HTML
+                           export XBEL, if file ends with '.xbel'
                            export Markdown, if file ends with '.md'
                            format: [title](url) <!-- TAGS -->
                            export Orgfile, if file ends with '.org'
                            format: *[[url][title]] :tags:
                            export buku DB, if file ends with '.db'
-                           export XBEL, if file ends with '.xbel'
                            combines with search results, if opted
       -i, --import file    import bookmarks based on file extension
                            supports 'html', 'xbel', 'json', 'md', 'org', 'db'
