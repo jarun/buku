@@ -2194,7 +2194,7 @@ class BukuDb:
         If destination file name ends with '.org' bookmarks are
         exported to a org file.
         If destination file name ends with '.xbel' bookmarks are
-        exported to a org file.
+        exported to a XBEL file.
         Otherwise, bookmarks are exported to a Firefox bookmarks.html
         formatted file.
 
