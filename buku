@@ -2193,6 +2193,8 @@ class BukuDb:
         exported to a Markdown file.
         If destination file name ends with '.org' bookmarks are
         exported to a org file.
+        If destination file name ends with '.xbel' bookmarks are
+        exported to a XBEL file.
         Otherwise, bookmarks are exported to a Firefox bookmarks.html
         formatted file.
 
@@ -2245,6 +2247,10 @@ class BukuDb:
                 outfp.write(res['data'])
             elif filepath.endswith('.org'):
                 res = convert_bookmark_set(resultset, 'org')
+                count += res['count']
+                outfp.write(res['data'])
+            elif filepath.endswith('.xbel'):
+                res = convert_bookmark_set(resultset, 'xbel')
                 count += res['count']
                 outfp.write(res['data'])
             else:
@@ -2497,6 +2503,7 @@ class BukuDb:
         """Import bookmarks from a HTML or a Markdown file.
 
         Supports Firefox, Google Chrome, and IE exported HTML bookmarks.
+        Supports XBEL standard bookmarks.
         Supports Markdown files with extension '.md, .org'.
         Supports importing bookmarks from another buku database file.
 
@@ -2548,6 +2555,33 @@ class BukuDb:
             except Exception as e:
                 LOGERR(e)
                 return False
+        elif filepath.endswith('xbel'):
+            try:
+                with open(filepath, mode='r', encoding='utf-8') as infp:
+                    soup = BeautifulSoup(infp, 'html.parser')
+            except ImportError:
+                LOGERR('Beautiful Soup not found')
+                return False
+            except Exception as e:
+                LOGERR(e)
+                return False
+
+            add_parent_folder_as_tag = False
+            use_nested_folder_structure = False
+            if not tacit:
+                resp = input("""Add bookmark's parent folder as tag?
+a: add all parent folders of the bookmark
+n: don't add parent folder as tag
+(a/[n]): """)
+            else:
+                resp = 'y'
+
+            if resp == 'a':
+                add_parent_folder_as_tag = True
+                use_nested_folder_structure = True
+
+            items = import_xbel(soup, add_parent_folder_as_tag, newtag, use_nested_folder_structure)
+            infp.close()
         else:
             try:
                 with open(filepath, mode='r', encoding='utf-8') as infp:
@@ -2945,13 +2979,14 @@ def convert_bookmark_set(
     Parameters
     ----------
         bookmark_set: bookmark set
-        export type: one of supported type: markdown, html, org
+        export type: one of supported type: markdown, html, org, XBEL
 
     Returns
     -------
         converted data and count of converted bookmark set
     """
-    assert export_type in ['markdown', 'html', 'org']
+    import html
+    assert export_type in ['markdown', 'html', 'org', 'xbel']
     #  compatibility
     resultset = bookmark_set
 
@@ -2978,6 +3013,26 @@ def convert_bookmark_set(
                 out += '* [[{}][{}]]'.format(row[1], row[2])
             out += convert_tags_to_org_mode_tags(row[3])
             count += 1
+    elif export_type == 'xbel':
+        timestamp = str(int(time.time()))
+        out = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<!DOCTYPE xbel PUBLIC\
+"+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML"\
+"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">\n'
+            '<xbel version="1.0">\n'
+            '    <title ADD_DATE="{0}" LAST_MODIFIED="{0}" '
+            'PERSONAL_TOOLBAR_FOLDER="true">buku bookmarks</title>\n'.format(timestamp))
+
+        for row in resultset:
+            out += '<bookmark href="%s"' % (html.escape(row[1])).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
+            if row[3] != DELIM:
+                out += ' TAGS="' + html.escape(row[3][1:-1]).encode('ascii', 'xmlcharrefreplace').decode('utf-8') + '"'
+            out += '>\n<title>{}</title>\n</bookmark>\n'\
+                .format(html.escape(row[2]).encode('ascii', 'xmlcharrefreplace').decode('utf-8') if row[2] else '')
+            count += 1
+
+        out += '</xbel>'
     elif export_type == 'html':
         timestamp = str(int(time.time()))
         out = (
@@ -3328,6 +3383,89 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
 
     yield from iterate_children(None, main_entry_list)
 
+def import_xbel(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag: str, use_nested_folder_structure: bool = False):
+    """Parse bookmark XBEL.
+
+    Parameters
+    ----------
+    html_soup : BeautifulSoup object
+        BeautifulSoup representation of bookmark HTML.
+    add_parent_folder_as_tag : bool
+        True if bookmark parent folders should be added as tags else False.
+    newtag : str
+        A new unique tag to add to imported bookmarks.
+    use_nested_folder_structure: bool
+        True if all bookmark parent folder should be added, not just direct parent else False
+        add_parent_folder_as_tag must be True for this flag to have an effect
+
+    Returns
+    -------
+    tuple
+        Parsed result.
+    """
+
+    # compatibility
+    soup = html_soup
+
+    for tag in soup.findAll('bookmark'):
+        # Extract comment from <desc> tag
+        try:
+            if is_nongeneric_url(tag['href']):
+                continue
+        except KeyError:
+            continue
+
+        title_tag = tag.title.string
+
+        desc = None
+        comment_tag = tag.findNextSibling('desc')
+
+        if comment_tag:
+            desc = comment_tag.find(text=True, recursive=False)
+
+        if add_parent_folder_as_tag:
+            # add parent folder as tag
+            if use_nested_folder_structure:
+                # New method that would generalize for else case too
+                # Stucture of folders
+                # folder
+                #   title (folder name)
+                #   folder
+                #       title
+                #           bookmark (could be h3, and continue recursively)
+                parents = tag.find_parents('folder')
+                for parent in parents:
+                    header = parent.find_previous_sibling('title')
+                    if header:
+                        if tag.has_attr('tags'):
+                            tag['tags'] += (DELIM + header.text)
+                        else:
+                            tag['tags'] = header.text
+            else:
+                # could be its folder or not
+                possible_folder = tag.find_previous('title')
+                # get list of tags within that folder
+                tag_list = tag.parent.parent.find_parent('folder')
+
+                if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
+                    # then it's the folder of this bookmark
+                    if tag.has_attr('tags'):
+                        tag['tags'] += (DELIM + possible_folder.text)
+                    else:
+                        tag['tags'] = possible_folder.text
+
+        # add unique tag if opted
+        if newtag:
+            if tag.has_attr('tags'):
+                tag['tags'] += (DELIM + newtag)
+            else:
+                tag['tags'] = newtag
+
+        yield (
+            tag['href'], title_tag,
+            parse_tags([tag['tags']]) if tag.has_attr('tags') else None,
+            desc if not desc else desc.strip(), 0, True, False
+        )
 
 def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag: str, use_nested_folder_structure: bool = False):
     """Parse bookmark HTML.
@@ -5264,6 +5402,7 @@ POSITIONAL ARGUMENTS:
         title='POWER TOYS',
         description='''    --ai                 auto-import from Firefox/Chrome/Chromium
     -e, --export file    export bookmarks to Firefox format HTML
+                         export XBEL, if file ends with '.xbel'
                          export Markdown, if file ends with '.md'
                          format: [title](url) <!-- TAGS -->
                          export Orgfile, if file ends with '.org'
@@ -5271,7 +5410,7 @@ POSITIONAL ARGUMENTS:
                          export buku DB, if file ends with '.db'
                          combines with search results, if opted
     -i, --import file    import bookmarks based on file extension
-                         supports 'html', 'json', 'md', 'org', 'db'
+                         supports 'html', 'xbel', 'json', 'md', 'org', 'db'
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
                          -n shows the last n results (like tail)
