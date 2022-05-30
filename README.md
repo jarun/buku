@@ -213,6 +213,7 @@ ENCRYPTION OPTIONS:
 POWER TOYS:
       --ai                 auto-import from Firefox/Chrome/Chromium
       -e, --export file    export bookmarks to Firefox format HTML
+                           export XBEL, if file ends with '.xbel'
                            export Markdown, if file ends with '.md'
                            format: [title](url) <!-- TAGS -->
                            export Orgfile, if file ends with '.org'
@@ -220,7 +221,7 @@ POWER TOYS:
                            export buku DB, if file ends with '.db'
                            combines with search results, if opted
       -i, --import file    import bookmarks based on file extension
-                           supports 'html', 'json', 'md', 'org', 'db'
+                           supports 'html', 'xbel', 'json', 'md', 'org', 'db'
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
                            -n shows the last n results (like tail)
