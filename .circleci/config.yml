@@ -15,6 +15,7 @@ test-template: &test-template
     - run:
         command: |
           apt update && apt install -y --no-install-recommends git
+          pip install --upgrade pip
           pip install --upgrade setuptools flake8 pylint
     - checkout
     - run:

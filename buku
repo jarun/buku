@@ -1921,7 +1921,7 @@ class BukuDb:
 
         print('similar tags:\n')
         for count, tag in enumerate(unique_tags):
-            print('%d. %s' % (count + 1, unique_tags[count]))
+            print('%d. %s' % (count + 1, tag))
 
         selected_tags = input('\nselect: ').split()
         print()
