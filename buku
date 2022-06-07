@@ -3017,7 +3017,9 @@ def convert_bookmark_set(
         timestamp = str(int(time.time()))
         out = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
-            '<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" "http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">\n'
+            '<!DOCTYPE xbel PUBLIC\
+"+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML"\
+"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">\n'
             '<xbel version="1.0">\n'
             '    <title ADD_DATE="{0}" LAST_MODIFIED="{0}" '
             'PERSONAL_TOOLBAR_FOLDER="true">buku bookmarks</title>\n'.format(timestamp))
