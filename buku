@@ -2,7 +2,7 @@
 #
 # Bookmark management utility
 #
-# Copyright © 2015-2021 Arun Prakash Jana <engineerarun@gmail.com>
+# Copyright © 2015-2022 Arun Prakash Jana <engineerarun@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with buku.  If not, see <http://www.gnu.org/licenses/>.
 
-from enum import Enum
-from itertools import chain
 import argparse
 import calendar
 import cgi
@@ -36,20 +34,23 @@ import signal
 import sqlite3
 import struct
 import subprocess
-from subprocess import Popen, PIPE, DEVNULL
 import sys
 import tempfile
 import textwrap
 import threading
 import time
-from typing import Any, Dict, Iterable, List, Optional, Tuple
 import unicodedata
 import webbrowser
-import certifi
+from enum import Enum
+from itertools import chain
+from subprocess import DEVNULL, PIPE, Popen
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
 import urllib3
-from urllib3.exceptions import LocationParseError
-from urllib3.util import parse_url, make_headers, Retry
 from bs4 import BeautifulSoup
+from urllib3.exceptions import LocationParseError
+from urllib3.util import Retry, make_headers, parse_url
+
 # note catch ModuleNotFoundError instead Exception
 # when python3.5 not supported
 try:
@@ -104,6 +105,15 @@ IGNORE_FF_BOOKMARK_FOLDERS = frozenset(["placesRoot", "bookmarksMenuFolder"])
 LOGGER = logging.getLogger()
 LOGDBG = LOGGER.debug
 LOGERR = LOGGER.error
+
+# Define the default path to ca-certificates
+# In Linux distros with openssl, it is /etc/ssl/certs/ca-certificates.crt
+# Fall back to use `certifi` otherwise
+if sys.platform.startswith('linux') and os.path.isfile('/etc/ssl/certs/ca-certificates.crt'):
+    CA_CERTS = '/etc/ssl/certs/ca-certificates.crt'
+else:
+    import certifi
+    CA_CERTS = certifi.where()
 
 
 class BukuCrypt:
@@ -160,10 +170,11 @@ class BukuCrypt:
         """
 
         try:
-            from cryptography.hazmat.backends import default_backend
-            from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
+
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except ImportError:
             LOGERR('cryptography lib(s) missing')
             sys.exit(1)
@@ -262,10 +273,11 @@ class BukuCrypt:
         """
 
         try:
-            from cryptography.hazmat.backends import default_backend
-            from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
+
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except ImportError:
             LOGERR('cryptography lib(s) missing')
             sys.exit(1)
@@ -1816,7 +1828,7 @@ class BukuDb:
             elif self.json:
                 write_string_to_file(format_json(results, True, self.field_filter), self.json)
             else:
-                print(format_json(results, True, self.field_filter))
+                print_json_safe(results, True, self.field_filter)
 
             return True
         else:  # Show all entries
@@ -1832,7 +1844,7 @@ class BukuDb:
         elif self.json:
             write_string_to_file(format_json(resultset, field_filter=self.field_filter), self.json)
         else:
-            print(format_json(resultset, field_filter=self.field_filter))
+            print_json_safe(resultset, field_filter=self.field_filter)
 
         return True
 
@@ -1909,7 +1921,7 @@ class BukuDb:
 
         print('similar tags:\n')
         for count, tag in enumerate(unique_tags):
-            print('%d. %s' % (count + 1, unique_tags[count]))
+            print('%d. %s' % (count + 1, tag))
 
         selected_tags = input('\nselect: ').split()
         print()
@@ -2506,7 +2518,7 @@ class BukuDb:
                 self.load_edge_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
-            print('Could not import bookmarks from google-chrome')
+            print('Could not import bookmarks from microsoft-edge')
 
         try:
             if self.chatty:
@@ -2591,13 +2603,23 @@ class BukuDb:
                 LOGERR(e)
                 return False
 
+            add_parent_folder_as_tag = False
+            use_nested_folder_structure = False
             if not tacit:
-                resp = input('Add parent folder names as tags? (y/n): ')
+                resp = input("""Add bookmark's parent folder as tag?
+y: add single, direct parent folder
+a: add all parent folders of the bookmark
+n: don't add parent folder as tag
+(y/a/[n]): """)
             else:
                 resp = 'y'
 
-            add_parent_folder_as_tag = (resp == 'y')
-            items = import_html(soup, add_parent_folder_as_tag, newtag)
+            if resp in ('y', 'a'):
+                add_parent_folder_as_tag = True
+                if resp == 'a':
+                    use_nested_folder_structure = True
+
+            items = import_html(soup, add_parent_folder_as_tag, newtag, use_nested_folder_structure)
             infp.close()
 
         for item in items:
@@ -2700,7 +2722,7 @@ class BukuDb:
         if MYPROXY is None:
             gen_headers()
 
-        ca_certs = os.getenv('BUKU_CA_CERTS', default=certifi.where())
+        ca_certs = os.getenv('BUKU_CA_CERTS', default=CA_CERTS)
         if MYPROXY:
             manager = urllib3.ProxyManager(
                 MYPROXY,
@@ -2860,7 +2882,7 @@ SYMBOLS:
       #                    tags
 
 Version %s
-Copyright © 2015-2021 %s
+Copyright © 2015-2022 %s
 License: %s
 Webpage: https://github.com/jarun/buku
 ''' % (__version__, __author__, __license__))
@@ -3126,7 +3148,22 @@ def import_md(filepath: str, newtag: Optional[str]):
                     if is_nongeneric_url(url):
                         continue
 
-                    yield (url, title, delim_wrap(newtag), None, 0, True)
+                    # Find tag start delimiter
+                    tag_start_delim = line.find('<!-- TAGS: ')
+                    # Reverse find tag end delimiter
+                    tag_end_delim = line.rfind(' -->')
+
+                    if tag_start_delim != -1 and tag_end_delim > 0:
+                        if newtag is not None:
+                            tags = newtag + ',' + line[tag_start_delim + 11:tag_end_delim]
+                        else:
+                            tags = line[tag_start_delim + 11:tag_end_delim]
+                    else:
+                        tags = newtag
+
+                    parse_tags([tags])
+
+                    yield (url, title, delim_wrap(tags), None, 0, True, False)
 
 def import_org(filepath: str, newtag: Optional[str]):
     """Parse bookmark org file.
@@ -3201,7 +3238,7 @@ def import_org(filepath: str, newtag: Optional[str]):
                         if newtag.lower() not in tags:
                             tags_string = (newtag + DELIM) + tags_string
 
-                    yield (url, title, delim_wrap(tags_string), None, 0, True)
+                    yield (url, title, delim_wrap(tags_string), None, 0, True, False)
 
 def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None):
     """Open Firefox JSON export file and import data.
@@ -3336,7 +3373,7 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
     yield from iterate_children(None, main_entry_list)
 
 
-def import_html(html_soup, add_parent_folder_as_tag, newtag):
+def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag: str, use_nested_folder_structure: bool = False):
     """Parse bookmark HTML.
 
     Parameters
@@ -3347,6 +3384,9 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
         True if bookmark parent folders should be added as tags else False.
     newtag : str
         A new unique tag to add to imported bookmarks.
+    use_nested_folder_structure: bool
+        True if all bookmark parent folder should be added, not just direct parent else False
+        add_parent_folder_as_tag must be True for this flag to have an effect
 
     Returns
     -------
@@ -3371,19 +3411,36 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
         if comment_tag:
             desc = comment_tag.find(text=True, recursive=False)
 
-        # add parent folder as tag
         if add_parent_folder_as_tag:
-            # could be its folder or not
-            possible_folder = tag.find_previous('h3')
-            # get list of tags within that folder
-            tag_list = tag.parent.parent.find_parent('dl')
+            # add parent folder as tag
+            if use_nested_folder_structure:
+                # New method that would generalize for else case too
+                # Stucture of folders
+                # dt
+                #   h3 (folder name)
+                #   dl
+                #       dt
+                #           a (could be h3, and continue recursively)
+                parents = tag.find_parents('dl')
+                for parent in parents:
+                    header = parent.find_previous_sibling('h3')
+                    if header:
+                        if tag.has_attr('tags'):
+                            tag['tags'] += (DELIM + header.text)
+                        else:
+                            tag['tags'] = header.text
+            else:
+                # could be its folder or not
+                possible_folder = tag.find_previous('h3')
+                # get list of tags within that folder
+                tag_list = tag.parent.parent.find_parent('dl')
 
-            if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
-                # then it's the folder of this bookmark
-                if tag.has_attr('tags'):
-                    tag['tags'] += (DELIM + possible_folder.text)
-                else:
-                    tag['tags'] = possible_folder.text
+                if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
+                    # then it's the folder of this bookmark
+                    if tag.has_attr('tags'):
+                        tag['tags'] += (DELIM + possible_folder.text)
+                    else:
+                        tag['tags'] = possible_folder.text
 
         # add unique tag if opted
         if newtag:
@@ -3672,7 +3729,7 @@ def get_PoolManager():
     ProxyManager or PoolManager
         ProxyManager if https_proxy is defined, PoolManager otherwise.
     """
-    ca_certs = os.getenv('BUKU_CA_CERTS', default=certifi.where())
+    ca_certs = os.getenv('BUKU_CA_CERTS', default=CA_CERTS)
     if MYPROXY:
         return urllib3.ProxyManager(MYPROXY, num_pools=1, headers=MYHEADERS, timeout=15,
                                     cert_reqs='CERT_REQUIRED', ca_certs=ca_certs)
@@ -4390,6 +4447,7 @@ def print_single_rec(row: BookmarkVar, idx: Optional[int]=0, columns: Optional[i
         sys.stdout = os.fdopen(1)
         sys.exit(1)
 
+
 def write_string_to_file(content: str, filepath: str):
     """Writes given content to file
 
@@ -4408,6 +4466,7 @@ def write_string_to_file(content: str, filepath: str):
     except Exception as e:
         LOGERR(e)
 
+
 def format_json(resultset, single_record=False, field_filter=0):
     """Return results in JSON format.
 
@@ -4417,6 +4476,8 @@ def format_json(resultset, single_record=False, field_filter=0):
         Search results from DB query.
     single_record : bool, optional
         If True, indicates only one record. Default is False.
+    field_filter : int, optional
+        Indicates format for displaying bookmarks. Default is 0.
 
     Returns
     -------
@@ -4467,6 +4528,36 @@ def format_json(resultset, single_record=False, field_filter=0):
             marks.append(record)
 
     return json.dumps(marks, sort_keys=True, indent=4)
+
+
+def print_json_safe(resultset, single_record=False, field_filter=0):
+    """Prints json results and handles IOError
+
+    Parameters
+    ----------
+    resultset : list
+        Search results from DB query.
+    single_record : bool, optional
+        If True, indicates only one record. Default is False.
+    field_filter : int, optional
+        Indicates format for displaying bookmarks. Default is 0.
+
+    Returns
+    -------
+    None
+    """
+
+    try:
+        print(format_json(resultset, single_record, field_filter))
+    except IOError:
+        try:
+            sys.stdout.close()
+        except IOError:
+            pass
+        try:
+            sys.stderr.close()
+        except IOError:
+            pass
 
 
 def is_int(string):
@@ -4567,7 +4658,7 @@ def check_upstream_release():
     if MYPROXY is None:
         gen_headers()
 
-    ca_certs = os.getenv('BUKU_CA_CERTS', default=certifi.where())
+    ca_certs = os.getenv('BUKU_CA_CERTS', default=CA_CERTS)
     if MYPROXY:
         manager = urllib3.ProxyManager(
             MYPROXY,
@@ -5126,9 +5217,10 @@ POSITIONAL ARGUMENTS:
                          - update results when used with search
                          - otherwise refresh all titles and desc
     -w, --write [editor|index]
-                         open editor to edit a fresh bookmark
+                         edit and add a new bookmark in editor
+                         else, edit bookmark at index in EDITOR
                          edit last bookmark, if index=-1
-                         to specify index, EDITOR must be set
+                         if no args, edit new bookmark in EDITOR
     -d, --delete [...]   remove bookmarks from DB
                          accepts indices or a single range
                          if no arguments:
@@ -5603,7 +5695,7 @@ POSITIONAL ARGUMENTS:
             write_string_to_file(format_json(search_results, field_filter=args.format), args.json)
         else:
             # Printing in JSON format is non-interactive
-            print(format_json(search_results, field_filter=args.format))
+            print_json_safe(search_results, field_filter=args.format)
 
         # Export the results, if opted
         if args.export is not None:
