@@ -60,7 +60,7 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 ### Features
 
 - Store bookmarks with auto-fetched title, tags and description
-- Auto-import from Firefox, Google Chrome and Chromium
+- Auto-import from Firefox, Google Chrome, Chromium and Edge
 - Open bookmarks and search results in browser
 - Shorten, expand URLs, browse cached page from Wayback Machine
 - Text editor integration
@@ -211,7 +211,7 @@ ENCRYPTION OPTIONS:
       -k, --unlock [N]     decrypt DB in N (default 8) # iterations
 
 POWER TOYS:
-      --ai                 auto-import from Firefox/Chrome/Chromium
+      --ai                 auto-import (Firefox/Chrome/Chromium/Edge)
       -e, --export file    export bookmarks to Firefox format HTML
                            export XBEL, if file ends with '.xbel'
                            export Markdown, if file ends with '.md'
