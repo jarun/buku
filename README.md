@@ -356,16 +356,18 @@ PROMPT KEYS:
 
        $ buku -u 15012014 -c this is a new comment
     Applies to --url, --title and --tag too.
-9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, Markdown, Orgfile or a new database:
+9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, XBEL, Markdown, Orgfile or a new database:
 
        $ buku -e bookmarks.html --stag tag 1, tag 2
+       $ buku -e bookmarks.xbel --stag tag 1, tag 2
        $ buku -e bookmarks.md --stag tag 1, tag 2
        $ buku -e bookmarks.org --stag tag 1, tag 2
        $ buku -e bookmarks.db --stag tag 1, tag 2
     All bookmarks are exported if search is not opted.
-10. **Import** bookmarks from HTML, Markdown or Orgfile:
+10. **Import** bookmarks from HTML, XBEL, Markdown or Orgfile:
 
         $ buku -i bookmarks.html
+        $ buku -i bookmarks.xbel
         $ buku -i bookmarks.md
         $ buku -i bookmarks.org
         $ buku -i bookmarks.db
