@@ -2326,34 +2326,6 @@ class BukuDb:
                     add_parent_folder_as_tag):
                 self.add_rec(*item)
 
-    def load_edge_database(self, path, unique_tag, add_parent_folder_as_tag):
-        """Open Edge Bookmarks JSON file and import data.
-
-        Parameters
-        ----------
-        path : str
-            Path to Microsoft Edge bookmarks file.
-        unique_tag : str
-            Timestamp tag in YYYYMonDD format.
-        add_parent_folder_as_tag : bool
-            True if bookmark parent folders should be added as tags else False.
-        """
-
-        with open(path, 'r', encoding="utf8") as datafile:
-            data = json.load(datafile)
-
-        roots = data['roots']
-        for entry in roots:
-            # Needed to skip 'sync_transaction_version' key from roots
-            if isinstance(roots[entry], str):
-                continue
-            for item in self.traverse_bm_folder(
-                    roots[entry]['children'],
-                    unique_tag,
-                    roots[entry]['name'],
-                    add_parent_folder_as_tag):
-                self.add_rec(*item)
-
     def load_firefox_database(self, path, unique_tag, add_parent_folder_as_tag):
         """Connect to Firefox sqlite db and import bookmarks into BukuDb.
 
@@ -2421,10 +2393,38 @@ class BukuDb:
         except Exception as e:
             LOGERR(e)
 
+    def load_edge_database(self, path, unique_tag, add_parent_folder_as_tag):
+        """Open Edge Bookmarks JSON file and import data.
+
+        Parameters
+        ----------
+        path : str
+            Path to Microsoft Edge bookmarks file.
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format.
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False.
+        """
+
+        with open(path, 'r', encoding="utf8") as datafile:
+            data = json.load(datafile)
+
+        roots = data['roots']
+        for entry in roots:
+            # Needed to skip 'sync_transaction_version' key from roots
+            if isinstance(roots[entry], str):
+                continue
+            for item in self.traverse_bm_folder(
+                    roots[entry]['children'],
+                    unique_tag,
+                    roots[entry]['name'],
+                    add_parent_folder_as_tag):
+                self.add_rec(*item)
+    
     def auto_import_from_browser(self):
         """Import bookmarks from a browser default database file.
 
-        Supports Microsoft Edge, Firefox and Google Chrome.
+        Supports Firefox, Google Chrome and Microsoft Edge.
 
         Returns
         -------
@@ -2435,7 +2435,6 @@ class BukuDb:
         ff_bm_db_path = None
 
         if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
-            me_bm_db_path = '~/.config/microsoft-edge/Default/Bookmarks'
             gc_bm_db_path = '~/.config/google-chrome/Default/Bookmarks'
             cb_bm_db_path = '~/.config/chromium/Default/Bookmarks'
 
@@ -2443,8 +2442,9 @@ class BukuDb:
             profile = get_firefox_profile_name(default_ff_folder)
             if profile:
                 ff_bm_db_path = '~/.mozilla/firefox/{}/places.sqlite'.format(profile)
+
+            me_bm_db_path = '~/.config/microsoft-edge/Default/Bookmarks'
         elif sys.platform == 'darwin':
-            me_bm_db_path = '~/Library/Application Support/Microsoft Edge/Default/Bookmarks'
             gc_bm_db_path = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             cb_bm_db_path = '~/Library/Application Support/Chromium/Default/Bookmarks'
 
@@ -2453,10 +2453,11 @@ class BukuDb:
             if profile:
                 ff_bm_db_path = ('~/Library/Application Support/Firefox/'
                                  '{}/places.sqlite'.format(profile))
+            
+            me_bm_db_path = '~/Library/Application Support/Microsoft Edge/Default/Bookmarks'
         elif sys.platform == 'win32':
             username = os.getlogin()
-            me_bm_db_path = ('C:/Users/{}/AppData/Local/Microsoft/Edge/User Data/'
-                             'Default/Bookmarks'.format(username))
+            
             gc_bm_db_path = ('C:/Users/{}/AppData/Local/Google/Chrome/User Data/'
                              'Default/Bookmarks'.format(username))
             cb_bm_db_path = ('C:/Users/{}/AppData/Local/Chromium/User Data/'
@@ -2466,6 +2467,9 @@ class BukuDb:
             profile = get_firefox_profile_name(default_ff_folder)
             if profile:
                 ff_bm_db_path = os.path.join(default_ff_folder, '{}/places.sqlite'.format(profile))
+
+            me_bm_db_path = ('C:/Users/{}/AppData/Local/Microsoft/Edge/User Data/'
+                             'Default/Bookmarks'.format(username))
         else:
             LOGERR('buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
@@ -2510,18 +2514,6 @@ class BukuDb:
 
         try:
             if self.chatty:
-                resp = input('Import bookmarks from microsoft edge? (y/n): ')
-            if resp == 'y':
-                bookmarks_database = os.path.expanduser(me_bm_db_path)
-                if not os.path.exists(bookmarks_database):
-                    raise FileNotFoundError
-                self.load_edge_database(bookmarks_database, newtag, add_parent_folder_as_tag)
-        except Exception as e:
-            LOGERR(e)
-            print('Could not import bookmarks from microsoft-edge')
-
-        try:
-            if self.chatty:
                 resp = input('Import bookmarks from Firefox? (y/n): ')
             if resp == 'y':
                 bookmarks_database = os.path.expanduser(ff_bm_db_path)
@@ -2531,6 +2523,18 @@ class BukuDb:
         except Exception as e:
             LOGERR(e)
             print('Could not import bookmarks from Firefox.')
+
+        try:
+            if self.chatty:
+                resp = input('Import bookmarks from microsoft edge? (y/n): ')
+            if resp == 'y':
+                bookmarks_database = os.path.expanduser(me_bm_db_path)
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
+                self.load_edge_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+        except Exception as e:
+            LOGERR(e)
+            print('Could not import bookmarks from microsoft-edge')
 
         self.conn.commit()
 
