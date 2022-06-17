@@ -60,7 +60,7 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 ### Features
 
 - Store bookmarks with auto-fetched title, tags and description
-- Auto-import from Firefox, Google Chrome, Chromium and Edge
+- Auto-import from Firefox, Google Chrome, Chromium and MS Edge
 - Open bookmarks and search results in browser
 - Shorten, expand URLs, browse cached page from Wayback Machine
 - Text editor integration
