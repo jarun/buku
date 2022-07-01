@@ -1,3 +1,18 @@
+buku v4.7
+2022-07-01
+
+- support XBEL export/import (#569)
+- support for Microsoft Edge bookmarks (#585)
+- block web fetch on import
+- many bukuserver fixes (#543, #545, #547, #548, #553, #554, #559)
+- import nested directory names as tags on html import (#539)
+- fix slow/failed markdown import (#538)
+- fix SSL certificate identification not working on macOS (#528)
+- import tags from markdown (#523)
+- fix broken pipe error with oil (#520)
+
+-------------------------------------------------------------------------------
+
 buku v4.6
 2021-06-16
 
