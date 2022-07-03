@@ -80,7 +80,7 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 
 | Feature | Dependency |
 | --- | --- |
-| Lang, SQLite | Python 3.6+ |
+| Lang, SQLite | Python 3.7+ |
 | HTTPS | certifi, urllib3 |
 | Encryption | cryptography |
 | HTML | beautifulsoup4, html5lib |

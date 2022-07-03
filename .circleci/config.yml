@@ -28,11 +28,6 @@ test-template: &test-template
           python3 -m pytest ./tests/test_*.py --cov buku -vv --durations=0 -c ./tests/pytest.ini
 
 jobs:
-  py36:
-    docker:
-      - image: python:3.6-slim
-    <<: *test-template
-
   py37:
     docker:
       - image: python:3.7-slim
@@ -46,6 +41,11 @@ jobs:
   py39:
     docker:
       - image: python:3.9-slim
+    <<: *test-template
+
+  py310:
+    docker:
+      - image: python:3.10-slim
     <<: *test-template
 
 #  package-and-publish:
@@ -102,10 +102,10 @@ workflows:
 
   test:
     jobs: &all-tests
-      - py36
       - py37
       - py38
       - py39
+      - py310
 
   nightly:
     triggers:
