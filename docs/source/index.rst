@@ -15,10 +15,25 @@ Bookmark manager like a text-based mini-web.
    README.md
 
 .. toctree::
+   :glob:
    :maxdepth: 2
-   :caption: Documentation
+   :caption: Wiki
+   
+   wiki/*
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Buku Documentation
 
    buku <buku>
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Bukuserver Documentation
+
+   bukuserver <bukuserver>
+
 
 Indices and tables
 ==================

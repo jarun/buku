@@ -1,4 +1,4 @@
-.TH "BUKU" "1" "16 Jun 2021" "Version 4.6" "User Commands"
+.TH "BUKU" "1" "1 Jul 2022" "Version 4.7" "User Commands"
 .SH NAME
 buku \- Bookmark manager like a text-based mini-web
 .SH SYNOPSIS
@@ -10,7 +10,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
 .B Features
 .PP
   * Store bookmarks with auto-fetched title, tags and description
-  * Auto-import from Firefox, Google Chrome and Chromium
+  * Auto-import from Firefox, Google Chrome, Chromium and MS Edge
   * Open bookmarks and search results in browser
   * Shorten, expand URLs, browse cached page from Wayback Machine
   * Text editor integration
@@ -18,7 +18,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Powerful search options (regex, substring...)
   * Continuous search with on the fly mode switch
   * Portable, merge-able database to sync between systems
-  * Import/export bookmarks from/to HTML, Markdown or Orgfile
+  * Import/export bookmarks from/to HTML, XBEL, Markdown or Orgfile
   * Smart tag management using redirection (>>, >, <<)
   * Multithreaded full DB refresh, manual encryption support
   * Shell completion scripts, man page with handy examples
@@ -191,10 +191,14 @@ Decrypt (unlock) the DB file with
 .SH POWER OPTIONS
 .TP
 .BI \--ai
-Auto-import bookmarks from Firefox, Google Chrome and Chromium browsers.
+Auto-import bookmarks from Firefox, Google Chrome, Chromium and Edge browsers.
 .TP
 .BI \-e " " \--export " file"
 Export bookmarks to Firefox bookmarks formatted HTML. Works with all search options.
+.br
+XBEL is used if
+.I file
+has extension '.xbel'.
 .br
 Markdown is used if
 .I file
@@ -211,7 +215,7 @@ has extension '.db'.
 .BI \-i " " \--import " file"
 Import bookmarks from Firefox bookmarks formatted HTML.
 .I file
-is considered Firefox-exported JSON if it has '.json' extension, Markdown (compliant with --export format) if it is '.md', Orgfile if the extension is '.org' or another buku database if the extension is '.db'.
+is considered Firefox-exported JSON if it has '.json' extension, XBEL if it is '.xbel', Markdown (compliant with --export format) if it is '.md', Orgfile if the extension is '.org' or another buku database if the extension is '.db'.
 .TP
 .BI \-p " " \--print " [...]"
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. A negative value (introduced for convenience) behaves like the tail utility, e.g., -n shows the details of the last n bookmarks.
@@ -538,11 +542,13 @@ This will open the existing bookmark's details in the editor for modifications. 
 Applies to --url, --title and --tag too.
 .PP
 .IP 9. 4
-\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML, Markdown, Orgfile or a new database:
+\fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML, XBEL, Markdown, Orgfile or a new database:
 .PP
 .EX
 .IP
 .B buku -e bookmarks.html --stag tag 1, tag 2
+.br
+.B buku -e bookmarks.xbel --stag tag 1, tag 2
 .br
 .B buku -e bookmarks.md --stag tag 1, tag 2
 .br
@@ -555,11 +561,13 @@ Applies to --url, --title and --tag too.
 All bookmarks are exported if search is not opted.
 .PP
 .IP 10. 4
-\fBImport\fR bookmarks from HTML, Markdown or Orgfile:
+\fBImport\fR bookmarks from HTML, XBEL, Markdown or Orgfile:
 .PP
 .EX
 .IP
 .B buku -i bookmarks.html
+.br
+.B buku -i bookmarks.xbel
 .br
 .B buku -i bookmarks.md
 .br
@@ -830,7 +838,7 @@ Arun Prakash Jana <engineerarun@gmail.com>
 .SH REPORTING BUGS
 .I https://github.com/jarun/buku/issues
 .SH LICENSE
-Copyright \(co 2015-2021 Arun Prakash Jana <engineerarun@gmail.com>.
+Copyright \(co 2015-2022 Arun Prakash Jana <engineerarun@gmail.com>.
 .PP
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 .br

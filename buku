@@ -2,7 +2,7 @@
 #
 # Bookmark management utility
 #
-# Copyright © 2015-2021 Arun Prakash Jana <engineerarun@gmail.com>
+# Copyright © 2015-2022 Arun Prakash Jana <engineerarun@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with buku.  If not, see <http://www.gnu.org/licenses/>.
 
-from enum import Enum
-from itertools import chain
 import argparse
 import calendar
 import cgi
@@ -36,19 +34,23 @@ import signal
 import sqlite3
 import struct
 import subprocess
-from subprocess import Popen, PIPE, DEVNULL
 import sys
 import tempfile
 import textwrap
 import threading
 import time
-from typing import Any, Dict, Iterable, List, Optional, Tuple
 import unicodedata
 import webbrowser
+from enum import Enum
+from itertools import chain
+from subprocess import DEVNULL, PIPE, Popen
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
 import urllib3
-from urllib3.exceptions import LocationParseError
-from urllib3.util import parse_url, make_headers, Retry
 from bs4 import BeautifulSoup
+from urllib3.exceptions import LocationParseError
+from urllib3.util import Retry, make_headers, parse_url
+
 # note catch ModuleNotFoundError instead Exception
 # when python3.5 not supported
 try:
@@ -60,7 +62,7 @@ try:
 except ImportError:
     TypedDict = None  # type: ignore
 
-__version__ = '4.6'
+__version__ = '4.7'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -93,7 +95,7 @@ COLORMAP = {k: '\x1b[%sm' % v for k, v in {
     'x': '0', 'X': '1', 'y': '7', 'Y': '7;1', 'z': '2',
 }.items()}
 
-USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0'
+USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:101.0) Gecko/20100101 Firefox/101.0'
 MYHEADERS = None  # Default dictionary of headers
 MYPROXY = None  # Default proxy
 TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
@@ -107,10 +109,9 @@ LOGERR = LOGGER.error
 # Define the default path to ca-certificates
 # In Linux distros with openssl, it is /etc/ssl/certs/ca-certificates.crt
 # Fall back to use `certifi` otherwise
-try:
-    os.path.isfile('/etc/ssl/certs/ca-certificates.crt')
+if sys.platform.startswith('linux') and os.path.isfile('/etc/ssl/certs/ca-certificates.crt'):
     CA_CERTS = '/etc/ssl/certs/ca-certificates.crt'
-except Exception:
+else:
     import certifi
     CA_CERTS = certifi.where()
 
@@ -169,10 +170,11 @@ class BukuCrypt:
         """
 
         try:
-            from cryptography.hazmat.backends import default_backend
-            from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
+
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except ImportError:
             LOGERR('cryptography lib(s) missing')
             sys.exit(1)
@@ -271,10 +273,11 @@ class BukuCrypt:
         """
 
         try:
-            from cryptography.hazmat.backends import default_backend
-            from cryptography.hazmat.primitives.ciphers import (Cipher, modes, algorithms)
             from getpass import getpass
             from hashlib import sha256
+
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except ImportError:
             LOGERR('cryptography lib(s) missing')
             sys.exit(1)
@@ -1918,7 +1921,7 @@ class BukuDb:
 
         print('similar tags:\n')
         for count, tag in enumerate(unique_tags):
-            print('%d. %s' % (count + 1, unique_tags[count]))
+            print('%d. %s' % (count + 1, tag))
 
         selected_tags = input('\nselect: ').split()
         print()
@@ -2190,6 +2193,8 @@ class BukuDb:
         exported to a Markdown file.
         If destination file name ends with '.org' bookmarks are
         exported to a org file.
+        If destination file name ends with '.xbel' bookmarks are
+        exported to a XBEL file.
         Otherwise, bookmarks are exported to a Firefox bookmarks.html
         formatted file.
 
@@ -2242,6 +2247,10 @@ class BukuDb:
                 outfp.write(res['data'])
             elif filepath.endswith('.org'):
                 res = convert_bookmark_set(resultset, 'org')
+                count += res['count']
+                outfp.write(res['data'])
+            elif filepath.endswith('.xbel'):
+                res = convert_bookmark_set(resultset, 'xbel')
                 count += res['count']
                 outfp.write(res['data'])
             else:
@@ -2390,10 +2399,38 @@ class BukuDb:
         except Exception as e:
             LOGERR(e)
 
+    def load_edge_database(self, path, unique_tag, add_parent_folder_as_tag):
+        """Open Edge Bookmarks JSON file and import data.
+
+        Parameters
+        ----------
+        path : str
+            Path to Microsoft Edge bookmarks file.
+        unique_tag : str
+            Timestamp tag in YYYYMonDD format.
+        add_parent_folder_as_tag : bool
+            True if bookmark parent folders should be added as tags else False.
+        """
+
+        with open(path, 'r', encoding="utf8") as datafile:
+            data = json.load(datafile)
+
+        roots = data['roots']
+        for entry in roots:
+            # Needed to skip 'sync_transaction_version' key from roots
+            if isinstance(roots[entry], str):
+                continue
+            for item in self.traverse_bm_folder(
+                    roots[entry]['children'],
+                    unique_tag,
+                    roots[entry]['name'],
+                    add_parent_folder_as_tag):
+                self.add_rec(*item)
+
     def auto_import_from_browser(self):
         """Import bookmarks from a browser default database file.
 
-        Supports Firefox and Google Chrome.
+        Supports Firefox, Google Chrome and Microsoft Edge.
 
         Returns
         -------
@@ -2411,6 +2448,8 @@ class BukuDb:
             profile = get_firefox_profile_name(default_ff_folder)
             if profile:
                 ff_bm_db_path = '~/.mozilla/firefox/{}/places.sqlite'.format(profile)
+
+            me_bm_db_path = '~/.config/microsoft-edge/Default/Bookmarks'
         elif sys.platform == 'darwin':
             gc_bm_db_path = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             cb_bm_db_path = '~/Library/Application Support/Chromium/Default/Bookmarks'
@@ -2420,8 +2459,11 @@ class BukuDb:
             if profile:
                 ff_bm_db_path = ('~/Library/Application Support/Firefox/'
                                  '{}/places.sqlite'.format(profile))
+
+            me_bm_db_path = '~/Library/Application Support/Microsoft Edge/Default/Bookmarks'
         elif sys.platform == 'win32':
             username = os.getlogin()
+
             gc_bm_db_path = ('C:/Users/{}/AppData/Local/Google/Chrome/User Data/'
                              'Default/Bookmarks'.format(username))
             cb_bm_db_path = ('C:/Users/{}/AppData/Local/Chromium/User Data/'
@@ -2431,6 +2473,9 @@ class BukuDb:
             profile = get_firefox_profile_name(default_ff_folder)
             if profile:
                 ff_bm_db_path = os.path.join(default_ff_folder, '{}/places.sqlite'.format(profile))
+
+            me_bm_db_path = ('C:/Users/{}/AppData/Local/Microsoft/Edge/User Data/'
+                             'Default/Bookmarks'.format(username))
         else:
             LOGERR('buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
@@ -2485,6 +2530,18 @@ class BukuDb:
             LOGERR(e)
             print('Could not import bookmarks from Firefox.')
 
+        try:
+            if self.chatty:
+                resp = input('Import bookmarks from microsoft edge? (y/n): ')
+            if resp == 'y':
+                bookmarks_database = os.path.expanduser(me_bm_db_path)
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
+                self.load_edge_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+        except Exception as e:
+            LOGERR(e)
+            print('Could not import bookmarks from microsoft-edge')
+
         self.conn.commit()
 
         if newtag:
@@ -2494,6 +2551,7 @@ class BukuDb:
         """Import bookmarks from a HTML or a Markdown file.
 
         Supports Firefox, Google Chrome, and IE exported HTML bookmarks.
+        Supports XBEL standard bookmarks.
         Supports Markdown files with extension '.md, .org'.
         Supports importing bookmarks from another buku database file.
 
@@ -2545,6 +2603,33 @@ class BukuDb:
             except Exception as e:
                 LOGERR(e)
                 return False
+        elif filepath.endswith('xbel'):
+            try:
+                with open(filepath, mode='r', encoding='utf-8') as infp:
+                    soup = BeautifulSoup(infp, 'html.parser')
+            except ImportError:
+                LOGERR('Beautiful Soup not found')
+                return False
+            except Exception as e:
+                LOGERR(e)
+                return False
+
+            add_parent_folder_as_tag = False
+            use_nested_folder_structure = False
+            if not tacit:
+                resp = input("""Add bookmark's parent folder as tag?
+a: add all parent folders of the bookmark
+n: don't add parent folder as tag
+(a/[n]): """)
+            else:
+                resp = 'y'
+
+            if resp == 'a':
+                add_parent_folder_as_tag = True
+                use_nested_folder_structure = True
+
+            items = import_xbel(soup, add_parent_folder_as_tag, newtag, use_nested_folder_structure)
+            infp.close()
         else:
             try:
                 with open(filepath, mode='r', encoding='utf-8') as infp:
@@ -2556,13 +2641,23 @@ class BukuDb:
                 LOGERR(e)
                 return False
 
+            add_parent_folder_as_tag = False
+            use_nested_folder_structure = False
             if not tacit:
-                resp = input('Add parent folder names as tags? (y/n): ')
+                resp = input("""Add bookmark's parent folder as tag?
+y: add single, direct parent folder
+a: add all parent folders of the bookmark
+n: don't add parent folder as tag
+(y/a/[n]): """)
             else:
                 resp = 'y'
 
-            add_parent_folder_as_tag = (resp == 'y')
-            items = import_html(soup, add_parent_folder_as_tag, newtag)
+            if resp in ('y', 'a'):
+                add_parent_folder_as_tag = True
+                if resp == 'a':
+                    use_nested_folder_structure = True
+
+            items = import_html(soup, add_parent_folder_as_tag, newtag, use_nested_folder_structure)
             infp.close()
 
         for item in items:
@@ -2825,7 +2920,7 @@ SYMBOLS:
       #                    tags
 
 Version %s
-Copyright © 2015-2021 %s
+Copyright © 2015-2022 %s
 License: %s
 Webpage: https://github.com/jarun/buku
 ''' % (__version__, __author__, __license__))
@@ -2932,13 +3027,14 @@ def convert_bookmark_set(
     Parameters
     ----------
         bookmark_set: bookmark set
-        export type: one of supported type: markdown, html, org
+        export type: one of supported type: markdown, html, org, XBEL
 
     Returns
     -------
         converted data and count of converted bookmark set
     """
-    assert export_type in ['markdown', 'html', 'org']
+    import html
+    assert export_type in ['markdown', 'html', 'org', 'xbel']
     #  compatibility
     resultset = bookmark_set
 
@@ -2947,9 +3043,15 @@ def convert_bookmark_set(
     if export_type == 'markdown':
         for row in resultset:
             if not row[2] or row[2] is None:
-                out += '- [Untitled](' + row[1] + ')\n'
+                out += '- [Untitled](' + row[1] + ')'
             else:
-                out += '- [' + row[2] + '](' + row[1] + ')\n'
+                out += '- [' + row[2] + '](' + row[1] + ')'
+
+            if row[3] != DELIM:
+                out += ' <!-- TAGS: {} -->\n'.format(row[3][1:-1])
+            else:
+                out += '\n'
+
             count += 1
     elif export_type == 'org':
         for row in resultset:
@@ -2959,6 +3061,25 @@ def convert_bookmark_set(
                 out += '* [[{}][{}]]'.format(row[1], row[2])
             out += convert_tags_to_org_mode_tags(row[3])
             count += 1
+    elif export_type == 'xbel':
+        timestamp = str(int(time.time()))
+        out = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<!DOCTYPE xbel PUBLIC \
+"+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" \
+"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">\n'
+            '<xbel version="1.0">\n'
+            '<folder id="1"><title>Buku</title>\n')
+
+        for row in resultset:
+            out += '<bookmark href="%s"' % (html.escape(row[1])).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
+            if row[3] != DELIM:
+                out += ' TAGS="' + html.escape(row[3][1:-1]).encode('ascii', 'xmlcharrefreplace').decode('utf-8') + '"'
+            out += '>\n<title>{}</title>\n</bookmark>\n'\
+                .format(html.escape(row[2]).encode('ascii', 'xmlcharrefreplace').decode('utf-8') if row[2] else '')
+            count += 1
+
+        out += '</folder>\n</xbel>'
     elif export_type == 'html':
         timestamp = str(int(time.time()))
         out = (
@@ -3085,7 +3206,22 @@ def import_md(filepath: str, newtag: Optional[str]):
                     if is_nongeneric_url(url):
                         continue
 
-                    yield (url, title, delim_wrap(newtag), None, 0, True, False)
+                    # Find tag start delimiter
+                    tag_start_delim = line.find('<!-- TAGS: ')
+                    # Reverse find tag end delimiter
+                    tag_end_delim = line.rfind(' -->')
+
+                    if tag_start_delim != -1 and tag_end_delim > 0:
+                        if newtag is not None:
+                            tags = newtag + ',' + line[tag_start_delim + 11:tag_end_delim]
+                        else:
+                            tags = line[tag_start_delim + 11:tag_end_delim]
+                    else:
+                        tags = newtag
+
+                    parse_tags([tags])
+
+                    yield (url, title, delim_wrap(tags), None, 0, True, False)
 
 def import_org(filepath: str, newtag: Optional[str]):
     """Parse bookmark org file.
@@ -3294,8 +3430,91 @@ def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None)
 
     yield from iterate_children(None, main_entry_list)
 
+def import_xbel(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag: str, use_nested_folder_structure: bool = False):
+    """Parse bookmark XBEL.
 
-def import_html(html_soup, add_parent_folder_as_tag, newtag):
+    Parameters
+    ----------
+    html_soup : BeautifulSoup object
+        BeautifulSoup representation of bookmark HTML.
+    add_parent_folder_as_tag : bool
+        True if bookmark parent folders should be added as tags else False.
+    newtag : str
+        A new unique tag to add to imported bookmarks.
+    use_nested_folder_structure: bool
+        True if all bookmark parent folder should be added, not just direct parent else False
+        add_parent_folder_as_tag must be True for this flag to have an effect
+
+    Returns
+    -------
+    tuple
+        Parsed result.
+    """
+
+    # compatibility
+    soup = html_soup
+
+    for tag in soup.findAll('bookmark'):
+        # Extract comment from <desc> tag
+        try:
+            if is_nongeneric_url(tag['href']):
+                continue
+        except KeyError:
+            continue
+
+        title_tag = tag.title.string
+
+        desc = None
+        comment_tag = tag.findNextSibling('desc')
+
+        if comment_tag:
+            desc = comment_tag.find(text=True, recursive=False)
+
+        if add_parent_folder_as_tag:
+            # add parent folder as tag
+            if use_nested_folder_structure:
+                # New method that would generalize for else case too
+                # Stucture of folders
+                # folder
+                #   title (folder name)
+                #   folder
+                #       title
+                #           bookmark (could be h3, and continue recursively)
+                parents = tag.find_parents('folder')
+                for parent in parents:
+                    header = parent.find_previous_sibling('title')
+                    if header:
+                        if tag.has_attr('tags'):
+                            tag['tags'] += (DELIM + header.text)
+                        else:
+                            tag['tags'] = header.text
+            else:
+                # could be its folder or not
+                possible_folder = tag.find_previous('title')
+                # get list of tags within that folder
+                tag_list = tag.parent.parent.find_parent('folder')
+
+                if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
+                    # then it's the folder of this bookmark
+                    if tag.has_attr('tags'):
+                        tag['tags'] += (DELIM + possible_folder.text)
+                    else:
+                        tag['tags'] = possible_folder.text
+
+        # add unique tag if opted
+        if newtag:
+            if tag.has_attr('tags'):
+                tag['tags'] += (DELIM + newtag)
+            else:
+                tag['tags'] = newtag
+
+        yield (
+            tag['href'], title_tag,
+            parse_tags([tag['tags']]) if tag.has_attr('tags') else None,
+            desc if not desc else desc.strip(), 0, True, False
+        )
+
+def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag: str, use_nested_folder_structure: bool = False):
     """Parse bookmark HTML.
 
     Parameters
@@ -3306,6 +3525,9 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
         True if bookmark parent folders should be added as tags else False.
     newtag : str
         A new unique tag to add to imported bookmarks.
+    use_nested_folder_structure: bool
+        True if all bookmark parent folder should be added, not just direct parent else False
+        add_parent_folder_as_tag must be True for this flag to have an effect
 
     Returns
     -------
@@ -3330,19 +3552,36 @@ def import_html(html_soup, add_parent_folder_as_tag, newtag):
         if comment_tag:
             desc = comment_tag.find(text=True, recursive=False)
 
-        # add parent folder as tag
         if add_parent_folder_as_tag:
-            # could be its folder or not
-            possible_folder = tag.find_previous('h3')
-            # get list of tags within that folder
-            tag_list = tag.parent.parent.find_parent('dl')
+            # add parent folder as tag
+            if use_nested_folder_structure:
+                # New method that would generalize for else case too
+                # Stucture of folders
+                # dt
+                #   h3 (folder name)
+                #   dl
+                #       dt
+                #           a (could be h3, and continue recursively)
+                parents = tag.find_parents('dl')
+                for parent in parents:
+                    header = parent.find_previous_sibling('h3')
+                    if header:
+                        if tag.has_attr('tags'):
+                            tag['tags'] += (DELIM + header.text)
+                        else:
+                            tag['tags'] = header.text
+            else:
+                # could be its folder or not
+                possible_folder = tag.find_previous('h3')
+                # get list of tags within that folder
+                tag_list = tag.parent.parent.find_parent('dl')
 
-            if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
-                # then it's the folder of this bookmark
-                if tag.has_attr('tags'):
-                    tag['tags'] += (DELIM + possible_folder.text)
-                else:
-                    tag['tags'] = possible_folder.text
+                if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
+                    # then it's the folder of this bookmark
+                    if tag.has_attr('tags'):
+                        tag['tags'] += (DELIM + possible_folder.text)
+                    else:
+                        tag['tags'] = possible_folder.text
 
         # add unique tag if opted
         if newtag:
@@ -5208,16 +5447,18 @@ POSITIONAL ARGUMENTS:
 
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
-        description='''    --ai                 auto-import from Firefox/Chrome/Chromium
+        description='''    --ai                 auto-import bookmarks from web browsers
+                         Firefox, Chrome, Chromium, Edge
     -e, --export file    export bookmarks to Firefox format HTML
+                         export XBEL, if file ends with '.xbel'
                          export Markdown, if file ends with '.md'
                          format: [title](url) <!-- TAGS -->
                          export Orgfile, if file ends with '.org'
                          format: *[[url][title]] :tags:
                          export buku DB, if file ends with '.db'
                          combines with search results, if opted
-    -i, --import file    import bookmarks based on file extension
-                         supports 'html', 'json', 'md', 'org', 'db'
+    -i, --import file    import bookmarks from file
+                         supports .html .xbel .json .md .org .db
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
                          -n shows the last n results (like tail)

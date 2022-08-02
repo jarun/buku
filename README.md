@@ -32,11 +32,7 @@ There's no tracking, hidden history, obsolete records, usage analytics or homing
 
 To get started right away, jump to the [Quickstart](#quickstart) section. `buku` has one of the best documentation around. The man page comes with examples. For internal details, please refer to the [operational notes](https://github.com/jarun/buku/wiki/Operational-notes).
 
-`buku` is a library too! There are several [related projects](#related-projects), including a browser plug-in.
-
-<p align="center">
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RMLTQ76JSXJ4Q"><img src="https://img.shields.io/badge/donate-@PayPal-1eb0fc.svg" alt="Donate via PayPal!" /></a>
-</p>
+`buku` is a library too! There are several related projects, including a browser plug-in.
 
 ### Table of Contents
 
@@ -64,7 +60,7 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 ### Features
 
 - Store bookmarks with auto-fetched title, tags and description
-- Auto-import from Firefox, Google Chrome and Chromium
+- Auto-import from Firefox, Google Chrome, Chromium and MS Edge
 - Open bookmarks and search results in browser
 - Shorten, expand URLs, browse cached page from Wayback Machine
 - Text editor integration
@@ -72,7 +68,7 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 - Powerful search options (regex, substring...)
 - Continuous search with on the fly mode switch
 - Portable, merge-able database to sync between systems
-- Import/export bookmarks from/to HTML, Markdown or Orgfile
+- Import/export bookmarks from/to HTML, XBEL, Markdown or Orgfile
 - Smart tag management using redirection (>>, >, <<)
 - Multi-threaded full DB refresh, manual encryption support
 - Shell completion scripts, man page with examples
@@ -84,7 +80,7 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 
 | Feature | Dependency |
 | --- | --- |
-| Lang, SQLite | Python 3.6+ |
+| Lang, SQLite | Python 3.7+ |
 | HTTPS | certifi, urllib3 |
 | Encryption | cryptography |
 | HTML | beautifulsoup4, html5lib |
@@ -215,16 +211,18 @@ ENCRYPTION OPTIONS:
       -k, --unlock [N]     decrypt DB in N (default 8) # iterations
 
 POWER TOYS:
-      --ai                 auto-import from Firefox/Chrome/Chromium
+      --ai                 auto-import bookmarks from web browsers
+                           Firefox, Chrome, Chromium, Edge
       -e, --export file    export bookmarks to Firefox format HTML
+                           export XBEL, if file ends with '.xbel'
                            export Markdown, if file ends with '.md'
                            format: [title](url) <!-- TAGS -->
                            export Orgfile, if file ends with '.org'
                            format: *[[url][title]] :tags:
                            export buku DB, if file ends with '.db'
                            combines with search results, if opted
-      -i, --import file    import bookmarks based on file extension
-                           supports 'html', 'json', 'md', 'org', 'db'
+      -i, --import file    import bookmarks from file
+                           supports .html .xbel .json .md .org .db
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
                            -n shows the last n results (like tail)
@@ -359,16 +357,18 @@ PROMPT KEYS:
 
        $ buku -u 15012014 -c this is a new comment
     Applies to --url, --title and --tag too.
-9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, Markdown, Orgfile or a new database:
+9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, XBEL, Markdown, Orgfile or a new database:
 
        $ buku -e bookmarks.html --stag tag 1, tag 2
+       $ buku -e bookmarks.xbel --stag tag 1, tag 2
        $ buku -e bookmarks.md --stag tag 1, tag 2
        $ buku -e bookmarks.org --stag tag 1, tag 2
        $ buku -e bookmarks.db --stag tag 1, tag 2
     All bookmarks are exported if search is not opted.
-10. **Import** bookmarks from HTML, Markdown or Orgfile:
+10. **Import** bookmarks from HTML, XBEL, Markdown or Orgfile:
 
         $ buku -i bookmarks.html
+        $ buku -i bookmarks.xbel
         $ buku -i bookmarks.md
         $ buku -i bookmarks.org
         $ buku -i bookmarks.db
@@ -494,7 +494,7 @@ You may encounter issues with GUI editors which maintain only one instance by de
 - [Johnathan Jenkins](https://github.com/shaggytwodope)
 - [SZ Lin](https://github.com/szlin)
 
-Copyright © 2015-2021 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
+Copyright © 2015-2022 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 <br>
 <p><a href="https://gitter.im/jarun/buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a></p>
 
@@ -511,6 +511,7 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/buku/i
 - [buku-dmenu](https://gitlab.com/benoliver999/buku-dmenu), a simple bash dmenu wrapper
 - [poku](https://github.com/shanedabes/poku), sync between Pocket and buku
 - [Ebuku](https://github.com/flexibeast/ebuku), Emacs interface to buku
+- [diigoku](https://github.com/dppdppd/diigoku), buku importer for Diigo
 
 <a href="http://buku.readthedocs.io/en/stable/?badge=stable"><img src="https://img.shields.io/badge/docs-stable-brightgreen.svg?maxAge=2592000" alt="Stable Docs" /></a>
 

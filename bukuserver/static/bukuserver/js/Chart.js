@@ -9429,7 +9429,7 @@ module.exports = Element.extend({
 		// Canvas doesn't allow us to stroke inside the width so we can
 		// adjust the sizes to fit if we're setting a stroke on the line
 		if (borderWidth) {
-			// borderWidth shold be less than bar width and bar height.
+			// borderWidth should be less than bar width and bar height.
 			var barSize = Math.min(Math.abs(left - right), Math.abs(top - bottom));
 			borderWidth = borderWidth > barSize ? barSize : borderWidth;
 			var halfStroke = borderWidth / 2;

@@ -101,7 +101,7 @@ def test_tag_api(client):
     rd = client.get('/api/bookmarks/1')
     assert rd.status_code == 200
     assert rd.get_json() == {
-        'description': '', 'tags': ['tag3 tag4', 'tag5'], 'title': '',
+        'description': '', 'tags': ['tag3 tag4', 'tag5'], 'title': 'Google',
         'url': 'http://google.com'}
 
 
@@ -116,18 +116,18 @@ def test_bookmark_api(client):
     rd = client.get('/api/bookmarks')
     assert rd.status_code == 200
     assert rd.get_json() == {'bookmarks': [{
-        'description': '', 'tags': [], 'title': '', 'url': 'http://google.com'}]}
+        'description': '', 'tags': [], 'title': 'Google', 'url': 'http://google.com'}]}
     rd = client.get('/api/bookmarks/1')
     assert rd.status_code == 200
     assert rd.get_json() == {
-        'description': '', 'tags': [], 'title': '', 'url': 'http://google.com'}
+        'description': '', 'tags': [], 'title': 'Google', 'url': 'http://google.com'}
     rd = client.put('/api/bookmarks/1', data={'tags': [',tag1,tag2,']})
     assert rd.status_code == 200
     assert rd.get_json() == response_template['success']
     rd = client.get('/api/bookmarks/1')
     assert rd.status_code == 200
     assert rd.get_json() == {
-        'description': '', 'tags': ['tag1', 'tag2'], 'title': '', 'url': 'http://google.com'}
+        'description': '', 'tags': ['tag1', 'tag2'], 'title': 'Google', 'url': 'http://google.com'}
 
 
 @pytest.mark.parametrize('d_url', ['/api/bookmarks', '/api/bookmarks/1'])
@@ -208,8 +208,8 @@ def test_bookmark_range_api(client):
     assert rd.status_code == status_code
     assert rd.get_json() == {
         'bookmarks': {
-            '1': {'description': '', 'tags': [], 'title': '', 'url': 'http://google.com'},
-            '2': {'description': '', 'tags': [], 'title': '', 'url': 'http://example.com'}}}
+            '1': {'description': '', 'tags': [], 'title': 'Google', 'url': 'http://google.com'},
+            '2': {'description': '', 'tags': [], 'title': 'Example Domain', 'url': 'http://example.com'}}}
     put_data = json.dumps({1: {'tags': 'tag1'}, 2: {'tags': 'tag2'}})
     headers = {'content-type': 'application/json'}
     rd = client.put('/api/bookmarks/1/2', data=put_data, headers=headers)
@@ -230,7 +230,7 @@ def test_bookmark_search(client):
     rd = client.get('/api/bookmarks/search', query_string={'keywords': ['google']})
     assert rd.status_code == status_code
     assert rd.get_json() == {'bookmarks': [
-        {'description': '', 'id': 1, 'tags': [], 'title': '', 'url': 'http://google.com'}]}
+        {'description': '', 'id': 1, 'tags': [], 'title': 'Google', 'url': 'http://google.com'}]}
     rd = client.delete('/api/bookmarks/search', data={'keywords': ['google']})
     assert rd.status_code == status_code
     assert rd.get_json() == response_template['success']

@@ -1,7 +1,7 @@
 """Forms module."""
 # pylint: disable=too-few-public-methods, missing-docstring
-from flask_wtf import FlaskForm
 import wtforms
+from flask_wtf import FlaskForm
 
 
 class SearchBookmarksForm(FlaskForm):
@@ -16,8 +16,7 @@ class HomeForm(SearchBookmarksForm):
 
 
 class BookmarkForm(FlaskForm):
-    url = wtforms.StringField(
-        validators=[wtforms.validators.DataRequired(), wtforms.validators.URL(require_tld=False)])
+    url = wtforms.StringField(validators=[wtforms.validators.DataRequired()])
     title = wtforms.StringField()
     tags = wtforms.StringField()
     description = wtforms.TextAreaField()
