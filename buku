@@ -3068,8 +3068,7 @@ def convert_bookmark_set(
             '<!DOCTYPE xbel PUBLIC \
 "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" \
 "http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">\n'
-            '<xbel version="1.0">\n'
-            '<folder id="1"><title>Buku</title>\n')
+            '<xbel version="1.0">\n')
 
         for row in resultset:
             out += '<bookmark href="%s"' % (html.escape(row[1])).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
@@ -3079,7 +3078,7 @@ def convert_bookmark_set(
                 .format(html.escape(row[2]).encode('ascii', 'xmlcharrefreplace').decode('utf-8') if row[2] else '')
             count += 1
 
-        out += '</folder>\n</xbel>'
+        out += '</xbel>'
     elif export_type == 'html':
         timestamp = str(int(time.time()))
         out = (
