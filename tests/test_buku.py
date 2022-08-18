@@ -942,6 +942,28 @@ def test_copy_to_clipboard(platform, params):
             "- [Untitled](htttp://example.com)\n- [Untitled](htttp://example.org)\n- [Google](http://google.com)\n",
         ],
         ["random", None],
+        [
+            "xbel",
+            "\n".join(
+                [
+                    '<?xml version="1.0" encoding="UTF-8"?>',
+                    '<!DOCTYPE xbel PUBLIC "+//IDN python.org//'
+                    'DTD XML Bookmark Exchange Language 1.0//EN//XML" '
+                    '"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">',
+                    '<xbel version="1.0">',
+                    '<bookmark href="htttp://example.com">',
+                    "<title></title>",
+                    "</bookmark>",
+                    '<bookmark href="htttp://example.org">',
+                    "<title></title>",
+                    "</bookmark>",
+                    '<bookmark href="http://google.com">',
+                    "<title>Google</title>",
+                    "</bookmark>",
+                    "</xbel>",
+                ]
+            ),
+        ],
     ],
 )
 def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
