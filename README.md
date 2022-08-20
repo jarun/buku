@@ -26,7 +26,7 @@ When I started writing it, I couldn't find a flexible command-line solution with
 
 `buku` can import bookmarks from browser(s) or fetch the title, tags and description of a URL from the web. Use your favourite editor to add, compose and update bookmarks. Search bookmarks instantly with multiple search options, including regex and a deep scan mode (handy with URLs).
 
-It can look up broken links on Wayback Machine. There's an Easter Egg to revisit random bookmarks.
+It can look up broken links on the Wayback Machine. There's an Easter Egg to revisit random bookmarks.
 
 There's no tracking, hidden history, obsolete records, usage analytics or homing.
 
@@ -62,7 +62,8 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 - Store bookmarks with auto-fetched title, tags and description
 - Auto-import from Firefox, Google Chrome, Chromium and MS Edge
 - Open bookmarks and search results in browser
-- Shorten, expand URLs, browse cached page from Wayback Machine
+- Shorten, expand URLs
+- Browse cached page from the Wayback Machine
 - Text editor integration
 - Lightweight, clean interface, custom colors
 - Powerful search options (regex, substring...)
@@ -70,7 +71,8 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 - Portable, merge-able database to sync between systems
 - Import/export bookmarks from/to HTML, XBEL, Markdown or Orgfile
 - Smart tag management using redirection (>>, >, <<)
-- Multi-threaded full DB refresh, manual encryption support
+- Multi-threaded full DB refresh
+- Manual encryption support
 - Shell completion scripts, man page with examples
 - Privacy-aware (no unconfirmed user data collection)
 
