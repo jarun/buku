@@ -612,20 +612,26 @@ class BookmarkletView(MethodView):  # pylint: disable=too-few-public-methods
 class CustomFlaskGroup(FlaskGroup):  # pylint: disable=too-few-public-methods
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.params[0].help = 'Show the program version'
-        self.params[0].callback = get_custom_version
+        for idx, param in enumerate(self.params):
+            if param.name == "version":
+                self.params[idx].help = "Show the program version"
+                self.params[idx].callback = get_custom_version
 
 
 def get_custom_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
-    message = '%(app_name)s %(app_version)s\nFlask %(version)s\nPython %(python_version)s'
-    click.echo(message % {
-        'app_name': 'buku',
-        'app_version': __version__,
-        'version': flask_version,
-        'python_version': sys.version,
-    }, color=ctx.color)
+    message = "\n".join(["%(app_name)s %(app_version)s", "Flask %(version)s", "Python %(python_version)s"])
+    click.echo(
+        message
+        % {
+            "app_name": "buku",
+            "app_version": __version__,
+            "version": flask_version,
+            "python_version": sys.version,
+        },
+        color=ctx.color,
+    )
     ctx.exit()
 
 
