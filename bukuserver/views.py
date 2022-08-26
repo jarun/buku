@@ -470,6 +470,7 @@ class TagModelView(BaseModelView):
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
+        self.all_tags = self.bukudb.get_tag_all()
         custom_model = CustomBukuDbModel(args[0], "tag")
         args = [
             custom_model,
@@ -502,10 +503,7 @@ class TagModelView(BaseModelView):
         page_size: int = None,
     ) -> Tuple[int, List[SimpleNamespace]]:
         logging.debug("search: %s", search)
-        bukudb = self.bukudb
-        tags = bukudb.get_tag_all()[1]
-        tags = sorted(tags.items())
-        tags = self._apply_filters(tags, filters)
+        tags = self._apply_filters(sorted(self.all_tags[1].items()), filters)
         sort_field_dict = {"usage_count": 1, "name": 0}
         if sort_field in sort_field_dict:
             tags = list(
@@ -529,7 +527,7 @@ class TagModelView(BaseModelView):
         return model.name
 
     def get_one(self, id):
-        tags = self.bukudb.get_tag_all()[1]
+        tags = self.all_tags[1]
         tag_sns = SimpleNamespace(name=id, usage_count=tags[id])
         return tag_sns
 
@@ -573,6 +571,7 @@ class TagModelView(BaseModelView):
         try:
             self.on_model_delete(model)
             res = self.bukudb.delete_tag_at_index(0, model.name, chatty=False)
+            self.all_tags = self.bukudb.get_tag_all()
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to delete record."
@@ -593,6 +592,7 @@ class TagModelView(BaseModelView):
             form.populate_obj(model)
             self._on_model_change(form, model, False)
             res = self.bukudb.replace_tag(original_name, [model.name])
+            self.all_tags = self.bukudb.get_tag_all()
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to update record."
