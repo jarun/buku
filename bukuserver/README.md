@@ -46,7 +46,7 @@ $ cd buku
 $ # basic server
 $ pip3 install ".[server]"
 $ # server with reverse_proxy
-$ pip3 install ".[server]"
+$ pip3 install ".[server,reverse_proxy]"
 ```
 
 #### Using Docker
