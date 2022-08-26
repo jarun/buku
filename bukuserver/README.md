@@ -28,14 +28,25 @@ $ source env/bin/activate
 
 #### From PyPi
 
-    $ pip3 install "buku[server]"
+```sh
+$ # basic server
+$ pip3 install "buku[server]"
+$ # server with reverse proxy
+$ pip3 install "buku[server,reverse_proxy]"
+$ # pipx install bukuserver with reverse proxy
+$ pipx install "buku[server]"
+$ pipx inject buku https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.2rc1.zip
+```
 
 #### From source
 
-```
+```sh
 $ git clone https://github.com/jarun/buku
 $ cd buku
-$ pip3 install .[server]
+$ # basic server
+$ pip3 install ".[server]"
+$ # server with reverse_proxy
+$ pip3 install ".[server,reverse_proxy]"
 ```
 
 #### Using Docker

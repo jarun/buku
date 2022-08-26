@@ -34,30 +34,21 @@ tests_require = [
 
 
 server_require = [
-    "appdirs>=1.4.3",
-    "arrow>=0.12.1",
-    "beautifulsoup4>=4.5.3",
-    "cffi>=1.9.1",
-    "click>=6.7",
-    "Flask-Admin>=1.5.1",
-    "Flask-API>=0.6.9",
+    "arrow>=1.2.2",
+    "Flask-Admin>=1.6.0",
+    "Flask-API>=3.0.post1",
     "Flask-Bootstrap>=3.3.7.1",
-    "flask-paginate>=0.5.1",
-    "flask-reverse-proxy-fix @ https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.2rc1.zip",
-    "Flask-WTF>=0.14.2",
-    "Flask>=1.0.2,<2.0",
-    "idna>=2.5",
-    "itsdangerous>=0.24",
-    "Jinja2>=2.10.1",
-    "markupsafe==2.0.1",
-    "packaging>=16.8",
-    "pyasn1>=0.2.3",
-    "pycparser>=2.17",
-    "requests>=2.21.0",
-    "six>=1.10.0",
-    "urllib3>=1.25.2",
-    "Werkzeug>=0.11.15",
+    "flask-paginate>=2022.1.8",
+    "Flask-WTF>=1.0.1",
+    "Flask>=2.2.2",
 ]
+reverse_proxy = " ".join(
+    [
+        "flask-reverse-proxy-fix",
+        "@",
+        "https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.2rc1.zip",
+    ]
+)
 
 setup(
     name='buku',
@@ -85,8 +76,9 @@ setup(
     },
     extras_require={
         "ca-certificates": ["certifi"],
-        "tests": tests_require + server_require,
+        "tests": tests_require + server_require + [reverse_proxy],
         "server": server_require,
+        "reverse_proxy": [reverse_proxy],
         "docs": [
             "myst-parser>=0.17.0",
             "sphinx-rtd-theme>=1.0.0",
