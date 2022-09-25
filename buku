@@ -184,7 +184,7 @@ class BukuCrypt:
             sys.exit(1)
 
         if not dbfile:
-            dbfile = os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
+            dbfile = BukuDb.get_default_db()
         encfile = dbfile + '.enc'
 
         db_exists = os.path.exists(dbfile)
@@ -286,12 +286,7 @@ class BukuCrypt:
             LOGERR('Decryption failed')
             sys.exit(1)
 
-        if not dbfile:
-            dbfile = os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
-        else:
-            dbfile = os.path.abspath(dbfile)
-            dbpath, filename = os.path.split(dbfile)
-
+        dbfile = BukuDb.get_default_db() if not dbfile else os.path.abspath(dbfile)
         encfile = dbfile + '.enc'
 
         enc_exists = os.path.exists(encfile)
@@ -413,15 +408,16 @@ class BukuDb:
     def get_default_dbdir():
         """Determine the directory path where dbfile will be stored.
 
-        If the platform is Windows, use %APPDATA%
-        else if $XDG_DATA_HOME is defined, use it
-        else if $HOME exists, use it
-        else use the current directory.
+        The following locations are tried successively:
+            - $XDG_DATA_HOME (Free Desktop data directory)
+            - $HOME (Unix/Powershell home directory)
+            - %APPDATA% (Windows-only application data directory)
+            - . (fallback)
 
         Returns
         -------
         str
-            Path to database file.
+            The directory of the database file.
         """
 
         data_home = os.environ.get('XDG_DATA_HOME')
@@ -437,6 +433,28 @@ class BukuDb:
                 data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
 
         return os.path.join(data_home, 'buku')
+
+    @staticmethod
+    def get_default_db():
+        """Determine the buku database filename.
+
+        If environment variable BUKUDB is defined and is an absolute path,
+        pointing inside an existing directory, then it is used as the database
+        file.
+        Else, a database file in the default buku data directory will be used.
+        """
+        dbfile = os.environ.get('BUKUDB')
+        if dbfile is not None:
+            if not os.path.isabs(dbfile):
+                LOGERR('BUKUDB environment variable must be an absolute path')
+                sys.exit(1)
+            elif not os.path.exists(os.path.dirname(dbfile)):
+                # Prevents accidental creation of directory hierarchies.
+                LOGERR('File specified by BUKUDB must reside in an existing directory')
+                sys.exit(1)
+            return dbfile
+
+        return os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
 
     @staticmethod
     def initdb(dbfile: Optional[str] = None, chatty: Optional[bool] = False) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
@@ -458,13 +476,8 @@ class BukuDb:
             (connection, cursor).
         """
 
-        if not dbfile:
-            dbpath = BukuDb.get_default_dbdir()
-            filename = 'bookmarks.db'
-            dbfile = os.path.join(dbpath, filename)
-        else:
-            dbfile = os.path.abspath(dbfile)
-            dbpath, filename = os.path.split(dbfile)
+        dbfile = BukuDb.get_default_db() if not dbfile else os.path.abspath(dbfile)
+        dbpath, filename = os.path.split(dbfile)
 
         try:
             if not os.path.exists(dbpath):
@@ -2918,6 +2931,9 @@ SYMBOLS:
       >                    url
       +                    comment
       #                    tags
+
+ENVIRONMENT:
+      BUKUDB               override location of buku database file
 
 Version %s
 Copyright © 2015-2022 %s

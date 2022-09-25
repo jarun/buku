@@ -26,6 +26,7 @@ from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from buku import BukuDb, parse_tags, prompt
+from . import environ
 
 logging.basicConfig()  # you need to initialize logging, otherwise you will not see anything from vcrpy
 vcr_log = logging.getLogger("vcr")
@@ -126,16 +127,31 @@ class TestBukuDb(unittest.TestCase):
         # no desktop
 
         # -- home is defined differently on various platforms.
-        # -- keep a copy and set it back once done
-        originals = {}
-        for env_var in ["HOME", "HOMEPATH", "HOMEDIR"]:
-            try:
-                originals[env_var] = os.environ.pop(env_var)
-            except KeyError:
-                pass
-        self.assertEqual(dbdir_relative_expected, BukuDb.get_default_dbdir())
-        for key, value in list(originals.items()):
-            os.environ[key] = value
+        with environ(HOME=None, HOMEPATH=None, HOMEDIR=None):
+            self.assertEqual(dbdir_relative_expected, BukuDb.get_default_dbdir())
+
+    @pytest.mark.non_tox
+    def test_get_default_db(self):
+        # BUKUDB not set
+        dbfile = os.path.join(TEST_TEMP_DBDIR_PATH, 'bookmarks.db')
+        with environ(HOME=None, HOMEPATH=None, HOMEDIR=None, BUKUDB=None):
+            self.assertEqual(dbfile, BukuDb.get_default_db())
+
+        # relative BUKUDB
+        with environ(HOME=None, HOMEPATH=None, HOMEDIR=None, BUKUDB='another.db'):
+            with self.assertRaises(SystemExit):
+                _ = BukuDb.get_default_db()
+
+        # absolute BUKUDB
+        dbfile = os.path.join(TEST_TEMP_DBDIR_PATH, 'another.db')
+        with environ(HOME=None, HOMEPATH=None, HOMEDIR=None, BUKUDB=dbfile):
+            self.assertEqual(dbfile, BukuDb.get_default_db())
+
+        # absolut BUKUDB - non-existing parent dir
+        dbfile = os.path.join(TEST_TEMP_DBDIR_PATH, 'XXX', 'another.db')
+        with environ(HOME=None, HOMEPATH=None, HOMEDIR=None, BUKUDB=dbfile):
+            with self.assertRaises(SystemExit):
+                _ = BukuDb.get_default_db()
 
     # # not sure how to test this in nondestructive manner
     # def test_move_legacy_dbfile(self):
