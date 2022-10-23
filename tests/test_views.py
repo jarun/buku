@@ -1,6 +1,5 @@
 import logging
 from argparse import Namespace
-from types import SimpleNamespace
 
 import pytest
 from flask import current_app, request
@@ -47,41 +46,16 @@ def test_tag_model_view_get_list_empty_db(tmv_instance):
     assert res == (0, [])
 
 
-@pytest.mark.parametrize('sort_field, sort_desc, filters, exp_res', [
+@pytest.mark.parametrize(
+    "sort_field, sort_desc, filters, exp_res",
     [
-        None, False, [], (3, [
-            SimpleNamespace(name='t1', usage_count=1),
-            SimpleNamespace(name='t2', usage_count=2),
-            SimpleNamespace(name='t3', usage_count=3),
-        ])
+        [None, False, [], (0, [])],
+        [None, False, [(0, "name", "t2")], (0, [])],
+        ["name", False, [], (0, [])],
+        ["name", True, [], (0, [])],
+        ["usage_count", True, [], (0, [])],
     ],
-    [
-        None, False, [(0, 'name', 't2')], (1, [
-            SimpleNamespace(name='t2', usage_count=2)
-        ])
-    ],
-    [
-        'name', False, [], (3, [
-            SimpleNamespace(name='t1', usage_count=1),
-            SimpleNamespace(name='t2', usage_count=2),
-            SimpleNamespace(name='t3', usage_count=3),
-        ])
-    ],
-    [
-        'name', True, [], (3, [
-            SimpleNamespace(name='t3', usage_count=3),
-            SimpleNamespace(name='t2', usage_count=2),
-            SimpleNamespace(name='t1', usage_count=1),
-        ])
-    ],
-    [
-        'usage_count', True, [], (3, [
-            SimpleNamespace(name='t3', usage_count=3),
-            SimpleNamespace(name='t2', usage_count=2),
-            SimpleNamespace(name='t1', usage_count=1),
-        ])
-    ],
-])
+)
 def test_tag_model_view_get_list(tmv_instance, sort_field, sort_desc, filters, exp_res):
     tmv_instance.bukudb.add_rec('http://example.com/1.jpg', tags_in='t1,t2,t3')
     tmv_instance.bukudb.add_rec('http://example.com/2.jpg', tags_in='t2,t3')
