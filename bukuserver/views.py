@@ -2,6 +2,7 @@
 import functools
 import itertools
 import logging
+import types
 from argparse import Namespace
 from collections import Counter
 from types import SimpleNamespace
@@ -65,16 +66,6 @@ class CustomAdminIndexView(AdminIndexView):
             kwargs = {key: form.keyword.data}
         url = url_for("bookmark.index_view", **kwargs)
         return redirect(url)
-
-
-class CustomBukuDbModel:  # pylint: disable=too-few-public-methods
-    def __init__(self, bukudb_inst, name):
-        self.bukudb = bukudb_inst
-        self.name = name
-
-    @property
-    def __name__(self):
-        return self.name
 
 
 class BookmarkModelView(BaseModelView):
@@ -157,7 +148,7 @@ class BookmarkModelView(BaseModelView):
 
     def __init__(self, *args, **kwargs):
         self.bukudb: buku.BukuDb = args[0]
-        custom_model = CustomBukuDbModel(args[0], "bookmark")
+        custom_model = types.SimpleNamespace(bukudb=self.bukudb, name="bookmark")
         args = [
             custom_model,
         ] + list(args[1:])
@@ -471,7 +462,7 @@ class TagModelView(BaseModelView):
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
         self.all_tags = self.bukudb.get_tag_all()
-        custom_model = CustomBukuDbModel(args[0], "tag")
+        custom_model = types.SimpleNamespace(bukudb=self.bukudb, name="tag")
         args = [
             custom_model,
         ] + list(args[1:])
