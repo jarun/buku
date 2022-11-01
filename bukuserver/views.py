@@ -2,9 +2,9 @@
 import functools
 import itertools
 import logging
+import types
 from argparse import Namespace
 from collections import Counter
-from types import SimpleNamespace
 from typing import Any, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -65,16 +65,6 @@ class CustomAdminIndexView(AdminIndexView):
             kwargs = {key: form.keyword.data}
         url = url_for("bookmark.index_view", **kwargs)
         return redirect(url)
-
-
-class CustomBukuDbModel:  # pylint: disable=too-few-public-methods
-    def __init__(self, bukudb_inst, name):
-        self.bukudb = bukudb_inst
-        self.name = name
-
-    @property
-    def __name__(self):
-        return self.name
 
 
 class BookmarkModelView(BaseModelView):
@@ -157,7 +147,7 @@ class BookmarkModelView(BaseModelView):
 
     def __init__(self, *args, **kwargs):
         self.bukudb: buku.BukuDb = args[0]
-        custom_model = CustomBukuDbModel(args[0], "bookmark")
+        custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="bookmark")
         args = [
             custom_model,
         ] + list(args[1:])
@@ -179,9 +169,7 @@ class BookmarkModelView(BaseModelView):
 
     def create_model(self, form):
         try:
-            model = SimpleNamespace(
-                id=None, url=None, title=None, tags=None, description=None
-            )
+            model = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
             form.populate_obj(model)
             vars(model).pop("id")
             self._on_model_change(form, model, True)
@@ -259,9 +247,7 @@ class BookmarkModelView(BaseModelView):
                 bookmarks = []
         data = []
         for bookmark in bookmarks:
-            bm_sns = SimpleNamespace(
-                id=None, url=None, title=None, tags=None, description=None
-            )
+            bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
             for field in list(BookmarkField):
                 if field == BookmarkField.TAGS:
                     value = bookmark[field.value]
@@ -277,9 +263,7 @@ class BookmarkModelView(BaseModelView):
 
     def get_one(self, id):
         bookmark = self.model.bukudb.get_rec_by_id(id)
-        bm_sns = SimpleNamespace(
-            id=None, url=None, title=None, tags=None, description=None
-        )
+        bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
         for field in list(BookmarkField):
             if field == BookmarkField.TAGS and bookmark[field.value].startswith(","):
                 value = bookmark[field.value]
@@ -368,34 +352,27 @@ class BookmarkModelView(BaseModelView):
             )
         elif name == BookmarkField.TAGS.name.lower():
 
+            def get_list_from_buku_tags(item):
+                return [x.strip() for x in item.split(",")]
+
             def tags_contain_func(query, value, index):
                 for item in query:
-                    for tag in item[index].split(","):
-                        if tag and tag == value:
-                            yield item
+                    if value in get_list_from_buku_tags(item[index]):
+                        yield item
 
             def tags_not_contain_func(query, value, index):
                 for item in query:
-                    for tag in item[index].split(","):
-                        if tag and tag != value:
-                            yield item
+                    if value not in get_list_from_buku_tags(item[index]):
+                        yield item
 
             res.extend(
                 [
                     bs_filters.BookmarkBaseFilter(name, "contain", tags_contain_func),
-                    bs_filters.BookmarkBaseFilter(
-                        name, "not contain", tags_not_contain_func
-                    ),
+                    bs_filters.BookmarkBaseFilter(name, "not contain", tags_not_contain_func),
                     bs_filters.BookmarkTagNumberEqualFilter(name, "number equal"),
-                    bs_filters.BookmarkTagNumberNotEqualFilter(
-                        name, "number not equal"
-                    ),
-                    bs_filters.BookmarkTagNumberGreaterFilter(
-                        name, "number greater than"
-                    ),
-                    bs_filters.BookmarkTagNumberSmallerFilter(
-                        name, "number smaller than"
-                    ),
+                    bs_filters.BookmarkTagNumberNotEqualFilter(name, "number not equal"),
+                    bs_filters.BookmarkTagNumberGreaterFilter(name, "number greater than"),
+                    bs_filters.BookmarkTagNumberSmallerFilter(name, "number smaller than"),
                 ]
             )
         elif name in self.scaffold_list_columns():
@@ -471,7 +448,7 @@ class TagModelView(BaseModelView):
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
         self.all_tags = self.bukudb.get_tag_all()
-        custom_model = CustomBukuDbModel(args[0], "tag")
+        custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="tag")
         args = [
             custom_model,
         ] + list(args[1:])
@@ -501,7 +478,7 @@ class TagModelView(BaseModelView):
         search: Optional[Any],
         filters: List[Tuple[int, str, str]],
         page_size: int = None,
-    ) -> Tuple[int, List[SimpleNamespace]]:
+    ) -> Tuple[int, List[types.SimpleNamespace]]:
         logging.debug("search: %s", search)
         tags = self._apply_filters(sorted(self.all_tags[1].items()), filters)
         sort_field_dict = {"usage_count": 1, "name": 0}
@@ -518,7 +495,7 @@ class TagModelView(BaseModelView):
             tags = list(chunks(tags, page_size))[page]
         data = []
         for name, usage_count in tags:
-            tag_sns = SimpleNamespace(name=None, usage_count=None)
+            tag_sns = types.SimpleNamespace(name=None, usage_count=None)
             tag_sns.name, tag_sns.usage_count = name, usage_count
             data.append(tag_sns)
         return count, data
@@ -528,7 +505,7 @@ class TagModelView(BaseModelView):
 
     def get_one(self, id):
         tags = self.all_tags[1]
-        tag_sns = SimpleNamespace(name=id, usage_count=tags[id])
+        tag_sns = types.SimpleNamespace(name=id, usage_count=tags[id])
         return tag_sns
 
     def scaffold_filters(self, name):
