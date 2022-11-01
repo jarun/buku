@@ -34,3 +34,7 @@ repos:
     # "-sn", # Don't display the score
     # based on
     # https://pylint.pycqa.org/en/latest/user_guide/pre-commit-integration.html
+- repo: https://github.com/PyCQA/autoflake
+  rev: v1.7.7
+  hooks:
+  - id: autoflake
