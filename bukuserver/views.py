@@ -5,7 +5,6 @@ import logging
 import types
 from argparse import Namespace
 from collections import Counter
-from types import SimpleNamespace
 from typing import Any, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -148,7 +147,7 @@ class BookmarkModelView(BaseModelView):
 
     def __init__(self, *args, **kwargs):
         self.bukudb: buku.BukuDb = args[0]
-        custom_model = types.SimpleNamespace(bukudb=self.bukudb, name="bookmark")
+        custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="bookmark")
         args = [
             custom_model,
         ] + list(args[1:])
@@ -170,9 +169,7 @@ class BookmarkModelView(BaseModelView):
 
     def create_model(self, form):
         try:
-            model = SimpleNamespace(
-                id=None, url=None, title=None, tags=None, description=None
-            )
+            model = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
             form.populate_obj(model)
             vars(model).pop("id")
             self._on_model_change(form, model, True)
@@ -250,9 +247,7 @@ class BookmarkModelView(BaseModelView):
                 bookmarks = []
         data = []
         for bookmark in bookmarks:
-            bm_sns = SimpleNamespace(
-                id=None, url=None, title=None, tags=None, description=None
-            )
+            bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
             for field in list(BookmarkField):
                 if field == BookmarkField.TAGS:
                     value = bookmark[field.value]
@@ -268,9 +263,7 @@ class BookmarkModelView(BaseModelView):
 
     def get_one(self, id):
         bookmark = self.model.bukudb.get_rec_by_id(id)
-        bm_sns = SimpleNamespace(
-            id=None, url=None, title=None, tags=None, description=None
-        )
+        bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
         for field in list(BookmarkField):
             if field == BookmarkField.TAGS and bookmark[field.value].startswith(","):
                 value = bookmark[field.value]
@@ -462,7 +455,7 @@ class TagModelView(BaseModelView):
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
         self.all_tags = self.bukudb.get_tag_all()
-        custom_model = types.SimpleNamespace(bukudb=self.bukudb, name="tag")
+        custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="tag")
         args = [
             custom_model,
         ] + list(args[1:])
@@ -492,7 +485,7 @@ class TagModelView(BaseModelView):
         search: Optional[Any],
         filters: List[Tuple[int, str, str]],
         page_size: int = None,
-    ) -> Tuple[int, List[SimpleNamespace]]:
+    ) -> Tuple[int, List[types.SimpleNamespace]]:
         logging.debug("search: %s", search)
         tags = self._apply_filters(sorted(self.all_tags[1].items()), filters)
         sort_field_dict = {"usage_count": 1, "name": 0}
@@ -509,7 +502,7 @@ class TagModelView(BaseModelView):
             tags = list(chunks(tags, page_size))[page]
         data = []
         for name, usage_count in tags:
-            tag_sns = SimpleNamespace(name=None, usage_count=None)
+            tag_sns = types.SimpleNamespace(name=None, usage_count=None)
             tag_sns.name, tag_sns.usage_count = name, usage_count
             data.append(tag_sns)
         return count, data
@@ -519,7 +512,7 @@ class TagModelView(BaseModelView):
 
     def get_one(self, id):
         tags = self.all_tags[1]
-        tag_sns = SimpleNamespace(name=id, usage_count=tags[id])
+        tag_sns = types.SimpleNamespace(name=id, usage_count=tags[id])
         return tag_sns
 
     def scaffold_filters(self, name):
