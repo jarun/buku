@@ -352,34 +352,27 @@ class BookmarkModelView(BaseModelView):
             )
         elif name == BookmarkField.TAGS.name.lower():
 
+            def get_list_from_buku_tags(item):
+                return [x.strip() for x in item.split(",")]
+
             def tags_contain_func(query, value, index):
                 for item in query:
-                    for tag in item[index].split(","):
-                        if tag and tag == value:
-                            yield item
+                    if value in get_list_from_buku_tags(item[index]):
+                        yield item
 
             def tags_not_contain_func(query, value, index):
                 for item in query:
-                    for tag in item[index].split(","):
-                        if tag and tag != value:
-                            yield item
+                    if value not in get_list_from_buku_tags(item[index]):
+                        yield item
 
             res.extend(
                 [
                     bs_filters.BookmarkBaseFilter(name, "contain", tags_contain_func),
-                    bs_filters.BookmarkBaseFilter(
-                        name, "not contain", tags_not_contain_func
-                    ),
+                    bs_filters.BookmarkBaseFilter(name, "not contain", tags_not_contain_func),
                     bs_filters.BookmarkTagNumberEqualFilter(name, "number equal"),
-                    bs_filters.BookmarkTagNumberNotEqualFilter(
-                        name, "number not equal"
-                    ),
-                    bs_filters.BookmarkTagNumberGreaterFilter(
-                        name, "number greater than"
-                    ),
-                    bs_filters.BookmarkTagNumberSmallerFilter(
-                        name, "number smaller than"
-                    ),
+                    bs_filters.BookmarkTagNumberNotEqualFilter(name, "number not equal"),
+                    bs_filters.BookmarkTagNumberGreaterFilter(name, "number greater than"),
+                    bs_filters.BookmarkTagNumberSmallerFilter(name, "number smaller than"),
                 ]
             )
         elif name in self.scaffold_list_columns():
