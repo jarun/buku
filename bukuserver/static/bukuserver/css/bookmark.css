@@ -1,0 +1,11 @@
+/* preventing layout overflow in tables */
+table tr td:not(:first-child) {
+    overflow-wrap: anywhere;
+}
+
+/* wider modals for wide data */
+@media (min-width: 768px) {
+    .modal-dialog {
+        width: min(1000px, 80%);
+    }
+}
