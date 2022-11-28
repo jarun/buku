@@ -144,6 +144,7 @@ class BookmarkModelView(BaseModelView):
     edit_modal_template = "bukuserver/bookmark_edit_modal.html"
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
+    extra_css = ['/static/bukuserver/css/bookmark.css']
 
     def __init__(self, *args, **kwargs):
         self.bukudb: buku.BukuDb = args[0]
@@ -271,7 +272,7 @@ class BookmarkModelView(BaseModelView):
                     value = value[1:]
                 if value.endswith(","):
                     value = value[:-1]
-                setattr(bm_sns, field.name.lower(), value)
+                setattr(bm_sns, field.name.lower(), value.replace(',', ', '))
             else:
                 setattr(bm_sns, field.name.lower(), bookmark[field.value])
         return bm_sns
