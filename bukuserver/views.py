@@ -60,7 +60,7 @@ class CustomAdminIndexView(AdminIndexView):
                 choosen_idx = idx
         url_op_text = op_text.replace(", ", "_").replace("  ", " ").replace(" ", "_")
         kwargs = {}
-        if choosen_idx:
+        if form.keyword.data:
             key = "".join(["flt", str(choosen_idx), "_buku_", url_op_text])
             kwargs = {key: form.keyword.data}
         url = url_for("bookmark.index_view", **kwargs)
