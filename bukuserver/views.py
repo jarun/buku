@@ -235,11 +235,6 @@ class BookmarkModelView(BaseModelView):
         else:
             bookmarks = bukudb.get_rec_all()
         bookmarks = self._apply_filters(bookmarks, filters)
-        if sort_field:
-            key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][
-                0
-            ]
-            bookmarks = sorted(bookmarks, key=lambda x: x[key_idx], reverse=sort_desc)
         count = len(bookmarks)
         if page_size and bookmarks:
             try:
@@ -287,7 +282,12 @@ class BookmarkModelView(BaseModelView):
         pass
 
     def scaffold_sortable_columns(self):
-        return {x: x for x in self.scaffold_list_columns()}
+        """Returns a dictionary of sortable columns.
+
+        from flask-admin docs:
+        `If your backend does not support sorting, return None or an empty dictionary.`
+        """
+        return {}
 
     def scaffold_filters(self, name):
         res = []
