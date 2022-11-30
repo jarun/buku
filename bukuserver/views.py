@@ -40,34 +40,20 @@ class CustomAdminIndexView(AdminIndexView):
     def index(self):
         return self.render("bukuserver/home.html", form=forms.HomeForm())
 
-    @expose(
-        "/",
-        methods=[
-            "POST",
-        ],
-    )
+    @expose('/', methods=['POST'])
     def search(self):
         "redirect to bookmark search"
         form = forms.HomeForm()
-        bbm_filter = bs_filters.BookmarkBukuFilter(
-            all_keywords=False, deep=form.deep.data, regex=form.regex.data
-        )
-        op_text = bbm_filter.operation()
-        values_combi = sorted(itertools.product([True, False], repeat=3))
-        choosen_idx = None
-        for idx, (all_keywords, deep, regex) in enumerate(values_combi):
-            if deep == form.deep.data and regex == form.regex.data and not all_keywords:
-                choosen_idx = idx
-        url_op_text = op_text.replace(", ", "_").replace("  ", " ").replace(" ", "_")
-        kwargs = {}
-        if form.keyword.data:
-            key = "".join(["flt", str(choosen_idx), "_buku_", url_op_text])
-            kwargs = {key: form.keyword.data}
-        url = url_for("bookmark.index_view", **kwargs)
+        buku_filter = bs_filters.BookmarkBukuFilter(deep=form.deep.data, regex=form.regex.data)
+        url = url_for('bookmark.index_view', **{filter_key(buku_filter): form.keyword.data})
         return redirect(url)
 
 
 class BookmarkModelView(BaseModelView):
+    @staticmethod
+    def _filter_arg(flt):  # this works because BookmarkModelView.named_filter_urls = True
+        return BaseModelView.get_filter_arg(BookmarkModelView, None, flt)
+
     def _apply_filters(self, models, filters):
         for idx, _, value in filters:
             if self._filters:
@@ -88,7 +74,7 @@ class BookmarkModelView(BaseModelView):
         get_index_view_url = functools.partial(url_for, "bookmark.index_view")
         for tag in filter(None, model.tags.split(",")):
             tag_text.append(
-                f'<a class="btn btn-default" href="{get_index_view_url(flt2_tags_contain=tag.strip())}">{tag}</a>'
+                f'<a class="btn btn-default" href="{get_index_view_url(flt0_tags_contain=tag.strip())}">{tag}</a>'
             )
         tag_text_markup = "".join(tag_text)
         if not netloc and not parsed_url.scheme:
@@ -105,7 +91,7 @@ class BookmarkModelView(BaseModelView):
         open_in_new_tab = current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False)
         url_for_index_view_netloc = None
         if netloc:
-            url_for_index_view_netloc = get_index_view_url(flt2_url_netloc_match=netloc)
+            url_for_index_view_netloc = get_index_view_url(flt0_url_netloc_match=netloc)
         if parsed_url.scheme and not open_in_new_tab:
             target = 'target="_blank"' if open_in_new_tab else ""
             res.append(f'<a href="{model.url}"{target}>{title}</a>')
@@ -214,30 +200,23 @@ class BookmarkModelView(BaseModelView):
 
     def get_list(self, page, sort_field, sort_desc, _, filters, page_size=None):
         bukudb = self.bukudb
-        contain_buku_search = any(x[1] == "buku" for x in filters)
-        if contain_buku_search:
-            mode_id = [x[0] for x in filters]
-            if len(list(set(mode_id))) > 1:
+        buku_filters = [x for x in filters if x[1] == 'buku']
+        if buku_filters:
+            keywords = [x[2] for x in buku_filters]
+            mode_id = {x[0] for x in buku_filters}
+            if len(mode_id) > 1:
                 flash(gettext("Invalid search mode combination"), "error")
                 return 0, []
-            keywords = [x[2] for x in filters]
-            flt = None
-            for idx, flt_name, value in filters:
-                if flt_name == "buku" and self._filters:
-                    flt = self._filters[idx]
-            kwargs = (
-                dict(all_keywords=flt.all_keywords, deep=flt.deep, regex=flt.regex)
-                if flt
-                else {}
-            )
+            try:
+                kwargs = self._filters[mode_id.pop()].params
+            except IndexError:
+                kwargs = {}
             bookmarks = bukudb.searchdb(keywords, **kwargs)
         else:
             bookmarks = bukudb.get_rec_all()
-        bookmarks = self._apply_filters(bookmarks, filters)
-        if sort_field:
-            key_idx = [x.value for x in BookmarkField if x.name.lower() == sort_field][
-                0
-            ]
+        bookmarks = self._apply_filters(bookmarks or [], filters)
+        if sort_field:  # this is broken (the only possible value here is 'Entry')
+            key_idx = next(x.value for x in BookmarkField if x.name.lower() == sort_field.lower())
             bookmarks = sorted(bookmarks, key=lambda x: x[key_idx], reverse=sort_desc)
         count = len(bookmarks)
         if page_size and bookmarks:
@@ -702,3 +681,6 @@ class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
 def chunks(arr, n):
     n = max(1, n)
     return (arr[i : i + n] for i in range(0, len(arr), n))
+
+def filter_key(flt, idx=''):
+    return 'flt' + str(idx) + '_' + BookmarkModelView._filter_arg(flt)
