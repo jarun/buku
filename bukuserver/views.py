@@ -51,7 +51,8 @@ class CustomAdminIndexView(AdminIndexView):
 
 class BookmarkModelView(BaseModelView):
     @staticmethod
-    def _filter_arg(flt):  # this works because BookmarkModelView.named_filter_urls = True
+    def _filter_arg(flt):
+        """Exposes filter slugify logic; works because BookmarkModelView.named_filter_urls = True"""
         return BaseModelView.get_filter_arg(BookmarkModelView, None, flt)
 
     def _apply_filters(self, models, filters):
