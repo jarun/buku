@@ -202,6 +202,8 @@ def create_app(db_file=None):
         url_render_mode = views.DEFAULT_URL_RENDER_MODE
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
+    app.config['BUKUSERVER_READONLY'] = \
+        get_bool_from_env_var('BUKUSERVER_READONLY', False)
     app.config['BUKUSERVER_DISABLE_FAVICON'] = \
         get_bool_from_env_var('BUKUSERVER_DISABLE_FAVICON', True)
     app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \

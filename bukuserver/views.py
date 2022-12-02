@@ -72,6 +72,13 @@ def last_page(self):
     return redirect(url_for('.index_view', **args))
 
 
+def readonly_check(self):
+    if current_app.config.get("BUKUSERVER_READONLY", False):
+        self.can_create = False
+        self.can_edit = False
+        self.can_delete = False
+
+
 class BookmarkModelView(BaseModelView):
     @staticmethod
     def _filter_arg(flt):
@@ -109,7 +116,7 @@ class BookmarkModelView(BaseModelView):
         res = []
         if not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False) and netloc:
             res.append(
-                f'<img src="http://www.google.com/s2/favicons?domain={netloc}"/>'
+                f'<img src="http://www.google.com/s2/favicons?domain={netloc}"/> '
             )
         title = model.title if model.title else "&lt;EMPTY TITLE&gt;"
         open_in_new_tab = current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False)
@@ -159,6 +166,7 @@ class BookmarkModelView(BaseModelView):
     last_page = expose('/last-page')(last_page)
 
     def __init__(self, *args, **kwargs):
+        readonly_check(self)
         self.bukudb: buku.BukuDb = args[0]
         custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="bookmark")
         args = [
@@ -453,6 +461,7 @@ class TagModelView(BaseModelView):
     last_page = expose('/last-page')(last_page)
 
     def __init__(self, *args, **kwargs):
+        readonly_check(self)
         self.bukudb = args[0]
         self.all_tags = self.bukudb.get_tag_all()
         custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="tag")
