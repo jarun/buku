@@ -1,0 +1,7 @@
+{% extends 'admin/model/list.html' %}
+
+{% block model_menu_bar_before_filters %}
+  {{ super() }}
+  <form id="refresh" style="display:none" method="POST" action="refresh"></form>
+  <li><a href="#" onclick="refresh.submit()">{{ _gettext('Refresh') }}</a></li>
+{% endblock %}

@@ -427,6 +427,7 @@ class TagModelView(BaseModelView):
     column_formatters = {
         "name": _name_formatter,
     }
+    list_template = 'bukuserver/tags_list.html'
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
@@ -437,6 +438,11 @@ class TagModelView(BaseModelView):
         ] + list(args[1:])
         self.page_size = kwargs.pop("page_size", DEFAULT_PER_PAGE)
         super().__init__(*args, **kwargs)
+
+    @expose('/refresh', methods=['POST'])
+    def refresh(self):
+        self.all_tags = self.bukudb.get_tag_all()
+        return redirect(request.referrer or url_for('tags.index_page'))
 
     def scaffold_list_columns(self):
         return ["name", "usage_count"]

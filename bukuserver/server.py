@@ -27,16 +27,13 @@ import click
 import flask
 from flask import __version__ as flask_version  # type: ignore
 from flask import (
-    abort,
     current_app,
-    flash,
     jsonify,
     redirect,
     render_template,
     request,
     url_for,
 )
-from markupsafe import Markup
 
 try:
     from . import forms, response, views
@@ -50,18 +47,6 @@ def get_bukudb():
     """get bukudb instance"""
     db_file = current_app.config.get('BUKUSERVER_DB_FILE', None)
     return BukuDb(dbfile=db_file)
-
-def get_tags():
-    """get tags."""
-    tags = getattr(flask.g, 'bukudb', get_bukudb()).get_tag_all()
-    result = {
-        'tags': tags[0]
-    }
-    if request.path.startswith('/api/'):
-        res = jsonify(result)
-    else:
-        res = render_template('bukuserver/tags.html', result=result)
-    return res
 
 
 def handle_network():
@@ -77,31 +62,6 @@ def handle_network():
     except Exception as e:
         current_app.logger.debug(str(e))
     return failed_resp
-
-
-def update_tag(tag):
-    res = None
-    if request.method in ('PUT', 'POST'):
-        new_tags = request.form.getlist('tags')
-        result_flag = getattr(flask.g, 'bukudb', get_bukudb()).replace_tag(tag, new_tags)
-        op_text = 'replace tag [{}] with [{}]'.format(tag, ', '.join(new_tags))
-        if request.method == 'PUT' and result_flag and request.path.startswith('/api/'):
-            res = (jsonify(response.response_template['success']),
-                   status.HTTP_200_OK,
-                   {'ContentType': 'application/json'})
-        elif request.method == 'PUT' and request.path.startswith('/api/'):
-            res = (jsonify(response.response_template['failure']),
-                   status.HTTP_400_BAD_REQUEST,
-                   {'ContentType': 'application/json'})
-        elif request.method == 'POST' and result_flag:
-            flash(Markup('Success {}'.format(op_text)), 'success')
-            res = redirect(url_for('get_tags-html'))
-        elif request.method == 'POST':
-            flash(Markup('Failed {}'.format(op_text)), 'danger')
-            res = redirect(url_for('get_tags-html'))
-        else:
-            abort(400, description="Unknown Condition")
-    return res
 
 
 def refresh_bookmark(rec_id: Union[int, None]):
