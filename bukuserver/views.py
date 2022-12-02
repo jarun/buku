@@ -49,6 +49,28 @@ class CustomAdminIndexView(AdminIndexView):
         return redirect(url)
 
 
+def last_page(self):
+    """Generic '/last_page' endpoint handler"""
+    # Grab parameters from URL
+    view_args = self._get_list_extra_args()
+
+    # Map column index to column name
+    sort_column = self._get_column_by_idx(view_args.sort)
+    if sort_column is not None:
+        sort_column = sort_column[0]
+
+    # Get page size
+    page_size = view_args.page_size or self.page_size
+
+    # Get count and data
+    count, data = self.get_list(-1, sort_column, view_args.sort_desc,
+                                view_args.search, view_args.filters, page_size=page_size)
+
+    args = request.args.copy()
+    args.setlist('page', [max(0, view_args.page + (count + page_size - 1) // page_size)])
+    return redirect(url_for('.index_view', **args))
+
+
 class BookmarkModelView(BaseModelView):
     @staticmethod
     def _filter_arg(flt):
@@ -132,7 +154,8 @@ class BookmarkModelView(BaseModelView):
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
     extra_css = ['/static/bukuserver/css/bookmark.css']
-    extra_js = ['/static/bukuserver/js/page_size.js']
+    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
+    last_page = expose('/last-page')(last_page)
 
     def __init__(self, *args, **kwargs):
         self.bukudb: buku.BukuDb = args[0]
@@ -425,7 +448,8 @@ class TagModelView(BaseModelView):
         "name": _name_formatter,
     }
     list_template = 'bukuserver/tags_list.html'
-    extra_js = ['/static/bukuserver/js/page_size.js']
+    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
+    last_page = expose('/last-page')(last_page)
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
@@ -440,7 +464,7 @@ class TagModelView(BaseModelView):
     @expose('/refresh', methods=['POST'])
     def refresh(self):
         self.all_tags = self.bukudb.get_tag_all()
-        return redirect(request.referrer or url_for('tags.index_page'))
+        return redirect(request.referrer or url_for('.index_view'))
 
     def scaffold_list_columns(self):
         return ["name", "usage_count"]
