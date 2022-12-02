@@ -114,29 +114,19 @@ class TagBaseFilter(BaseFilter):
 
 
 class BookmarkBukuFilter(BaseFilter):
+    keys = {
+        'all_keywords': 'match all',
+        'deep': 'deep',
+        'regex': 'regex'
+    }
 
     def __init__(self, *args, **kwargs):
-        self.keys = {
-            'all_keywords': 'match all',
-            'deep': 'deep',
-            'regex': 'regex'
-        }
-        for key, value in kwargs.items():
-            if key in self.keys and value:
-                setattr(self, key, value)
-            else:
-                setattr(self, key, False)
-        list(map(lambda x: kwargs.pop(x), self.keys))
+        self.params = {key: kwargs.pop(key, False) for key in self.keys}
         super().__init__('buku', *args, **kwargs)
 
     def operation(self):
-        parts = []
-        for key, value in self.keys.items():
-            if getattr(self, key):
-                parts.append(value)
-        if not parts:
-            return 'search'
-        return 'search ' + ', '.join(parts)
+        parts = ', '.join(v for k, v in self.keys.items() if self.params[k])
+        return 'search' + (parts and ' ' + parts)
 
     def apply(self, query, value):
         return query
