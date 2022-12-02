@@ -132,6 +132,7 @@ class BookmarkModelView(BaseModelView):
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
     extra_css = ['/static/bukuserver/css/bookmark.css']
+    extra_js = ['/static/bukuserver/js/page_size.js']
 
     def __init__(self, *args, **kwargs):
         self.bukudb: buku.BukuDb = args[0]
@@ -218,11 +219,7 @@ class BookmarkModelView(BaseModelView):
             bookmarks = bukudb.get_rec_all()
         bookmarks = self._apply_filters(bookmarks or [], filters)
         count = len(bookmarks)
-        if page_size and bookmarks:
-            try:
-                bookmarks = list(chunks(bookmarks, page_size))[page]
-            except IndexError:
-                bookmarks = []
+        bookmarks = page_of(bookmarks, page_size, page)
         data = []
         for bookmark in bookmarks:
             bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
@@ -428,6 +425,7 @@ class TagModelView(BaseModelView):
         "name": _name_formatter,
     }
     list_template = 'bukuserver/tags_list.html'
+    extra_js = ['/static/bukuserver/js/page_size.js']
 
     def __init__(self, *args, **kwargs):
         self.bukudb = args[0]
@@ -480,8 +478,7 @@ class TagModelView(BaseModelView):
                 )
             )
         count = len(tags)
-        if page_size and tags:
-            tags = list(chunks(tags, page_size))[page]
+        tags = page_of(tags, page_size, page)
         data = []
         for name, usage_count in tags:
             tag_sns = types.SimpleNamespace(name=None, usage_count=None)
@@ -690,7 +687,13 @@ class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
 
 def chunks(arr, n):
     n = max(1, n)
-    return (arr[i : i + n] for i in range(0, len(arr), n))
+    return [arr[i : i + n] for i in range(0, len(arr), n)]
+
+def page_of(items, size, idx):
+    try:
+        return chunks(items, size)[idx] if size and items else items
+    except IndexError:
+        return []
 
 def filter_key(flt, idx=''):
     return 'flt' + str(idx) + '_' + BookmarkModelView._filter_arg(flt)
