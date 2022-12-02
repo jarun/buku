@@ -50,7 +50,8 @@ class CustomAdminIndexView(AdminIndexView):
 
 
 def last_page(self):
-    """Generic '/last_page' endpoint handler"""
+    """Generic '/last_page' endpoint handler; based on
+    https://github.com/flask-admin/flask-admin/blob/v1.6.0/flask_admin/model/base.py#L1956-L1969 """
     # Grab parameters from URL
     view_args = self._get_list_extra_args()
 
