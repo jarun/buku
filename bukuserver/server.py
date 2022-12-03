@@ -14,7 +14,6 @@ from flask.views import MethodView
 from flask_admin import Admin
 from flask_api import FlaskAPI, exceptions, status
 from flask_bootstrap import Bootstrap
-from flask_paginate import Pagination, get_page_parameter, get_per_page_parameter
 
 import buku
 from buku import BukuDb, __version__, network_handler
@@ -30,7 +29,6 @@ from flask import (
     current_app,
     jsonify,
     redirect,
-    render_template,
     request,
     url_for,
 )
@@ -90,92 +88,6 @@ def get_tiny_url(rec_id):
             jsonify(response.response_template['failure']),
             status.HTTP_400_BAD_REQUEST,
             {'ContentType': 'application/json'})
-    return res
-
-
-def search_bookmarks():
-    arg_obj = request.form if request.method == 'DELETE' else request.args
-    search_bookmarks_form = forms.SearchBookmarksForm(request.args)
-    is_api_request_path = request.path.startswith('/api/')
-    if is_api_request_path:
-        keywords = arg_obj.getlist('keywords')
-        all_keywords = arg_obj.get('all_keywords')
-        deep = arg_obj.get('deep')
-        regex = arg_obj.get('regex')
-        # api request is more strict
-        all_keywords = False if all_keywords is None else all_keywords
-        deep = False if deep is None else deep
-        regex = False if regex is None else regex
-        all_keywords = (
-            all_keywords if isinstance(all_keywords, bool) else
-            all_keywords.lower() == 'true'
-        )
-        deep = deep if isinstance(deep, bool) else deep.lower() == 'true'
-        regex = regex if isinstance(regex, bool) else regex.lower() == 'true'
-    else:
-        keywords = search_bookmarks_form.keywords.data
-        all_keywords = search_bookmarks_form.all_keywords.data
-        deep = search_bookmarks_form.deep.data
-        regex = search_bookmarks_form.regex.data
-
-    result = {'bookmarks': []}
-    bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-    found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
-    found_bookmarks = [] if found_bookmarks is None else found_bookmarks
-    page = request.args.get(get_page_parameter(), type=int, default=1)
-    per_page = request.args.get(
-        get_per_page_parameter(),
-        type=int,
-        default=int(
-            current_app.config.get('BUKUSERVER_PER_PAGE', views.DEFAULT_PER_PAGE))
-    )
-
-    res = None
-    if request.method == 'GET':
-        if found_bookmarks is not None:
-            for bookmark in found_bookmarks:
-                result_bookmark = {
-                    'id': bookmark[0],
-                    'url': bookmark[1],
-                    'title': bookmark[2],
-                    'tags': list(filter(lambda x: x, bookmark[3].split(','))),
-                    'description': bookmark[4]
-                }
-                result['bookmarks'].append(result_bookmark)
-        current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks'])))
-        if is_api_request_path:
-            res = jsonify(result)
-        else:
-            pagination_total = len(result['bookmarks'])
-            bms = list(views.chunks(result['bookmarks'], per_page))
-            try:
-                result['bookmarks'] = bms[page-1]
-            except IndexError as err:
-                current_app.logger.debug('{}:{}, result bookmarks:{}, page:{}'.format(
-                    type(err), err, len(result['bookmarks']), page
-                ))
-            pagination = Pagination(
-                page=page, total=pagination_total, per_page=per_page,
-                search=False, record_name='bookmarks', bs_version=3
-            )
-            res = render_template(
-                'bukuserver/bookmarks.html',
-                result=result, pagination=pagination,
-                search_bookmarks_form=search_bookmarks_form,
-                create_bookmarks_form=forms.BookmarkForm(),
-            )
-    elif request.method == 'DELETE':
-        if found_bookmarks is not None:
-            for bookmark in found_bookmarks:
-                result_flag = bukudb.delete_rec(bookmark[0])
-                if result_flag is False:
-                    res = (jsonify(response.response_template['failure']),
-                           status.HTTP_400_BAD_REQUEST,
-                           {'ContentType': 'application/json'})
-        if res is None:
-            res = (jsonify(response.response_template['success']),
-                   status.HTTP_200_OK,
-                   {'ContentType': 'application/json'})
     return res
 
 
