@@ -258,7 +258,12 @@ def create_app(db_file=None):
     app.add_url_rule('/api/bookmarks/search', view_func=bookmark_search_api_view, methods=['GET', 'DELETE'])
     bookmarklet_view = BookmarkletView.as_view('bookmarklet')
     app.add_url_rule('/bookmarklet', view_func=bookmarklet_view, methods=['GET'])
+
     #  non api
+    @app.route('/favicon.ico')
+    def favicon():
+        return redirect(url_for('static', filename='bukuserver/favicon.svg'), code=301)  # permanent redirect
+
     admin.add_view(views.BookmarkModelView(
         bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
     admin.add_view(views.TagModelView(

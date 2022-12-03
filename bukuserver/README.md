@@ -120,7 +120,7 @@ Following are available os env config available for bukuserver.
 | URL_RENDER_MODE | url render mode | `full` or `netloc` [default: `full`] |
 | DB_FILE | full path to db file | path string [default: standard path for buku] |
 | READONLY | read-only mode | boolean [default: `false`] |
-| DISABLE_FAVICON | disable bookmark favicons | boolean [default: `true`] |
+| DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean [default: `true`] |
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path | string |
 
