@@ -2430,7 +2430,7 @@ class BukuDb:
     def auto_import_from_browser(self):
         """Import bookmarks from a browser default database file.
 
-        Supports Firefox, Google Chrome and Microsoft Edge.
+        Supports Firefox, Google Chrome, Vivaldi, and Microsoft Edge.
 
         Returns
         -------
@@ -2443,6 +2443,7 @@ class BukuDb:
         if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
             gc_bm_db_path = '~/.config/google-chrome/Default/Bookmarks'
             cb_bm_db_path = '~/.config/chromium/Default/Bookmarks'
+            vi_bm_db_path = '~/.config/vivaldi/Default/Bookmarks'
 
             default_ff_folder = os.path.expanduser('~/.mozilla/firefox')
             profile = get_firefox_profile_name(default_ff_folder)
@@ -2453,6 +2454,7 @@ class BukuDb:
         elif sys.platform == 'darwin':
             gc_bm_db_path = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             cb_bm_db_path = '~/Library/Application Support/Chromium/Default/Bookmarks'
+            vi_bm_db_path = '~/Library/Application Support/Vivaldi/Default/Bookmarks'
 
             default_ff_folder = os.path.expanduser('~/Library/Application Support/Firefox')
             profile = get_firefox_profile_name(default_ff_folder)
@@ -2467,6 +2469,8 @@ class BukuDb:
             gc_bm_db_path = ('C:/Users/{}/AppData/Local/Google/Chrome/User Data/'
                              'Default/Bookmarks'.format(username))
             cb_bm_db_path = ('C:/Users/{}/AppData/Local/Chromium/User Data/'
+                             'Default/Bookmarks'.format(username))
+            vi_bm_db_path = ('C:/Users/{}/AppData/Local/Vivaldi/User Data/'
                              'Default/Bookmarks'.format(username))
 
             default_ff_folder = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/'.format(username)
@@ -2517,6 +2521,18 @@ class BukuDb:
         except Exception as e:
             LOGERR(e)
             print('Could not import bookmarks from chromium')
+
+        try:
+            if self.chatty:
+                resp = input('Import bookmarks from Vivaldi? (y/n): ')
+            if resp == 'y':
+                bookmarks_database = os.path.expanduser(vi_bm_db_path)
+                if not os.path.exists(bookmarks_database):
+                    raise FileNotFoundError
+                self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+        except Exception as e:
+            LOGERR(e)
+            print('Could not import bookmarks from Vivaldi')
 
         try:
             if self.chatty:
@@ -3657,6 +3673,7 @@ def is_nongeneric_url(url):
         'chrome://',
         'file://',
         'place:',
+        'vivaldi://',
     ]
 
     for prefix in ignored_prefix:
@@ -5449,7 +5466,7 @@ POSITIONAL ARGUMENTS:
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
         description='''    --ai                 auto-import bookmarks from web browsers
-                         Firefox, Chrome, Chromium, Edge
+                         Firefox, Chrome, Chromium, Vivaldi, Edge
     -e, --export file    export bookmarks to Firefox format HTML
                          export XBEL, if file ends with '.xbel'
                          export Markdown, if file ends with '.md'

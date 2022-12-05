@@ -214,7 +214,7 @@ ENCRYPTION OPTIONS:
 
 POWER TOYS:
       --ai                 auto-import bookmarks from web browsers
-                           Firefox, Chrome, Chromium, Edge
+                           Firefox, Chrome, Chromium, Vivaldi, Edge
       -e, --export file    export bookmarks to Firefox format HTML
                            export XBEL, if file ends with '.xbel'
                            export Markdown, if file ends with '.md'
