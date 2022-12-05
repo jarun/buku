@@ -5466,7 +5466,7 @@ POSITIONAL ARGUMENTS:
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
         description='''    --ai                 auto-import bookmarks from web browsers
-                         Firefox, Chrome, Chromium, Edge, Vivaldi
+                         Firefox, Chrome, Chromium, Vivaldi, Edge
     -e, --export file    export bookmarks to Firefox format HTML
                          export XBEL, if file ends with '.xbel'
                          export Markdown, if file ends with '.md'
