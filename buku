@@ -2443,7 +2443,7 @@ class BukuDb:
         if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
             gc_bm_db_path = '~/.config/google-chrome/Default/Bookmarks'
             cb_bm_db_path = '~/.config/chromium/Default/Bookmarks'
-            vi_bm_db_path = '~/.config/Vivaldi/Default/Bookmarks'
+            vi_bm_db_path = '~/.config/vivaldi/Default/Bookmarks'
 
             default_ff_folder = os.path.expanduser('~/.mozilla/firefox')
             profile = get_firefox_profile_name(default_ff_folder)
