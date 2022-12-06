@@ -202,7 +202,7 @@ class BookmarkModelView(BaseModelView):
             for key, item in (("title_in", model.title), ("desc", model.description)):
                 if item.strip():
                     kwargs[key] = item
-            self.model.bukudb.add_rec(**kwargs)
+            vars(model)['id'] = self.model.bukudb.add_rec(**kwargs)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to create record."

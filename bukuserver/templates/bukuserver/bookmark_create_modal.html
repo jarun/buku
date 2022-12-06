@@ -1,5 +1,11 @@
 {% extends 'admin/model/modals/create.html' %}
 
+{% block create_form %}
+  {{ lib.render_form(form, return_url, lib.extra(), form_opts=form_opts,
+                     action=url_for('.create_view', url=return_url),
+                     is_modal=True) }}
+{% endblock %}
+
 {% block tail %}
   {{ super() }}
   <script src="{{ url_for('static', filename='bukuserver/js/bookmark.js') }}"></script>
