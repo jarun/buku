@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 
 import arrow
 import wtforms
-from flask import current_app, flash, redirect, request, url_for
+from flask import current_app, flash, redirect, request, session, url_for
 from flask_admin.babel import gettext
 from flask_admin.base import AdminIndexView, BaseView, expose
 from flask_admin.model import BaseModelView
@@ -153,6 +153,8 @@ class BookmarkModelView(BaseModelView):
         "Entry": _list_entry,
     }
     column_list = ["Entry"]
+    list_template = 'bukuserver/bookmarks_list.html'
+    details_template = 'bukuserver/bookmark_details.html'
     create_modal = True
     create_modal_template = "bukuserver/bookmark_create_modal.html"
     create_template = "bukuserver/bookmark_create.html"
@@ -162,7 +164,7 @@ class BookmarkModelView(BaseModelView):
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
     extra_css = ['/static/bukuserver/css/bookmark.css']
-    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
+    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js', 'flash.js')]
     last_page = expose('/last-page')(last_page)
 
     def __init__(self, *args, **kwargs):
@@ -202,7 +204,7 @@ class BookmarkModelView(BaseModelView):
             for key, item in (("title_in", model.title), ("desc", model.description)):
                 if item.strip():
                     kwargs[key] = item
-            vars(model)['id'] = self.model.bukudb.add_rec(**kwargs)
+            session['saved'] = vars(model)['id'] = self.model.bukudb.add_rec(**kwargs)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to create record."
@@ -409,6 +411,7 @@ class BookmarkModelView(BaseModelView):
                 tags_in=buku.parse_tags([model.tags]),
                 desc=model.description,
             )
+            session['saved'] = model.id
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to update record."

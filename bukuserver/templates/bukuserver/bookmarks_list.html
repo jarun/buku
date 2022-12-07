@@ -1,0 +1,6 @@
+{% extends 'admin/model/list.html' %}
+
+{% block head %}
+  {{ super() }}
+  <script>const SAVED = '{{ session.pop('saved', '') }}'</script>
+{% endblock %}

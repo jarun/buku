@@ -1,5 +1,10 @@
 {% extends 'admin/model/edit.html' %}
 
+{% block head %}
+  {{ super() }}
+  <script>const SAVED = '{{ session.pop('saved', '') }}'</script>
+{% endblock %}
+
 {% block tail %}
   {{ super() }}
   <script src="{{ url_for('static', filename='bukuserver/js/bookmark.js') }}"></script>
