@@ -266,7 +266,7 @@ class ApiBookmarkView(MethodView):
                 result_bookmark = {
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list(filter(lambda x: x, bookmark[3].split(','))),
+                    'tags': [x for x in bookmark[3].split(',') if x],
                     'description': bookmark[4]
                 }
                 if not request.path.startswith('/api/'):
@@ -280,7 +280,7 @@ class ApiBookmarkView(MethodView):
                 result = {
                     'url': bookmark[1],
                     'title': bookmark[2],
-                    'tags': list(filter(lambda x: x, bookmark[3].split(','))),
+                    'tags': [x for x in bookmark[3].split(',') if x],
                     'description': bookmark[4]
                 }
                 res = jsonify(result)
@@ -291,7 +291,7 @@ class ApiBookmarkView(MethodView):
 
     def post(self, rec_id: None = None):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        create_bookmarks_form = forms.BookmarkForm()
+        create_bookmarks_form = forms.ApiBookmarkForm()
         url_data = create_bookmarks_form.url.data
         result_flag = bukudb.add_rec(
             url_data,
@@ -362,7 +362,7 @@ class ApiBookmarkRangeView(MethodView):
             result['bookmarks'][i] = {
                 'url': bookmark[1],
                 'title': bookmark[2],
-                'tags': list(filter(lambda x: x, bookmark[3].split(','))),
+                'tags': [x for x in bookmark[3].split(',') if x],
                 'description': bookmark[4]
             }
         res = jsonify(result)
@@ -485,7 +485,7 @@ class BookmarkletView(MethodView):  # pylint: disable=too-few-public-methods
         rec_id = bukudb.get_rec_id(url)
         if rec_id >= 0:
             return redirect(url_for('bookmark.edit_view', id=rec_id))
-        return redirect(url_for('bookmark.create_view', url=url, title=title, description=description))
+        return redirect(url_for('bookmark.create_view', link=url, title=title, description=description))
 
 
 class CustomFlaskGroup(FlaskGroup):  # pylint: disable=too-few-public-methods
