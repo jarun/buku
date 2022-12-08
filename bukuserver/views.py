@@ -177,13 +177,10 @@ class BookmarkModelView(BaseModelView):
 
     def create_form(self, obj=None):
         form = super().create_form(obj)
-        args = request.args
-        if 'link' in args.keys():
-            form.url.data = args.get('link')
-        if 'title' in args.keys():
-            form.title.data = args.get('title')
-        if 'description' in args.keys():
-            form.description.data = args.get('description')
+        if not form.data['csrf_token']:  # don't override POST data with URL arguments
+            form.url.data = request.args.get('link', form.url.data)
+            form.title.data = request.args.get('title', form.title.data)
+            form.description.data = request.args.get('description', form.description.data)
         return form
 
     def create_model(self, form):
@@ -201,6 +198,10 @@ class BookmarkModelView(BaseModelView):
                 if item.strip():
                     kwargs[key] = item
             session['saved'] = vars(model)['id'] = self.model.bukudb.add_rec(**kwargs)
+            if model.id == -1:
+                session.pop('saved')
+                raise Exception('Duplicate URL' if self.model.bukudb.get_rec_id(model.url) != -1 else
+                                'Rejected by the database')
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to create record."
@@ -268,6 +269,8 @@ class BookmarkModelView(BaseModelView):
 
     def get_one(self, id):
         bookmark = self.model.bukudb.get_rec_by_id(id)
+        if bookmark is None:
+            return None
         bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
         for field in list(BookmarkField):
             if field == BookmarkField.TAGS and bookmark[field.value].startswith(","):

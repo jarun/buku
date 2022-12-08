@@ -1,5 +1,10 @@
 {% extends 'admin/model/list.html' %}
 
+{% block head %}
+  {{ super() }}
+  <script>close(); /* closes if in popup window */</script>
+{% endblock %}
+
 {% block model_menu_bar_before_filters %}
   {{ super() }}
   <form id="refresh" style="display:none" method="POST" action="refresh"></form>

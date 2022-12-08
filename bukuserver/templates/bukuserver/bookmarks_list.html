@@ -3,4 +3,5 @@
 {% block head %}
   {{ super() }}
   <script>const SAVED = '{{ session.pop('saved', '') }}'</script>
+  <script>close(); /* closes if in popup window */</script>
 {% endblock %}

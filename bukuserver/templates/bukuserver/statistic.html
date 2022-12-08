@@ -1,5 +1,10 @@
 {% extends "bukuserver/home.html" %}
 
+{% block head %}
+  {{ super() }}
+  <script>close(); /* closes if in popup window */</script>
+{% endblock %}
+
 {% block body %}
 <div class="container">
   <form class="form-inline" action="{{url_for('statistic.index')}}" method="POST">

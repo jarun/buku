@@ -6,7 +6,7 @@
 
 var url = location.href;
 var title = document.title.trim() || "";
-var desc = document.getSelection().toString().trim();
+var desc = document.getSelection().toString().trim() || (document.querySelector('meta[name$=description i], meta[property$=description i]')||{}).content || "";
 if(desc.length > 4000){
     desc = desc.substr(0,4000) + '...';
     alert('The selected text is too long, it will be truncated.');
