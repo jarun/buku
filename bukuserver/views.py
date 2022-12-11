@@ -161,7 +161,7 @@ class BookmarkModelView(BaseModelView):
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
     extra_css = ['/static/bukuserver/css/bookmark.css']
-    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js', 'flash.js')]
+    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
     last_page = expose('/last-page')(last_page)
 
     def __init__(self, *args, **kwargs):

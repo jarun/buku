@@ -1,8 +1,9 @@
 {% extends 'admin/model/list.html' %}
+{% import 'bukuserver/lib.html' as buku with context %}
 
 {% block head %}
   {{ super() }}
-  <script>close(); /* closes if in popup window */</script>
+  {{ buku.close_if_popup() }}
 {% endblock %}
 
 {% block model_menu_bar_before_filters %}

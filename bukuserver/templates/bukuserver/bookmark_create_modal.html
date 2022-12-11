@@ -1,4 +1,5 @@
 {% extends 'admin/model/modals/create.html' %}
+{% import 'bukuserver/lib.html' as buku with context %}
 
 {% block create_form %}
   {{ lib.render_form(form, return_url, lib.extra(), form_opts=form_opts,
@@ -8,5 +9,5 @@
 
 {% block tail %}
   {{ super() }}
-  <script src="{{ url_for('static', filename='bukuserver/js/bookmark.js') }}"></script>
+  {{ buku.script('bookmark.js') }}
 {% endblock %}

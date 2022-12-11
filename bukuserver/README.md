@@ -111,9 +111,9 @@ See more option on `bukuserver run --help` and `bukuserver --help`
 
 ### Configuration
 
-Following are available os env config available for bukuserver.
+The following are os env config variables available for bukuserver.
 
-| Name (without prefix) | Description | Value |
+| Name (_without prefix_) | Description | Value |
 | --- | --- | --- |
 | PER_PAGE | bookmarks per page | positive integer [default: 10] |
 | SECRET_KEY | [flask secret key](https://flask.palletsprojects.com/config/#SECRET_KEY) | string [default: os.urandom(24)] |
@@ -124,7 +124,9 @@ Following are available os env config available for bukuserver.
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path | string |
 
-Note: `BUKUSERVER_` is the common prefix.
+Note: `BUKUSERVER_` is the common prefix (_every variable starts with it_).
+
+Note: Valid boolean values are `true`, `false`, `1`, `0` (case-insensitive).
 
 Note: if input is invalid, the default value will be used if defined
 

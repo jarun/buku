@@ -41,6 +41,15 @@ except ImportError:
 
 STATISTIC_DATA = None
 
+response_ok = lambda: (jsonify(response.response_template['success']),
+                       status.HTTP_200_OK,
+                       {'ContentType': 'application/json'})
+response_bad = lambda: (jsonify(response.response_template['failure']),
+                        status.HTTP_400_BAD_REQUEST,
+                        {'ContentType': 'application/json'})
+to_response = lambda ok: response_ok() if ok else response_bad()
+
+
 def get_bukudb():
     """get bukudb instance"""
     db_file = current_app.config.get('BUKUSERVER_DB_FILE', None)
@@ -63,44 +72,19 @@ def handle_network():
 
 
 def refresh_bookmark(rec_id: Union[int, None]):
-    if rec_id is not None:
-        result_flag = getattr(flask.g, 'bukudb', get_bukudb()).refreshdb(rec_id, request.form.get('threads', 4))
-    else:
-        result_flag = getattr(flask.g, 'bukudb', get_bukudb()).refreshdb(0, request.form.get('threads', 4))
-    if result_flag:
-        res = (jsonify(response.response_template['success']),
-               status.HTTP_200_OK,
-               {'ContentType': 'application/json'})
-    else:
-        res = (jsonify(response.response_template['failure']),
-               status.HTTP_400_BAD_REQUEST,
-               {'ContentType': 'application/json'})
-    return res
+    result_flag = getattr(flask.g, 'bukudb', get_bukudb()).refreshdb(rec_id or 0, request.form.get('threads', 4))
+    return to_response(result_flag)
 
 
 def get_tiny_url(rec_id):
-    shortened_url = getattr(flask.g, 'bukudb', get_bukudb()).tnyfy_url(rec_id)
-    if shortened_url is not None:
-        result = {'url': shortened_url}
-        res = jsonify(result)
-    else:
-        res = (
-            jsonify(response.response_template['failure']),
-            status.HTTP_400_BAD_REQUEST,
-            {'ContentType': 'application/json'})
-    return res
+    url = getattr(flask.g, 'bukudb', get_bukudb()).tnyfy_url(rec_id)
+    return jsonify({'url': url}) if url else response_bad()
 
 
+_BOOL_VALUES = {'true': True, '1': True, 'false': False, '0': False}
 def get_bool_from_env_var(key: str, default_value: bool) -> bool:
     """Get bool value from env var."""
-    value = os.getenv(key)
-    if value is None:
-        return default_value
-    if value.lower() in ['true', '1']:
-        return True
-    if value.lower() in ['false', '0']:
-        return False
-    return default_value
+    return _BOOL_VALUES.get(os.getenv(key, '').lower(), default_value)
 
 
 def create_app(db_file=None):
@@ -238,21 +222,15 @@ class ApiTagView(MethodView):
 
     def put(self, tag: str):
         bukudb = get_bukudb()
-        res = None
         try:
             new_tags = request.data.get('tags')  # type: ignore
             if new_tags:
                 new_tags = new_tags.split(',')
             else:
-                return response.response_template['failure'], status.HTTP_400_BAD_REQUEST
+                return response_bad()
         except AttributeError as e:
             raise exceptions.ParseError(detail=str(e))
-        result_flag = bukudb.replace_tag(tag, new_tags)
-        if result_flag:
-            res = response.response_template['success'], status.HTTP_200_OK
-        else:
-            res = response.response_template['failure'], status.HTTP_400_BAD_REQUEST
-        return res
+        return to_response(bukudb.replace_tag(tag, new_tags))
 
 
 class ApiBookmarkView(MethodView):
@@ -276,17 +254,15 @@ class ApiBookmarkView(MethodView):
         else:
             bukudb = getattr(flask.g, 'bukudb', get_bukudb())
             bookmark = bukudb.get_rec_by_id(rec_id)
-            if bookmark is not None:
-                result = {
+            if bookmark is None:
+                res = response_bad()
+            else:
+                res = jsonify({
                     'url': bookmark[1],
                     'title': bookmark[2],
                     'tags': [x for x in bookmark[3].split(',') if x],
                     'description': bookmark[4]
-                }
-                res = jsonify(result)
-            else:
-                res = jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                       {'ContentType': 'application/json'}
+                })
         return res
 
     def post(self, rec_id: None = None):
@@ -299,12 +275,7 @@ class ApiBookmarkView(MethodView):
             create_bookmarks_form.tags.data,
             create_bookmarks_form.description.data
         )
-        if result_flag != -1:
-            res = jsonify(response.response_template['success'])
-        else:
-            res = jsonify(response.response_template['failure'])
-            res.status_code = status.HTTP_400_BAD_REQUEST
-        return res
+        return to_response(result_flag != -1)
 
     def put(self, rec_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
@@ -314,38 +285,17 @@ class ApiBookmarkView(MethodView):
             request.form.get('title'),
             request.form.get('tags'),
             request.form.get('description'))
-        if result_flag:
-            res = (jsonify(response.response_template['success']),
-                   status.HTTP_200_OK,
-                   {'ContentType': 'application/json'})
-        else:
-            res = (jsonify(response.response_template['failure']),
-                   status.HTTP_400_BAD_REQUEST,
-                   {'ContentType': 'application/json'})
-        return res
+        return to_response(result_flag)
 
     def delete(self, rec_id: Union[int, None]):
         if rec_id is None:
             bukudb = getattr(flask.g, 'bukudb', get_bukudb())
             with mock.patch('buku.read_in', return_value='y'):
                 result_flag = bukudb.cleardb()
-            if result_flag:
-                res = jsonify(response.response_template['success'])
-            else:
-                res = jsonify(response.response_template['failure'])
-                res.status_code = status.HTTP_400_BAD_REQUEST
         else:
             bukudb = getattr(flask.g, 'bukudb', get_bukudb())
             result_flag = bukudb.delete_rec(rec_id)
-            if result_flag:
-                res = (jsonify(response.response_template['success']),
-                       status.HTTP_200_OK,
-                       {'ContentType': 'application/json'})
-            else:
-                res = (jsonify(response.response_template['failure']),
-                       status.HTTP_400_BAD_REQUEST,
-                       {'ContentType': 'application/json'})
-        return res
+        return to_response(result_flag)
 
 
 class ApiBookmarkRangeView(MethodView):
@@ -354,8 +304,7 @@ class ApiBookmarkRangeView(MethodView):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
         max_id = bukudb.get_max_id()
         if starting_id > max_id or ending_id > max_id:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            return response_bad()
         result = {'bookmarks': {}}  # type: ignore
         for i in range(starting_id, ending_id + 1, 1):
             bookmark = bukudb.get_rec_by_id(i)
@@ -365,15 +314,13 @@ class ApiBookmarkRangeView(MethodView):
                 'tags': [x for x in bookmark[3].split(',') if x],
                 'description': bookmark[4]
             }
-        res = jsonify(result)
-        return res
+        return jsonify(result)
 
     def put(self, starting_id: int, ending_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
         max_id = bukudb.get_max_id()
         if starting_id > max_id or ending_id > max_id:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            return response_bad()
         for i in range(starting_id, ending_id + 1, 1):
             updated_bookmark = request.data.get(str(i))  # type: ignore
             result_flag = bukudb.update_rec(
@@ -383,27 +330,17 @@ class ApiBookmarkRangeView(MethodView):
                 updated_bookmark.get('tags'),
                 updated_bookmark.get('description'))
             if result_flag is False:
-                return (
-                    jsonify(response.response_template['failure']),
-                    status.HTTP_400_BAD_REQUEST,
-                    {'ContentType': 'application/json'})
-        res = jsonify(response.response_template['success'])
-        return res
+                return response_bad()
+        return response_ok()
 
     def delete(self, starting_id: int, ending_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
         max_id = bukudb.get_max_id()
         if starting_id > max_id or ending_id > max_id:
-            return jsonify(response.response_template['failure']), status.HTTP_400_BAD_REQUEST, \
-                   {'ContentType': 'application/json'}
+            return response_bad()
         idx = min([starting_id, ending_id])
         result_flag = bukudb.delete_rec(idx, starting_id, ending_id, is_range=True)
-        if result_flag is False:
-            res = jsonify(response.response_template['failure'])
-            res.status_code = status.HTTP_400_BAD_REQUEST
-        else:
-            res = jsonify(response.response_template['success'])
-        return res
+        return to_response(result_flag)
 
 
 class ApiBookmarkSearchView(MethodView):
@@ -466,13 +403,9 @@ class ApiBookmarkSearchView(MethodView):
         res = None
         if found_bookmarks is not None:
             for bookmark in found_bookmarks:
-                result_flag = bukudb.delete_rec(bookmark[0])
-                if result_flag is False:
-                    res = jsonify(response.response_template['failure'])
-                    res.status = status.HTTP_400_BAD_REQUEST
-        if res is None:
-            res = jsonify(response.response_template['success'])
-        return res
+                if not bukudb.delete_rec(bookmark[0]):
+                    res = response_bad()
+        return res or response_ok()
 
 
 class BookmarkletView(MethodView):  # pylint: disable=too-few-public-methods
