@@ -67,6 +67,14 @@ def get_bool_from_env_var(key: str, default_value: bool) -> bool:
     return _BOOL_VALUES.get(os.getenv(key, '').lower(), default_value)
 
 
+def init_locale(app):
+    try:
+        from flask_babelex import Babel
+        Babel(app).localeselector(lambda: app.config['BUKUSERVER_LOCALE'])
+    except Exception:
+        app.logger.warning('failed to init locale')
+
+
 def create_app(db_file=None):
     """create app."""
     app = FlaskAPI(__name__)
@@ -97,8 +105,10 @@ def create_app(db_file=None):
         else:
             raise ImportError('Failed to import ReverseProxyPrefixFix')
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
+    app.config['BUKUSERVER_LOCALE'] = os.getenv('BUKUSERVER_LOCALE') or 'en'
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
+    init_locale(app)
 
     @app.shell_context_processor
     def shell_context():
