@@ -17,6 +17,15 @@
   <script>opener && (opener !== window) && document.body.classList.add('popup')</script>
 {% endmacro %}
 
+{% macro fetch_checkbox(checked=True) %}
+  <script>
+    $('.admin-form [name=fetch]').remove();
+    $('.admin-form').append(
+      $(`<label class="form-group" style="display: block"><span class="col-md-2 text-right">{{ _gettext('Fetch') }}</span>`
+        +`<span class="col-md-10"><input type="checkbox" name="fetch"{% if checked %} checked{% endif %}></span></label>`))
+  </script>
+{% endmacro %}
+
 {% macro details_formatting(prefix='') %}
   <script>{
     const TARGET = {{ (' target="_blank"' if config.get('BUKUSERVER_OPEN_IN_NEW_TAB', False) else '') | tojson }};

@@ -185,13 +185,13 @@ class BookmarkModelView(BaseModelView):
 
     def create_model(self, form):
         try:
-            model = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+            model = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None, fetch=True)
             form.populate_obj(model)
             vars(model).pop("id")
             self._on_model_change(form, model, True)
             if not model.url.strip():
                 raise ValueError(f"url invalid: {model.url}")
-            kwargs = {"url": model.url}
+            kwargs = {'url': model.url, 'fetch': model.fetch}
             if model.tags.strip():
                 kwargs["tags_in"] = buku.parse_tags([model.tags])
             for key, item in (("title_in", model.title), ("desc", model.description)):

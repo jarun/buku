@@ -20,6 +20,7 @@ class BookmarkForm(FlaskForm):
     title = wtforms.StringField()
     tags = wtforms.StringField()
     description = wtforms.TextAreaField()
+    fetch = wtforms.HiddenField(filters=[bool])
 
 class ApiBookmarkForm(BookmarkForm):
     url = wtforms.StringField(validators=[wtforms.validators.DataRequired()])
