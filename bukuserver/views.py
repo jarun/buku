@@ -15,7 +15,7 @@ from flask_admin.babel import gettext
 from flask_admin.base import AdminIndexView, BaseView, expose
 from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
-from markupsafe import Markup
+from markupsafe import Markup, escape
 
 import buku
 
@@ -105,45 +105,41 @@ class BookmarkModelView(BaseModelView):
         get_index_view_url = functools.partial(url_for, "bookmark.index_view")
         for tag in filter(None, model.tags.split(",")):
             tag_text.append(
-                f'<a class="btn btn-default" href="{get_index_view_url(flt0_tags_contain=tag.strip())}">{tag}</a>'
+                f'<a class="btn btn-default" href="{escape(get_index_view_url(flt0_tags_contain=tag.strip()))}">{escape(tag)}</a>'
             )
         tag_text_markup = "".join(tag_text)
+        description = model.description and br_tag.join(map(escape, model.description.split('\n')))
         if not netloc and not parsed_url.scheme:
-            escaped_url = Markup.escape(model.url)
-            return Markup(
-                f"""{model.title}{br_tag}{escaped_url}{br_tag}{tag_text_markup}{model.description}"""
-            )
+            return Markup(br_tag.join([escape(model.title), escape(model.url), tag_text_markup, description]))
         res = []
         if not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False) and netloc:
             res.append(
                 f'<img src="http://www.google.com/s2/favicons?domain={netloc}"/> '
             )
-        title = model.title if model.title else "&lt;EMPTY TITLE&gt;"
-        open_in_new_tab = current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False)
+        title = model.title or escape('<EMPTY TITLE>')
+        target = ' target="_blank"' if current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False) else ""
         url_for_index_view_netloc = None
         if netloc:
             url_for_index_view_netloc = get_index_view_url(flt0_url_netloc_match=netloc)
-        if parsed_url.scheme and not open_in_new_tab:
-            target = 'target="_blank"' if open_in_new_tab else ""
-            res.append(f'<a href="{model.url}"{target}>{title}</a>')
+        if parsed_url.scheme:
+            res.append(f'<a href="{escape(model.url)}"{target}>{escape(title)}</a>')
         else:
-            res.append(title)
+            res.append(escape(title))
         if self.url_render_mode == "netloc" and url_for_index_view_netloc:
-            res.append(f'(<a href="{url_for_index_view_netloc}">{netloc}</a>)')
+            res.append(f' (<a href="{url_for_index_view_netloc}">{netloc}</a>)')
         res.append(br_tag)
         if not parsed_url.scheme:
-            res.extend((model.url, br_tag))
+            res.extend((escape(model.url), br_tag))
         elif self.url_render_mode is None or self.url_render_mode == "full":
-            res.extend((f'<a href="{model.url}">{model.url}</a>', br_tag))
+            res.extend((f'<a href="{escape(model.url)}"{target}>{escape(model.url)}</a>', br_tag))
         if self.url_render_mode != "netloc" and url_for_index_view_netloc:
             res.append(
                 f'<a class="btn btn-default" href="{url_for_index_view_netloc}">netloc:{netloc}</a>'
             )
         if tag_text_markup:
-            res.append("".join(tag_text))
-        description = model.description
+            res.append(tag_text_markup)
         if description:
-            res.extend((br_tag, description.replace("\n", br_tag)))
+            res.extend((br_tag, description))
         return Markup("".join(res))
 
     can_set_page_size = True
@@ -154,11 +150,12 @@ class BookmarkModelView(BaseModelView):
     }
     column_list = ["Entry"]
     list_template = 'bukuserver/bookmarks_list.html'
-    details_template = 'bukuserver/bookmark_details.html'
     create_modal = True
     create_modal_template = "bukuserver/bookmark_create_modal.html"
     create_template = "bukuserver/bookmark_create.html"
     details_modal = True
+    details_modal_template = 'bukuserver/bookmark_details_modal.html'
+    details_template = 'bukuserver/bookmark_details.html'
     edit_modal = True
     edit_modal_template = "bukuserver/bookmark_edit_modal.html"
     edit_template = "bukuserver/bookmark_edit.html"
@@ -181,13 +178,12 @@ class BookmarkModelView(BaseModelView):
     def create_form(self, obj=None):
         form = super().create_form(obj)
         args = request.args
-        args_url = args.get("url")
-        if args_url and not args_url.startswith("/bookmark/"):
-            form.url.data = args_url
-        if "title" in args.keys():
-            form.title.data = args.get("title")
-        if "description" in args.keys():
-            form.description.data = args.get("description")
+        if 'link' in args.keys():
+            form.url.data = args.get('link')
+        if 'title' in args.keys():
+            form.title.data = args.get('title')
+        if 'description' in args.keys():
+            form.description.data = args.get('description')
         return form
 
     def create_model(self, form):

@@ -85,12 +85,12 @@ def bmv_instance(tmp_path):
     return inst
 
 
-@pytest.mark.parametrize('url, exp_url', [
-    ['http://example.com', 'http://example.com'],
-    ['/bookmark/', None],
+@pytest.mark.parametrize('url, backlink', [
+    ['http://example.com', None],
+    ['http://example.com', '/bookmark/'],
 ])
-def test_bmv_create_form(bmv_instance, url, exp_url, app):
+def test_bmv_create_form(bmv_instance, url, backlink, app):
     with app.test_request_context():
-        request.args = {"url": url}
+        request.args = {'link': url, 'url': backlink} if backlink else {'link': url}
         form = bmv_instance.create_form()
-        assert form.url.data == exp_url
+        assert form.url.data == url

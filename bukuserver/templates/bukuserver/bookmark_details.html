@@ -4,3 +4,12 @@
   {{ super() }}
   <script>const SAVED = '{{ session.pop('saved', '') }}'</script>
 {% endblock %}
+
+{% block tail %}
+  {{ super() }}
+  <script>{
+    let target = {{ (' target="_blank"' if config.get('BUKUSERVER_OPEN_IN_NEW_TAB', False) else '') | tojson }};
+    $(`td:nth-child(2)`).html((_, s) => s.trim().replaceAll('\n', '<br/>'))
+    $(`td:contains("Url") + td`).html((_, s) => `<a href="${s.replaceAll('"', '&quot;')}"${target}>${s}</a>`);
+  }</script>
+{% endblock %}

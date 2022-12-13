@@ -1,0 +1,10 @@
+{% extends 'admin/model/modals/details.html' %}
+
+{% block tail %}
+  {{ super() }}
+  <script>{
+    let target = {{ (' target="_blank"' if config.get('BUKUSERVER_OPEN_IN_NEW_TAB', False) else '') | tojson }};
+    $(`.modal td:nth-child(2)`).html((_, s) => s.trim().replaceAll('\n', '<br/>'))
+    $(`.modal td:contains("Url") + td`).html((_, s) => `<a href="${s.replaceAll('"', '&quot;')}"${target}>${s}</a>`);
+  }</script>
+{% endblock %}
