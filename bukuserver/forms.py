@@ -16,7 +16,7 @@ class HomeForm(SearchBookmarksForm):
 
 
 class BookmarkForm(FlaskForm):
-    url = wtforms.StringField('Url', name='link', validators=[wtforms.validators.DataRequired()])
+    url = wtforms.StringField('Url', name='link', validators=[wtforms.validators.InputRequired()])
     title = wtforms.StringField()
     tags = wtforms.StringField()
     description = wtforms.TextAreaField()

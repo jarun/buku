@@ -109,7 +109,7 @@ class BookmarkModelView(BaseModelView):
             )
         tag_text_markup = "".join(tag_text)
         description = model.description and br_tag.join(map(escape, model.description.split('\n')))
-        if not netloc and not parsed_url.scheme:
+        if not netloc:
             return Markup(br_tag.join([escape(model.title), escape(model.url), tag_text_markup, description]))
         res = []
         if not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False) and netloc:
@@ -189,7 +189,7 @@ class BookmarkModelView(BaseModelView):
             form.populate_obj(model)
             vars(model).pop("id")
             self._on_model_change(form, model, True)
-            if not model.url.strip():
+            if not model.url:
                 raise ValueError(f"url invalid: {model.url}")
             kwargs = {'url': model.url, 'fetch': model.fetch}
             if model.tags.strip():
@@ -282,6 +282,8 @@ class BookmarkModelView(BaseModelView):
                 setattr(bm_sns, field.name.lower(), value.replace(',', ', '))
             else:
                 setattr(bm_sns, field.name.lower(), bookmark[field.value])
+            if field == BookmarkField.URL:
+                session['netloc'] = urlparse(bookmark[field.value]).netloc
         return bm_sns
 
     def get_pk_value(self, model):

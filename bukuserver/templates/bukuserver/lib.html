@@ -30,7 +30,9 @@
   <script>{
     const TARGET = {{ (' target="_blank"' if config.get('BUKUSERVER_OPEN_IN_NEW_TAB', False) else '') | tojson }};
     $(`{{prefix}} td:nth-child(2)`).html((_, s) => s.trim().replaceAll('\n', '<br/>'));
+    {% if session.pop('netloc', None) %}
     $(`{{prefix}} td:contains({{ _gettext('Url') | tojson }}) + td`).html((_, s) => `<a href="${s.replaceAll('"', '&quot;')}"${TARGET}>${s}</a>`);
+    {% endif %}
   }</script>
 {% endmacro %}
 
