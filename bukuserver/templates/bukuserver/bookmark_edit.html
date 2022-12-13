@@ -5,7 +5,22 @@
   <script>const SAVED = '{{ session.pop('saved', '') }}'</script>
 {% endblock %}
 
+{% block edit_form %}
+  {{ super() }}
+  <form method="POST" action="{{ get_url('.delete_view') }}" class="delete-form" style="display: inline-block;  float: right">
+    <input type="hidden" name="id" value="{{ request.args.get('id') }}"/>
+    <input type="hidden" name="url" value="{{ return_url }}"/>
+    {% if csrf_token %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    {% endif %}
+    <button class="btn btn-warning" onclick="return faHelpers.safeConfirm('{{ _gettext('Are you sure you want to delete this record?') }}');">
+      {{ _gettext('Delete') }}
+    </button>
+  </form>
+{% endblock %}
+
 {% block tail %}
   {{ super() }}
   <script src="{{ url_for('static', filename='bukuserver/js/bookmark.js') }}"></script>
+  <script>$('.submit-row').append($('.delete-form'))</script>
 {% endblock %}
