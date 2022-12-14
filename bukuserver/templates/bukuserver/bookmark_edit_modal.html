@@ -1,6 +1,7 @@
 {% extends 'admin/model/modals/edit.html' %}
+{% import 'bukuserver/lib.html' as buku with context %}
 
 {% block tail %}
   {{ super() }}
-  <script src="{{ url_for('static', filename='bukuserver/js/bookmark.js') }}"></script>
+  {{ buku.script('bookmark.js') }}
 {% endblock %}

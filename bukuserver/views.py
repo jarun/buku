@@ -109,7 +109,7 @@ class BookmarkModelView(BaseModelView):
             )
         tag_text_markup = "".join(tag_text)
         description = model.description and br_tag.join(map(escape, model.description.split('\n')))
-        if not netloc and not parsed_url.scheme:
+        if not netloc:
             return Markup(br_tag.join([escape(model.title), escape(model.url), tag_text_markup, description]))
         res = []
         if not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False) and netloc:
@@ -161,7 +161,7 @@ class BookmarkModelView(BaseModelView):
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
     extra_css = ['/static/bukuserver/css/bookmark.css']
-    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js', 'flash.js')]
+    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
     last_page = expose('/last-page')(last_page)
 
     def __init__(self, *args, **kwargs):
@@ -177,30 +177,31 @@ class BookmarkModelView(BaseModelView):
 
     def create_form(self, obj=None):
         form = super().create_form(obj)
-        args = request.args
-        if 'link' in args.keys():
-            form.url.data = args.get('link')
-        if 'title' in args.keys():
-            form.title.data = args.get('title')
-        if 'description' in args.keys():
-            form.description.data = args.get('description')
+        if not form.data['csrf_token']:  # don't override POST data with URL arguments
+            form.url.data = request.args.get('link', form.url.data)
+            form.title.data = request.args.get('title', form.title.data)
+            form.description.data = request.args.get('description', form.description.data)
         return form
 
     def create_model(self, form):
         try:
-            model = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
+            model = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None, fetch=True)
             form.populate_obj(model)
             vars(model).pop("id")
             self._on_model_change(form, model, True)
-            if not model.url.strip():
+            if not model.url:
                 raise ValueError(f"url invalid: {model.url}")
-            kwargs = {"url": model.url}
+            kwargs = {'url': model.url, 'fetch': model.fetch}
             if model.tags.strip():
                 kwargs["tags_in"] = buku.parse_tags([model.tags])
             for key, item in (("title_in", model.title), ("desc", model.description)):
                 if item.strip():
                     kwargs[key] = item
             session['saved'] = vars(model)['id'] = self.model.bukudb.add_rec(**kwargs)
+            if model.id == -1:
+                session.pop('saved')
+                raise Exception('Duplicate URL' if self.model.bukudb.get_rec_id(model.url) != -1 else
+                                'Rejected by the database')
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to create record."
@@ -268,6 +269,8 @@ class BookmarkModelView(BaseModelView):
 
     def get_one(self, id):
         bookmark = self.model.bukudb.get_rec_by_id(id)
+        if bookmark is None:
+            return None
         bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
         for field in list(BookmarkField):
             if field == BookmarkField.TAGS and bookmark[field.value].startswith(","):
@@ -279,6 +282,8 @@ class BookmarkModelView(BaseModelView):
                 setattr(bm_sns, field.name.lower(), value.replace(',', ', '))
             else:
                 setattr(bm_sns, field.name.lower(), bookmark[field.value])
+            if field == BookmarkField.URL:
+                session['netloc'] = urlparse(bookmark[field.value]).netloc
         return bm_sns
 
     def get_pk_value(self, model):
