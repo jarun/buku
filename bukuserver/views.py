@@ -85,6 +85,13 @@ class BookmarkModelView(BaseModelView):
         """Exposes filter slugify logic; works because BookmarkModelView.named_filter_urls = True"""
         return BaseModelView.get_filter_arg(BookmarkModelView, None, flt)
 
+    def _saved(self, id, url, ok):
+        if ok:
+            session['saved'] = id
+        else:
+            raise Exception('Duplicate URL' if self.model.bukudb.get_rec_id(url) not in [-1, id] else
+                            'Rejected by the database')
+
     def _apply_filters(self, models, filters):
         for idx, _, value in filters:
             if self._filters:
@@ -197,11 +204,8 @@ class BookmarkModelView(BaseModelView):
             for key, item in (("title_in", model.title), ("desc", model.description)):
                 if item.strip():
                     kwargs[key] = item
-            session['saved'] = vars(model)['id'] = self.model.bukudb.add_rec(**kwargs)
-            if model.id == -1:
-                session.pop('saved')
-                raise Exception('Duplicate URL' if self.model.bukudb.get_rec_id(model.url) != -1 else
-                                'Rejected by the database')
+            vars(model)['id'] = self.model.bukudb.add_rec(**kwargs)
+            self._saved(model.id, model.url, model.id != -1)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to create record."
@@ -412,7 +416,7 @@ class BookmarkModelView(BaseModelView):
                 tags_in=buku.parse_tags([model.tags]),
                 desc=model.description,
             )
-            session['saved'] = model.id
+            self._saved(model.id, model.url, res)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to update record."
