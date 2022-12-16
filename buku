@@ -44,7 +44,7 @@ import webbrowser
 from enum import Enum
 from itertools import chain
 from subprocess import DEVNULL, PIPE, Popen
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import urllib3
 from bs4 import BeautifulSoup
@@ -512,6 +512,14 @@ class BukuDb:
 
         return (conn, cur)
 
+    def _fetch(self, query: str, *args) -> List[BookmarkVar]:
+        self.cur.execute(query, args)
+        return self.cur.fetchall()
+
+    def _fetch_first(self, query: str, *args) -> Optional[BookmarkVar]:
+        rows = self._fetch(query + ' LIMIT 1', *args)
+        return rows[0] if rows else None
+
     def get_rec_all(self):
         """Get all the bookmarks in the database.
 
@@ -521,8 +529,7 @@ class BukuDb:
             A list of tuples representing bookmark records.
         """
 
-        self.cur.execute('SELECT * FROM bookmarks')
-        return self.cur.fetchall()
+        return self._fetch('SELECT * FROM bookmarks')
 
     def get_rec_by_id(self, index: int) -> Optional[BookmarkVar]:
         """Get a bookmark from database by its ID.
@@ -534,13 +541,11 @@ class BukuDb:
 
         Returns
         -------
-        tuple or None
+        BookmarkVar or None
             Bookmark data, or None if index is not found.
         """
 
-        self.cur.execute('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', (index,))
-        resultset = self.cur.fetchall()
-        return resultset[0] if resultset else None
+        return self._fetch_first('SELECT * FROM bookmarks WHERE id = ?', index)
 
     def get_rec_id(self, url):
         """Check if URL already exists in DB.
@@ -553,12 +558,11 @@ class BukuDb:
         Returns
         -------
         int
-            DB index, or -1 if URL not found in DB.
+            DB index, or None if URL not found in DB.
         """
 
-        self.cur.execute('SELECT id FROM bookmarks WHERE URL = ? LIMIT 1', (url,))
-        resultset = self.cur.fetchall()
-        return resultset[0][0] if resultset else -1
+        row = self._fetch_first('SELECT * FROM bookmarks WHERE url = ?', url)
+        return row and row[0]
 
     def get_max_id(self) -> int:
         """Fetch the ID of the last record.
@@ -566,12 +570,11 @@ class BukuDb:
         Returns
         -------
         int
-            ID of the record if any record exists, else -1.
+            ID of the record if any record exists, else None.
         """
 
-        self.cur.execute('SELECT MAX(id) from bookmarks')
-        resultset = self.cur.fetchall()
-        return -1 if resultset[0][0] is None else resultset[0][0]
+        self.cur.execute('SELECT MAX(id) FROM bookmarks')
+        return self.cur.fetchall()[0][0]
 
     def add_rec(
             self,
@@ -607,19 +610,19 @@ class BukuDb:
         Returns
         -------
         int
-            DB index of new bookmark on success, -1 on failure.
+            DB index of new bookmark on success, None on failure.
         """
 
         # Return error for empty URL
         if not url or url == '':
             LOGERR('Invalid URL')
-            return -1
+            return None
 
         # Ensure that the URL does not exist in DB already
         id = self.get_rec_id(url)
-        if id != -1:
+        if id:
             LOGERR('URL [%s] already exists at index %d', url, id)
-            return -1
+            return None
 
         if fetch:
             # Fetch data
@@ -660,7 +663,7 @@ class BukuDb:
             return self.cur.lastrowid
         except Exception as e:
             LOGERR('add_rec(): %s', e)
-            return -1
+            return None
 
     def append_tag_at_index(self, index, tags_in, delay_commit=False):
         """Append tags to bookmark tagset at index.
@@ -1137,7 +1140,7 @@ class BukuDb:
         if index == -1:
             # Edit the last records
             index = self.get_max_id()
-            if index == -1:
+            if not index:
                 LOGERR('Empty database')
                 return False
 
@@ -1192,11 +1195,10 @@ class BukuDb:
             q0 += ')'
 
         try:
-            self.cur.execute(q0, [])
+            return self._fetch(q0)
         except sqlite3.OperationalError as e:
             LOGERR(e)
-            return None
-        return self.cur.fetchall()
+            return []
 
     def searchdb(
             self,
@@ -1204,7 +1206,7 @@ class BukuDb:
             all_keywords: Optional[bool] = False,
             deep: Optional[bool] = False,
             regex: Optional[bool] = False
-    ) -> Optional[Iterable[Any]]:
+    ) -> List[BookmarkVar]:
         """Search DB for entries where tags, URL, or title fields match keywords.
 
         Parameters
@@ -1221,11 +1223,11 @@ class BukuDb:
 
         Returns
         -------
-        list or None
-            List of search results, or None if no matches.
+        list
+            List of search results.
         """
         if not keywords:
-            return None
+            return []
 
         # Deep query string
         q1 = ("(tags LIKE ('%' || ? || '%') OR "
@@ -1250,7 +1252,7 @@ class BukuDb:
                 qargs += (token, token, token, token,)
 
             if not qargs:
-                return None
+                return []
 
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         elif all_keywords:
@@ -1279,7 +1281,7 @@ class BukuDb:
                     qargs += (token, token, token, token,)
 
                 if not qargs:
-                    return None
+                    return []
 
                 q0 = q0[:-4]
             q0 += 'ORDER BY id ASC'
@@ -1303,24 +1305,22 @@ class BukuDb:
                 qargs += (token, token, token, token,)
 
             if not qargs:
-                return None
+                return []
 
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         else:
             LOGERR('Invalid search option')
-            return None
+            return []
 
         LOGDBG('query: "%s", args: %s', q0, qargs)
 
         try:
-            self.cur.execute(q0, qargs)
+            return self._fetch(q0, *qargs)
         except sqlite3.OperationalError as e:
             LOGERR(e)
-            return None
+            return []
 
-        return self.cur.fetchall()
-
-    def search_by_tag(self, tags: Optional[str]) -> Optional[List[BookmarkVar]]:
+    def search_by_tag(self, tags: Optional[str]) -> List[BookmarkVar]:
         """Search bookmarks for entries with given tags.
 
         Parameters
@@ -1334,18 +1334,18 @@ class BukuDb:
 
         Returns
         -------
-        list or None
-            List of search results, or None if no matches.
+        list
+            List of search results.
         """
 
         LOGDBG(tags)
         if tags is None or tags == DELIM or tags == '':
-            return None
+            return []
 
         tags_, search_operator, excluded_tags = prep_tag_search(tags)
         if search_operator is None:
             LOGERR("Cannot use both '+' and ',' in same search")
-            return None
+            return []
 
         LOGDBG('tags: %s', tags_)
         LOGDBG('search_operator: %s', search_operator)
@@ -1379,8 +1379,7 @@ class BukuDb:
             query += ' ORDER BY score DESC)'
 
         LOGDBG('query: "%s", args: %s', query, tags_)
-        self.cur.execute(query, tuple(tags_, ))
-        return self.cur.fetchall()
+        return self._fetch(query, *tags_)
 
     def search_keywords_and_filter_by_tags(
             self,
@@ -1388,7 +1387,7 @@ class BukuDb:
             all_keywords: bool,
             deep: bool,
             regex: bool,
-            stag: str) -> Optional[List[BookmarkVar]]:
+            stag: str) -> List[BookmarkVar]:
         """Search bookmarks for entries with keywords and specified
         criteria while filtering out entries with matching tags.
 
@@ -1412,14 +1411,12 @@ class BukuDb:
 
         Returns
         -------
-        list or None
-            List of search results, or None if no matches.
+        list
+            List of search results.
         """
 
         keyword_results = self.searchdb(keywords, all_keywords, deep, regex)
-        keyword_results = keyword_results if keyword_results is not None else []
         stag_results = self.search_by_tag(''.join(stag))
-        stag_results = stag_results if stag_results is not None else []
         return list(set(keyword_results) & set(stag_results))
 
     def exclude_results_from_search(self, search_results, without, deep):
@@ -1436,8 +1433,8 @@ class BukuDb:
 
         Returns
         -------
-        list or None
-            List of search results, or None if no matches.
+        list
+            List of search results.
         """
 
         return list(set(search_results) - set(self.searchdb(without, False, deep)))
@@ -1457,7 +1454,7 @@ class BukuDb:
 
         # Return if the last index left in DB was just deleted
         max_id = self.get_max_id()
-        if max_id == -1:
+        if not max_id:
             return
 
         query1 = 'SELECT id, URL, metadata, tags, desc, flags FROM bookmarks WHERE id = ? LIMIT 1'
@@ -1466,8 +1463,7 @@ class BukuDb:
 
         # NOOP if the just deleted index was the last one
         if max_id > index:
-            self.cur.execute(query1, (max_id,))
-            results = self.cur.fetchall()
+            results = self._fetch(query1, max_id)
             for row in results:
                 self.cur.execute(query2, (row[0],))
                 self.cur.execute(query3, (index, row[1], row[2], row[3], row[4], row[5]))
@@ -1784,7 +1780,7 @@ class BukuDb:
         if not is_range and index < 0:
             # Show the last n records
             _id = self.get_max_id()
-            if _id == -1:
+            if not _id:
                 LOGERR('Empty database')
                 return False
 
@@ -1813,9 +1809,7 @@ class BukuDb:
                 return False
         elif index != 0:  # Show record at index
             try:
-                query = 'SELECT * FROM bookmarks WHERE id = ? LIMIT 1'
-                self.cur.execute(query, (index,))
-                results = self.cur.fetchall()
+                results = self._fetch('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', index)
                 if not results:
                     LOGERR('No matching index %d', index)
                     return False
@@ -2678,7 +2672,7 @@ n: don't add parent folder as tag
 
         for item in items:
             add_rec_res = self.add_rec(*item)
-            if add_rec_res == -1 and append_tags_resp == 'y':
+            if not add_rec_res and append_tags_resp == 'y':
                 rec_id = self.get_rec_id(item[0])
                 self.append_tag_at_index(rec_id, item[2])
 
@@ -2730,7 +2724,7 @@ n: don't add parent folder as tag
 
     def tnyfy_url(
             self,
-            index: Optional[int] = 0,
+            index: Optional[int] = None,
             url: Optional[str] = None,
             shorten: Optional[bool] = True) -> Optional[str]:
         """Shorten a URL using Google URL shortener.
@@ -2738,7 +2732,7 @@ n: don't add parent folder as tag
         Parameters
         ----------
         index : int, optional (if URL is provided)
-            DB index of the bookmark with the URL to shorten. Default is 0.
+            DB index of the bookmark with the URL to shorten. Default is None.
         url : str, optional (if index is provided)
             URL to shorten.
         shorten : bool, optional

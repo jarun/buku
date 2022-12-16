@@ -144,7 +144,7 @@ class ApiBookmarkView(MethodView):
             create_bookmarks_form.tags.data,
             create_bookmarks_form.description.data
         )
-        return to_response(result_flag != -1)
+        return to_response(result_flag)
 
     def put(self, rec_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
@@ -171,7 +171,7 @@ class ApiBookmarkRangeView(MethodView):
 
     def get(self, starting_id: int, ending_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        max_id = bukudb.get_max_id()
+        max_id = bukudb.get_max_id() or 0
         if starting_id > max_id or ending_id > max_id:
             return response_bad()
         result = {'bookmarks': {}}  # type: ignore
@@ -187,7 +187,7 @@ class ApiBookmarkRangeView(MethodView):
 
     def put(self, starting_id: int, ending_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        max_id = bukudb.get_max_id()
+        max_id = bukudb.get_max_id() or 0
         if starting_id > max_id or ending_id > max_id:
             return response_bad()
         for i in range(starting_id, ending_id + 1, 1):
@@ -204,7 +204,7 @@ class ApiBookmarkRangeView(MethodView):
 
     def delete(self, starting_id: int, ending_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        max_id = bukudb.get_max_id()
+        max_id = bukudb.get_max_id() or 0
         if starting_id > max_id or ending_id > max_id:
             return response_bad()
         idx = min([starting_id, ending_id])
@@ -233,19 +233,16 @@ class ApiBookmarkSearchView(MethodView):
 
         result = {'bookmarks': []}
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
-        found_bookmarks = [] if found_bookmarks is None else found_bookmarks
         res = None
-        if found_bookmarks is not None:
-            for bookmark in found_bookmarks:
-                result_bookmark = {
-                    'id': bookmark[0],
-                    'url': bookmark[1],
-                    'title': bookmark[2],
-                    'tags': list(filter(lambda x: x, bookmark[3].split(','))),
-                    'description': bookmark[4]
-                }
-                result['bookmarks'].append(result_bookmark)
+        for bookmark in bukudb.searchdb(keywords, all_keywords, deep, regex):
+            result_bookmark = {
+                'id': bookmark[0],
+                'url': bookmark[1],
+                'title': bookmark[2],
+                'tags': list(filter(lambda x: x, bookmark[3].split(','))),
+                'description': bookmark[4]
+            }
+            result['bookmarks'].append(result_bookmark)
         current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks'])))
         res = jsonify(result)
         return res
@@ -267,13 +264,10 @@ class ApiBookmarkSearchView(MethodView):
         deep = deep if isinstance(deep, bool) else deep.lower() == 'true'
         regex = regex if isinstance(regex, bool) else regex.lower() == 'true'
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
-        found_bookmarks = [] if found_bookmarks is None else found_bookmarks
         res = None
-        if found_bookmarks is not None:
-            for bookmark in found_bookmarks:
-                if not bukudb.delete_rec(bookmark[0]):
-                    res = response_bad()
+        for bookmark in bukudb.searchdb(keywords, all_keywords, deep, regex):
+            if not bukudb.delete_rec(bookmark[0]):
+                res = response_bad()
         return res or response_ok()
 
 
@@ -285,6 +279,6 @@ class BookmarkletView(MethodView):  # pylint: disable=too-few-public-methods
 
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
         rec_id = bukudb.get_rec_id(url)
-        if rec_id >= 0:
+        if rec_id:
             return redirect(url_for('bookmark.edit_view', id=rec_id))
         return redirect(url_for('bookmark.create_view', link=url, title=title, description=description))

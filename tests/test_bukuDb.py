@@ -172,9 +172,9 @@ class TestBukuDb(unittest.TestCase):
             idx_from_db = self.bdb.get_rec_id(bookmark[0])
             self.assertEqual(idx + 1, idx_from_db)
 
-        # asserting -1 is returned for nonexistent url
+        # asserting None is returned for nonexistent url
         idx_from_db = self.bdb.get_rec_id("http://nonexistent.url")
-        self.assertEqual(-1, idx_from_db)
+        self.assertIsNone(idx_from_db)
 
     def test_add_rec(self):
         for bookmark in self.bookmarks:
@@ -1076,7 +1076,7 @@ def test_add_rec_add_invalid_url(caplog, url):
     """test method."""
     bdb = BukuDb()
     res = bdb.add_rec(url=url)
-    assert res == -1
+    assert res is None
     caplog.records[0].levelname == "ERROR"
     caplog.records[0].getMessage() == "Invalid URL"
 
@@ -1119,7 +1119,7 @@ def test_add_rec_exec_arg(kwargs, exp_arg):
     """test func."""
     bdb = BukuDb()
     bdb.cur = mock.Mock()
-    bdb.get_rec_id = mock.Mock(return_value=-1)
+    bdb.get_rec_id = mock.Mock(return_value=None)
     bdb.add_rec(**kwargs)
     assert bdb.cur.execute.call_args[0][1] == exp_arg
 
@@ -1408,7 +1408,7 @@ def test_exportdb_to_db():
 @pytest.mark.parametrize(
     "urls, exp_res",
     [
-        [[], -1],
+        [[], None],
         [["http://example.com"], 1],
         [["htttp://example.com", "http://google.com"], 2],
     ],
