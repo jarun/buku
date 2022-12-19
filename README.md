@@ -327,39 +327,53 @@ PROMPT KEYS:
        $ buku -w 'gedit -w'
        $ buku -w 'macvim -f' -a https://ddg.gg search engine, privacy
     The first command picks editor from the environment variable `EDITOR`. The second command opens gedit in blocking mode. The third command opens macvim with option -f and the URL and tags populated in template.
-2. **Add** a bookmark with **tags** `search engine` and `privacy`, **comment** `Search engine with perks`, **fetch page title** from the web:
+2. **Add** a simple bookmark:
+
+       $ buku --nostdin -a https://github.com/
+       2648. GitHub: Let’s build from here · GitHub
+       > https://github.com/
+       + GitHub is where over 94 million developers shape the future of software, together. Contribute to the open source community, manage your Git repositories, review code like a pro, track bugs
+        and features, power your CI/CD and DevOps workflows, and secure code before you commit it.
+
+       $ buku --nostdin -a https://github.com/
+       [ERROR] URL [https://github.com/] already exists at index 2648
+
+      `>`: URL, `+`: comment, `#`: tags
+
+      Title, description and tags will be fetched from site. Buku only stores unique URLs and will raise error if the URL already present in the database:
+3. **Add** a bookmark with **tags** `search engine` and `privacy`, **comment** `Search engine with perks`, **fetch page title** from the web:
 
        $ buku -a https://ddg.gg search engine, privacy -c Search engine with perks
        336. DuckDuckGo
        > https://ddg.gg
        + Alternative search engine with perks
        # privacy,search engine
-    where, >: URL, +: comment, #: tags
-3. **Add** a bookmark with tags `search engine` & `privacy` and **immutable custom title** `DDG`:
+    where, `>`: URL, `+`: comment, `#`: tags
+4. **Add** a bookmark with tags `search engine` & `privacy` and **immutable custom title** `DDG`:
 
        $ buku -a https://ddg.gg search engine, privacy --title 'DDG' --immutable 1
        336. DDG (L)
        > https://ddg.gg
        # privacy,search engine
     Note that URL must precede tags.
-4. **Add** a bookmark **without a title** (works for update too):
+5. **Add** a bookmark **without a title** (works for update too):
 
        $ buku -a https://ddg.gg search engine, privacy --title
-5. **Edit and update** a bookmark from editor:
+6. **Edit and update** a bookmark from editor:
 
        $ buku -w 15012014
     This will open the existing bookmark's details in the editor for modifications. Environment variable `EDITOR` must be set.
-6. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
+7. **Update** existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 
        $ buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Private search engine
-7. **Fetch and update only title** for bookmark at 15012014:
+8. **Fetch and update only title** for bookmark at 15012014:
 
        $ buku -u 15012014
-8. **Update only comment** for bookmark at 15012014:
+9. **Update only comment** for bookmark at 15012014:
 
        $ buku -u 15012014 -c this is a new comment
     Applies to --url, --title and --tag too.
-9. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, XBEL, Markdown, Orgfile or a new database:
+10. **Export** bookmarks tagged `tag 1` or `tag 2` to HTML, XBEL, Markdown, Orgfile or a new database:
 
        $ buku -e bookmarks.html --stag tag 1, tag 2
        $ buku -e bookmarks.xbel --stag tag 1, tag 2
@@ -367,101 +381,101 @@ PROMPT KEYS:
        $ buku -e bookmarks.org --stag tag 1, tag 2
        $ buku -e bookmarks.db --stag tag 1, tag 2
     All bookmarks are exported if search is not opted.
-10. **Import** bookmarks from HTML, XBEL, Markdown or Orgfile:
+11. **Import** bookmarks from HTML, XBEL, Markdown or Orgfile:
 
         $ buku -i bookmarks.html
         $ buku -i bookmarks.xbel
         $ buku -i bookmarks.md
         $ buku -i bookmarks.org
         $ buku -i bookmarks.db
-11. **Delete only comment** for bookmark at 15012014:
+12. **Delete only comment** for bookmark at 15012014:
 
         $ buku -u 15012014 -c
     Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
-12. **Update** or refresh **full DB** with page titles from the web:
+13. **Update** or refresh **full DB** with page titles from the web:
 
         $ buku -u
         $ buku -u --tacit (show only failures and exceptions)
     This operation can update the title or description fields of non-immutable bookmarks by parsing the fetched page. Fields are updated only if the fetched fields are non-empty. Tags remain untouched.
-13. **Delete** bookmark at index 15012014:
+14. **Delete** bookmark at index 15012014:
 
         $ buku -d 15012014
         Index 15012020 moved to 15012014
     The last index is moved to the deleted index to keep the DB compact. Add `--tacit` to delete without confirmation.
-14. **Delete all** bookmarks:
+15. **Delete all** bookmarks:
 
         $ buku -d
-15. **Delete** a **range or list** of bookmarks:
+16. **Delete** a **range or list** of bookmarks:
 
         $ buku -d 100-200
         $ buku -d 100 15 200
-16. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
+17. **Search** bookmarks for **ANY** of the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku kernel debugging
         $ buku -s kernel debugging
-17. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
+18. **Search** bookmarks with **ALL** the keywords `kernel` and `debugging` in URL, title or tags:
 
         $ buku -S kernel debugging
-18. **Search** bookmarks **tagged** `general kernel concepts`:
+19. **Search** bookmarks **tagged** `general kernel concepts`:
 
         $ buku --stag general kernel concepts
-19. **Search** for bookmarks matching **ANY** of the tags `kernel`, `debugging`, `general kernel concepts`:
+20. **Search** for bookmarks matching **ANY** of the tags `kernel`, `debugging`, `general kernel concepts`:
 
         $ buku --stag kernel, debugging, general kernel concepts
-20. **Search** for bookmarks matching **ALL** of the tags `kernel`, `debugging`, `general kernel concepts`:
+21. **Search** for bookmarks matching **ALL** of the tags `kernel`, `debugging`, `general kernel concepts`:
 
         $ buku --stag kernel + debugging + general kernel concepts
-21. **Search** for bookmarks matching any of the keywords `hello` or `world`, excluding the keywords `real` and `life`, matching both the tags `kernel` and `debugging`, but **excluding** the tags `general kernel concepts` and `books`:
+22. **Search** for bookmarks matching any of the keywords `hello` or `world`, excluding the keywords `real` and `life`, matching both the tags `kernel` and `debugging`, but **excluding** the tags `general kernel concepts` and `books`:
 
         $ buku hello world --exclude real life --stag 'kernel + debugging - general kernel concepts, books'
-22. List **all unique tags** alphabetically:
+23. List **all unique tags** alphabetically:
 
         $ buku --stag
-23. Run a **search and update** the results:
+24. Run a **search and update** the results:
 
         $ buku -s kernel debugging -u --tag + linux kernel
-24. Run a **search and delete** the results:
+25. Run a **search and delete** the results:
 
         $ buku -s kernel debugging -d
-25. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+26. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
     The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
-26. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
+27. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
 
         $ buku -p 20-30 15012014 40-50
-27. Show details of the **last 10 bookmarks**:
+28. Show details of the **last 10 bookmarks**:
 
         $ buku -p -10
-28. **Show all** bookmarks with real index from database:
+29. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-29. **Replace tag** 'old tag' with 'new tag':
+30. **Replace tag** 'old tag' with 'new tag':
 
         $ buku --replace 'old tag' 'new tag'
-30. **Delete tag** 'old tag' from DB:
+31. **Delete tag** 'old tag' from DB:
 
         $ buku --replace 'old tag'
-31. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
+32. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
         $ buku -u 15012014 --tag - tag 1, tag 2
-32. **Open URL** at index 15012014 in browser:
+33. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-33. List bookmarks with **no title or tags** for bookkeeping:
+34. List bookmarks with **no title or tags** for bookkeeping:
 
         $ buku -S blank
-34. List bookmarks with **immutable title**:
+35. List bookmarks with **immutable title**:
 
         $ buku -S immutable
-35. **Shorten URL** www.google.com and the URL at index 20:
+36. **Shorten URL** www.google.com and the URL at index 20:
 
         $ buku --shorten www.google.com
         $ buku --shorten 20
-36. **Append, remove tags at prompt** (taglist index to the left, bookmark index to the right):
+37. **Append, remove tags at prompt** (taglist index to the left, bookmark index to the right):
 
         // append tags at taglist indices 4 and 6-9 to existing tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 >> 5 3-2
@@ -471,10 +485,10 @@ PROMPT KEYS:
         buku (? for help) g > 5 3-2
         // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 << 5 3-2
-37. List bookmarks with **colored output**:
+38. List bookmarks with **colored output**:
 
         $ buku --colors oKlxm -p
-38. More **help**:
+39. More **help**:
 
         $ buku -h
         $ man buku
