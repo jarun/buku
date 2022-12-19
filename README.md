@@ -518,6 +518,8 @@ Copyright © 2015-2022 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 
 Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/buku/issues/484) with identified tasks. Contributions are welcome! Please follow the [PR guidelines](https://github.com/jarun/buku/wiki/PR-guidelines).
 
+See also our documentation here <a href="http://buku.readthedocs.io/en/stable/?badge=stable"><img src="https://img.shields.io/badge/docs-stable-brightgreen.svg?maxAge=2592000" alt="Stable Docs" /></a>
+
 ### Related projects
 
 - [bukubrow](https://github.com/SamHH/bukubrow), WebExtension for browser integration
@@ -529,7 +531,6 @@ Missing a feature? There's a rolling [ToDo List](https://github.com/jarun/buku/i
 - [Ebuku](https://github.com/flexibeast/ebuku), Emacs interface to buku
 - [diigoku](https://github.com/dppdppd/diigoku), buku importer for Diigo
 
-<a href="http://buku.readthedocs.io/en/stable/?badge=stable"><img src="https://img.shields.io/badge/docs-stable-brightgreen.svg?maxAge=2592000" alt="Stable Docs" /></a>
 
 ### Videos
 
