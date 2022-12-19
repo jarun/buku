@@ -89,6 +89,12 @@ setup(
     test_suite='tests',
     tests_require=tests_require,
     keywords='cli bookmarks tag utility',
+    project_urls={
+        "Documentation": "https://buku.readthedocs.io/en/latest",
+        "Funding": "https://github.com/sponsors/jarun",
+        "Source": "https://github.com/jarun/buku",
+        "Tracker": "https://github.com/jarun/buku/issues",
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
