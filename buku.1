@@ -477,6 +477,17 @@ Please consult the manual of your terminal emulator as well as \fIhttps://en.wik
 The first command picks editor from the environment variable \fIEDITOR\fR. The second command opens gedit in blocking mode. The third command opens macvim with option -f and the URL and tags populated in template.
 .PP
 .IP 2. 4
+\fBAdd\fR a simple bookmark:
+.PP
+.EX
+.IP
+.B buku --no-stdin -a https://github.com/
+.EE
+.PP
+.IP "" 4
+In the output, >: url, +: comment, #: tags.
+.PP
+.IP 3. 4
 \fBAdd\fR a bookmark with \fBtags\fR 'search engine' and 'privacy', \fBcomment\fR 'Search engine with perks', \fBfetch page title\fR from the web:
 .PP
 .EX
@@ -487,7 +498,7 @@ The first command picks editor from the environment variable \fIEDITOR\fR. The s
 .IP "" 4
 In the output, >: url, +: comment, #: tags.
 .PP
-.IP 3. 4
+.IP 4. 4
 \fBAdd\fR a bookmark with tags 'search engine' & 'privacy' and \fBimmutable custom title\fR 'DDG':
 .PP
 .EX
@@ -498,7 +509,7 @@ In the output, >: url, +: comment, #: tags.
 .IP "" 4
 Note that URL must precede tags.
 .PP
-.IP 4. 4
+.IP 5. 4
 \fBAdd\fR a bookmark \fBwithout a title\fR (works for update too):
 .PP
 .EX
@@ -506,7 +517,7 @@ Note that URL must precede tags.
 .B buku -a https://ddg.gg search engine, privacy --title
 .EE
 .PP
-.IP 5. 4
+.IP 6. 4
 \fBEdit and update\fR a bookmark from editor:
 .PP
 .EX
@@ -517,7 +528,7 @@ Note that URL must precede tags.
 .IP "" 4
 This will open the existing bookmark's details in the editor for modifications. Environment variable \fIEDITOR\fR must be set.
 .PP
-.IP 6. 4
+.IP 7. 4
 \fBUpdate\fR existing bookmark at index 15012014 with new URL, tags and comments, fetch title from the web:
 .PP
 .EX
@@ -525,7 +536,7 @@ This will open the existing bookmark's details in the editor for modifications. 
 .B buku -u 15012014 --url http://ddg.gg/ --tag web search, utilities -c Private search engine
 .EE
 .PP
-.IP 7. 4
+.IP 8. 4
 \fBFetch and update only title\fR for bookmark at 15012014:
 .PP
 .EX
@@ -533,7 +544,7 @@ This will open the existing bookmark's details in the editor for modifications. 
 .B buku -u 15012014
 .EE
 .PP
-.IP 8. 4
+.IP 9. 4
 \fBUpdate only comment\fR for bookmark at 15012014:
 .PP
 .EX
@@ -544,7 +555,7 @@ This will open the existing bookmark's details in the editor for modifications. 
 .IP "" 4
 Applies to --url, --title and --tag too.
 .PP
-.IP 9. 4
+.IP 10. 4
 \fBExport\fR bookmarks tagged 'tag 1' or 'tag 2' to HTML, XBEL, Markdown, Orgfile or a new database:
 .PP
 .EX
@@ -563,7 +574,7 @@ Applies to --url, --title and --tag too.
 .IP "" 4
 All bookmarks are exported if search is not opted.
 .PP
-.IP 10. 4
+.IP 11. 4
 \fBImport\fR bookmarks from HTML, XBEL, Markdown or Orgfile:
 .PP
 .EX
@@ -577,7 +588,7 @@ All bookmarks are exported if search is not opted.
 .B buku -i bookmarks.db
 .EE
 .PP
-.IP 11. 4
+.IP 12. 4
 \fBDelete only comment\fR for bookmark at 15012014:
 .PP
 .EX
@@ -588,7 +599,7 @@ All bookmarks are exported if search is not opted.
 .IP "" 4
 Applies to --title and --tag too. URL cannot be deleted without deleting the bookmark.
 .PP
-.IP 12. 4
+.IP 13. 4
 \fBUpdate\fR or refresh \fBfull DB\fR with page titles from the web:
 .PP
 .EX
@@ -601,7 +612,7 @@ Applies to --title and --tag too. URL cannot be deleted without deleting the boo
 .IP "" 4
 This operation can update the title or description fields of non-immutable bookmarks by parsing the fetched page. Fields are updated only if the fetched fields are non-empty. Tags remain untouched.
 .PP
-.IP 13. 4
+.IP 14. 4
 \fBDelete\fR bookmark at index 15012014:
 .PP
 .EX
@@ -612,7 +623,7 @@ This operation can update the title or description fields of non-immutable bookm
 .IP "" 4
 The last index is moved to the deleted index to keep the DB compact. Add --tacit to delete without confirmation.
 .PP
-.IP 14. 4
+.IP 15. 4
 \fBDelete all\fR bookmarks:
 .PP
 .EX
@@ -620,7 +631,7 @@ The last index is moved to the deleted index to keep the DB compact. Add --tacit
 .B buku -d
 .EE
 .PP
-.IP 15. 4
+.IP 16. 4
 \fBDelete\fR a \fBrange or list\fR of bookmarks:
 .PP
 .EX
@@ -630,7 +641,7 @@ The last index is moved to the deleted index to keep the DB compact. Add --tacit
 .B buku -d 100 15 200
 .EE
 .PP
-.IP 16. 4
+.IP 17. 4
 \fBSearch\fR bookmarks for \fBANY\fR of the keywords 'kernel' and 'debugging' in URL, title or tags:
 .PP
 .EX
@@ -640,7 +651,7 @@ The last index is moved to the deleted index to keep the DB compact. Add --tacit
 .B buku -s kernel debugging
 .EE
 .PP
-.IP 17. 4
+.IP 18. 4
 \fBSearch\fR bookmarks with \fBALL\fR the keywords 'kernel' and 'debugging' in URL, title or tags:
 .PP
 .EX
@@ -648,7 +659,7 @@ The last index is moved to the deleted index to keep the DB compact. Add --tacit
 .B buku -S kernel debugging
 .EE
 .PP
-.IP 18. 4
+.IP 19. 4
 \fBSearch\fR bookmarks \fBtagged\fR 'general kernel concepts':
 .PP
 .EX
@@ -656,7 +667,7 @@ The last index is moved to the deleted index to keep the DB compact. Add --tacit
 .B buku --stag general kernel concepts
 .EE
 .PP
-.IP 19. 4
+.IP 20. 4
 \fBSearch\fR for bookmarks matching \fBANY\fR of the tags 'kernel', 'debugging', 'general kernel concepts':
 .PP
 .EX
@@ -664,7 +675,7 @@ The last index is moved to the deleted index to keep the DB compact. Add --tacit
 .B buku --stag kernel, debugging, general kernel concepts
 .EE
 .PP
-.IP 20. 4
+.IP 21. 4
 \fBSearch\fR for bookmarks matching \fBALL\fR of the tags 'kernel', 'debugging', 'general kernel concepts':
 .PP
 .EX
@@ -672,13 +683,13 @@ The last index is moved to the deleted index to keep the DB compact. Add --tacit
 .B buku --stag kernel + debugging + general kernel concepts
 .EE
 .PP
-.IP 21. 4
+.IP 22. 4
 \fBSearch\fR for bookmarks matching any of the keywords 'hello' or 'world', excluding the keywords 'real' and 'life', matching both the tags 'kernel' and 'debugging', but \fBexcluding\fR the tags 'general kernel concepts' and 'books':
 .PP
 .EX
 .IP
 .B buku hello world --exclude real life --stag 'kernel + debugging - general kernel concepts, books'
-.IP 22. 4
+.IP 23. 4
 List \fBall unique tags\fR alphabetically:
 .PP
 .EX
@@ -686,7 +697,7 @@ List \fBall unique tags\fR alphabetically:
 .B buku --stag
 .EE
 .PP
-.IP 23. 4
+.IP 24. 4
 Run a \fBsearch and update\fR the results:
 .PP
 .EX
@@ -694,7 +705,7 @@ Run a \fBsearch and update\fR the results:
 .B buku -s kernel debugging -u --tag + linux kernel
 .EE
 .PP
-.IP 24. 4
+.IP 25. 4
 Run a \fBsearch and delete\fR the results:
 .PP
 .EX
@@ -702,7 +713,7 @@ Run a \fBsearch and delete\fR the results:
 .B buku -s kernel debugging -d
 .EE
 .PP
-.IP 25. 4
+.IP 26. 4
 \fBEncrypt or decrypt\fR DB with \fBcustom number of iterations\fR (15) to generate key:
 .PP
 .EX
@@ -715,7 +726,7 @@ Run a \fBsearch and delete\fR the results:
 .IP "" 4
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
 .PP
-.IP 26. 4
+.IP 27. 4
 \fBShow details\fR of bookmarks at index 15012014 and ranges 20-30, 40-50:
 .PP
 .EX
@@ -723,7 +734,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -p 20-30 15012014 40-50
 .EE
 .PP
-.IP 27. 4
+.IP 28. 4
 Show details of the \fBlast 10 bookmarks\fR:
 .PP
 .EX
@@ -731,7 +742,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -p -10
 .EE
 .PP
-.IP 28. 4
+.IP 29. 4
 \fBShow all\fR bookmarks with real index from database:
 .PP
 .EX
@@ -741,7 +752,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -p | more
 .EE
 .PP
-.IP 29. 4
+.IP 30. 4
 \fBReplace tag\fR 'old tag' with 'new tag':
 .PP
 .EX
@@ -749,7 +760,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku --replace 'old tag' 'new tag'
 .EE
 .PP
-.IP 30. 4
+.IP 31. 4
 \fBDelete tag\fR 'old tag' from DB:
 .PP
 .EX
@@ -757,7 +768,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku --replace 'old tag'
 .EE
 .PP
-.IP 31. 4
+.IP 32. 4
 \fBAppend (or delete) tags\fR 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 .PP
 .EX
@@ -767,7 +778,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -u 15012014 --tag - tag 1, tag 2
 .EE
 .PP
-.IP 32. 4
+.IP 33. 4
 \fBOpen URL\fR at index 15012014 in browser:
 .PP
 .EX
@@ -775,7 +786,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -o 15012014
 .EE
 .PP
-.IP 33. 4
+.IP 34. 4
 List bookmarks with \fBno title or tags\fR for bookkeeping:
 .PP
 .EX
@@ -783,7 +794,7 @@ List bookmarks with \fBno title or tags\fR for bookkeeping:
 .B buku -S blank
 .EE
 .PP
-.IP 34. 4
+.IP 35. 4
 List bookmarks with \fBimmutable title\fR:
 .PP
 .EX
@@ -791,7 +802,7 @@ List bookmarks with \fBimmutable title\fR:
 .B buku -S immutable
 .EE
 .PP
-.IP 35. 4
+.IP 36. 4
 \fBShorten\fR the URL www.google.com and the URL at index 20:
 .PP
 .EX
@@ -801,7 +812,7 @@ List bookmarks with \fBimmutable title\fR:
 .B buku --shorten 20
 .EE
 .PP
-.IP 36. 4
+.IP 37. 4
 \fBAppend, remove tags at prompt\fR (taglist index to the left, bookmark index to the right):
 .PP
 .EX
@@ -823,7 +834,7 @@ List bookmarks with \fBimmutable title\fR:
 .B buku (? for help) g 4 9-6 << 5 3-2
 .EE
 .PP
-.IP 37. 4
+.IP 38. 4
 List bookmarks with \fBcolored output\fR:
 .PP
 .EX
