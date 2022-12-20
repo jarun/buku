@@ -10,7 +10,7 @@
   - [Using Docker Compose](#using-docker-compose)
 - [Webserver options](#webserver-options)
 - [Configuration](#configuration)
-- [Screenshots](#screenshots)
+- [Screenshots](#screenshots) ([album](https://imgur.com/gallery/nk9dPEk))
 
 ### Installation
 
@@ -162,6 +162,12 @@ is recommended to include preceding slash and not have trailing slash
 <a href="https://i.imgur.com/DJUzs1d.png"><img src="https://i.imgur.com/DJUzs1d.png" alt="index page" width="650"/></a>
 </p>
 <p align="center"><i>bookmark stats</i></a></p>
+
+<p><br><br></p>
+<p align="center">
+<a href="https://i.imgur.com/DtUcjIl.png"><img src="https://i.imgur.com/DtUcjIl.png" alt="index page" width="650"/></a>
+</p>
+<p align="center"><i>bookmark page with 'slate' theme</i></a></p>
 
 <p><br><br></p>
 <p align="center">
