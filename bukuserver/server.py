@@ -105,6 +105,7 @@ def create_app(db_file=None):
         else:
             raise ImportError('Failed to import ReverseProxyPrefixFix')
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
+    app.config['FLASK_ADMIN_SWATCH'] = (os.getenv('BUKUSERVER_THEME') or 'default').lower()
     app.config['BUKUSERVER_LOCALE'] = os.getenv('BUKUSERVER_LOCALE') or 'en'
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)

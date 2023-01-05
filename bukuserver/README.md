@@ -123,6 +123,7 @@ The following are os env config variables available for bukuserver.
 | DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean [default: `true`] |
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path | string |
+| THEME | [GUI theme](https://bootswatch.com/3) | string [default: `default`] (`slate` is a good pick for dark mode) |
 | LOCALE | GUI language (partial support) | string [default: `en`] |
 
 Note: `BUKUSERVER_` is the common prefix (_every variable starts with it_).
