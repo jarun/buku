@@ -10,7 +10,7 @@
   - [Using Docker Compose](#using-docker-compose)
 - [Webserver options](#webserver-options)
 - [Configuration](#configuration)
-- [Screenshots](#screenshots) ([album](https://imgur.com/gallery/nk9dPEk))
+- [Screenshots](#screenshots) ([imgur album](https://imgur.com/gallery/nk9dPEk))
 
 ### Installation
 
@@ -149,7 +149,7 @@ Note: the value for BUKUSERVER_REVERSE_PROXY_PATH
 is recommended to include preceding slash and not have trailing slash
 (i.e. use `/foo` not `/foo/`)
 
-### Screenshots
+### Screenshots ([imgur album](https://imgur.com/gallery/nk9dPEk))
 
 <p><br></p>
 <p align="center">
@@ -165,15 +165,15 @@ is recommended to include preceding slash and not have trailing slash
 
 <p><br><br></p>
 <p align="center">
-<a href="https://i.imgur.com/DtUcjIl.png"><img src="https://i.imgur.com/DtUcjIl.png" alt="index page" width="650"/></a>
+<a href="https://i.imgur.com/1eMruZD.png"><img src="https://i.imgur.com/1eMruZD.png" alt="index page" width="650"/></a>
 </p>
-<p align="center"><i>bookmark page with 'slate' theme</i></a></p>
+<p align="center"><i>bookmark page with favicon enabled</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-<a href="https://i.imgur.com/1eMruZD.png"><img src="https://i.imgur.com/1eMruZD.png" alt="index page" width="650"/></a>
+<a href="https://i.imgur.com/DtUcjIl.png"><img src="https://i.imgur.com/DtUcjIl.png" alt="index page" width="650"/></a>
 </p>
-<p align="center"><i>bookmark page</i></a></p>
+<p align="center"><i>bookmark page with 'slate' theme and favicon enabled</i></a></p>
 
 <p><br><br></p>
 <p align="center">
