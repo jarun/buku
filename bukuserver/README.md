@@ -171,7 +171,7 @@ is recommended to include preceding slash and not have trailing slash
 
 <p><br><br></p>
 <p align="center">
-<a href="https://i.imgur.com/DtUcjIl.png"><img src="https://i.imgur.com/DtUcjIl.png" alt="index page" width="650"/></a>
+<a href="https://i.imgur.com/DtUcjIl.png"><img src="https://i.imgur.com/KaZIezk.png" alt="index page" width="650"/></a>
 </p>
 <p align="center"><i>bookmark page with 'slate' theme and favicon enabled</i></a></p>
 
