@@ -10,7 +10,7 @@
   - [Using Docker Compose](#using-docker-compose)
 - [Webserver options](#webserver-options)
 - [Configuration](#configuration)
-- [Screenshots](#screenshots) ([imgur album](https://imgur.com/gallery/nk9dPEk))
+- [Screenshots](#screenshots) ([imgur album](https://imgur.com/a/nk9dPEk))
 
 ### Installation
 
@@ -149,7 +149,7 @@ Note: the value for BUKUSERVER_REVERSE_PROXY_PATH
 is recommended to include preceding slash and not have trailing slash
 (i.e. use `/foo` not `/foo/`)
 
-### Screenshots ([imgur album](https://imgur.com/gallery/nk9dPEk))
+### Screenshots ([imgur album](https://imgur.com/a/nk9dPEk))
 
 <p><br></p>
 <p align="center">
