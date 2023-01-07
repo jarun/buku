@@ -149,6 +149,19 @@ Note: the value for BUKUSERVER_REVERSE_PROXY_PATH
 is recommended to include preceding slash and not have trailing slash
 (i.e. use `/foo` not `/foo/`)
 
+Note: At Bukuserver, we have disabled favicon as a default setting in order to prevent any non-user triggered network activity.
+
+Our favicon is generated with the assistance of Google.
+
+It is important to be aware that favicon has the potential to be used for browser fingerprinting,
+a technique used to identify and track a person's web browsing habits.
+
+- Github repo example https://github.com/jonasstrehle/supercookie
+- Paper by Scientists at University of Illinois, Chicago https://www.cs.uic.edu/~polakis/papers/solomos-ndss21.pdf
+- Article https://heise.de/-5027814
+
+It is important to note that favicon can potentially be exploited in this way, even though it is a small and seemingly insignificant feature.
+
 ### Screenshots
 
 ([imgur album](https://imgur.com/a/nk9dPEk))
