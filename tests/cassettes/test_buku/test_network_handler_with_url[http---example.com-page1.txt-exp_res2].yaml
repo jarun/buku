@@ -1,0 +1,40 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip,deflate
+      Cookie:
+      - ''
+      DNT:
+      - '1'
+      User-Agent:
+      - Mozilla/5.0 (X11; Linux x86_64; rv:101.0) Gecko/20100101 Firefox/101.0
+    method: HEAD
+    uri: http://example.com/page1.txt
+  response:
+    body:
+      string: ''
+    headers:
+      Cache-Control:
+      - max-age=604800
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '648'
+      Content-Type:
+      - text/html; charset=UTF-8
+      Date:
+      - Sat, 07 Jan 2023 07:50:27 GMT
+      Expires:
+      - Sat, 14 Jan 2023 07:50:27 GMT
+      Server:
+      - EOS (vny/0451)
+      Vary:
+      - Accept-Encoding
+    status:
+      code: 404
+      message: Not Found
+version: 1

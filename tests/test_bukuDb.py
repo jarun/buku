@@ -2,7 +2,6 @@
 #
 # Unit test cases for buku
 #
-import logging
 import math
 import os
 import re
@@ -12,24 +11,17 @@ import sys
 import unittest
 import urllib
 import zipfile
-
-# fmt: off
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import mock
-from genericpath import exists
-# fmt: on
 
 import pytest
-import vcr
 import yaml
+from genericpath import exists
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from buku import BukuDb, parse_tags, prompt
 
-logging.basicConfig()  # you need to initialize logging, otherwise you will not see anything from vcrpy
-vcr_log = logging.getLogger("vcr")
-vcr_log.setLevel(logging.INFO)
 
 def get_temp_dir_path():
     with TemporaryDirectory(prefix="bukutest_") as dir_obj:
@@ -380,9 +372,7 @@ class TestBukuDb(unittest.TestCase):
                 expected[0] += tuple([0])
                 self.assertEqual(results, expected)
 
-    @vcr.use_cassette(
-        "tests/vcr_cassettes/test_search_by_multiple_tags_search_any.yaml"
-    )
+    @pytest.mark.vcr("tests/vcr_cassettes/test_search_by_multiple_tags_search_any.yaml")
     def test_search_by_multiple_tags_search_any(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -432,9 +422,7 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
-    @vcr.use_cassette(
-        "tests/vcr_cassettes/test_search_by_multiple_tags_search_all.yaml"
-    )
+    @pytest.mark.vcr("tests/vcr_cassettes/test_search_by_multiple_tags_search_all.yaml")
     def test_search_by_multiple_tags_search_all(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -564,9 +552,7 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
-    @vcr.use_cassette(
-        "tests/vcr_cassettes/test_search_by_tags_enforces_space_seprations_exclusion.yaml"
-    )
+    @pytest.mark.vcr("tests/vcr_cassettes/test_search_by_tags_enforces_space_seprations_exclusion.yaml")
     def test_search_by_tags_enforces_space_seprations_exclusion(self):
 
         bookmark1 = [
@@ -653,7 +639,7 @@ class TestBukuDb(unittest.TestCase):
                 # checking if browse called with expected arguments
                 self.assertEqual(arg_list, expected)
 
-    @vcr.use_cassette("tests/vcr_cassettes/test_search_and_open_all_in_browser.yaml")
+    @pytest.mark.vcr("tests/vcr_cassettes/test_search_and_open_all_in_browser.yaml")
     def test_search_and_open_all_in_browser(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
@@ -1219,7 +1205,7 @@ def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp
         assert res == exp_res
 
 
-@vcr.use_cassette("tests/vcr_cassettes/test_browse_by_index.yaml")
+@pytest.mark.vcr("tests/vcr_cassettes/test_browse_by_index.yaml")
 @given(
     low=st.integers(min_value=-2, max_value=3),
     high=st.integers(min_value=-2, max_value=3),

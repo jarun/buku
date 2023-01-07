@@ -552,6 +552,7 @@ def test_sigint_handler(capsys):
         assert err == "\nInterrupted.\n"
 
 
+@pytest.mark.vcr("tests/vcr_cassettes/test_network_handler_with_url.yaml")
 @pytest.mark.parametrize(
     "url, exp_res",
     [
