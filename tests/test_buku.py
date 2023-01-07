@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from buku import DELIM, is_int, prep_tag_search
+from buku import DELIM, FIELD_FILTER, ALL_FIELDS, is_int, prep_tag_search, print_rec_with_filter
 
 only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires Python 3.5 or later")
 
@@ -133,86 +133,25 @@ def test_parse_tags_no_args():
     assert buku.parse_tags() == DELIM
 
 
-@pytest.mark.parametrize(
-    "records, field_filter, exp_res",
-    [
-        [
-            [
-                (1, "http://url1.com", "title1", ",tag1,"),
-                (2, "http://url2.com", "title2", ",tag1,tag2,"),
-            ],
-            1,
-            ["1\thttp://url1.com", "2\thttp://url2.com"],
-        ],
-        [
-            [
-                (1, "http://url1.com", "title1", ",tag1,"),
-                (2, "http://url2.com", "title2", ",tag1,tag2,"),
-            ],
-            2,
-            ["1\thttp://url1.com\ttag1", "2\thttp://url2.com\ttag1,tag2"],
-        ],
-        [
-            [
-                (1, "http://url1.com", "title1", ",tag1,"),
-                (2, "http://url2.com", "title2", ",tag1,tag2,"),
-            ],
-            3,
-            ["1\ttitle1", "2\ttitle2"],
-        ],
-        [
-            [
-                (1, "http://url1.com", "title1", ",tag1,"),
-                (2, "http://url2.com", "title2", ",tag1,tag2,"),
-            ],
-            4,
-            [
-                "1\thttp://url1.com\ttitle1\ttag1",
-                "2\thttp://url2.com\ttitle2\ttag1,tag2",
-            ],
-        ],
-        [
-            [
-                (1, "http://url1.com", "title1", ",tag1,"),
-                (2, "http://url2.com", "title2", ",tag1,tag2,"),
-            ],
-            10,
-            ["http://url1.com", "http://url2.com"],
-        ],
-        [
-            [
-                (1, "http://url1.com", "title1", ",tag1,"),
-                (2, "http://url2.com", "title2", ",tag1,tag2,"),
-            ],
-            20,
-            ["http://url1.com\ttag1", "http://url2.com\ttag1,tag2"],
-        ],
-        [
-            [
-                (1, "http://url1.com", "title1", ",tag1,"),
-                (2, "http://url2.com", "title2", ",tag1,tag2,"),
-            ],
-            30,
-            ["title1", "title2"],
-        ],
-        [
-            [
-                (1, "http://url1.com", "title1", ",tag1,"),
-                (2, "http://url2.com", "title2", ",tag1,tag2,"),
-            ],
-            40,
-            ["http://url1.com\ttitle1\ttag1", "http://url2.com\ttitle2\ttag1,tag2"],
-        ],
-    ],
-)
-def test_print_rec_with_filter(records, field_filter, exp_res):
-    """test func."""
-    with mock.patch("buku.print", create=True) as m_print:
-        import buku
-
-        buku.print_rec_with_filter(records, field_filter)
-        for res in exp_res:
-            m_print.assert_any_call(res)
+@pytest.mark.parametrize("field_filter, exp_res", [
+    (0, ["1. title1\n   > http://url1.com\n   + desc1\n   # tag1\n",
+         "2. title2\n   > http://url2.com\n   + desc2\n   # tag1,tag2\n"]),
+    (1, ["1\thttp://url1.com", "2\thttp://url2.com"]),
+    (2, ["1\thttp://url1.com\ttag1", "2\thttp://url2.com\ttag1,tag2"]),
+    (3, ["1\ttitle1", "2\ttitle2"]),
+    (4, ["1\thttp://url1.com\ttitle1\ttag1", "2\thttp://url2.com\ttitle2\ttag1,tag2"]),
+    (5, ["1\ttitle1\ttag1", "2\ttitle2\ttag1,tag2"]),
+    (10, ["http://url1.com", "http://url2.com"]),
+    (20, ["http://url1.com\ttag1", "http://url2.com\ttag1,tag2"]),
+    (30, ["title1", "title2"]),
+    (40, ["http://url1.com\ttitle1\ttag1", "http://url2.com\ttitle2\ttag1,tag2"]),
+    (50, ["title1\ttag1", "title2\ttag1,tag2"]),
+])
+def test_print_rec_with_filter(capfd, field_filter, exp_res):
+    records = [(1, "http://url1.com", "title1", ",tag1,", "desc1"),
+               (2, "http://url2.com", "title2", ",tag1,tag2,", "desc2")]
+    print_rec_with_filter(records, field_filter)
+    assert capfd.readouterr().out == ''.join(f'{s}\n' for s in exp_res)
 
 
 @pytest.mark.parametrize(
@@ -263,24 +202,22 @@ def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
             obj.add_rec(*edit_rec_retval)
 
 
-@pytest.mark.parametrize("field_filter, single_record", product(list(range(4)), [True, False]))
+@pytest.mark.parametrize('single_record', [True, False])
+@pytest.mark.parametrize('field_filter', [0, 1, 2, 3, 4, 5, 10, 20, 30, 40, 50])
 def test_format_json(field_filter, single_record):
-    """test func."""
-    resultset = [["row{}".format(x) for x in range(5)]]
-    if field_filter == 1:
-        marks = {"uri": "row1"}
-    elif field_filter == 2:
-        marks = {"uri": "row1", "tags": "row3"[1:-1]}
-    elif field_filter == 3:
-        marks = {"title": "row2"}
-    else:
-        marks = {
-            "index": "row0",
-            "uri": "row1",
-            "title": "row2",
-            "description": "row4",
-            "tags": "row3"[1:-1],
-        }
+    resultset = [[f'<row{x}>' for x in range(5)]]
+    fields = FIELD_FILTER.get(field_filter, ALL_FIELDS)
+    marks = {}
+    if 'id' in fields:
+        marks['index'] = '<row0>'
+    if 'url' in fields:
+        marks['uri'] = '<row1>'
+    if 'title' in fields:
+        marks['title'] = '<row2>'
+    if 'tags' in fields:
+        marks['tags'] = 'row3'
+    if 'desc' in fields:
+        marks['description'] = '<row4>'
     if not single_record:
         marks = [marks]
 

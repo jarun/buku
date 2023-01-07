@@ -54,8 +54,8 @@ install_requires = [
     'certifi',
     'cryptography>=1.2.3',
     'html5lib>=1.0.1',
-    'pyreadline; sys_platform == \'windows\'',
     'urllib3>=1.23',
+    'pyreadline3; sys_platform == \'win32\'',
 ]
 
 setup(

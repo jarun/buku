@@ -5,4 +5,4 @@ cryptography>=1.2.3
 html5lib>=1.0.1
 setuptools
 urllib3>=1.23
-pyreadline; sys_platform == 'windows'
+pyreadline3; sys_platform == 'win32'

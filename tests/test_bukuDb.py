@@ -1084,34 +1084,34 @@ def test_add_rec_add_invalid_url(caplog, url):
 @pytest.mark.parametrize(
     "kwargs, exp_arg",
     [
-        [{"url": "example.com"}, ("example.com", "Example Domain", ",", "", 0)],
+        [{"url": "example.com"}, ("example.com", "Example Domain", ",", "", False)],
         [
             {"url": "http://example.com"},
-            ("http://example.com", "Example Domain", ",", "", 0),
+            ("http://example.com", "Example Domain", ",", "", False),
         ],
         [
-            {"url": "http://example.com", "immutable": 1},
-            ("http://example.com", "Example Domain", ",", "", 1),
+            {"url": "http://example.com", "immutable": True},
+            ("http://example.com", "Example Domain", ",", "", True),
         ],
         [
             {"url": "http://example.com", "desc": "randomdesc"},
-            ("http://example.com", "Example Domain", ",", "randomdesc", 0),
+            ("http://example.com", "Example Domain", ",", "randomdesc", False),
         ],
         [
             {"url": "http://example.com", "title_in": "randomtitle"},
-            ("http://example.com", "randomtitle", ",", "", 0),
+            ("http://example.com", "randomtitle", ",", "", False),
         ],
         [
             {"url": "http://example.com", "tags_in": "tag1"},
-            ("http://example.com", "Example Domain", ",tag1,", "", 0),
+            ("http://example.com", "Example Domain", ",tag1,", "", False),
         ],
         [
             {"url": "http://example.com", "tags_in": ",tag1"},
-            ("http://example.com", "Example Domain", ",tag1,", "", 0),
+            ("http://example.com", "Example Domain", ",tag1,", "", False),
         ],
         [
             {"url": "http://example.com", "tags_in": ",tag1,"},
-            ("http://example.com", "Example Domain", ",tag1,", "", 0),
+            ("http://example.com", "Example Domain", ",tag1,", "", False),
         ],
     ],
 )
