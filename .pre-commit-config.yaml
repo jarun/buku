@@ -20,7 +20,7 @@ repos:
   rev: 1.5.1
   hooks:
   - id: darker
-    args: [--line-length, '139']
+    args: [--line-length, '139', --skip-string-normalization]
 - repo: https://github.com/PyCQA/pylint/
   rev: v2.15.5
   hooks:
