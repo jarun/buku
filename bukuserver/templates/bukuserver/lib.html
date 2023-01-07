@@ -5,7 +5,7 @@
 {% endmacro %}
 
 {% macro close_if_popup() %}
-  <script>close(); /* closes if in popup window */</script>
+  <script>opener && (opener !== window) && close()</script>
 {% endmacro %}
 
 {% macro limit_navigation_if_popup() %}
