@@ -20,7 +20,7 @@
 
 `buku` is a powerful bookmark manager and a personal textual mini-web.
 
-For those who prefer the GUI, `bukuserver` exposes a browsable front-end on a local web host server. See [bukuserver page](https://github.com/jarun/buku/tree/master/bukuserver#readme) for config and screenshot.
+For those who prefer the GUI, `bukuserver` exposes a browsable front-end on a local web host server. See [bukuserver page](https://github.com/jarun/buku/tree/master/bukuserver#readme) for config and screenshots.
 
 When I started writing it, I couldn't find a flexible command-line solution with a private, portable, merge-able database along with seamless GUI integration. Hence, `buku`.
 
