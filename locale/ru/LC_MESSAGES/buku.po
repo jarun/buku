@@ -1,0 +1,873 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# Anton Artsiushkevich <htovver@gmail.com>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2023-01-18 16:27+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+#: buku:82
+msgid "buku (? for help): "
+msgstr "buku (? вызов справки): "
+
+#: buku:188 buku:291
+msgid "cryptography lib(s) missing"
+msgstr ""
+
+#: buku:192
+msgid "Iterations must be >= 1"
+msgstr ""
+
+#: buku:205
+msgid "%s missing. Already encrypted?"
+msgstr ""
+
+#: buku:209 buku:316 buku:494
+msgid "Both encrypted and flat DB files exist!"
+msgstr ""
+
+#: buku:215
+msgid "Empty password"
+msgstr ""
+
+#: buku:218
+msgid "Passwords do not match"
+msgstr ""
+
+#: buku:263
+msgid "File encrypted"
+msgstr "Файл зашифрован"
+
+#: buku:295 buku:321 buku:357
+msgid "Decryption failed"
+msgstr ""
+
+#: buku:312
+msgid "%s missing"
+msgstr ""
+
+#: buku:361
+msgid "File decrypted"
+msgstr "Файл расшифрован"
+
+#: buku:365
+msgid "Tainted file"
+msgstr ""
+
+#: buku:491
+msgid "Unlock database first"
+msgstr ""
+
+#: buku:498
+msgid ""
+"DB file is being created at %s.\n"
+"You should encrypt it."
+msgstr ""
+
+#: buku:624
+#, fuzzy
+msgid "Invalid URL"
+msgstr "Неверный ввод"
+
+#: buku:630
+msgid "URL [%s] already exists at index %d"
+msgstr ""
+
+#: buku:637
+msgid "Malformed URL\n"
+msgstr "Неправильный URL\n"
+
+#: buku:641
+msgid "No title\n"
+msgstr ""
+
+#: buku:697
+msgid "Append the tags to ALL bookmarks? (y/n): "
+msgstr ""
+
+#: buku:750
+msgid "Delete the tag(s) from ALL bookmarks? (y/n): "
+msgstr "Удалить тег(и) из ВСЕХ закладок? (y/n): "
+
+#: buku:766
+msgid "%d record(s) updated"
+msgstr ""
+
+#: buku:842
+msgid "All URLs cannot be same"
+msgstr ""
+
+#: buku:851
+msgid "Please specify a tag"
+msgstr ""
+
+#: buku:907
+msgid "Malformed URL"
+msgstr "Неправильный URL"
+
+#: buku:911
+msgid "No title"
+msgstr ""
+
+#: buku:939
+msgid "Update ALL bookmarks? (y/n): "
+msgstr "Обновить ВСЕ закладки? (y/n): "
+
+#: buku:957 buku:1155 buku:1627 buku:1643 buku:1646 buku:1829 buku:1832
+#: buku:2189 buku:2191 buku:2842 buku:4415
+msgid "No matching index %d"
+msgstr "Нет подходящего индекса %d"
+
+#: buku:960
+msgid "URL already exists"
+msgstr ""
+
+#: buku:995
+msgid "No matching index or title immutable or empty DB"
+msgstr ""
+
+#: buku:1000
+msgid "[1mIndex %d: Malformed URL[0m\n"
+msgstr ""
+
+#: buku:1001
+msgid "[1mIndex %d: HTTP HEAD requested[0m\n"
+msgstr ""
+
+#: buku:1002
+msgid "[1mIndex %d: No title[0m\n"
+msgstr ""
+
+#: buku:1003
+msgid ""
+"Title: [%s]\n"
+"[92mIndex %d: updated[0m\n"
+msgstr ""
+"Заголовок: [%s]\n"
+"[92mИндекс %d: обновлен[0m\n"
+
+#: buku:1005
+msgid "Index %d: Malformed URL\n"
+msgstr ""
+
+#: buku:1006
+msgid "Index %d: HTTP HEAD requested\n"
+msgstr ""
+
+#: buku:1007
+msgid "Index %d: No title\n"
+msgstr ""
+
+#: buku:1008
+msgid ""
+"Title: [%s]\n"
+"Index %d: updated\n"
+msgstr ""
+
+#: buku:1118
+msgid "Records: %d, processed: %d !!!"
+msgstr ""
+
+#: buku:1143
+msgid "EDITOR must be set to use index with -w"
+msgstr ""
+
+#: buku:1150 buku:1797
+msgid "Empty database"
+msgstr ""
+
+#: buku:1319
+#, fuzzy
+msgid "Invalid search option"
+msgstr "глубокий поиск включен"
+
+#: buku:1486
+msgid "Index %d moved to %d"
+msgstr "Индекс %d перемещен на %d"
+
+#: buku:1577 buku:1806 buku:2148
+msgid "Negative range boundary"
+msgstr ""
+
+#: buku:1593
+msgid "Index %d-%d: 0 deleted"
+msgstr ""
+
+#: buku:1597
+msgid "Delete these bookmarks? (y/n): "
+msgstr ""
+
+#: buku:1603
+msgid "Index %d-%d: %d deleted"
+msgstr ""
+
+#: buku:1616 buku:4373
+msgid "No matching index"
+msgstr "Нет подходящего индекса"
+
+#: buku:1631
+msgid "Delete this bookmark? (y/n): "
+msgstr "Удалить эту закладку? (y/n): "
+
+#: buku:1638
+msgid "Index %d deleted"
+msgstr "Индекс %d удален"
+
+#: buku:1674
+msgid "Delete the search results? (y/n): "
+msgstr "Удалить результаты поиска? (y/n): "
+
+#: buku:1713
+msgid "delete_rec_all(): %s"
+msgstr ""
+
+#: buku:1725
+msgid "Remove ALL bookmarks? (y/n): "
+msgstr "Удалить ВСЕ закладки? (y/n): "
+
+#: buku:1727
+msgid "No bookmarks deleted"
+msgstr "Закладки не удалены"
+
+#: buku:1733
+msgid "All bookmarks deleted"
+msgstr "Все закладки удалены"
+
+#: buku:1821 buku:2164
+msgid "Index out of range"
+msgstr ""
+
+#: buku:1848
+#, fuzzy
+msgid "0 records"
+msgstr "Записи не найдены"
+
+#: buku:1931
+msgid "similar tags:\n"
+msgstr "похожие теги:\n"
+
+#: buku:1935
+msgid ""
+"\n"
+"select: "
+msgstr ""
+
+#: buku:1975
+msgid "Tags are same."
+msgstr ""
+
+#: buku:1992
+msgid "Index %d updated"
+msgstr "Индекс %d обновлен"
+
+#: buku:2168
+#, fuzzy
+msgid "Invalid index %d"
+msgstr "Неверный ввод"
+
+#: buku:2178
+msgid "No bookmarks added yet ..."
+msgstr ""
+
+#: buku:2229
+msgid "No records found"
+msgstr "Записи не найдены"
+
+#: buku:2233
+msgid " exists. Overwrite? (y/n): "
+msgstr "существует. Перезаписать? "
+
+#: buku:2248 buku:2269
+msgid "%s exported"
+msgstr ""
+
+#: buku:2493
+msgid "buku does not support {} yet"
+msgstr ""
+
+#: buku:2497 buku:2605
+msgid "Generate auto-tag (YYYYMonDD)? (y/n): "
+msgstr "Сгенерировать авто-тег (ГГГГМесДД)? (y/n): "
+
+#: buku:2502 buku:2616
+msgid "Add parent folder names as tags? (y/n): "
+msgstr ""
+
+#: buku:2512
+msgid "Import bookmarks from google chrome? (y/n): "
+msgstr "Импортировать закладки из google chrome? (y/n): "
+
+#: buku:2520
+msgid "Could not import bookmarks from google-chrome"
+msgstr "Не удалось импортировать закладки из google-chrome"
+
+#: buku:2524
+msgid "Import bookmarks from chromium? (y/n): "
+msgstr "Импортировать закладки из chromium? (y/n): "
+
+#: buku:2532
+msgid "Could not import bookmarks from chromium"
+msgstr "Не удалось импортировать закладки из chromium"
+
+#: buku:2536
+msgid "Import bookmarks from Vivaldi? (y/n): "
+msgstr "Импортировать закладки из Vivaldi? (y/n): "
+
+#: buku:2544
+msgid "Could not import bookmarks from Vivaldi"
+msgstr "Не удалось импортировать закладки из Vivaldi"
+
+#: buku:2548
+msgid "Import bookmarks from Firefox? (y/n): "
+msgstr "Импортировать закладки из Firefox? (y/n): "
+
+#: buku:2556
+msgid "Could not import bookmarks from Firefox."
+msgstr "Не удалось импортировать закладки из Firefox."
+
+#: buku:2560
+msgid "Import bookmarks from microsoft edge? (y/n): "
+msgstr "Импортировать закладки из microsoft edge? (y/n): "
+
+#: buku:2568
+msgid "Could not import bookmarks from microsoft-edge"
+msgstr "Не удалось импортировать закладки из microsoft-edge"
+
+#: buku:2573 buku:2697
+msgid ""
+"\n"
+"Auto-generated tag: %s"
+msgstr ""
+
+#: buku:2607
+msgid "Append tags when bookmark exist? (y/n): "
+msgstr ""
+
+#: buku:2636 buku:2663
+msgid "Beautiful Soup not found"
+msgstr ""
+
+#: buku:2645
+msgid ""
+"Add bookmark's parent folder as tag?\n"
+"a: add all parent folders of the bookmark\n"
+"n: don't add parent folder as tag\n"
+"(a/[n]): "
+msgstr ""
+
+#: buku:2672
+msgid ""
+"Add bookmark's parent folder as tag?\n"
+"y: add single, direct parent folder\n"
+"a: add all parent folders of the bookmark\n"
+"n: don't add parent folder as tag\n"
+"(y/a/[n]): "
+msgstr ""
+
+#: buku:2765
+msgid "Either a valid DB index or URL required"
+msgstr ""
+
+#: buku:2864
+msgid "Uncached"
+msgstr ""
+
+#: buku:2941
+msgid ""
+"\n"
+"SYMBOLS:\n"
+"      >                    url\n"
+"      +                    comment\n"
+"      #                    tags\n"
+"\n"
+"Version %s\n"
+"Copyright © 2015-2022 %s\n"
+"License: %s\n"
+"Webpage: https://github.com/jarun/buku\n"
+msgstr ""
+"\n"
+"СИМВОЛЫ:\n"
+"      >                    url\n"
+"      +                    комментарий\n"
+"      #                    теги\n"
+"\n"
+"Версия %s\n"
+"Авторские права © 2015-2022 %s\n"
+"Лицензия: %s\n"
+"Страница в Интернете: https://github.com/jarun/buku\n"
+
+#: buku:2962
+msgid ""
+"\n"
+"PROMPT KEYS:\n"
+"    1-N                    browse search result indices and/or ranges\n"
+"    O [id|range [...]]     open search results/indices in GUI browser\n"
+"                           toggle try GUI browser if no arguments\n"
+"    a                      open all results in browser\n"
+"    s keyword [...]        search for records with ANY keyword\n"
+"    S keyword [...]        search for records with ALL keywords\n"
+"    d                      match substrings ('pen' matches 'opened')\n"
+"    r expression           run a regex search\n"
+"    t [tag, ...]           search by tags; show taglist, if no args\n"
+"    g taglist id|range [...] [>>|>|<<] [record id|range ...]\n"
+"                           append, set, remove (all or specific) tags\n"
+"                           search by taglist id(s) if records are omitted\n"
+"    n                      show next page of search results\n"
+"    o id|range [...]       browse bookmarks by indices and/or ranges\n"
+"    p id|range [...]       print bookmarks by indices and/or ranges\n"
+"    w [editor|id]          edit and add or update a bookmark\n"
+"    c id                   copy url at search result index to clipboard\n"
+"    ?                      show this help\n"
+"    q, ^D, double Enter    exit buku\n"
+"\n"
+msgstr ""
+"\n"
+"PROMPT KEYS:\n"
+"    1-N                    просмотр индекса(ов) и/или диапазона(ов)\n"
+"                           результатов поиска\n"
+"    O [id|диапазон [...]]  открыть результаты поиска/индексы в браузере\n"
+"                           с графическим интерфейсом\n"
+"                           toggle try GUI browser if no arguments\n"
+"    a                      открыть все результаты в браузере\n"
+"    s ключевое слово [...] искать записи с ЛЮБЫМ ключевым словом\n"
+"    S ключевое слово [...] искать записи со ВСЕМИ ключевыми словами\n"
+"    d                      соответствие подстрокам ('pen' соответствует\n"
+"                           'opened')\n"
+"    r выражение            поиск по регулярному выражению\n"
+"    t [тег, ...]           поиск по тегам; показать список тегов,\n"
+"                           если нет аргументов\n"
+"    g id теглиста|диапазон [...] [>>|>|<<] [id записи|диапазон ...]\n"
+"                           добавить, выбрать, удалить (все или\n"
+"                           определенные) теги\n"
+"                           поиск по идентификатору(ам) списка тегов,\n"
+"                           если записи опущены\n"
+"    n                      показать следующую страницу результатов поиска\n"
+"    o id|диапазон [...]    просматривать закладки по индексам и/или "
+"диапазонам\n"
+"    p id|диапазон [...]    печатать закладки по индексам и/или диапазонам\n"
+"    w [редактор|id]        изменить и добавить или обновить закладку\n"
+"    c id                   скопировать URL-адрес индекса из результатов\n"
+"                           поиска в буфер обмена\n"
+"    ?                      показать эту справку\n"
+"    q, ^D, двойной Enter   выход из buku\n"
+"\n"
+
+#: buku:4166
+msgid "0 tags"
+msgstr ""
+
+#: buku:4197
+msgid "Not a BukuDb instance"
+msgstr ""
+
+#: buku:4237
+msgid "No more results"
+msgstr "Нет больше результатов"
+
+#: buku:4239
+msgid "0 results"
+msgstr "0 результатов"
+
+#: buku:4295
+msgid "deep search on"
+msgstr "глубокий поиск включен"
+
+#: buku:4297
+msgid "deep search off"
+msgstr "глубокий поиск выключен"
+
+#: buku:4304
+msgid "text browser override toggled"
+msgstr ""
+
+#: buku:4322 buku:4332 buku:4348 buku:4350 buku:4364 buku:4366 buku:4417
+#: buku:4420
+msgid "Invalid input"
+msgstr "Неверный ввод"
+
+#: buku:4334
+msgid "%d updated"
+msgstr ""
+
+#: buku:4402
+msgid "No matching index %s"
+msgstr "Нет подходящего индекса %s"
+
+#: buku:4468
+msgid "URL copied to tmux buffer."
+msgstr "URL-адрес скопирован в буфер tmux."
+
+#: buku:4484
+msgid "Failed to locate suitable clipboard utility"
+msgstr "Не удалось найти подходящую утилиту буфера обмена"
+
+#: buku:4775
+msgid "Scheme missing in URI, trying http"
+msgstr ""
+
+#: buku:4857
+msgid "This is the latest release"
+msgstr "Это последний выпуск"
+
+#: buku:4859
+msgid "Latest upstream release is %s"
+msgstr "Последний выпуск основной ветки %s"
+
+#: buku:4929
+msgid "Interrupted."
+msgstr "Прервано."
+
+#: buku:4952
+msgid ""
+"\n"
+"Interrupted."
+msgstr ""
+"\n"
+"Прервано."
+
+#: buku:4995
+msgid "EDITOR is not set"
+msgstr ""
+
+#: buku:4999
+msgid "Cannot edit index 0"
+msgstr ""
+
+#: buku:5030
+msgid ""
+"# Lines beginning with \"#\" will be stripped.\n"
+"# Add URL in next line (single line)."
+msgstr ""
+"# Строки, начинающиеся с \"#\", будут удалены.\n"
+"#Добавьте URL в следующую строку (одна строка)."
+
+#: buku:5038
+msgid ""
+"# Add TITLE in next line (single line). Leave blank to web fetch, \"-\" for "
+"no title."
+msgstr ""
+"# Добавьте ЗАГОЛОВОК в следующую строку (одна строка). Оставьте пустым для "
+"загрузки из Интернета, \"-\" без заголовка."
+
+#: buku:5047
+msgid "# Add comma-separated TAGS in next line (single line)."
+msgstr ""
+"# Добавить ТЕГИ, разделенные запятыми, в следующей строке (одна строка)."
+
+#: buku:5051
+msgid ""
+"# Add COMMENTS in next line(s). Leave blank to web fetch, \"-\" for no "
+"comments."
+msgstr ""
+"# Добавьте КОММЕНТАРИИ в следующую строку (строки). Оставьте пустым для "
+"загрузки из Интернета, \"-\" без комментариев."
+
+#: buku:5083
+msgid "Edit aborted"
+msgstr "Редактирование прервано"
+
+#: buku:5167
+msgid "Cannot open editor"
+msgstr "Не могу открыть редактор"
+
+#: buku:5169
+#, fuzzy
+msgid "Cannot open tempfile"
+msgstr "Не могу открыть редактор"
+
+#: buku:5220
+msgid "buku: waiting for input (unexpected? try --nostdin)"
+msgstr ""
+
+#: buku:5378
+msgid "GENERAL OPTIONS"
+msgstr "ОБЩИЕ ОПЦИИ"
+
+#: buku:5379
+msgid ""
+"    -a, --add URL [tag, ...]\n"
+"                         bookmark URL with comma-separated tags\n"
+"    -u, --update [...]   update fields of an existing bookmark\n"
+"                         accepts indices and ranges\n"
+"                         refresh title and desc if no edit options\n"
+"                         if no arguments:\n"
+"                         - update results when used with search\n"
+"                         - otherwise refresh all titles and desc\n"
+"    -w, --write [editor|index]\n"
+"                         edit and add a new bookmark in editor\n"
+"                         else, edit bookmark at index in EDITOR\n"
+"                         edit last bookmark, if index=-1\n"
+"                         if no args, edit new bookmark in EDITOR\n"
+"    -d, --delete [...]   remove bookmarks from DB\n"
+"                         accepts indices or a single range\n"
+"                         if no arguments:\n"
+"                         - delete results when used with search\n"
+"                         - otherwise delete all bookmarks\n"
+"    -h, --help           show this information and exit\n"
+"    -v, --version        show the program version and exit"
+msgstr ""
+"    -a, --add URL [тег, ...]\n"
+"                         добавить URL закладки с тегами, разделенными\n"
+"                         запятыми\n"
+"    -u, --update [...]   update fields of an existing bookmark\n"
+"                         accepts indices and ranges\n"
+"                         refresh title and desc if no edit options\n"
+"                         if no arguments:\n"
+"                         - update results when used with search\n"
+"                         - otherwise refresh all titles and desc\n"
+"    -w, --write [editor|index]\n"
+"                         edit and add a new bookmark in editor\n"
+"                         else, edit bookmark at index in EDITOR\n"
+"                         edit last bookmark, if index=-1\n"
+"                         if no args, edit new bookmark in EDITOR\n"
+"    -d, --delete [...]   удалить закладки из БД\n"
+"                         принимает индексы или один диапазон\n"
+"                         если нет аргументов:\n"
+"                         - удаляет результаты при использовании с\n"
+"                         поиском\n"
+"                         - иначе удалит все закладки\n"
+"    -h, --help           показать эту информацию и выйти\n"
+"    -v, --version        показать версию программы и выйти"
+
+#: buku:5412
+msgid "EDIT OPTIONS"
+msgstr ""
+
+#: buku:5413
+msgid ""
+"    --url keyword        bookmark link\n"
+"    --tag [+|-] [...]    comma-separated tags\n"
+"                         clear bookmark tagset, if no arguments\n"
+"                         '+' appends to, '-' removes from tagset\n"
+"    --title [...]        bookmark title; if no arguments:\n"
+"                         -a: do not set title, -u: clear title\n"
+"    -c, --comment [...]  notes or description of the bookmark\n"
+"                         clears description, if no arguments\n"
+"    --immutable N        disable web-fetch during auto-refresh\n"
+"                         N=0: mutable (default), N=1: immutable"
+msgstr ""
+
+#: buku:5435
+msgid "SEARCH OPTIONS"
+msgstr "ОПЦИИ ПОИСКА"
+
+#: buku:5436
+msgid ""
+"    -s, --sany [...]     find records with ANY matching keyword\n"
+"                         this is the default search option\n"
+"    -S, --sall [...]     find records matching ALL the keywords\n"
+"                         special keywords -\n"
+"                         \"blank\": entries with empty title/tag\n"
+"                         \"immutable\": entries with locked title\n"
+"    --deep               match substrings ('pen' matches 'opens')\n"
+"    -r, --sreg expr      run a regex search\n"
+"    -t, --stag [tag [,|+] ...] [- tag, ...]\n"
+"                         search bookmarks by tags\n"
+"                         use ',' to find entries matching ANY tag\n"
+"                         use '+' to find entries matching ALL tags\n"
+"                         excludes entries with tags after ' - '\n"
+"                         list all tags, if no search keywords\n"
+"    -x, --exclude [...]  omit records matching specified keywords"
+msgstr ""
+"    -s, --sany [...]     найти записи с ЛЮБЫМ совпадающим ключевым\n"
+"                         словом\n"
+"                         это опция поиска по умолчанию\n"
+"    -S, --sall [...]     найти записи, соответствующие ВСЕМ ключевым\n"
+"                         словам\n"
+"                         специальные ключевые слова -\n"
+"                         \"blank\": записи с пустым заголовком/тегом\n"
+"                         \"immutable\": записи с заблокированным\n"
+"                         заголовком\n"
+"    --deep               соответствие подстрокам ('pen' соответствует\n"
+"                         'opened')\n"
+"    -r, --sreg выражение поиск по регулярному выражению\n"
+"    -t, --stag [тег [,|+] ...] [- тег, ...]\n"
+"                         искать закладки по тегам\n"
+"                         используйте ',' для поиска записей,\n"
+"                         соответствующих ЛЮБОМУ тегу\n"
+"                         используйте '+', чтобы найти записи,\n"
+"                         соответствующие ВСЕМ тегам\n"
+"                         исключает записи с тегами после ' - '\n"
+"                         перечислить все теги, если нет ключевых\n"
+"                         слов для поиска\n"
+"    -x, --exclude [...]  пропустить записи, соответствующие\n"
+"                         указанным ключевым словам"
+
+#: buku:5464
+msgid "ENCRYPTION OPTIONS"
+msgstr "ОПЦИИ ШИФРОВАНИЯ"
+
+#: buku:5465
+msgid ""
+"    -l, --lock [N]       encrypt DB in N (default 8) # iterations\n"
+"    -k, --unlock [N]     decrypt DB in N (default 8) # iterations"
+msgstr ""
+"    -l, --lock [N]       зашифровать БД в N (по умолчанию 8) # итераций\n"
+"    -k, --unlock [N]     расшифровать БД за N (по умолчанию 8) # итераций"
+
+#: buku:5476
+msgid "POWER TOYS"
+msgstr "МОЩНЫЕ ИГРУШКИ"
+
+#: buku:5477
+msgid ""
+"    --ai                 auto-import bookmarks from web browsers\n"
+"                         Firefox, Chrome, Chromium, Vivaldi, Edge\n"
+"    -e, --export file    export bookmarks to Firefox format HTML\n"
+"                         export XBEL, if file ends with '.xbel'\n"
+"                         export Markdown, if file ends with '.md'\n"
+"                         format: [title](url) <!-- TAGS -->\n"
+"                         export Orgfile, if file ends with '.org'\n"
+"                         format: *[[url][title]] :tags:\n"
+"                         export buku DB, if file ends with '.db'\n"
+"                         combines with search results, if opted\n"
+"    -i, --import file    import bookmarks from file\n"
+"                         supports .html .xbel .json .md .org .db\n"
+"    -p, --print [...]    show record details by indices, ranges\n"
+"                         print all bookmarks, if no arguments\n"
+"                         -n shows the last n results (like tail)\n"
+"    -f, --format N       limit fields in -p or JSON search output\n"
+"                         N=1: URL; N=2: URL, tag; N=3: title;\n"
+"                         N=4: URL, title, tag; N=5: title, tag;\n"
+"                         N0 (10, 20, 30, 40, 50) omits DB index\n"
+"    -j, --json [file]    JSON formatted output for -p and search.\n"
+"                         prints to stdout if argument missing.\n"
+"                         otherwise writes to given file\n"
+"    --colors COLORS      set output colors in five-letter string\n"
+"    --nc                 disable color output\n"
+"    -n, --count N        show N results per page (default 10)\n"
+"    --np                 do not show the subprompt, run and exit\n"
+"    -o, --open [...]     browse bookmarks by indices and ranges\n"
+"                         open a random bookmark, if no arguments\n"
+"    --oa                 browse all search results immediately\n"
+"    --replace old new    replace old tag with new tag everywhere\n"
+"                         delete old tag, if new tag not specified\n"
+"    --shorten index|URL  fetch shortened url from tny.im service\n"
+"    --expand index|URL   expand a tny.im shortened url\n"
+"    --cached index|URL   browse a cached page from Wayback Machine\n"
+"    --suggest            show similar tags when adding bookmarks\n"
+"    --tacit              reduce verbosity, skip some confirmations\n"
+"    --nostdin            do not wait for input (must be first arg)\n"
+"    --threads N          max network connections in full refresh\n"
+"                         default N=4, min N=1, max N=10\n"
+"    -V                   check latest upstream version available\n"
+"    -g, --debug          show debug information and verbose logs"
+msgstr ""
+"    --ai                 автоимпорт закладок из веб-браузеров\n"
+"                         Firefox, Chrome, Chromium, Vivaldi, Edge\n"
+"    -e, --export файл    экспортировать закладки в формат Firefox\n"
+"                         HTML\n"
+"                         экспорт в XBEL, если файл заканчивается\n"
+"                         '.xbel'\n"
+"                         экспорт в Markdown, если файл заканчивается\n"
+"                         на '.md'\n"
+"                         формат: [заголовок](url) <!-- ТЕГИ -->\n"
+"                         экспорт в Orgfile, если файл заканчивается\n"
+"                         на '.org'\n"
+"                         формат: *[[url][заголовок]] :теги:\n"
+"                         экспорт в buku DB, если файл заканчивается\n"
+"                         на '.db'\n"
+"                         комбинируется с результатами поиска, если\n"
+"                         выбрано\n"
+"    -i, --import файл    импортировать закладки из файла\n"
+"                         поддерживает .html .xbel .json .md .org .db\n"
+"    -p, --print [...]    показать подробности записи по индексам,\n"
+"                         диапазонам\n"
+"                         вывести все закладки, если нет аргументов\n"
+"    -n                   показывает последние n результатов (как tail)\n"
+"    -f, --format N       ограничить поля в -p или выводе поиска JSON\n"
+"                         N=1: URL; N=2: URL, tag; N=3: title;\n"
+"                         N=4: URL, title, tag; N=5: title, tag;\n"
+"                         N0 (10, 20, 30, 40, 50) опускает индекс БД\n"
+"    -j, --json [файл]    вывод в формате JSON для -p и поиска.\n"
+"                         печатает на стандартный вывод, если\n"
+"                         аргумент отсутствует.\n"
+"                         в противном случае пишет в данный файл\n"
+"    --colors COLORS      установить выходные цвета в пятибуквенной\n"
+"                         строке\n"
+"    --nc                 отключить цветной вывод\n"
+"    -n, --count N        показывать N результатов на странице\n"
+"                         (по умолчанию 10)\n"
+"    --np                 не показывать подсказку, запустить и выйти\n"
+"    -o, --open [...]     просматривать закладки по индексам и\n"
+"                         диапазонам\n"
+"                         открыть случайную закладку, если нет\n"
+"                         аргументов\n"
+"    --oa                 просмотреть все результаты поиска сразу\n"
+"    --replace старый новый\n"
+"                         заменить везде старый тег новым тегом\n"
+"                         удалить старый тег, если новый тег не указан\n"
+"    --shorten индекс|URL получить укороченный URL из сервиса tny.im\n"
+"    --expand индекс|URL  расширить сокращенный URL tny.im\n"
+"    --cached индекс|URL  просмотреть кешированную страницу из\n"
+"                         Wayback Machine\n"
+"    --suggest            показывать похожие теги при добавлении\n"
+"                         закладок\n"
+"    --tacit              уменьшить многословие, пропустить некоторые\n"
+"                         подтверждения\n"
+"    --nostdin            не ждать ввода (должен быть первым\n"
+"                         аргументом)\n"
+"    --threads N          максимальное количество сетевых соединений\n"
+"                         при полном обновлении\n"
+"                         по умолчанию N=4, мин N=1, макс N=10\n"
+"    -V                   проверьте последнюю доступную версию\n"
+"                         основной ветки\n"
+"    -g, --debug          показать отладочную информацию и подробные\n"
+"                         журналы"
+
+#: buku:5591
+msgid "[7mbuku (? for help)[0m "
+msgstr "[7mbuku (? вызов справки)[0m "
+
+#: buku:5684
+msgid "Bookmark a single URL at a time"
+msgstr ""
+
+#: buku:5743 buku:5767
+msgid "no keyword"
+msgstr ""
+
+#: buku:5791
+msgid "no expression"
+msgstr ""
+
+#: buku:5828
+msgid "No search criteria to exclude results from"
+msgstr ""
+
+#: buku:5907
+msgid "Updated results:\n"
+msgstr ""
+
+#: buku:5970
+#, fuzzy
+msgid "Invalid index or range to update"
+msgstr "Недопустимый индекс или диапазон или комбинация"
+
+#: buku:5988
+#, fuzzy
+msgid "Invalid index or range to delete"
+msgstr "Недопустимый индекс или диапазон или комбинация"
+
+#: buku:6003
+msgid "Invalid index or range or combination"
+msgstr "Недопустимый индекс или диапазон или комбинация"
+
+#: buku:6028
+#, fuzzy
+msgid "Invalid index or range to print"
+msgstr "Недопустимый индекс или диапазон или комбинация"
+
+#: buku:6063
+#, fuzzy
+msgid "Invalid index or range to open"
+msgstr "Недопустимый индекс или диапазон или комбинация"
