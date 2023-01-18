@@ -17,12 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with buku.  If not, see <http://www.gnu.org/licenses/>.
 
+
+
+
 import argparse
 import calendar
 import codecs
 import collections
 import contextlib
 import email.message
+import gettext
 import json
 import locale
 import logging
@@ -66,11 +70,16 @@ __version__ = '4.7'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
+# Gettext init
+gettext.bindtextdomain('buku', localedir='./locale')
+gettext.textdomain('buku')
+gettext = gettext.gettext
+
 # Global variables
 INTERRUPTED = False  # Received SIGINT
 DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
-PROMPTMSG = 'buku (? for help): '  # Prompt message string
+PROMPTMSG = gettext('buku (? for help): ')  # Prompt message string
 
 # Default format specifiers to print records
 ID_STR = '%d. %s [%s]\n'
@@ -176,11 +185,11 @@ class BukuCrypt:
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except ImportError:
-            LOGERR('cryptography lib(s) missing')
+            LOGERR(gettext('cryptography lib(s) missing'))
             sys.exit(1)
 
         if iterations < 1:
-            LOGERR('Iterations must be >= 1')
+            LOGERR(gettext('Iterations must be >= 1'))
             sys.exit(1)
 
         if not dbfile:
@@ -193,20 +202,20 @@ class BukuCrypt:
         if db_exists and not enc_exists:
             pass
         elif not db_exists:
-            LOGERR('%s missing. Already encrypted?', dbfile)
+            LOGERR(gettext('%s missing. Already encrypted?'), dbfile)
             sys.exit(1)
         else:
             # db_exists and enc_exists
-            LOGERR('Both encrypted and flat DB files exist!')
+            LOGERR(gettext('Both encrypted and flat DB files exist!'))
             sys.exit(1)
 
         password = getpass()
         passconfirm = getpass()
         if not password or not passconfirm:
-            LOGERR('Empty password')
+            LOGERR(gettext('Empty password'))
             sys.exit(1)
         if password != passconfirm:
-            LOGERR('Passwords do not match')
+            LOGERR(gettext('Passwords do not match'))
             sys.exit(1)
 
         try:
@@ -251,7 +260,7 @@ class BukuCrypt:
                 outfp.write(encryptor.finalize())
 
             os.remove(dbfile)
-            print('File encrypted')
+            print(gettext('File encrypted'))
             sys.exit(0)
         except Exception as e:
             with contextlib.suppress(FileNotFoundError):
@@ -279,11 +288,11 @@ class BukuCrypt:
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
         except ImportError:
-            LOGERR('cryptography lib(s) missing')
+            LOGERR(gettext('cryptography lib(s) missing'))
             sys.exit(1)
 
         if iterations < 1:
-            LOGERR('Decryption failed')
+            LOGERR(gettext('Decryption failed'))
             sys.exit(1)
 
         if not dbfile:
@@ -300,16 +309,16 @@ class BukuCrypt:
         if enc_exists and not db_exists:
             pass
         elif not enc_exists:
-            LOGERR('%s missing', encfile)
+            LOGERR(gettext('%s missing'), encfile)
             sys.exit(1)
         else:
             # db_exists and enc_exists
-            LOGERR('Both encrypted and flat DB files exist!')
+            LOGERR(gettext('Both encrypted and flat DB files exist!'))
             sys.exit(1)
 
         password = getpass()
         if not password:
-            LOGERR('Decryption failed')
+            LOGERR(gettext('Decryption failed'))
             sys.exit(1)
 
         try:
@@ -345,15 +354,15 @@ class BukuCrypt:
             dbhash = BukuCrypt.get_filehash(dbfile)
             if dbhash != enchash:
                 os.remove(dbfile)
-                LOGERR('Decryption failed')
+                LOGERR(gettext('Decryption failed'))
                 sys.exit(1)
             else:
                 os.remove(encfile)
-                print('File decrypted')
+                print(gettext('File decrypted'))
         except struct.error:
             with contextlib.suppress(FileNotFoundError):
                 os.remove(dbfile)
-            LOGERR('Tainted file')
+            LOGERR(gettext('Tainted file'))
             sys.exit(1)
         except Exception as e:
             with contextlib.suppress(FileNotFoundError):
@@ -479,14 +488,14 @@ class BukuDb:
         if db_exists and not enc_exists:
             pass
         elif enc_exists and not db_exists:
-            LOGERR('Unlock database first')
+            LOGERR(gettext('Unlock database first'))
             sys.exit(1)
         elif db_exists and enc_exists:
-            LOGERR('Both encrypted and flat DB files exist!')
+            LOGERR(gettext('Both encrypted and flat DB files exist!'))
             sys.exit(1)
         elif chatty:
             # not db_exists and not enc_exists
-            print('DB file is being created at %s.\nYou should encrypt it.' % dbfile)
+            print(gettext('DB file is being created at %s.\nYou should encrypt it.') % dbfile)
 
         try:
             # Create a connection
@@ -612,24 +621,24 @@ class BukuDb:
 
         # Return error for empty URL
         if not url or url == '':
-            LOGERR('Invalid URL')
+            LOGERR(gettext('Invalid URL'))
             return -1
 
         # Ensure that the URL does not exist in DB already
         id = self.get_rec_id(url)
         if id != -1:
-            LOGERR('URL [%s] already exists at index %d', url, id)
+            LOGERR(gettext('URL [%s] already exists at index %d'), url, id)
             return -1
 
         if fetch:
             # Fetch data
             ptitle, pdesc, ptags, mime, bad = network_handler(url)
             if bad:
-                print('Malformed URL\n')
+                print(gettext('Malformed URL\n'))
             elif mime:
                 LOGDBG('HTTP HEAD requested')
             elif ptitle == '' and title_in is None:
-                print('No title\n')
+                print(gettext('No title\n'))
             else:
                 LOGDBG('Title: [%s]', ptitle)
         else:
@@ -685,7 +694,7 @@ class BukuDb:
             return True
 
         if index == 0:
-            resp = read_in('Append the tags to ALL bookmarks? (y/n): ')
+            resp = read_in(gettext('Append the tags to ALL bookmarks? (y/n): '))
             if resp != 'y':
                 return False
 
@@ -738,7 +747,7 @@ class BukuDb:
 
         if index == 0:
             if chatty:
-                resp = read_in('Delete the tag(s) from ALL bookmarks? (y/n): ')
+                resp = read_in(gettext('Delete the tag(s) from ALL bookmarks? (y/n): '))
                 if resp != 'y':
                     return False
 
@@ -754,7 +763,7 @@ class BukuDb:
             if count and not delay_commit:
                 self.conn.commit()
                 if self.chatty:
-                    print('%d record(s) updated' % count)
+                    print(gettext('%d record(s) updated') % count)
 
             return True
 
@@ -830,7 +839,7 @@ class BukuDb:
         # Update URL if passed as argument
         if url is not None and url != '':
             if index == 0:
-                LOGERR('All URLs cannot be same')
+                LOGERR(gettext('All URLs cannot be same'))
                 return False
             query += ' URL = ?,'
             arguments += (url,)
@@ -839,7 +848,7 @@ class BukuDb:
         # Update tags if passed as argument
         if tags_in is not None:
             if tags_in in ('+,', '-,'):
-                LOGERR('Please specify a tag')
+                LOGERR(gettext('Please specify a tag'))
                 return False
 
             if tags_in.startswith('+,'):
@@ -895,11 +904,11 @@ class BukuDb:
         elif url is not None and url != '':
             title_to_insert, pdesc, ptags, mime, bad = network_handler(url)
             if bad:
-                print('Malformed URL')
+                print(gettext('Malformed URL'))
             elif mime:
                 LOGDBG('HTTP HEAD requested')
             elif title_to_insert == '':
-                print('No title')
+                print(gettext('No title'))
             else:
                 LOGDBG('Title: [%s]', title_to_insert)
 
@@ -927,7 +936,7 @@ class BukuDb:
             return ret
 
         if index == 0:  # Update all records
-            resp = read_in('Update ALL bookmarks? (y/n): ')
+            resp = read_in(gettext('Update ALL bookmarks? (y/n): '))
             if resp != 'y':
                 return False
 
@@ -945,10 +954,10 @@ class BukuDb:
                 self.print_rec(index)
 
             if self.cur.rowcount == 0:
-                LOGERR('No matching index %d', index)
+                LOGERR(gettext('No matching index %d'), index)
                 return False
         except sqlite3.IntegrityError:
-            LOGERR('URL already exists')
+            LOGERR(gettext('URL already exists'))
             return False
         except sqlite3.OperationalError as e:
             LOGERR(e)
@@ -983,20 +992,20 @@ class BukuDb:
         resultset = self.cur.fetchall()
         recs = len(resultset)
         if not recs:
-            LOGERR('No matching index or title immutable or empty DB')
+            LOGERR(gettext('No matching index or title immutable or empty DB'))
             return False
 
         # Set up strings to be printed
         if self.colorize:
-            bad_url_str = '\x1b[1mIndex %d: Malformed URL\x1b[0m\n'
-            mime_str = '\x1b[1mIndex %d: HTTP HEAD requested\x1b[0m\n'
-            blank_url_str = '\x1b[1mIndex %d: No title\x1b[0m\n'
-            success_str = 'Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n'
+            bad_url_str = gettext('\x1b[1mIndex %d: Malformed URL\x1b[0m\n')
+            mime_str = gettext('\x1b[1mIndex %d: HTTP HEAD requested\x1b[0m\n')
+            blank_url_str = gettext('\x1b[1mIndex %d: No title\x1b[0m\n')
+            success_str = gettext('Title: [%s]\n\x1b[92mIndex %d: updated\x1b[0m\n')
         else:
-            bad_url_str = 'Index %d: Malformed URL\n'
-            mime_str = 'Index %d: HTTP HEAD requested\n'
-            blank_url_str = 'Index %d: No title\n'
-            success_str = 'Title: [%s]\nIndex %d: updated\n'
+            bad_url_str = gettext('Index %d: Malformed URL\n')
+            mime_str = gettext('Index %d: HTTP HEAD requested\n')
+            blank_url_str = gettext('Index %d: No title\n')
+            success_str = gettext('Title: [%s]\nIndex %d: updated\n')
 
         done = {'value': 0}  # count threads completed
         processed = {'value': 0}  # count number of records processed
@@ -1106,7 +1115,7 @@ class BukuDb:
 
         # Guard: records found == total records processed
         if recs != processed['value']:
-            LOGERR('Records: %d, processed: %d !!!', recs, processed['value'])
+            LOGERR(gettext('Records: %d, processed: %d !!!'), recs, processed['value'])
 
         cond.release()
         self.conn.commit()
@@ -1131,19 +1140,19 @@ class BukuDb:
 
         editor = get_system_editor()
         if editor == 'none':
-            LOGERR('EDITOR must be set to use index with -w')
+            LOGERR(gettext('EDITOR must be set to use index with -w'))
             return False
 
         if index == -1:
             # Edit the last records
             index = self.get_max_id()
             if index == -1:
-                LOGERR('Empty database')
+                LOGERR(gettext('Empty database'))
                 return False
 
         rec = self.get_rec_by_id(index)
         if not rec:
-            LOGERR('No matching index %d', index)
+            LOGERR(gettext('No matching index %d'), index)
             return False
 
         # If reading from DB, show empty title and desc as empty lines. We have to convert because
@@ -1307,7 +1316,7 @@ class BukuDb:
 
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         else:
-            LOGERR('Invalid search option')
+            LOGERR(gettext('Invalid search option'))
             return None
 
         LOGDBG('query: "%s", args: %s', q0, qargs)
@@ -1474,7 +1483,7 @@ class BukuDb:
                 if not delay_commit:
                     self.conn.commit()
                 if self.chatty:
-                    print('Index %d moved to %d' % (row[0], index))
+                    print(gettext('Index %d moved to %d') % (row[0], index))
 
     def delete_rec(
             self,
@@ -1565,7 +1574,7 @@ class BukuDb:
 
         if is_range:  # Delete a range of indices
             if low < 0 or high < 0:
-                LOGERR('Negative range boundary')
+                LOGERR(gettext('Negative range boundary'))
                 return False
 
             if low > high:
@@ -1581,17 +1590,17 @@ class BukuDb:
                                      'BETWEEN ? AND ?', (low, high))
                     count = self.cur.fetchone()
                     if count[0] < 1:
-                        print('Index %d-%d: 0 deleted' % (low, high))
+                        print(gettext('Index %d-%d: 0 deleted') % (low, high))
                         return False
 
                     if self.print_rec(0, low, high, True) is True:
-                        resp = input('Delete these bookmarks? (y/n): ')
+                        resp = input(gettext('Delete these bookmarks? (y/n): '))
                         if resp != 'y':
                             return False
 
                 query = 'DELETE from bookmarks where id BETWEEN ? AND ?'
                 self.cur.execute(query, (low, high))
-                print('Index %d-%d: %d deleted' % (low, high, self.cur.rowcount))
+                print(gettext('Index %d-%d: %d deleted') % (low, high, self.cur.rowcount))
                 if not self.cur.rowcount:
                     return False
 
@@ -1604,7 +1613,7 @@ class BukuDb:
                 if not delay_commit:
                     self.conn.commit()
             except IndexError:
-                LOGERR('No matching index')
+                LOGERR(gettext('No matching index'))
                 return False
         elif index == 0:  # Remove the table
             return self.cleardb()
@@ -1615,26 +1624,26 @@ class BukuDb:
                                      'id = ? LIMIT 1', (index,))
                     count = self.cur.fetchone()
                     if count[0] < 1:
-                        LOGERR('No matching index %d', index)
+                        LOGERR(gettext('No matching index %d'), index)
                         return False
 
                     if self.print_rec(index) is True:
-                        resp = input('Delete this bookmark? (y/n): ')
+                        resp = input(gettext('Delete this bookmark? (y/n): '))
                         if resp != 'y':
                             return False
 
                 query = 'DELETE FROM bookmarks WHERE id = ?'
                 self.cur.execute(query, (index,))
                 if self.cur.rowcount == 1:
-                    print('Index %d deleted' % index)
+                    print(gettext('Index %d deleted') % index)
                     self.compactdb(index, delay_commit=True)
                     if not delay_commit:
                         self.conn.commit()
                 else:
-                    LOGERR('No matching index %d', index)
+                    LOGERR(gettext('No matching index %d'), index)
                     return False
             except IndexError:
-                LOGERR('No matching index %d', index)
+                LOGERR(gettext('No matching index %d'), index)
                 return False
             except sqlite3.OperationalError as e:
                 LOGERR(e)
@@ -1662,7 +1671,7 @@ class BukuDb:
             True on success, False on failure.
         """
         if self.chatty:
-            resp = read_in('Delete the search results? (y/n): ')
+            resp = read_in(gettext('Delete the search results? (y/n): '))
             if resp != 'y':
                 return False
 
@@ -1701,7 +1710,7 @@ class BukuDb:
                 self.conn.commit()
             return True
         except Exception as e:
-            LOGERR('delete_rec_all(): %s', e)
+            LOGERR(gettext('delete_rec_all(): %s'), e)
             return False
 
     def cleardb(self):
@@ -1713,15 +1722,15 @@ class BukuDb:
             True on success, False on failure.
         """
 
-        resp = read_in('Remove ALL bookmarks? (y/n): ')
+        resp = read_in(gettext('Remove ALL bookmarks? (y/n): '))
         if resp != 'y':
-            print('No bookmarks deleted')
+            print(gettext('No bookmarks deleted'))
             return False
 
         if self.delete_rec_all():
             self.cur.execute('VACUUM')
             self.conn.commit()
-            print('All bookmarks deleted')
+            print(gettext('All bookmarks deleted'))
             return True
 
         return False
@@ -1785,7 +1794,7 @@ class BukuDb:
             # Show the last n records
             _id = self.get_max_id()
             if _id == -1:
-                LOGERR('Empty database')
+                LOGERR(gettext('Empty database'))
                 return False
 
             low = (1 if _id <= -index else _id + index + 1)
@@ -1794,7 +1803,7 @@ class BukuDb:
 
         if is_range:
             if low < 0 or high < 0:
-                LOGERR('Negative range boundary')
+                LOGERR(gettext('Negative range boundary'))
                 return False
 
             if low > high:
@@ -1809,7 +1818,7 @@ class BukuDb:
                     query = 'SELECT * from bookmarks where id BETWEEN ? AND ?'
                     resultset = self.cur.execute(query, (low, high))
             except IndexError:
-                LOGERR('Index out of range')
+                LOGERR(gettext('Index out of range'))
                 return False
         elif index != 0:  # Show record at index
             try:
@@ -1817,10 +1826,10 @@ class BukuDb:
                 self.cur.execute(query, (index,))
                 results = self.cur.fetchall()
                 if not results:
-                    LOGERR('No matching index %d', index)
+                    LOGERR(gettext('No matching index %d'), index)
                     return False
             except IndexError:
-                LOGERR('No matching index %d', index)
+                LOGERR(gettext('No matching index %d'), index)
                 return False
 
             if self.json is None:
@@ -1836,7 +1845,7 @@ class BukuDb:
             resultset = self.cur.fetchall()
 
         if not resultset:
-            LOGERR('0 records')
+            LOGERR(gettext('0 records'))
             return True
 
         if self.json is None:
@@ -1919,11 +1928,11 @@ class BukuDb:
 
         unique_tags = sorted(tagset)
 
-        print('similar tags:\n')
+        print(gettext('similar tags:\n'))
         for count, tag in enumerate(unique_tags):
             print('%d. %s' % (count + 1, tag))
 
-        selected_tags = input('\nselect: ').split()
+        selected_tags = input(gettext('\nselect: ')).split()
         print()
         if not selected_tags:
             return tagstr
@@ -1963,7 +1972,7 @@ class BukuDb:
             newtags = parse_tags(new)
 
         if orig == newtags:
-            print('Tags are same.')
+            print(gettext('Tags are same.'))
             return False
 
         # Remove original tag from DB if new tagset reduces to delimiter
@@ -1980,7 +1989,7 @@ class BukuDb:
                 tags = row[1].replace(orig, newtags)
                 tags = parse_tags([tags])
                 self.cur.execute(query, (tags, row[0],))
-                print('Index %d updated' % row[0])
+                print(gettext('Index %d updated') % row[0])
 
             self.conn.commit()
 
@@ -2136,7 +2145,7 @@ class BukuDb:
 
         if is_range:
             if low < 0 or high < 0:
-                LOGERR('Negative range boundary')
+                LOGERR(gettext('Negative range boundary'))
                 return False
 
             if low > high:
@@ -2152,11 +2161,11 @@ class BukuDb:
                     browse(row[0])
                 return True
             except IndexError:
-                LOGERR('Index out of range')
+                LOGERR(gettext('Index out of range'))
                 return False
 
         if index < 0:
-            LOGERR('Invalid index %d', index)
+            LOGERR(gettext('Invalid index %d'), index)
             return False
 
         if index == 0:
@@ -2166,7 +2175,7 @@ class BukuDb:
 
             # Return if no entries in DB
             if result is None:
-                print('No bookmarks added yet ...')
+                print(gettext('No bookmarks added yet ...'))
                 return False
 
             index = result[0]
@@ -2177,9 +2186,9 @@ class BukuDb:
             for row in self.cur.execute(qry, (index,)):
                 browse(row[0])
                 return True
-            LOGERR('No matching index %d', index)
+            LOGERR(gettext('No matching index %d'), index)
         except IndexError:
-            LOGERR('No matching index %d', index)
+            LOGERR(gettext('No matching index %d'), index)
 
         return False
 
@@ -2217,11 +2226,11 @@ class BukuDb:
         if not resultset:
             resultset = self.get_rec_all()
             if not resultset:
-                print('No records found')
+                print(gettext('No records found'))
                 return False
 
         if os.path.exists(filepath):
-            resp = read_in(filepath + ' exists. Overwrite? (y/n): ')
+            resp = read_in(filepath + gettext(' exists. Overwrite? (y/n): '))
             if resp != 'y':
                 return False
 
@@ -2236,7 +2245,7 @@ class BukuDb:
                 count += 1
             outdb.conn.commit()
             outdb.close()
-            print('%s exported' % count)
+            print(gettext('%s exported') % count)
             return True
 
         with open(filepath, mode='w', encoding='utf-8') as outfp:
@@ -2257,7 +2266,7 @@ class BukuDb:
                 res = convert_bookmark_set(resultset, 'html')
                 count += res['count']
                 outfp.write(res['data'])
-            print('%s exported' % count)
+            print(gettext('%s exported') % count)
             return True
         return False
 
@@ -2481,16 +2490,16 @@ class BukuDb:
             me_bm_db_path = ('C:/Users/{}/AppData/Local/Microsoft/Edge/User Data/'
                              'Default/Bookmarks'.format(username))
         else:
-            LOGERR('buku does not support {} yet'.format(sys.platform))
+            LOGERR(gettext('buku does not support {} yet').format(sys.platform))
             self.close_quit(1)
 
         if self.chatty:
-            resp = input('Generate auto-tag (YYYYMonDD)? (y/n): ')
+            resp = input(gettext('Generate auto-tag (YYYYMonDD)? (y/n): '))
             if resp == 'y':
                 newtag = gen_auto_tag()
             else:
                 newtag = None
-            resp = input('Add parent folder names as tags? (y/n): ')
+            resp = input(gettext('Add parent folder names as tags? (y/n): '))
         else:
             newtag = None
             resp = 'y'
@@ -2500,7 +2509,7 @@ class BukuDb:
 
         try:
             if self.chatty:
-                resp = input('Import bookmarks from google chrome? (y/n): ')
+                resp = input(gettext('Import bookmarks from google chrome? (y/n): '))
             if resp == 'y':
                 bookmarks_database = os.path.expanduser(gc_bm_db_path)
                 if not os.path.exists(bookmarks_database):
@@ -2508,11 +2517,11 @@ class BukuDb:
                 self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
-            print('Could not import bookmarks from google-chrome')
+            print(gettext('Could not import bookmarks from google-chrome'))
 
         try:
             if self.chatty:
-                resp = input('Import bookmarks from chromium? (y/n): ')
+                resp = input(gettext('Import bookmarks from chromium? (y/n): '))
             if resp == 'y':
                 bookmarks_database = os.path.expanduser(cb_bm_db_path)
                 if not os.path.exists(bookmarks_database):
@@ -2520,11 +2529,11 @@ class BukuDb:
                 self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
-            print('Could not import bookmarks from chromium')
+            print(gettext('Could not import bookmarks from chromium'))
 
         try:
             if self.chatty:
-                resp = input('Import bookmarks from Vivaldi? (y/n): ')
+                resp = input(gettext('Import bookmarks from Vivaldi? (y/n): '))
             if resp == 'y':
                 bookmarks_database = os.path.expanduser(vi_bm_db_path)
                 if not os.path.exists(bookmarks_database):
@@ -2532,11 +2541,11 @@ class BukuDb:
                 self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
-            print('Could not import bookmarks from Vivaldi')
+            print(gettext('Could not import bookmarks from Vivaldi'))
 
         try:
             if self.chatty:
-                resp = input('Import bookmarks from Firefox? (y/n): ')
+                resp = input(gettext('Import bookmarks from Firefox? (y/n): '))
             if resp == 'y':
                 bookmarks_database = os.path.expanduser(ff_bm_db_path)
                 if not os.path.exists(bookmarks_database):
@@ -2544,11 +2553,11 @@ class BukuDb:
                 self.load_firefox_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
-            print('Could not import bookmarks from Firefox.')
+            print(gettext('Could not import bookmarks from Firefox.'))
 
         try:
             if self.chatty:
-                resp = input('Import bookmarks from microsoft edge? (y/n): ')
+                resp = input(gettext('Import bookmarks from microsoft edge? (y/n): '))
             if resp == 'y':
                 bookmarks_database = os.path.expanduser(me_bm_db_path)
                 if not os.path.exists(bookmarks_database):
@@ -2556,12 +2565,12 @@ class BukuDb:
                 self.load_edge_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
-            print('Could not import bookmarks from microsoft-edge')
+            print(gettext('Could not import bookmarks from microsoft-edge'))
 
         self.conn.commit()
 
         if newtag:
-            print('\nAuto-generated tag: %s' % newtag)
+            print(gettext('\nAuto-generated tag: %s') % newtag)
 
     def importdb(self, filepath, tacit=False):
         """Import bookmarks from a HTML or a Markdown file.
@@ -2593,9 +2602,9 @@ class BukuDb:
         newtag = None
         append_tags_resp = 'y'
         if not tacit:
-            if input('Generate auto-tag (YYYYMonDD)? (y/n): ') == 'y':
+            if input(gettext('Generate auto-tag (YYYYMonDD)? (y/n): ')) == 'y':
                 newtag = gen_auto_tag()
-            append_tags_resp = input('Append tags when bookmark exist? (y/n): ')
+            append_tags_resp = input(gettext('Append tags when bookmark exist? (y/n): '))
 
         items = []
         if filepath.endswith('.md'):
@@ -2604,7 +2613,7 @@ class BukuDb:
             items = import_org(filepath=filepath, newtag=newtag)
         elif filepath.endswith('json'):
             if not tacit:
-                resp = input('Add parent folder names as tags? (y/n): ')
+                resp = input(gettext('Add parent folder names as tags? (y/n): '))
             else:
                 resp = 'y'
             add_bookmark_folder_as_tag = (resp == 'y')
@@ -2624,7 +2633,7 @@ class BukuDb:
                 with open(filepath, mode='r', encoding='utf-8') as infp:
                     soup = BeautifulSoup(infp, 'html.parser')
             except ImportError:
-                LOGERR('Beautiful Soup not found')
+                LOGERR(gettext('Beautiful Soup not found'))
                 return False
             except Exception as e:
                 LOGERR(e)
@@ -2633,10 +2642,10 @@ class BukuDb:
             add_parent_folder_as_tag = False
             use_nested_folder_structure = False
             if not tacit:
-                resp = input("""Add bookmark's parent folder as tag?
+                resp = input(gettext("""Add bookmark's parent folder as tag?
 a: add all parent folders of the bookmark
 n: don't add parent folder as tag
-(a/[n]): """)
+(a/[n]): """))
             else:
                 resp = 'y'
 
@@ -2651,7 +2660,7 @@ n: don't add parent folder as tag
                 with open(filepath, mode='r', encoding='utf-8') as infp:
                     soup = BeautifulSoup(infp, 'html.parser')
             except ImportError:
-                LOGERR('Beautiful Soup not found')
+                LOGERR(gettext('Beautiful Soup not found'))
                 return False
             except Exception as e:
                 LOGERR(e)
@@ -2660,11 +2669,11 @@ n: don't add parent folder as tag
             add_parent_folder_as_tag = False
             use_nested_folder_structure = False
             if not tacit:
-                resp = input("""Add bookmark's parent folder as tag?
+                resp = input(gettext("""Add bookmark's parent folder as tag?
 y: add single, direct parent folder
 a: add all parent folders of the bookmark
 n: don't add parent folder as tag
-(y/a/[n]): """)
+(y/a/[n]): """))
             else:
                 resp = 'y'
 
@@ -2685,7 +2694,7 @@ n: don't add parent folder as tag
         self.conn.commit()
 
         if newtag:
-            print('\nAuto-generated tag: %s' % newtag)
+            print(gettext('\nAuto-generated tag: %s') % newtag)
 
         return True
 
@@ -2753,7 +2762,7 @@ n: don't add parent folder as tag
         global MYPROXY
 
         if not index and not url:
-            LOGERR('Either a valid DB index or URL required')
+            LOGERR(gettext('Either a valid DB index or URL required'))
             return None
 
         if index:
@@ -2830,7 +2839,7 @@ n: don't add parent folder as tag
         if is_int(arg):
             rec = self.get_rec_by_id(int(arg))
             if not rec:
-                LOGERR('No matching index %d', int(arg))
+                LOGERR(gettext('No matching index %d'), int(arg))
                 return None
             url = rec[1]
         else:
@@ -2852,7 +2861,7 @@ n: don't add parent folder as tag
         finally:
             manager.clear()
 
-        LOGERR('Uncached')
+        LOGERR(gettext('Uncached'))
         return None
 
     def fixtags(self):
@@ -2929,7 +2938,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
         if sys.platform == 'win32' and file == sys.stdout:
             file = sys.stderr
 
-        file.write('''
+        file.write(gettext('''
 SYMBOLS:
       >                    url
       +                    comment
@@ -2939,7 +2948,7 @@ Version %s
 Copyright © 2015-2022 %s
 License: %s
 Webpage: https://github.com/jarun/buku
-''' % (__version__, __author__, __license__))
+''') % (__version__, __author__, __license__))
 
     @staticmethod
     def prompt_help(file=sys.stdout):
@@ -2950,7 +2959,7 @@ Webpage: https://github.com/jarun/buku
         file : file, optional
             File to write program info to. Default is sys.stdout.
         """
-        file.write('''
+        file.write(gettext('''
 PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
     O [id|range [...]]     open search results/indices in GUI browser
@@ -2972,7 +2981,7 @@ PROMPT KEYS:
     ?                      show this help
     q, ^D, double Enter    exit buku
 
-''')
+'''))
 
     @staticmethod
     def is_colorstr(arg):
@@ -4154,7 +4163,7 @@ def show_taglist(obj):
     unique_tags, dic = obj.get_tag_all()
     if not unique_tags:
         count = 0
-        print('0 tags')
+        print(gettext('0 tags'))
     else:
         count = 1
         for tag in unique_tags:
@@ -4185,7 +4194,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
     """
 
     if not isinstance(obj, BukuDb):
-        LOGERR('Not a BukuDb instance')
+        LOGERR(gettext('Not a BukuDb instance'))
         return
 
     new_results = bool(results)
@@ -4225,9 +4234,9 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                         print_single_rec(row, count, columns)
                     print('%d-%d/%d' % (cur_index + 1, next_index, total_results))
                 else:
-                    print('No more results')
+                    print(gettext('No more results'))
             else:
-                print('0 results')
+                print(gettext('0 results'))
 
         try:
             nav = read_in(PROMPTMSG)
@@ -4283,16 +4292,16 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         if nav == 'd':
             deep = not deep
             if deep:
-                print('deep search on')
+                print(gettext('deep search on'))
             else:
-                print('deep search off')
+                print(gettext('deep search off'))
 
             continue
 
         # Toggle GUI browser with 'O'
         if nav == 'O':
             browse.override_text_browser = not browse.override_text_browser
-            print('text browser override toggled')
+            print(gettext('text browser override toggled'))
             continue
 
         # Show help with '?'
@@ -4310,7 +4319,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             unique_tags, dic = obj.get_tag_all()
             _count = obj.set_tag(nav[2:], unique_tags)
             if _count == -1:
-                print('Invalid input')
+                print(gettext('Invalid input'))
             elif _count == -2:
                 try:
                     tagid_list = nav[2:].split()
@@ -4320,9 +4329,9 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                     new_results = True
                     cur_index = next_index = 0
                 except Exception:
-                    print('Invalid input')
+                    print(gettext('Invalid input'))
             else:
-                print('%d updated' % _count)
+                print(gettext('%d updated') % _count)
             continue
 
         # Print bookmarks by DB index
@@ -4336,9 +4345,9 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                         vals = [int(x) for x in id.split('-')]
                         obj.print_rec(0, vals[0], vals[-1], True)
                     else:
-                        print('Invalid input')
+                        print(gettext('Invalid input'))
             except ValueError:
-                print('Invalid input')
+                print(gettext('Invalid input'))
             continue
 
         # Browse bookmarks by DB index
@@ -4352,16 +4361,16 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                         vals = [int(x) for x in id.split('-')]
                         obj.browse_by_index(0, vals[0], vals[-1], True)
                     else:
-                        print('Invalid input')
+                        print(gettext('Invalid input'))
             except ValueError:
-                print('Invalid input')
+                print(gettext('Invalid input'))
             continue
 
         # Copy URL to clipboard
         if nav.startswith('c ') and nav[2:].isdigit():
             index = int(nav[2:]) - 1
             if index < 0 or index >= count:
-                print('No matching index')
+                print(gettext('No matching index'))
                 continue
             copy_to_clipboard(content=results[index + cur_index][1].encode('utf-8'))
             continue
@@ -4390,7 +4399,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             if is_int(nav):
                 index = int(nav) - 1
                 if index < 0 or index >= count:
-                    print('No matching index %s' % nav)
+                    print(gettext('No matching index %s') % nav)
                     continue
                 browse(results[index + cur_index][1])
             elif '-' in nav:
@@ -4403,12 +4412,12 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                         if 0 <= _id < count:
                             browse(results[_id + cur_index][1])
                         else:
-                            print('No matching index %d' % (_id + 1))
+                            print(gettext('No matching index %d') % (_id + 1))
                 except ValueError:
-                    print('Invalid input')
+                    print(gettext('Invalid input'))
                     break
             else:
-                print('Invalid input')
+                print(gettext('Invalid input'))
                 break
 
         if toggled:
@@ -4456,7 +4465,7 @@ def copy_to_clipboard(content):
             stdout=DEVNULL,
             stderr=DEVNULL
         ).communicate()
-        print('URL copied to tmux buffer.')
+        print(gettext('URL copied to tmux buffer.'))
         return
 
     # GNU Screen paste buffer
@@ -4472,7 +4481,7 @@ def copy_to_clipboard(content):
             os.unlink(tmppath)
         return
 
-    print('Failed to locate suitable clipboard utility')
+    print(gettext('Failed to locate suitable clipboard utility'))
     return
 
 
@@ -4763,7 +4772,7 @@ def browse(url):
         # Otherwise, opening in browser fails anyway
         # We expect http to https redirection
         # will happen for https-only websites
-        LOGERR('Scheme missing in URI, trying http')
+        LOGERR(gettext('Scheme missing in URI, trying http'))
         url = 'http://' + url
 
     browser = webbrowser.get()
@@ -4845,9 +4854,9 @@ def check_upstream_release():
     if r.status == 200:
         latest = json.loads(r.data.decode(errors='replace'))[0]['tag_name']
         if latest == 'v' + __version__:
-            print('This is the latest release')
+            print(gettext('This is the latest release'))
         else:
-            print('Latest upstream release is %s' % latest)
+            print(gettext('Latest upstream release is %s') % latest)
     else:
         LOGERR('[%s] %s', r.status, r.reason)
 
@@ -4917,7 +4926,7 @@ def read_in(msg):
     try:
         message = input(msg)
     except KeyboardInterrupt:
-        print('Interrupted.')
+        print(gettext('Interrupted.'))
 
     enable_sigint_handler()
     return message
@@ -4940,7 +4949,7 @@ def sigint_handler(signum, frame):
     global INTERRUPTED
 
     INTERRUPTED = True
-    print('\nInterrupted.', file=sys.stderr)
+    print(gettext('\nInterrupted.'), file=sys.stderr)
 
     # Do a hard exit from here
     os._exit(1)
@@ -4983,11 +4992,11 @@ def is_editor_valid(editor):
     """
 
     if editor == 'none':
-        LOGERR('EDITOR is not set')
+        LOGERR(gettext('EDITOR is not set'))
         return False
 
     if editor == '0':
-        LOGERR('Cannot edit index 0')
+        LOGERR(gettext('Cannot edit index 0'))
         return False
 
     return True
@@ -5018,16 +5027,16 @@ def to_temp_file_content(url, title_in, tags_in, desc):
         when tags_in is None.
     """
 
-    strings = [('# Lines beginning with "#" will be stripped.\n'
-                '# Add URL in next line (single line).'), ]
+    strings = [(gettext('# Lines beginning with "#" will be stripped.\n'
+                        '# Add URL in next line (single line).')), ]
 
     # URL
     if url is not None:
         strings += (url,)
 
     # TITLE
-    strings += (('# Add TITLE in next line (single line). '
-                 'Leave blank to web fetch, "-" for no title.'),)
+    strings += ((gettext('# Add TITLE in next line (single line). '
+                         'Leave blank to web fetch, "-" for no title.')),)
     if title_in is None:
         title_in = ''
     elif title_in == '':
@@ -5035,11 +5044,11 @@ def to_temp_file_content(url, title_in, tags_in, desc):
     strings += (title_in,)
 
     # TAGS
-    strings += ('# Add comma-separated TAGS in next line (single line).',)
+    strings += (gettext('# Add comma-separated TAGS in next line (single line).'),)
     strings += (tags_in.strip(DELIM),) if not None else ''
 
     # DESC
-    strings += ('# Add COMMENTS in next line(s). Leave blank to web fetch, "-" for no comments.',)
+    strings += (gettext('# Add COMMENTS in next line(s). Leave blank to web fetch, "-" for no comments.'),)
     if desc is None:
         strings += ('\n',)
     elif desc == '':
@@ -5071,7 +5080,7 @@ def parse_temp_file_content(content):
     content = content.split('\n')
     content = [c for c in content if not c or c[0] != '#']
     if not content or content[0].strip() == '':
-        print('Edit aborted')
+        print(gettext('Edit aborted'))
         return None
 
     url = content[0]
@@ -5155,9 +5164,9 @@ def edit_rec(editor, url, title_in, tags_in, desc):
     except FileNotFoundError:
         if os.path.exists(tmpfile):
             os.remove(tmpfile)
-            LOGERR('Cannot open editor')
+            LOGERR(gettext('Cannot open editor'))
         else:
-            LOGERR('Cannot open tempfile')
+            LOGERR(gettext('Cannot open tempfile'))
         return None
 
     parsed_content = parse_temp_file_content(content)
@@ -5208,7 +5217,7 @@ def piped_input(argv, pipeargs=None):
     """
     if not sys.stdin.isatty():
         pipeargs += argv
-        print('buku: waiting for input (unexpected? try --nostdin)')
+        print(gettext('buku: waiting for input (unexpected? try --nostdin)'))
         for s in sys.stdin:
             pipeargs += s.split()
 
@@ -5366,8 +5375,8 @@ POSITIONAL ARGUMENTS:
     # ---------------------
 
     general_grp = argparser.add_argument_group(
-        title='GENERAL OPTIONS',
-        description='''    -a, --add URL [tag, ...]
+        title=gettext('GENERAL OPTIONS'),
+        description=gettext('''    -a, --add URL [tag, ...]
                          bookmark URL with comma-separated tags
     -u, --update [...]   update fields of an existing bookmark
                          accepts indices and ranges
@@ -5386,7 +5395,7 @@ POSITIONAL ARGUMENTS:
                          - delete results when used with search
                          - otherwise delete all bookmarks
     -h, --help           show this information and exit
-    -v, --version        show the program version and exit''')
+    -v, --version        show the program version and exit'''))
     addarg = general_grp.add_argument
     addarg('-a', '--add', nargs='+', help=hide)
     addarg('-u', '--update', nargs='*', help=hide)
@@ -5400,8 +5409,8 @@ POSITIONAL ARGUMENTS:
     # ------------------
 
     edit_grp = argparser.add_argument_group(
-        title='EDIT OPTIONS',
-        description='''    --url keyword        bookmark link
+        title=gettext('EDIT OPTIONS'),
+        description=gettext('''    --url keyword        bookmark link
     --tag [+|-] [...]    comma-separated tags
                          clear bookmark tagset, if no arguments
                          '+' appends to, '-' removes from tagset
@@ -5410,7 +5419,7 @@ POSITIONAL ARGUMENTS:
     -c, --comment [...]  notes or description of the bookmark
                          clears description, if no arguments
     --immutable N        disable web-fetch during auto-refresh
-                         N=0: mutable (default), N=1: immutable''')
+                         N=0: mutable (default), N=1: immutable'''))
     addarg = edit_grp.add_argument
     addarg('--url', nargs=1, help=hide)
     addarg('--tag', nargs='*', help=hide)
@@ -5423,8 +5432,8 @@ POSITIONAL ARGUMENTS:
     # --------------------
 
     search_grp = argparser.add_argument_group(
-        title='SEARCH OPTIONS',
-        description='''    -s, --sany [...]     find records with ANY matching keyword
+        title=gettext('SEARCH OPTIONS'),
+        description=gettext('''    -s, --sany [...]     find records with ANY matching keyword
                          this is the default search option
     -S, --sall [...]     find records matching ALL the keywords
                          special keywords -
@@ -5438,7 +5447,7 @@ POSITIONAL ARGUMENTS:
                          use '+' to find entries matching ALL tags
                          excludes entries with tags after ' - '
                          list all tags, if no search keywords
-    -x, --exclude [...]  omit records matching specified keywords''')
+    -x, --exclude [...]  omit records matching specified keywords'''))
     addarg = search_grp.add_argument
     addarg('-s', '--sany', nargs='*', help=hide)
     addarg('-S', '--sall', nargs='*', help=hide)
@@ -5452,9 +5461,9 @@ POSITIONAL ARGUMENTS:
     # ------------------------
 
     crypto_grp = argparser.add_argument_group(
-        title='ENCRYPTION OPTIONS',
-        description='''    -l, --lock [N]       encrypt DB in N (default 8) # iterations
-    -k, --unlock [N]     decrypt DB in N (default 8) # iterations''')
+        title=gettext('ENCRYPTION OPTIONS'),
+        description=gettext('''    -l, --lock [N]       encrypt DB in N (default 8) # iterations
+    -k, --unlock [N]     decrypt DB in N (default 8) # iterations'''))
     addarg = crypto_grp.add_argument
     addarg('-k', '--unlock', nargs='?', type=int, const=8, help=hide)
     addarg('-l', '--lock', nargs='?', type=int, const=8, help=hide)
@@ -5464,8 +5473,8 @@ POSITIONAL ARGUMENTS:
     # ----------------
 
     power_grp = argparser.add_argument_group(
-        title='POWER TOYS',
-        description='''    --ai                 auto-import bookmarks from web browsers
+        title=gettext('POWER TOYS'),
+        description=gettext('''    --ai                 auto-import bookmarks from web browsers
                          Firefox, Chrome, Chromium, Vivaldi, Edge
     -e, --export file    export bookmarks to Firefox format HTML
                          export XBEL, if file ends with '.xbel'
@@ -5505,7 +5514,7 @@ POSITIONAL ARGUMENTS:
     --threads N          max network connections in full refresh
                          default N=4, min N=1, max N=10
     -V                   check latest upstream version available
-    -g, --debug          show debug information and verbose logs''')
+    -g, --debug          show debug information and verbose logs'''))
     addarg = power_grp.add_argument
     addarg('--ai', action='store_true', help=hide)
     addarg('-e', '--export', nargs=1, help=hide)
@@ -5579,7 +5588,7 @@ POSITIONAL ARGUMENTS:
         setup_logger(LOGGER)
 
         # Enable prompt with reverse video
-        PROMPTMSG = '\001\x1b[7\002mbuku (? for help)\001\x1b[0m\002 '
+        PROMPTMSG = gettext('\001\x1b[7\002mbuku (? for help)\001\x1b[0m\002 ')
 
     # Enable browser output in case of a text based browser
     if os.getenv('BROWSER') in TEXT_BROWSERS:
@@ -5672,7 +5681,7 @@ POSITIONAL ARGUMENTS:
     # Add record
     if args.add is not None:
         if args.url is not None and args.update is None:
-            LOGERR('Bookmark a single URL at a time')
+            LOGERR(gettext('Bookmark a single URL at a time'))
             bdb.close_quit(1)
 
         # Parse tags into a comma-separated string
@@ -5731,7 +5740,7 @@ POSITIONAL ARGUMENTS:
                     args.deep
                 )
         else:
-            LOGERR('no keyword')
+            LOGERR(gettext('no keyword'))
     elif args.sall is not None:
         if len(args.sall):
             LOGDBG('args.sall')
@@ -5755,7 +5764,7 @@ POSITIONAL ARGUMENTS:
                     args.deep
                 )
         else:
-            LOGERR('no keyword')
+            LOGERR(gettext('no keyword'))
     elif args.sreg is not None:
         if len(args.sreg):
             LOGDBG('args.sreg')
@@ -5779,7 +5788,7 @@ POSITIONAL ARGUMENTS:
                     args.deep
                 )
         else:
-            LOGERR('no expression')
+            LOGERR(gettext('no expression'))
     elif len(args.keywords):
         LOGDBG('args.keywords')
         # Apply tag filtering, if opted
@@ -5816,7 +5825,7 @@ POSITIONAL ARGUMENTS:
             # Use sub prompt to list all tags
             prompt(bdb, None, args.np, listtags=True, suggest=args.suggest)
     elif args.exclude is not None:
-        LOGERR('No search criteria to exclude results from')
+        LOGERR(gettext('No search criteria to exclude results from'))
     else:
         search_opted = False
 
@@ -5895,7 +5904,7 @@ POSITIONAL ARGUMENTS:
                 bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads)
             elif search_results and search_results is not None and update_search_results:
                 if not args.tacit:
-                    print('Updated results:\n')
+                    print(gettext('Updated results:\n'))
 
                 pos = len(search_results) - 1
                 while pos >= 0:
@@ -5958,7 +5967,7 @@ POSITIONAL ARGUMENTS:
                                 if INTERRUPTED:
                                     break
                     except ValueError:
-                        LOGERR('Invalid index or range to update')
+                        LOGERR(gettext('Invalid index or range to update'))
                         bdb.close_quit(1)
 
                 if INTERRUPTED:
@@ -5976,7 +5985,7 @@ POSITIONAL ARGUMENTS:
                 if len(vals) == 2:
                     bdb.delete_rec(0, vals[0], vals[1], True)
             except ValueError:
-                LOGERR('Invalid index or range to delete')
+                LOGERR(gettext('Invalid index or range to delete'))
                 bdb.close_quit(1)
         else:
             ids = []
@@ -5991,7 +6000,7 @@ POSITIONAL ARGUMENTS:
                 for idx in ids:
                     bdb.delete_rec(int(idx))
             except ValueError:
-                LOGERR('Invalid index or range or combination')
+                LOGERR(gettext('Invalid index or range or combination'))
                 bdb.close_quit(1)
 
     # Print record
@@ -6016,7 +6025,7 @@ POSITIONAL ARGUMENTS:
                             bdb.print_rec(0, vals[0], vals[-1], True)
 
                 except ValueError:
-                    LOGERR('Invalid index or range to print')
+                    LOGERR(gettext('Invalid index or range to print'))
                     bdb.close_quit(1)
 
     # Replace a tag in DB
@@ -6051,7 +6060,7 @@ POSITIONAL ARGUMENTS:
                         vals = [int(x) for x in idx.split('-')]
                         bdb.browse_by_index(0, vals[0], vals[-1], True)
             except ValueError:
-                LOGERR('Invalid index or range to open')
+                LOGERR(gettext('Invalid index or range to open'))
                 bdb.close_quit(1)
 
     # Shorten URL
