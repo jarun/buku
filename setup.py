@@ -49,6 +49,14 @@ reverse_proxy = " ".join(
         "https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.2rc1.zip",
     ]
 )
+install_requires = [
+    'beautifulsoup4>=4.4.1',
+    'certifi',
+    'cryptography>=1.2.3',
+    'html5lib>=1.0.1',
+    'pyreadline; sys_platform == \'windows\'',
+    'urllib3>=1.23',
+]
 
 setup(
     name='buku',
@@ -63,19 +71,13 @@ setup(
     python_requires='>=3.7',  # requires pip>=9.0.0
     platforms=['any'],
     py_modules=['buku'],
-    install_requires=[
-        'beautifulsoup4>=4.4.1',
-        'cryptography>=1.2.3',
-        'urllib3>=1.23',
-        'html5lib>=1.0.1',
-    ],
+    install_requires=install_requires,
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
     entry_points={
         'console_scripts': ['buku=buku:main', 'bukuserver=bukuserver.server:cli']
     },
     extras_require={
-        "ca-certificates": ["certifi"],
         "tests": tests_require + server_require + [reverse_proxy],
         "server": server_require,
         "reverse_proxy": [reverse_proxy],
