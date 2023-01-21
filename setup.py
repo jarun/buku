@@ -46,7 +46,7 @@ reverse_proxy = " ".join(
     [
         "flask-reverse-proxy-fix",
         "@",
-        "https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.2.zip",
+        "https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.3.zip",
     ]
 )
 install_requires = [
