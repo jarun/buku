@@ -16,7 +16,6 @@ disable=
   logging-format-interpolation,
   lost-exception,
   missing-docstring,
-  no-self-use,
   pointless-statement,
   protected-access,
   redefined-argument-from-local,

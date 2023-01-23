@@ -591,6 +591,7 @@ def test_sigint_handler(capsys):
             ),
         ],
     ],
+    ids=lambda s: (s.split('?')[0] + '~' if isinstance(s, str) and '?' in s else None),
 )
 def test_network_handler_with_url(url, exp_res):
     """test func."""
