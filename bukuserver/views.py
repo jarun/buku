@@ -68,7 +68,7 @@ def last_page(self):
                                 view_args.search, view_args.filters, page_size=page_size)
 
     args = request.args.copy()
-    args.setlist('page', [max(0, view_args.page + (count + page_size - 1) // page_size)])
+    args.setlist('page', [max(0, (count - 1) // page_size)])
     return redirect(url_for('.index_view', **args))
 
 
@@ -175,16 +175,20 @@ class BookmarkModelView(BaseModelView):
         readonly_check(self)
         self.bukudb: buku.BukuDb = args[0]
         custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="bookmark")
-        args = [
-            custom_model,
-        ] + list(args[1:])
-        self.page_size = kwargs.pop("page_size", DEFAULT_PER_PAGE)
-        self.url_render_mode = kwargs.pop("url_render_mode", DEFAULT_URL_RENDER_MODE)
+        args = [custom_model] + list(args[1:])
         super().__init__(*args, **kwargs)
+
+    @property
+    def page_size(self):
+        return current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE)
+
+    @property
+    def url_render_mode(self):
+        return current_app.config.get('BUKUSERVER_URL_RENDER_MODE', DEFAULT_URL_RENDER_MODE)
 
     def create_form(self, obj=None):
         form = super().create_form(obj)
-        if not form.data['csrf_token']:  # don't override POST data with URL arguments
+        if not form.data.get('csrf_token'):  # don't override POST data with URL arguments
             form.url.data = request.args.get('link', form.url.data)
             form.title.data = request.args.get('title', form.title.data)
             form.description.data = request.args.get('description', form.description.data)
@@ -444,11 +448,12 @@ class TagModelView(BaseModelView):
         self.bukudb = args[0]
         self.all_tags = self.bukudb.get_tag_all()
         custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="tag")
-        args = [
-            custom_model,
-        ] + list(args[1:])
-        self.page_size = kwargs.pop("page_size", DEFAULT_PER_PAGE)
+        args = [custom_model] + list(args[1:])
         super().__init__(*args, **kwargs)
+
+    @property
+    def page_size(self):
+        return current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE)
 
     @expose('/refresh', methods=['POST'])
     def refresh(self):

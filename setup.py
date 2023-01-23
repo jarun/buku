@@ -30,6 +30,9 @@ tests_require = [
     'PyYAML>=4.2b1',
     'setuptools>=41.0.1',
     'vcrpy>=1.13.0',
+    'lxml',
+    'flask_babelex',
+    'pytz',
 ]
 
 

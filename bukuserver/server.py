@@ -151,12 +151,9 @@ def create_app(db_file=None):
     def favicon():
         return redirect(url_for('static', filename='bukuserver/favicon.svg'), code=301)  # permanent redirect
 
-    admin.add_view(views.BookmarkModelView(
-        bukudb, 'Bookmarks', page_size=per_page, url_render_mode=url_render_mode))
-    admin.add_view(views.TagModelView(
-        bukudb, 'Tags', page_size=per_page))
-    admin.add_view(views.StatisticView(
-        bukudb, 'Statistic', endpoint='statistic'))
+    admin.add_view(views.BookmarkModelView(bukudb, 'Bookmarks'))
+    admin.add_view(views.TagModelView(bukudb, 'Tags'))
+    admin.add_view(views.StatisticView(bukudb, 'Statistic', endpoint='statistic'))
     return app
 
 
