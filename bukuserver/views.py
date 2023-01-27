@@ -85,11 +85,11 @@ class BookmarkModelView(BaseModelView):
         """Exposes filter slugify logic; works because BookmarkModelView.named_filter_urls = True"""
         return BaseModelView.get_filter_arg(BookmarkModelView, None, flt)
 
-    def _saved(self, id, url, ok):
-        if ok:
+    def _saved(self, id, url, ok=True):
+        if id and ok:
             session['saved'] = id
         else:
-            raise Exception('Duplicate URL' if self.model.bukudb.get_rec_id(url) not in [-1, id] else
+            raise Exception('Duplicate URL' if self.model.bukudb.get_rec_id(url) not in [id, None] else
                             'Rejected by the database')
 
     def _apply_filters(self, models, filters):
@@ -205,7 +205,7 @@ class BookmarkModelView(BaseModelView):
                 if item.strip():
                     kwargs[key] = item
             vars(model)['id'] = self.model.bukudb.add_rec(**kwargs)
-            self._saved(model.id, model.url, model.id != -1)
+            self._saved(model.id, model.url)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = "Failed to create record."
@@ -259,15 +259,7 @@ class BookmarkModelView(BaseModelView):
         for bookmark in bookmarks:
             bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
             for field in list(BookmarkField):
-                if field == BookmarkField.TAGS:
-                    value = bookmark[field.value]
-                    if value.startswith(","):
-                        value = value[1:]
-                    if value.endswith(","):
-                        value = value[:-1]
-                    setattr(bm_sns, field.name.lower(), value)
-                else:
-                    setattr(bm_sns, field.name.lower(), bookmark[field.value])
+                setattr(bm_sns, field.name.lower(), format_value(field, bookmark))
             data.append(bm_sns)
         return count, data
 
@@ -277,17 +269,8 @@ class BookmarkModelView(BaseModelView):
             return None
         bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
         for field in list(BookmarkField):
-            if field == BookmarkField.TAGS and bookmark[field.value].startswith(","):
-                value = bookmark[field.value]
-                if value.startswith(","):
-                    value = value[1:]
-                if value.endswith(","):
-                    value = value[:-1]
-                setattr(bm_sns, field.name.lower(), value.replace(',', ', '))
-            else:
-                setattr(bm_sns, field.name.lower(), bookmark[field.value])
-            if field == BookmarkField.URL:
-                session['netloc'] = urlparse(bookmark[field.value]).netloc
+            setattr(bm_sns, field.name.lower(), format_value(field, bookmark, spacing=' '))
+        session['netloc'] = urlparse(bookmark.url).netloc
         return bm_sns
 
     def get_pk_value(self, model):
@@ -739,3 +722,7 @@ def page_of(items, size, idx):
 
 def filter_key(flt, idx=''):
     return 'flt' + str(idx) + '_' + BookmarkModelView._filter_arg(flt)
+
+def format_value(field, bookmark, spacing=''):
+    s = bookmark[field.value]
+    return s if field != BookmarkField.TAGS else s.strip(',').replace(',', ','+spacing)

@@ -44,19 +44,13 @@ import webbrowser
 from enum import Enum
 from itertools import chain
 from subprocess import DEVNULL, PIPE, Popen
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, NamedTuple
 
 import urllib3
 from bs4 import BeautifulSoup
 from urllib3.exceptions import LocationParseError
 from urllib3.util import Retry, make_headers, parse_url
 
-# note catch ModuleNotFoundError instead Exception
-# when python3.5 not supported
-try:
-    import readline
-except Exception:
-    import pyreadline as readline  # type: ignore
 try:
     from mypy_extensions import TypedDict
 except ImportError:
@@ -94,6 +88,24 @@ COLORMAP = {k: '\x1b[%sm' % v for k, v in {
     'M': '94;1', 'N': '95;1', 'O': '96;1', 'P': '97;1',
     'x': '0', 'X': '1', 'y': '7', 'Y': '7;1', 'z': '2',
 }.items()}
+
+# DB flagset values
+[FLAG_NONE, FLAG_IMMUTABLE] = [0x00, 0x01]
+
+FIELD_FILTER = {
+    1: ('id', 'url'),
+    2: ('id', 'url', 'tags'),
+    3: ('id', 'title'),
+    4: ('id', 'url', 'title', 'tags'),
+    5: ('id', 'title', 'tags'),
+    10: ('url',),
+    20: ('url', 'tags'),
+    30: ('title',),
+    40: ('url', 'title', 'tags'),
+    50: ('title', 'tags'),
+}
+ALL_FIELDS = ('id', 'url', 'title', 'desc', 'tags')
+JSON_FIELDS = {'id': 'index', 'url': 'uri', 'desc': 'description'}
 
 USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:101.0) Gecko/20100101 Firefox/101.0'
 MYHEADERS = None  # Default dictionary of headers
@@ -362,9 +374,28 @@ class BukuCrypt:
             sys.exit(1)
 
 
-BookmarkVar = Tuple[int, str, Optional[str], str, str, int]
-# example:
-# (1, 'http://example.com', 'example title', ',tags1,', 'randomdesc', 0))
+class BookmarkVar(NamedTuple):
+    """Bookmark data named tuple"""
+    id: int
+    url: str
+    title: Optional[str] = None
+    tags_raw: str = ''
+    desc: str = ''
+    flags: int = FLAG_NONE
+
+    @property
+    def immutable(self) -> bool:
+        return bool(self.flags & FLAG_IMMUTABLE)
+
+    @property
+    def tags(self) -> str:
+        return self.tags_raw[1:-1]
+
+    @property
+    def taglist(self) -> List[str]:
+        return [x for x in self.tags_raw.split(',') if x]
+
+bookmark_vars = lambda xs: (BookmarkVar(*x) for x in xs)
 
 
 class BukuDb:
@@ -385,8 +416,8 @@ class BukuDb:
     """
 
     def __init__(
-            self, json: Optional[str] = None, field_filter: Optional[int] = 0, chatty: Optional[bool] = False,
-            dbfile: Optional[str] = None, colorize: Optional[bool] = True) -> None:
+            self, json: Optional[str] = None, field_filter: int = 0, chatty: bool = False,
+            dbfile: Optional[str] = None, colorize: bool = True) -> None:
         """Database initialization API.
 
         Parameters
@@ -395,11 +426,11 @@ class BukuDb:
             Empty string if results should be printed in JSON format to stdout.
             Nonempty string if results should be printed in JSON format to file. The string has to be a valid path.
             None if the results should be printed as human-readable plaintext.
-        field_filter : int, optional
+        field_filter : int
             Indicates format for displaying bookmarks. Default is 0.
-        chatty : bool, optional
+        chatty : bool
             Sets the verbosity of the APIs. Default is False.
-        colorize : bool, optional
+        colorize : bool
             Indicates whether color should be used in output. Default is True.
         """
 
@@ -439,7 +470,7 @@ class BukuDb:
         return os.path.join(data_home, 'buku')
 
     @staticmethod
-    def initdb(dbfile: Optional[str] = None, chatty: Optional[bool] = False) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
+    def initdb(dbfile: Optional[str] = None, chatty: bool = False) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
         """Initialize the database connection.
 
         Create DB file and/or bookmarks table if they don't exist.
@@ -512,6 +543,14 @@ class BukuDb:
 
         return (conn, cur)
 
+    def _fetch(self, query: str, *args) -> List[BookmarkVar]:
+        self.cur.execute(query, args)
+        return [BookmarkVar(*x) for x in self.cur.fetchall()]
+
+    def _fetch_first(self, query: str, *args) -> Optional[BookmarkVar]:
+        rows = self._fetch(query + ' LIMIT 1', *args)
+        return rows[0] if rows else None
+
     def get_rec_all(self):
         """Get all the bookmarks in the database.
 
@@ -521,8 +560,7 @@ class BukuDb:
             A list of tuples representing bookmark records.
         """
 
-        self.cur.execute('SELECT * FROM bookmarks')
-        return self.cur.fetchall()
+        return self._fetch('SELECT * FROM bookmarks')
 
     def get_rec_by_id(self, index: int) -> Optional[BookmarkVar]:
         """Get a bookmark from database by its ID.
@@ -534,13 +572,11 @@ class BukuDb:
 
         Returns
         -------
-        tuple or None
+        BookmarkVar or None
             Bookmark data, or None if index is not found.
         """
 
-        self.cur.execute('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', (index,))
-        resultset = self.cur.fetchall()
-        return resultset[0] if resultset else None
+        return self._fetch_first('SELECT * FROM bookmarks WHERE id = ?', index)
 
     def get_rec_id(self, url):
         """Check if URL already exists in DB.
@@ -553,12 +589,11 @@ class BukuDb:
         Returns
         -------
         int
-            DB index, or -1 if URL not found in DB.
+            DB index, or None if URL not found in DB.
         """
 
-        self.cur.execute('SELECT id FROM bookmarks WHERE URL = ? LIMIT 1', (url,))
-        resultset = self.cur.fetchall()
-        return resultset[0][0] if resultset else -1
+        row = self._fetch_first('SELECT * FROM bookmarks WHERE url = ?', url)
+        return row and row.id
 
     def get_max_id(self) -> int:
         """Fetch the ID of the last record.
@@ -566,12 +601,11 @@ class BukuDb:
         Returns
         -------
         int
-            ID of the record if any record exists, else -1.
+            ID of the record if any record exists, else None.
         """
 
-        self.cur.execute('SELECT MAX(id) from bookmarks')
-        resultset = self.cur.fetchall()
-        return -1 if resultset[0][0] is None else resultset[0][0]
+        self.cur.execute('SELECT MAX(id) FROM bookmarks')
+        return self.cur.fetchall()[0][0]
 
     def add_rec(
             self,
@@ -579,9 +613,9 @@ class BukuDb:
             title_in: Optional[str] = None,
             tags_in: Optional[str] = None,
             desc: Optional[str] = None,
-            immutable: Optional[int] = 0,
-            delay_commit: Optional[bool] = False,
-            fetch: Optional[bool] = True) -> int:
+            immutable: bool = False,
+            delay_commit: bool = False,
+            fetch: bool = True) -> int:
         """Add a new bookmark.
 
         Parameters
@@ -595,31 +629,30 @@ class BukuDb:
             Must start and end with comma. Default is None.
         desc : str, optional
             Description of the bookmark. Default is None.
-        immutable : int, optional
-            Indicates whether to disable title fetch from web.
-            Default is 0.
-        delay_commit : bool, optional
+        immutable : bool
+            Indicates whether to disable title fetch from web. Default is False.
+        delay_commit : bool
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
-        fetch : bool, optional
+        fetch : bool
             Fetch page from web and parse for data
 
         Returns
         -------
         int
-            DB index of new bookmark on success, -1 on failure.
+            DB index of new bookmark on success, None on failure.
         """
 
         # Return error for empty URL
-        if not url or url == '':
+        if not url:
             LOGERR('Invalid URL')
-            return -1
+            return None
 
         # Ensure that the URL does not exist in DB already
         id = self.get_rec_id(url)
-        if id != -1:
+        if id:
             LOGERR('URL [%s] already exists at index %d', url, id)
-            return -1
+            return None
 
         if fetch:
             # Fetch data
@@ -647,9 +680,9 @@ class BukuDb:
             desc = '' if pdesc is None else pdesc
 
         try:
-            flagset = 0
-            if immutable == 1:
-                flagset |= immutable
+            flagset = FLAG_NONE
+            if immutable:
+                flagset |= FLAG_IMMUTABLE
 
             qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
             self.cur.execute(qry, (url, ptitle, tags_in, desc, flagset))
@@ -660,7 +693,7 @@ class BukuDb:
             return self.cur.lastrowid
         except Exception as e:
             LOGERR('add_rec(): %s', e)
-            return -1
+            return None
 
     def append_tag_at_index(self, index, tags_in, delay_commit=False):
         """Append tags to bookmark tagset at index.
@@ -671,7 +704,7 @@ class BukuDb:
             DB index of the record. 0 indicates all records.
         tags_in : str
             Comma-separated tags to add manually.
-        delay_commit : bool, optional
+        delay_commit : bool
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
 
@@ -719,10 +752,10 @@ class BukuDb:
             DB index of bookmark record. 0 indicates all records.
         tags_in : str
             Comma-separated tags to delete manually.
-        delay_commit : bool, optional
+        delay_commit : bool
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
-        chatty: bool, optional
+        chatty: bool
             Skip confirmation when set to False.
 
         Returns
@@ -789,7 +822,7 @@ class BukuDb:
             title_in: Optional[str] = None,
             tags_in: Optional[str] = None,
             desc: Optional[str] = None,
-            immutable: Optional[int] = -1,
+            immutable: Optional[bool] = None,
             threads: int = 4) -> bool:
         """Update an existing record at index.
 
@@ -810,9 +843,9 @@ class BukuDb:
             Prefix with '-,' to delete from current tags.
         desc : str, optional
             Description of bookmark.
-        immutable : int, optional
-            Disable title fetch from web if 1. Default is -1.
-        threads : int, optional
+        immutable : bool, optional
+            Disable title fetch from web if True. Default is None (no change).
+        threads : int
             Number of threads to use to refresh full DB. Default is 4.
 
         Returns
@@ -868,15 +901,13 @@ class BukuDb:
             to_update = True
 
         # Update immutable flag if passed as argument
-        if immutable != -1:
-            flagset = 1
-            if immutable == 1:
+        if immutable is not None:
+            if immutable:
                 query += ' flags = flags | ?,'
-            elif immutable == 0:
+                arguments += (FLAG_IMMUTABLE,)
+            else:
                 query += ' flags = flags & ?,'
-                flagset = ~flagset
-
-            arguments += (flagset,)
+                arguments += (~FLAG_IMMUTABLE,)
             to_update = True
 
         # Update title
@@ -1112,7 +1143,7 @@ class BukuDb:
         self.conn.commit()
         return True
 
-    def edit_update_rec(self, index, immutable=-1):
+    def edit_update_rec(self, index, immutable=None):
         """Edit in editor and update a record.
 
         Parameters
@@ -1120,8 +1151,8 @@ class BukuDb:
         index : int
             DB index of the record.
             Last record, if index is -1.
-        immutable : int, optional
-            Diable title fetch from web if 1. Default is -1.
+        immutable : bool, optional
+            Disable title fetch from web if True. Default is None (no change).
 
         Returns
         -------
@@ -1137,7 +1168,7 @@ class BukuDb:
         if index == -1:
             # Edit the last records
             index = self.get_max_id()
-            if index == -1:
+            if not index:
                 LOGERR('Empty database')
                 return False
 
@@ -1148,14 +1179,13 @@ class BukuDb:
 
         # If reading from DB, show empty title and desc as empty lines. We have to convert because
         # even in case of add with a blank title or desc, '' is used as initializer to show '-'.
-        result = edit_rec(editor, rec[1], rec[2] if rec[2] != '' else None,
-                          rec[3], rec[4] if rec[4] != '' else None)
+        result = edit_rec(editor, rec.url, rec.title or None, rec.tags_raw, rec.desc or None)
         if result is not None:
             url, title, tags, desc = result
             return self.update_rec(index, url, title, tags, desc, immutable)
 
-        if immutable != -1:
-            return self.update_rec(index, immutable)
+        if immutable is not None:
+            return self.update_rec(index, immutable=immutable)
 
         return False
 
@@ -1192,40 +1222,39 @@ class BukuDb:
             q0 += ')'
 
         try:
-            self.cur.execute(q0, [])
+            return self._fetch(q0)
         except sqlite3.OperationalError as e:
             LOGERR(e)
-            return None
-        return self.cur.fetchall()
+            return []
 
     def searchdb(
             self,
             keywords: List[str],
-            all_keywords: Optional[bool] = False,
-            deep: Optional[bool] = False,
-            regex: Optional[bool] = False
-    ) -> Optional[Iterable[Any]]:
+            all_keywords: bool = False,
+            deep: bool = False,
+            regex: bool = False
+    ) -> List[BookmarkVar]:
         """Search DB for entries where tags, URL, or title fields match keywords.
 
         Parameters
         ----------
         keywords : list of str
             Keywords to search.
-        all_keywords : bool, optional
+        all_keywords : bool
             True to return records matching ALL keywords.
             False (default value) to return records matching ANY keyword.
-        deep : bool, optional
+        deep : bool
             True to search for matching substrings. Default is False.
-        regex : bool, optional
+        regex : bool
             Match a regular expression if True. Default is False.
 
         Returns
         -------
-        list or None
-            List of search results, or None if no matches.
+        list
+            List of search results.
         """
         if not keywords:
-            return None
+            return []
 
         # Deep query string
         q1 = ("(tags LIKE ('%' || ? || '%') OR "
@@ -1250,7 +1279,7 @@ class BukuDb:
                 qargs += (token, token, token, token,)
 
             if not qargs:
-                return None
+                return []
 
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         elif all_keywords:
@@ -1279,7 +1308,7 @@ class BukuDb:
                     qargs += (token, token, token, token,)
 
                 if not qargs:
-                    return None
+                    return []
 
                 q0 = q0[:-4]
             q0 += 'ORDER BY id ASC'
@@ -1303,24 +1332,22 @@ class BukuDb:
                 qargs += (token, token, token, token,)
 
             if not qargs:
-                return None
+                return []
 
             q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
         else:
             LOGERR('Invalid search option')
-            return None
+            return []
 
         LOGDBG('query: "%s", args: %s', q0, qargs)
 
         try:
-            self.cur.execute(q0, qargs)
+            return self._fetch(q0, *qargs)
         except sqlite3.OperationalError as e:
             LOGERR(e)
-            return None
+            return []
 
-        return self.cur.fetchall()
-
-    def search_by_tag(self, tags: Optional[str]) -> Optional[List[BookmarkVar]]:
+    def search_by_tag(self, tags: Optional[str]) -> List[BookmarkVar]:
         """Search bookmarks for entries with given tags.
 
         Parameters
@@ -1334,18 +1361,18 @@ class BukuDb:
 
         Returns
         -------
-        list or None
-            List of search results, or None if no matches.
+        list
+            List of search results.
         """
 
         LOGDBG(tags)
         if tags is None or tags == DELIM or tags == '':
-            return None
+            return []
 
         tags_, search_operator, excluded_tags = prep_tag_search(tags)
         if search_operator is None:
             LOGERR("Cannot use both '+' and ',' in same search")
-            return None
+            return []
 
         LOGDBG('tags: %s', tags_)
         LOGDBG('search_operator: %s', search_operator)
@@ -1379,8 +1406,7 @@ class BukuDb:
             query += ' ORDER BY score DESC)'
 
         LOGDBG('query: "%s", args: %s', query, tags_)
-        self.cur.execute(query, tuple(tags_, ))
-        return self.cur.fetchall()
+        return self._fetch(query, *tags_)
 
     def search_keywords_and_filter_by_tags(
             self,
@@ -1388,7 +1414,7 @@ class BukuDb:
             all_keywords: bool,
             deep: bool,
             regex: bool,
-            stag: str) -> Optional[List[BookmarkVar]]:
+            stag: str) -> List[BookmarkVar]:
         """Search bookmarks for entries with keywords and specified
         criteria while filtering out entries with matching tags.
 
@@ -1396,12 +1422,12 @@ class BukuDb:
         ----------
         keywords : list of str
             Keywords to search.
-        all_keywords : bool, optional
+        all_keywords : bool
             True to return records matching ALL keywords.
             False to return records matching ANY keyword.
-        deep : bool, optional
+        deep : bool
             True to search for matching substrings.
-        regex : bool, optional
+        regex : bool
             Match a regular expression if True.
         stag : str
             String of tags to search for.
@@ -1412,14 +1438,12 @@ class BukuDb:
 
         Returns
         -------
-        list or None
-            List of search results, or None if no matches.
+        list
+            List of search results.
         """
 
         keyword_results = self.searchdb(keywords, all_keywords, deep, regex)
-        keyword_results = keyword_results if keyword_results is not None else []
         stag_results = self.search_by_tag(''.join(stag))
-        stag_results = stag_results if stag_results is not None else []
         return list(set(keyword_results) & set(stag_results))
 
     def exclude_results_from_search(self, search_results, without, deep):
@@ -1431,13 +1455,13 @@ class BukuDb:
             List of search results
         without : list of str
             Keywords to search.
-        deep : bool, optional
+        deep : bool
             True to search for matching substrings.
 
         Returns
         -------
-        list or None
-            List of search results, or None if no matches.
+        list
+            List of search results.
         """
 
         return list(set(search_results) - set(self.searchdb(without, False, deep)))
@@ -1450,14 +1474,14 @@ class BukuDb:
         ----------
         index : int
             DB index of deleted entry.
-        delay_commit : bool, optional
+        delay_commit : bool
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
         """
 
         # Return if the last index left in DB was just deleted
         max_id = self.get_max_id()
-        if max_id == -1:
+        if not max_id:
             return
 
         query1 = 'SELECT id, URL, metadata, tags, desc, flags FROM bookmarks WHERE id = ? LIMIT 1'
@@ -1466,15 +1490,14 @@ class BukuDb:
 
         # NOOP if the just deleted index was the last one
         if max_id > index:
-            self.cur.execute(query1, (max_id,))
-            results = self.cur.fetchall()
+            results = self._fetch(query1, max_id)
             for row in results:
-                self.cur.execute(query2, (row[0],))
-                self.cur.execute(query3, (index, row[1], row[2], row[3], row[4], row[5]))
+                self.cur.execute(query2, (row.id,))
+                self.cur.execute(query3, (index, row.url, row.title, row.tags_raw, row.desc, row.flags))
                 if not delay_commit:
                     self.conn.commit()
                 if self.chatty:
-                    print('Index %d moved to %d' % (row[0], index))
+                    print('Index %d moved to %d' % (row.id, index))
 
     def delete_rec(
             self,
@@ -1490,14 +1513,14 @@ class BukuDb:
         ----------
         index : int, optional
             DB index of deleted entry.
-        low : int, optional
+        low : int
             Actual lower index of range.
-        high : int, optional
+        high : int
             Actual higher index of range.
-        is_range : bool, optional
+        is_range : bool
             A range is passed using low and high arguments.
             An index is ignored if is_range is True.
-        delay_commit : bool, optional
+        delay_commit : bool
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
 
@@ -1685,7 +1708,7 @@ class BukuDb:
 
         Parameters
         ----------
-        delay_commit : bool, optional
+        delay_commit : bool
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
 
@@ -1735,13 +1758,13 @@ class BukuDb:
 
         Parameters
         -----------
-        index : int, optional
+        index : int
             DB index of record to print. 0 prints all records.
-        low : int, optional
+        low : int
             Actual lower index of range.
-        high : int, optional
+        high : int
             Actual higher index of range.
-        is_range : bool, optional
+        is_range : bool
             A range is passed using low and high arguments.
             An index is ignored if is_range is True.
 
@@ -1784,7 +1807,7 @@ class BukuDb:
         if not is_range and index < 0:
             # Show the last n records
             _id = self.get_max_id()
-            if _id == -1:
+            if not _id:
                 LOGERR('Empty database')
                 return False
 
@@ -1813,9 +1836,7 @@ class BukuDb:
                 return False
         elif index != 0:  # Show record at index
             try:
-                query = 'SELECT * FROM bookmarks WHERE id = ? LIMIT 1'
-                self.cur.execute(query, (index,))
-                results = self.cur.fetchall()
+                results = self._fetch('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', index)
                 if not results:
                     LOGERR('No matching index %d', index)
                     return False
@@ -1938,7 +1959,7 @@ class BukuDb:
 
         return parse_tags(tags)
 
-    def replace_tag(self, orig: str, new: Optional[List[str]] = None) -> bool:
+    def replace_tag(self, orig: str, new: List[str] = []) -> bool:
         """Replace original tag by new tags in all records.
 
         Remove original tag if new tag is empty.
@@ -1956,11 +1977,8 @@ class BukuDb:
             True on success, False on failure.
         """
 
-        newtags = DELIM
-
         orig = delim_wrap(orig)
-        if new is not None:
-            newtags = parse_tags(new)
+        newtags = parse_tags(new) if new else DELIM
 
         if orig == newtags:
             print('Tags are same.')
@@ -2232,7 +2250,7 @@ class BukuDb:
             outdb = BukuDb(dbfile=filepath)
             qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
             for row in resultset:
-                outdb.cur.execute(qry, (row[1], row[2], row[3], row[4], row[5]))
+                outdb.cur.execute(qry, (row.url, row.title, row.tags_raw, row.desc, row.flags))
                 count += 1
             outdb.conn.commit()
             outdb.close()
@@ -2387,10 +2405,7 @@ class BukuDb:
             tags = parse_tags(formatted_tags)
 
             # get the title
-            if row[2]:
-                title = row[2]
-            else:
-                title = ''
+            title = row[2] or ''
 
             self.add_rec(url, title, tags, None, 0, True, False)
         try:
@@ -2575,7 +2590,7 @@ class BukuDb:
         ----------
         filepath : str
             Path to file to import.
-        tacit : bool, optional
+        tacit : bool
             If True, no questions asked and folder names are automatically
             imported as tags from bookmarks HTML.
             If True, automatic timestamp tag is NOT added.
@@ -2678,7 +2693,7 @@ n: don't add parent folder as tag
 
         for item in items:
             add_rec_res = self.add_rec(*item)
-            if add_rec_res == -1 and append_tags_resp == 'y':
+            if not add_rec_res and append_tags_resp == 'y':
                 rec_id = self.get_rec_id(item[0])
                 self.append_tag_at_index(rec_id, item[2])
 
@@ -2715,8 +2730,8 @@ n: don't add parent folder as tag
 
         resultset = indb_cur.fetchall()
         if resultset:
-            for row in resultset:
-                self.add_rec(row[1], row[2], row[3], row[4], row[5], True, False)
+            for row in bookmark_vars(resultset):
+                self.add_rec(row.url, row.title, row.tags_raw, row.desc, row.flags, True, False)
 
             self.conn.commit()
 
@@ -2730,18 +2745,18 @@ n: don't add parent folder as tag
 
     def tnyfy_url(
             self,
-            index: Optional[int] = 0,
+            index: Optional[int] = None,
             url: Optional[str] = None,
-            shorten: Optional[bool] = True) -> Optional[str]:
+            shorten: bool = True) -> Optional[str]:
         """Shorten a URL using Google URL shortener.
 
         Parameters
         ----------
         index : int, optional (if URL is provided)
-            DB index of the bookmark with the URL to shorten. Default is 0.
+            DB index of the bookmark with the URL to shorten. Default is None.
         url : str, optional (if index is provided)
             URL to shorten.
-        shorten : bool, optional
+        shorten : bool
             True to shorten, False to expand. Default is False.
 
         Returns
@@ -2900,7 +2915,7 @@ n: don't add parent folder as tag
 
         Parameters
         ----------
-        exitval : int, optional
+        exitval : int
             Program exit value.
         """
 
@@ -2923,7 +2938,7 @@ class ExtendedArgumentParser(argparse.ArgumentParser):
 
         Parameters
         ----------
-        file : file, optional
+        file : file
             File to write program info to. Default is sys.stdout.
         """
         if sys.platform == 'win32' and file == sys.stdout:
@@ -2947,7 +2962,7 @@ Webpage: https://github.com/jarun/buku
 
         Parameters
         ----------
-        file : file, optional
+        file : file
             File to write program info to. Default is sys.stdout.
         """
         file.write('''
@@ -3007,7 +3022,7 @@ PROMPT KEYS:
 
         Parameters
         ----------
-        file : file, optional
+        file : file
             File to write program info to. Default is sys.stdout.
         """
         super().print_help(file)
@@ -3052,30 +3067,24 @@ def convert_bookmark_set(
     import html
     assert export_type in ['markdown', 'html', 'org', 'xbel']
     #  compatibility
-    resultset = bookmark_set
+    resultset = bookmark_vars(bookmark_set)
 
     count = 0
     out = ''
     if export_type == 'markdown':
         for row in resultset:
-            if not row[2] or row[2] is None:
-                out += '- [Untitled](' + row[1] + ')'
-            else:
-                out += '- [' + row[2] + '](' + row[1] + ')'
+            out += '- [' + (row.title or 'Untitled') + '](' + row.url + ')'
 
-            if row[3] != DELIM:
-                out += ' <!-- TAGS: {} -->\n'.format(row[3][1:-1])
+            if row.tags:
+                out += ' <!-- TAGS: {} -->\n'.format(row.tags)
             else:
                 out += '\n'
 
             count += 1
     elif export_type == 'org':
         for row in resultset:
-            if not row[2]:
-                out += '* [[{}][Untitled]]'.format(row[1])
-            else:
-                out += '* [[{}][{}]]'.format(row[1], row[2])
-            out += convert_tags_to_org_mode_tags(row[3])
+            out += '* [[{}][{}]]'.format(row.url, row.title or 'Untitled')
+            out += convert_tags_to_org_mode_tags(row.tags_raw)
             count += 1
     elif export_type == 'xbel':
         timestamp = str(int(time.time()))
@@ -3087,11 +3096,11 @@ def convert_bookmark_set(
             '<xbel version="1.0">\n')
 
         for row in resultset:
-            out += '<bookmark href="%s"' % (html.escape(row[1])).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
-            if row[3] != DELIM:
-                out += ' TAGS="' + html.escape(row[3][1:-1]).encode('ascii', 'xmlcharrefreplace').decode('utf-8') + '"'
+            out += '<bookmark href="%s"' % (html.escape(row.url)).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
+            if row.tags:
+                out += ' TAGS="' + html.escape(row.tags).encode('ascii', 'xmlcharrefreplace').decode('utf-8') + '"'
             out += '>\n<title>{}</title>\n</bookmark>\n'\
-                .format(html.escape(row[2]).encode('ascii', 'xmlcharrefreplace').decode('utf-8') if row[2] else '')
+                .format(html.escape(row.title).encode('ascii', 'xmlcharrefreplace').decode('utf-8') if row.title else '')
             count += 1
 
         out += '</xbel>'
@@ -3108,12 +3117,12 @@ def convert_bookmark_set(
             '    <DL><p>\n'.format(timestamp))
 
         for row in resultset:
-            out += '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row[1], timestamp, timestamp)
-            if row[3] != DELIM:
-                out += ' TAGS="' + row[3][1:-1] + '"'
-            out += '>{}</A>\n'.format(row[2] if row[2] else '')
-            if row[4] != '':
-                out += '        <DD>' + row[4] + '\n'
+            out += '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row.url, timestamp, timestamp)
+            if row.tags:
+                out += ' TAGS="' + row.tags + '"'
+            out += '>{}</A>\n'.format(row.title or '')
+            if row.desc:
+                out += '        <DD>' + row.desc + '\n'
             count += 1
 
         out += '    </DL><p>\n</DL><p>'
@@ -3903,7 +3912,7 @@ def get_PoolManager():
 
 def network_handler(
         url: str,
-        http_head: Optional[bool] = False
+        http_head: bool = False
 ) -> Tuple[Optional[str], Optional[str], Optional[str], int, int]:
     """Handle server connection and redirections.
 
@@ -3984,7 +3993,7 @@ def parse_tags(keywords=[]):
 
     Parameters
     ----------
-    keywords : list, optional
+    keywords : list
         List of tags to parse. Default is empty list.
 
     Returns
@@ -4000,7 +4009,7 @@ def parse_tags(keywords=[]):
     if keywords is None:
         return None
 
-    if not keywords or len(keywords) < 1 or not keywords[0]:
+    if not keywords or not keywords[0]:
         return DELIM
 
     tags = DELIM
@@ -4120,7 +4129,7 @@ def edit_at_prompt(obj, nav, suggest=False):
         A valid instance of BukuDb class.
     nav : str
         Navigation command argument passed at prompt by user.
-    suggest : bool, optional
+    suggest : bool
         If True, suggest similar tags on new bookmark addition.
     """
 
@@ -4172,15 +4181,15 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         A valid instance of BukuDb class.
     results : list
         Search result set from a DB query.
-    noninteractive : bool, optional
+    noninteractive : bool
         If True, does not seek user input. Shows all results. Default is False.
-    deep : bool, optional
+    deep : bool
         Use deep search. Default is False.
-    listtags : bool, optional
+    listtags : bool
         If True, list all tags.
-    suggest : bool, optional
+    suggest : bool
         If True, suggest similar tags on edit and add bookmark.
-    num : int, optional
+    num : int
         Number of results to show per page. Default is 10.
     """
 
@@ -4487,53 +4496,29 @@ def print_rec_with_filter(records, field_filter=0):
     records : list or sqlite3.Cursor object
         List of bookmark records to print
     field_filter : int
-        Integer indicating which fields to print.
+        Integer indicating which fields to print. Default is 0 ("all fields").
     """
 
     try:
-        if field_filter == 0:
+        records = bookmark_vars(records)
+        fields = FIELD_FILTER.get(field_filter)
+        if fields:
+            pattern = '\t'.join('%s' for k in fields)
             for row in records:
-                try:
-                    columns, _ = os.get_terminal_size()
-                except OSError:
-                    columns = 0
+                print(pattern % tuple(getattr(row, k) for k in fields))
+        else:
+            try:
+                columns, _ = os.get_terminal_size()
+            except OSError:
+                columns = 0
+            for row in records:
                 print_single_rec(row, columns=columns)
-        elif field_filter == 1:
-            for row in records:
-                print('%s\t%s' % (row[0], row[1]))
-        elif field_filter == 2:
-            for row in records:
-                print('%s\t%s\t%s' % (row[0], row[1], row[3][1:-1]))
-        elif field_filter == 3:
-            for row in records:
-                print('%s\t%s' % (row[0], row[2]))
-        elif field_filter == 4:
-            for row in records:
-                print('%s\t%s\t%s\t%s' % (row[0], row[1], row[2], row[3][1:-1]))
-        elif field_filter == 5:
-            for row in records:
-                print('%s\t%s\t%s' % (row[0], row[2], row[3][1:-1]))
-        elif field_filter == 10:
-            for row in records:
-                print(row[1])
-        elif field_filter == 20:
-            for row in records:
-                print('%s\t%s' % (row[1], row[3][1:-1]))
-        elif field_filter == 30:
-            for row in records:
-                print(row[2])
-        elif field_filter == 40:
-            for row in records:
-                print('%s\t%s\t%s' % (row[1], row[2], row[3][1:-1]))
-        elif field_filter == 50:
-            for row in records:
-                print('%s\t%s' % (row[2], row[3][1:-1]))
     except BrokenPipeError:
         sys.stdout = os.fdopen(1)
         sys.exit(1)
 
 
-def print_single_rec(row: BookmarkVar, idx: Optional[int]=0, columns: Optional[int]=0):  # NOQA
+def print_single_rec(row: BookmarkVar, idx: int=0, columns: int=0):  # NOQA
     """Print a single DB record.
 
     Handles both search results and individual record.
@@ -4542,35 +4527,36 @@ def print_single_rec(row: BookmarkVar, idx: Optional[int]=0, columns: Optional[i
     ----------
     row : tuple
         Tuple representing bookmark record data.
-    idx : int, optional
+    idx : int
         Search result index. If 0, print with DB index.
         Default is 0.
-    columns : int, optional
+    columns : int
         Number of columns to wrap comments to.
         Default is 0.
     """
 
     str_list = []
+    row = BookmarkVar(*row)  # ensuring named tuple
 
     # Start with index and title
     if idx != 0:
-        id_title_res = ID_STR % (idx, row[2] if row[2] else 'Untitled', row[0])
+        id_title_res = ID_STR % (idx, row.title or 'Untitled', row.id)
     else:
-        id_title_res = ID_DB_STR % (row[0], row[2] if row[2] else 'Untitled')
+        id_title_res = ID_DB_STR % (row.id, row.title or 'Untitled')
         # Indicate if record is immutable
-        if row[5] & 1:
-            id_title_res = MUTE_STR % (id_title_res)
+        if row.immutable:
+            id_title_res = MUTE_STR % (id_title_res,)
         else:
             id_title_res += '\n'
 
     try:
         print(id_title_res, end='')
-        print(URL_STR % (row[1]), end='')
+        print(URL_STR % (row.url,), end='')
         if columns == 0:
-            if row[4]:
-                print(DESC_STR % (row[4]), end='')
-            if row[3] != DELIM:
-                print(TAG_STR % (row[3][1:-1]), end='')
+            if row.desc:
+                print(DESC_STR % (row.desc,), end='')
+            if row.tags:
+                print(TAG_STR % (row.tags,), end='')
             print()
             return
 
@@ -4578,7 +4564,7 @@ def print_single_rec(row: BookmarkVar, idx: Optional[int]=0, columns: Optional[i
         ln_num = 1
         fillwidth = columns - INDENT
 
-        for line in textwrap.wrap(row[4].replace('\n', ''), width=fillwidth):
+        for line in textwrap.wrap(row.desc.replace('\n', ''), width=fillwidth):
             if ln_num == 1:
                 print(DESC_STR % line, end='')
                 ln_num += 1
@@ -4586,7 +4572,7 @@ def print_single_rec(row: BookmarkVar, idx: Optional[int]=0, columns: Optional[i
                 print(DESC_WRAP % (' ' * INDENT, line))
 
         ln_num = 1
-        for line in textwrap.wrap(row[3][1:-1].replace('\n', ''), width=fillwidth):
+        for line in textwrap.wrap(row.tags.replace('\n', ''), width=fillwidth):
             if ln_num == 1:
                 print(TAG_STR % line, end='')
                 ln_num += 1
@@ -4596,11 +4582,11 @@ def print_single_rec(row: BookmarkVar, idx: Optional[int]=0, columns: Optional[i
     except UnicodeEncodeError:
         str_list = []
         str_list.append(id_title_res)
-        str_list.append(URL_STR % (row[1]))
-        if row[4]:
-            str_list.append(DESC_STR % (row[4]))
-        if row[3] != DELIM:
-            str_list.append(TAG_STR % (row[3][1:-1]))
+        str_list.append(URL_STR % (row.url,))
+        if row.desc:
+            str_list.append(DESC_STR % (row.desc,))
+        if row.tags:
+            str_list.append(TAG_STR % (row.tags,))
         sys.stdout.buffer.write((''.join(str_list) + '\n').encode('utf-8'))
     except BrokenPipeError:
         sys.stdout = os.fdopen(1)
@@ -4633,10 +4619,10 @@ def format_json(resultset, single_record=False, field_filter=0):
     ----------
     resultset : list
         Search results from DB query.
-    single_record : bool, optional
+    single_record : bool
         If True, indicates only one record. Default is False.
-    field_filter : int, optional
-        Indicates format for displaying bookmarks. Default is 0.
+    field_filter : int
+        Indicates format for displaying bookmarks. Default is 0 ("all fields").
 
     Returns
     -------
@@ -4644,47 +4630,11 @@ def format_json(resultset, single_record=False, field_filter=0):
         Record(s) in JSON format.
     """
 
+    resultset = bookmark_vars(resultset)
+    fields = [(k, JSON_FIELDS.get(k, k)) for k in FIELD_FILTER.get(field_filter, ALL_FIELDS)]
+    marks = [{field: getattr(row, k) for k, field in fields} for row in resultset]
     if single_record:
-        marks = {}
-        for row in resultset:
-            if field_filter == 1:
-                marks['uri'] = row[1]
-            elif field_filter == 2:
-                marks['uri'] = row[1]
-                marks['tags'] = row[3][1:-1]
-            elif field_filter == 3:
-                marks['title'] = row[2]
-            elif field_filter == 4:
-                marks['uri'] = row[1]
-                marks['tags'] = row[3][1:-1]
-                marks['title'] = row[2]
-            else:
-                marks['index'] = row[0]
-                marks['uri'] = row[1]
-                marks['title'] = row[2]
-                marks['description'] = row[4]
-                marks['tags'] = row[3][1:-1]
-    else:
-        marks = []
-        for row in resultset:
-            if field_filter == 1:
-                record = {'uri': row[1]}
-            elif field_filter == 2:
-                record = {'uri': row[1], 'tags': row[3][1:-1]}
-            elif field_filter == 3:
-                record = {'title': row[2]}
-            elif field_filter == 4:
-                record = {'uri': row[1], 'title': row[2], 'tags': row[3][1:-1]}
-            else:
-                record = {
-                    'index': row[0],
-                    'uri': row[1],
-                    'title': row[2],
-                    'description': row[4],
-                    'tags': row[3][1:-1]
-                }
-
-            marks.append(record)
+        marks = marks[-1] if marks else {}
 
     return json.dumps(marks, sort_keys=True, indent=4)
 
@@ -4696,10 +4646,10 @@ def print_json_safe(resultset, single_record=False, field_filter=0):
     ----------
     resultset : list
         Search results from DB query.
-    single_record : bool, optional
+    single_record : bool
         If True, indicates only one record. Default is False.
-    field_filter : int, optional
-        Indicates format for displaying bookmarks. Default is 0.
+    field_filter : int
+        Indicates format for displaying bookmarks. Default is 0 ("all fields").
 
     Returns
     -------
@@ -5330,6 +5280,11 @@ def monkeypatch_textwrap_for_cjk():
 def main():
     """Main."""
     global ID_STR, ID_DB_STR, MUTE_STR, URL_STR, DESC_STR, DESC_WRAP, TAG_STR, TAG_WRAP, PROMPTMSG
+    # readline should not be loaded when buku is used as a library
+    try:
+        import readline
+    except ImportError:
+        import pyreadline3 as readline  # type: ignore
 
     title_in = None
     tags_in = None
@@ -5416,7 +5371,9 @@ POSITIONAL ARGUMENTS:
     addarg('--tag', nargs='*', help=hide)
     addarg('--title', nargs='*', help=hide)
     addarg('-c', '--comment', nargs='*', help=hide)
-    addarg('--immutable', type=int, default=-1, choices={0, 1}, help=hide)
+    addarg('--immutable', type=int, choices={0, 1}, help=hide)
+    _bool = lambda x: x if x is None else bool(x)
+    _immutable = lambda args: _bool(args.immutable)
 
     # --------------------
     # SEARCH OPTIONS GROUP
@@ -5647,7 +5604,7 @@ POSITIONAL ARGUMENTS:
             bdb.close_quit(1)
 
         if is_int(args.write):
-            if not bdb.edit_update_rec(int(args.write), args.immutable):
+            if not bdb.edit_update_rec(int(args.write), _immutable(args)):
                 bdb.close_quit(1)
         elif args.add is None:
             # Edit and add a new bookmark
@@ -5667,7 +5624,7 @@ POSITIONAL ARGUMENTS:
                 url, title_in, tags, desc_in = result
                 if args.suggest:
                     tags = bdb.suggest_similar_tag(tags)
-                bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
+                bdb.add_rec(url, title_in, tags, desc_in, _immutable(args))
 
     # Add record
     if args.add is not None:
@@ -5705,7 +5662,7 @@ POSITIONAL ARGUMENTS:
         if edit_aborted is False:
             if args.suggest:
                 tags = bdb.suggest_similar_tag(tags)
-            bdb.add_rec(url, title_in, tags, desc_in, args.immutable)
+            bdb.add_rec(url, title_in, tags, desc_in, _immutable(args))
 
     # Search record
     search_results = None
@@ -5892,7 +5849,7 @@ POSITIONAL ARGUMENTS:
         if not args.update:
             # Update all records only if search was not opted
             if not search_opted:
-                bdb.update_rec(0, url_in, title_in, tags, desc_in, args.immutable, args.threads)
+                bdb.update_rec(0, url_in, title_in, tags, desc_in, _immutable(args), args.threads)
             elif search_results and search_results is not None and update_search_results:
                 if not args.tacit:
                     print('Updated results:\n')
@@ -5906,7 +5863,7 @@ POSITIONAL ARGUMENTS:
                         title_in,
                         tags,
                         desc_in,
-                        args.immutable,
+                        _immutable(args),
                         args.threads
                     )
 
@@ -5924,7 +5881,7 @@ POSITIONAL ARGUMENTS:
                         title_in,
                         tags,
                         desc_in,
-                        args.immutable,
+                        _immutable(args),
                         args.threads
                     )
                 elif '-' in idx:
@@ -5941,7 +5898,7 @@ POSITIONAL ARGUMENTS:
                                 title_in,
                                 tags,
                                 desc_in,
-                                args.immutable,
+                                _immutable(args),
                                 args.threads
                             )
                         else:
@@ -5952,7 +5909,7 @@ POSITIONAL ARGUMENTS:
                                     title_in,
                                     tags,
                                     desc_in,
-                                    args.immutable,
+                                    _immutable(args),
                                     args.threads
                                 )
                                 if INTERRUPTED:

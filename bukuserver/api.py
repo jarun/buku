@@ -3,7 +3,6 @@
 """Server module."""
 import collections
 import typing as T
-from typing import Any, Dict, Union  # NOQA; type: ignore
 from unittest import mock
 
 from flask.views import MethodView
@@ -30,6 +29,18 @@ response_bad = lambda: (jsonify(response.response_template['failure']),
                         status.HTTP_400_BAD_REQUEST,
                         {'ContentType': 'application/json'})
 to_response = lambda ok: response_ok() if ok else response_bad()
+
+def entity(bookmark, id=False):
+    data = {
+        'id': bookmark.id,
+        'url': bookmark.url,
+        'title': bookmark.title,
+        'tags': bookmark.taglist,
+        'description': bookmark.desc,
+    }
+    if not id:
+        data.pop('id')
+    return data
 
 
 def get_bukudb():
@@ -104,34 +115,17 @@ class ApiTagView(MethodView):
 
 class ApiBookmarkView(MethodView):
 
-    def get(self, rec_id: Union[int, None]):
+    def get(self, rec_id: T.Union[int, None]):
         if rec_id is None:
             bukudb = getattr(flask.g, 'bukudb', get_bukudb())
             all_bookmarks = bukudb.get_rec_all()
-            result = {'bookmarks': []}  # type: Dict[str, Any]
-            for bookmark in all_bookmarks:
-                result_bookmark = {
-                    'url': bookmark[1],
-                    'title': bookmark[2],
-                    'tags': [x for x in bookmark[3].split(',') if x],
-                    'description': bookmark[4]
-                }
-                if not request.path.startswith('/api/'):
-                    result_bookmark['id'] = bookmark[0]
-                result['bookmarks'].append(result_bookmark)
+            result = {'bookmarks': [entity(bookmark, id=not request.path.startswith('/api/'))
+                                    for bookmark in all_bookmarks]}
             res = jsonify(result)
         else:
             bukudb = getattr(flask.g, 'bukudb', get_bukudb())
             bookmark = bukudb.get_rec_by_id(rec_id)
-            if bookmark is None:
-                res = response_bad()
-            else:
-                res = jsonify({
-                    'url': bookmark[1],
-                    'title': bookmark[2],
-                    'tags': [x for x in bookmark[3].split(',') if x],
-                    'description': bookmark[4]
-                })
+            res = (response_bad() if bookmark is None else jsonify(entity(bookmark)))
         return res
 
     def post(self, rec_id: None = None):
@@ -144,7 +138,7 @@ class ApiBookmarkView(MethodView):
             create_bookmarks_form.tags.data,
             create_bookmarks_form.description.data
         )
-        return to_response(result_flag != -1)
+        return to_response(result_flag)
 
     def put(self, rec_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
@@ -156,7 +150,7 @@ class ApiBookmarkView(MethodView):
             request.form.get('description'))
         return to_response(result_flag)
 
-    def delete(self, rec_id: Union[int, None]):
+    def delete(self, rec_id: T.Union[int, None]):
         if rec_id is None:
             bukudb = getattr(flask.g, 'bukudb', get_bukudb())
             with mock.patch('buku.read_in', return_value='y'):
@@ -171,23 +165,16 @@ class ApiBookmarkRangeView(MethodView):
 
     def get(self, starting_id: int, ending_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        max_id = bukudb.get_max_id()
+        max_id = bukudb.get_max_id() or 0
         if starting_id > max_id or ending_id > max_id:
             return response_bad()
-        result = {'bookmarks': {}}  # type: ignore
-        for i in range(starting_id, ending_id + 1, 1):
-            bookmark = bukudb.get_rec_by_id(i)
-            result['bookmarks'][i] = {
-                'url': bookmark[1],
-                'title': bookmark[2],
-                'tags': [x for x in bookmark[3].split(',') if x],
-                'description': bookmark[4]
-            }
+        result = {'bookmarks': {i: entity(bukudb.get_rec_by_id(i))
+                                for i in range(starting_id, ending_id + 1)}}
         return jsonify(result)
 
     def put(self, starting_id: int, ending_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        max_id = bukudb.get_max_id()
+        max_id = bukudb.get_max_id() or 0
         if starting_id > max_id or ending_id > max_id:
             return response_bad()
         for i in range(starting_id, ending_id + 1, 1):
@@ -204,7 +191,7 @@ class ApiBookmarkRangeView(MethodView):
 
     def delete(self, starting_id: int, ending_id: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        max_id = bukudb.get_max_id()
+        max_id = bukudb.get_max_id() or 0
         if starting_id > max_id or ending_id > max_id:
             return response_bad()
         idx = min([starting_id, ending_id])
@@ -231,21 +218,10 @@ class ApiBookmarkSearchView(MethodView):
         deep = deep if isinstance(deep, bool) else deep.lower() == 'true'
         regex = regex if isinstance(regex, bool) else regex.lower() == 'true'
 
-        result = {'bookmarks': []}
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
-        found_bookmarks = [] if found_bookmarks is None else found_bookmarks
         res = None
-        if found_bookmarks is not None:
-            for bookmark in found_bookmarks:
-                result_bookmark = {
-                    'id': bookmark[0],
-                    'url': bookmark[1],
-                    'title': bookmark[2],
-                    'tags': list(filter(lambda x: x, bookmark[3].split(','))),
-                    'description': bookmark[4]
-                }
-                result['bookmarks'].append(result_bookmark)
+        result = {'bookmarks': [entity(bookmark, id=True)
+                                for bookmark in bukudb.searchdb(keywords, all_keywords, deep, regex)]}
         current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks'])))
         res = jsonify(result)
         return res
@@ -267,13 +243,10 @@ class ApiBookmarkSearchView(MethodView):
         deep = deep if isinstance(deep, bool) else deep.lower() == 'true'
         regex = regex if isinstance(regex, bool) else regex.lower() == 'true'
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        found_bookmarks = bukudb.searchdb(keywords, all_keywords, deep, regex)
-        found_bookmarks = [] if found_bookmarks is None else found_bookmarks
         res = None
-        if found_bookmarks is not None:
-            for bookmark in found_bookmarks:
-                if not bukudb.delete_rec(bookmark[0]):
-                    res = response_bad()
+        for bookmark in bukudb.searchdb(keywords, all_keywords, deep, regex):
+            if not bukudb.delete_rec(bookmark.id):
+                res = response_bad()
         return res or response_ok()
 
 
@@ -285,6 +258,6 @@ class BookmarkletView(MethodView):  # pylint: disable=too-few-public-methods
 
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
         rec_id = bukudb.get_rec_id(url)
-        if rec_id >= 0:
+        if rec_id:
             return redirect(url_for('bookmark.edit_view', id=rec_id))
         return redirect(url_for('bookmark.create_view', link=url, title=title, description=description))
