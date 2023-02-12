@@ -1959,7 +1959,7 @@ class BukuDb:
 
         return parse_tags(tags)
 
-    def replace_tag(self, orig: str, new: List[str] = []) -> bool:
+    def replace_tag(self, orig: str, new: List[str] = []):
         """Replace original tag by new tags in all records.
 
         Remove original tag if new tag is empty.
@@ -1971,22 +1971,26 @@ class BukuDb:
         new : list
             Replacement tags.
 
-        Returns
+        Raises
         -------
-        bool
-            True on success, False on failure.
+        ValueError: Invalid input(s) provided.
+        RuntimeError: Tag deletion failed.
+
         """
 
+        if DELIM in orig:
+            raise ValueError("Original tag cannot contain delimiter ({}).".format(DELIM))
+
         orig = delim_wrap(orig)
-        newtags = parse_tags(new) if new else DELIM
+        newtags = parse_tags([DELIM.join(new)])
 
         if orig == newtags:
-            print('Tags are same.')
-            return False
+            raise ValueError("Original and replacement tags are the same.")
 
         # Remove original tag from DB if new tagset reduces to delimiter
         if newtags == DELIM:
-            return self.delete_tag_at_index(0, orig)
+            if not self.delete_tag_at_index(0, orig):
+                raise RuntimeError("Tag deletion failed.")
 
         # Update bookmarks with original tag
         query = 'SELECT id, tags FROM bookmarks WHERE tags LIKE ?'
@@ -2001,8 +2005,6 @@ class BukuDb:
                 print('Index %d updated' % row[0])
 
             self.conn.commit()
-
-        return True
 
     def get_tagstr_from_taglist(self, id_list, taglist):
         """Get a string of delimiter-separated (and enclosed) string
@@ -5974,7 +5976,11 @@ POSITIONAL ARGUMENTS:
         if len(args.replace) == 1:
             bdb.delete_tag_at_index(0, args.replace[0])
         else:
-            bdb.replace_tag(args.replace[0], args.replace[1:])
+            try:
+                bdb.replace_tag(args.replace[0], [' '.join(args.replace[1:])])
+            except Exception as e:
+                LOGERR(str(e))
+                bdb.close_quit(1)
 
     # Export bookmarks
     if args.export is not None and not search_opted:

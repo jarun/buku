@@ -995,7 +995,7 @@ def test_delete_rec_index_and_delay_commit(setup, index, delay_commit, input_ret
     elif n_index > db_len:
         assert not res
         assert len(bdb.get_rec_all()) == db_len
-    elif index == 0 and input_retval != "y":
+    elif index == 0 and not input_retval:
         assert not res
         assert len(bdb.get_rec_all()) == db_len
     else:
