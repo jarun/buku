@@ -89,8 +89,8 @@ class BookmarkModelView(BaseModelView):
         if id and ok:
             session['saved'] = id
         else:
-            raise Exception('Duplicate URL' if self.model.bukudb.get_rec_id(url) not in [id, None] else
-                            'Rejected by the database')
+            raise ValueError('Duplicate URL' if self.model.bukudb.get_rec_id(url) not in [id, None] else
+                             'Rejected by the database')
 
     def _apply_filters(self, models, filters):
         for idx, _, value in filters:

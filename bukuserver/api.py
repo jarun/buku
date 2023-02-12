@@ -98,7 +98,7 @@ class ApiTagView(MethodView):
         tags = search_tag(db=bukudb, stag=tag)
         if tag not in tags[1]:
             raise exceptions.NotFound()
-        return dict(name=tag, usage_count=tags[1][tag])
+        return {"name": tag, "usage_count": tags[1][tag]}
 
     def put(self, tag: str):
         bukudb = get_bukudb()

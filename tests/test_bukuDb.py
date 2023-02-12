@@ -1039,11 +1039,11 @@ def test_delete_rec_on_empty_database(setup, index, is_range, low, high):
 @pytest.mark.parametrize(
     "kwargs, exp_res, raise_error",
     [
-        [dict(index="a", low="a", high=1, is_range=True), None, True],
-        [dict(index="a", low="a", high=1, is_range=False), None, True],
-        [dict(index="a", low=1, high="a", is_range=True), None, True],
-        [dict(index="a", is_range=False), None, True],
-        [dict(index="a", is_range=True), None, True],
+        [{"index": 'a', "low": 'a', "high": 1, "is_range": True}, None, True],
+        [{"index": 'a', "low": 'a', "high": 1, "is_range": False}, None, True],
+        [{"index": 'a', "low": 1, "high": 'a', "is_range": True}, None, True],
+        [{"index": 'a', "is_range": False}, None, True],
+        [{"index": 'a', "is_range": True}, None, True],
     ],
 )
 def test_delete_rec_on_non_integer(
@@ -1136,9 +1136,9 @@ def test_update_rec_index_0(caplog):
 @pytest.mark.parametrize(
     "kwargs, exp_res",
     [
-        [dict(index=1), False],
-        [dict(index=1, url="url"), False],
-        [dict(index=1, url=""), False],
+        [{"index": 1}, False],
+        [{"index": 1, "url": 'url'}, False],
+        [{"index": 1, "url": ''}, False],
     ],
 )
 def test_update_rec(tmp_path, kwargs, exp_res):

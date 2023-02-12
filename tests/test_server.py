@@ -173,7 +173,7 @@ def test_get_tiny_url(client, url, exp_res, status_code):
 
 @pytest.mark.parametrize('kwargs, status_code, exp_res', [
     [
-        dict(data={'url': 'http://google.com'}),
+        {"data": {'url': 'http://google.com'}},
         200,
         {
             'bad url': 0, 'recognized mime': 0,
@@ -181,7 +181,7 @@ def test_get_tiny_url(client, url, exp_res, status_code):
     ],
     [{}, 400, response_template['failure']],
     [
-        dict(data={'url': 'chrome://bookmarks/'}),
+        {"data": {'url': 'chrome://bookmarks/'}},
         200,
         {
             'bad url': 1, 'recognized mime': 0,
@@ -199,8 +199,8 @@ def test_network_handle(client, kwargs, status_code, exp_res):
 def test_bookmark_range_api(client):
     status_code = 200
     kwargs_list = [
-        dict(data={'url': 'http://google.com'}),
-        dict(data={'url': 'http://example.com'})]
+        {"data": {'url': 'http://google.com'}},
+        {"data": {'url': 'http://example.com'}}]
     for kwargs in kwargs_list:
         rd = client.post('/api/bookmarks', **kwargs)
         assert rd.status_code == status_code

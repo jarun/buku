@@ -2509,7 +2509,7 @@ class BukuDb:
         else:
             newtag = None
             resp = 'y'
-        add_parent_folder_as_tag = (resp == 'y')
+        add_parent_folder_as_tag = resp == 'y'
 
         resp = 'y'
 
@@ -2622,7 +2622,7 @@ class BukuDb:
                 resp = input('Add parent folder names as tags? (y/n): ')
             else:
                 resp = 'y'
-            add_bookmark_folder_as_tag = (resp == 'y')
+            add_bookmark_folder_as_tag = resp == 'y'
             try:
                 with open(filepath, 'r', encoding='utf-8') as datafile:
                     data = json.load(datafile)
