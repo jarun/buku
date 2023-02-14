@@ -215,8 +215,7 @@ class BookmarkModelView(BaseModelView):
                 )
                 LOG.exception(msg)
             return False
-        else:
-            self.after_model_change(form, model, True)
+        self.after_model_change(form, model, True)
         return model
 
     def delete_model(self, model):
@@ -232,8 +231,7 @@ class BookmarkModelView(BaseModelView):
                 )
                 LOG.exception(msg)
             return False
-        else:
-            self.after_model_delete(model)
+        self.after_model_delete(model)
         return res
 
     def get_list(self, page, sort_field, sort_desc, _, filters, page_size=None):
@@ -409,8 +407,7 @@ class BookmarkModelView(BaseModelView):
                 )
                 LOG.exception(msg)
             return False
-        else:
-            self.after_model_change(form, model, False)
+        self.after_model_change(form, model, False)
         return res
 
 
@@ -560,8 +557,7 @@ class TagModelView(BaseModelView):
                 )
                 LOG.exception(msg)
             return False
-        else:
-            self.after_model_delete(model)
+        self.after_model_delete(model)
         return res
 
     def update_model(self, form, model):
@@ -581,8 +577,7 @@ class TagModelView(BaseModelView):
                 )
                 LOG.exception(msg)
             return False
-        else:
-            self.after_model_change(form, model, False)
+        self.after_model_change(form, model, False)
         return res
 
     def create_model(self, form):
