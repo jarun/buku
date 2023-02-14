@@ -12,22 +12,40 @@ test-template: &test-template
   environment:
     CI_FORCE_TEST: 1
   steps:
-    - run:
+    - run: &init
         command: |
           apt update && apt install -y --no-install-recommends git
           pip install --upgrade pip
           pip install --upgrade setuptools flake8 pylint
     - checkout
-    - run:
+    - run: &deps
         command: |
           pip install -e .[tests]
           pip install -r requirements.txt
+    - run:
+        command:
+          python3 -m pytest ./tests/test_*.py --cov buku -vv --durations=0 -c ./tests/pytest.ini
+
+lint-template: &lint-template
+  working_directory: ~/Buku
+  environment:
+    CI_FORCE_TEST: 1
+  steps:
+    - run: *init
+    - checkout
+    - run: *deps
+    - run:
+        command: |
           python3 -m flake8
           echo buku | xargs pylint --rcfile tests/.pylintrc
           find . -iname "*.py" ! -path "./api/*" | xargs pylint --rcfile tests/.pylintrc
-          python3 -m pytest ./tests/test_*.py --cov buku -vv --durations=0 -c ./tests/pytest.ini
 
 jobs:
+  lint:
+    docker:
+      - image: python:3.7-slim
+    <<: *lint-template
+
   py37:
     docker:
       - image: python:3.7-slim
@@ -102,6 +120,7 @@ workflows:
 
   test:
     jobs: &all-tests
+      - lint
       - py37
       - py38
       - py39
