@@ -1,3 +1,31 @@
+buku v4.8
+2023-02-18
+
+- support Vivaldi browser
+- better XBEL compatibility
+- check for empty search results in piped operations
+- remove python 3.6 support, add 3.10
+- API changes in bukudb (#660):
+  - bookmark data tuples returned from methods `get_rec_all()`
+    & `get_rec_by_id()`, now have user-friendly properties
+    (`id`, `url`, `title`, `desc`, `tags`/`taglist`, `immutable`;
+    as well as for raw DB fields – `tags_raw`, `flags`)
+  - methods `get_rec_all()`, `list_using_id()`, `searchdb()`, `search_by_tag()`,
+    `search_keywords_and_filter_by_tags()` & `exclude_results_from_search()`
+    are now guaranteed to return a list (empty if no data is found)
+  - methods `get_rec_id()`, `get_max_id()` & `add_rec()` now return `None` as
+    the "no ID" value
+  - methods `add_rec()`, `update_rec()` & `edit_update_rec()` now treat the
+    value of `immutable` parameter as a boolean (the default/noop value for
+    update calls is `None`)
+  - a `FIELD_FILTER` dictionary is introduced that contains fields formatting
+    description; also, in `format_json()` (and `print_json_safe()`), the output
+    format now matches the one described in CLI help
+- IMPACT: If you have a local repo clone, remove .tox/ subfolder if it's there
+    before you run tests for the first time
+
+-------------------------------------------------------------------------------
+
 buku v4.7
 2022-07-01
 
