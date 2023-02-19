@@ -510,7 +510,7 @@ You may encounter issues with GUI editors which maintain only one instance by de
 - [Johnathan Jenkins](https://github.com/shaggytwodope)
 - [SZ Lin](https://github.com/szlin)
 
-Copyright © 2015-2022 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
+Copyright © 2015-2023 [Arun Prakash Jana](mailto:engineerarun@gmail.com)
 <br>
 <p><a href="https://gitter.im/jarun/buku"><img src="https://img.shields.io/gitter/room/jarun/buku.svg?maxAge=2592000" alt="gitter chat" /></a></p>
 
