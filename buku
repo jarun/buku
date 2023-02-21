@@ -1565,7 +1565,7 @@ class BukuDb:
         ...
         TypeError: index, low, or high variable is not integer
 
-        Negative number on `high` and `low` paramaters when is_range is True
+        Negative number on `high` and `low` parameters when is_range is True
         will log error and return False
 
         >>> edb = buku.BukuDb(dbfile=NamedTemporaryFile().name)
@@ -1796,7 +1796,7 @@ class BukuDb:
            > https://example.com
         <BLANKLINE>
 
-        Negative number on `high` and `low` paramaters when is_range is True
+        Negative number on `high` and `low` parameters when is_range is True
         will log error and return False
 
         >>> sdb.print_rec(low=-1, high=-1, is_range=True)
@@ -2210,7 +2210,7 @@ class BukuDb:
         If destination file name ends with '.md', bookmarks are
         exported to a Markdown file.
         If destination file name ends with '.org' bookmarks are
-        exported to a org file.
+        exported to an org file.
         If destination file name ends with '.xbel' bookmarks are
         exported to a XBEL file.
         Otherwise, bookmarks are exported to a Firefox bookmarks.html
@@ -2579,7 +2579,7 @@ class BukuDb:
             print('\nAuto-generated tag: %s' % newtag)
 
     def importdb(self, filepath, tacit=False):
-        """Import bookmarks from a HTML or a Markdown file.
+        """Import bookmarks from an HTML or a Markdown file.
 
         Supports Firefox, Google Chrome, and IE exported HTML bookmarks.
         Supports XBEL standard bookmarks.
@@ -3497,8 +3497,8 @@ def import_xbel(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
         if add_parent_folder_as_tag:
             # add parent folder as tag
             if use_nested_folder_structure:
-                # New method that would generalize for else case too
-                # Stucture of folders
+                # New method that would generalize for else case to
+                # structure of folders
                 # folder
                 #   title (folder name)
                 #   folder
@@ -3579,8 +3579,8 @@ def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
         if add_parent_folder_as_tag:
             # add parent folder as tag
             if use_nested_folder_structure:
-                # New method that would generalize for else case too
-                # Stucture of folders
+                # New method that would generalize for else case to
+                # structure of folders
                 # dt
                 #   h3 (folder name)
                 #   dl

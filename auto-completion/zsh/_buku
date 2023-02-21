@@ -31,7 +31,7 @@ args=(
     '(-o --open)'{-o,--open}'[open bookmarks in browser]'
     '(--oa)--oa[browse all search results immediately]'
     '(-p --print)'{-p,--print}'[show bookmark details]'
-    '(-r --sreg)'{-r,--sreg}'[match a regular exression]:regex'
+    '(-r --sreg)'{-r,--sreg}'[match a regular expression]:regex'
     '(--replace)--replace[replace a tag]:tag to replace'
     '(-s --sany)'{-s,--sany}'[match any keyword]:keyword(s)'
     '(-S --sall)'{-S,--sall}'[match all keywords]:keyword(s)'
