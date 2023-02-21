@@ -611,7 +611,7 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
-    def test_search_and_open_in_broswer_by_range(self):
+    def test_search_and_open_in_browser_by_range(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
             self.bdb.add_rec(*bookmark)
