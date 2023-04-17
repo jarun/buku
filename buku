@@ -2479,22 +2479,16 @@ class BukuDb:
 
             me_bm_db_path = '~/Library/Application Support/Microsoft Edge/Default/Bookmarks'
         elif sys.platform == 'win32':
-            username = os.getlogin()
+            gc_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Google/Chrome/User Data/Default/Bookmarks')
+            cb_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Chromium/User Data/Default/Bookmarks')
+            vi_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Vivaldi/User Data/Default/Bookmarks')
 
-            gc_bm_db_path = ('C:/Users/{}/AppData/Local/Google/Chrome/User Data/'
-                             'Default/Bookmarks'.format(username))
-            cb_bm_db_path = ('C:/Users/{}/AppData/Local/Chromium/User Data/'
-                             'Default/Bookmarks'.format(username))
-            vi_bm_db_path = ('C:/Users/{}/AppData/Local/Vivaldi/User Data/'
-                             'Default/Bookmarks'.format(username))
-
-            default_ff_folder = 'C:/Users/{}/AppData/Roaming/Mozilla/Firefox/'.format(username)
+            default_ff_folder = os.path.expandvars('%APPDATA%/Mozilla/Firefox/')
             profile = get_firefox_profile_name(default_ff_folder)
             if profile:
                 ff_bm_db_path = os.path.join(default_ff_folder, '{}/places.sqlite'.format(profile))
 
-            me_bm_db_path = ('C:/Users/{}/AppData/Local/Microsoft/Edge/User Data/'
-                             'Default/Bookmarks'.format(username))
+            me_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Microsoft/Edge/User Data/Default/Bookmarks')
         else:
             LOGERR('buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
