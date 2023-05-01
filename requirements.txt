@@ -4,5 +4,5 @@ certifi
 cryptography>=1.2.3
 html5lib>=1.0.1
 setuptools
-urllib3>=1.23
+urllib3>=1.23,<2
 pyreadline3; sys_platform == 'win32'
