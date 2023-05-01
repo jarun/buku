@@ -40,7 +40,7 @@ server_require = [
     "Flask-Bootstrap>=3.3.7.1",
     "flask-paginate>=2022.1.8",
     "Flask-WTF>=1.0.1",
-    "Flask>=2.2.2",
+    "Flask>=2.2.2,<2.3",
 ]
 reverse_proxy = " ".join(
     [
@@ -54,7 +54,7 @@ install_requires = [
     'certifi',
     'cryptography>=1.2.3',
     'html5lib>=1.0.1',
-    'urllib3>=1.23',
+    'urllib3>=1.23,<2',
     'pyreadline3; sys_platform == \'win32\'',
 ]
 
