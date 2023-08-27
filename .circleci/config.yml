@@ -46,11 +46,6 @@ jobs:
       - image: python:3.7-slim
     <<: *lint-template
 
-  py37:
-    docker:
-      - image: python:3.7-slim
-    <<: *test-template
-
   py38:
     docker:
       - image: python:3.8-slim
@@ -64,6 +59,11 @@ jobs:
   py310:
     docker:
       - image: python:3.10-slim
+    <<: *test-template
+
+  py311:
+    docker:
+      - image: python:3.11-slim
     <<: *test-template
 
 #  package-and-publish:
@@ -118,13 +118,13 @@ jobs:
 workflows:
   version: 2.1
 
-  test:
+  CircleCI:
     jobs: &all-tests
       - lint
-      - py37
       - py38
       - py39
       - py310
+      - py311
 
   nightly:
     triggers:
