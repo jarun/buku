@@ -14,3 +14,4 @@ buku.py
 /tests/vcr_cassettes/test_search_and_open_all_in_browser.yaml
 /tests/vcr_cassettes/tests.test_bukuDb/
 /bookmarks.db
+/venv/

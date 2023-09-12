@@ -43,7 +43,7 @@ lint-template: &lint-template
 jobs:
   lint:
     docker:
-      - image: python:3.7-slim
+      - image: python:3.11-slim
     <<: *lint-template
 
   py38:

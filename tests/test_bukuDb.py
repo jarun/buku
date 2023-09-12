@@ -971,7 +971,7 @@ def test_delete_rec_range_and_delay_commit(
         [100, False, True],
     ],
 )
-def test_delete_rec_index_and_delay_commit(index, delay_commit, input_retval):
+def test_delete_rec_index_and_delay_commit(setup, index, delay_commit, input_retval):
     """test delete rec, index and delay commit."""
     bdb = BukuDb()
     bdb_dc = BukuDb()  # instance for delay_commit check.
