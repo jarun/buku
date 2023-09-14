@@ -68,9 +68,13 @@ def get_bool_from_env_var(key: str, default_value: bool) -> bool:
 
 
 def init_locale(app):
-    try:
-        from flask_babelex import Babel
-        Babel(app).localeselector(lambda: app.config['BUKUSERVER_LOCALE'])
+    try:  # as per Flask-Admin-1.6.1
+        try:
+            from flask_babelex import Babel
+            Babel(app).localeselector(lambda: app.config['BUKUSERVER_LOCALE'])
+        except ImportError:
+            from flask_babel import Babel
+            Babel().init_app(app, locale_selector=lambda: app.config['BUKUSERVER_LOCALE'])
     except Exception:
         app.logger.warning('failed to init locale')
 
