@@ -132,6 +132,8 @@ Note: Valid boolean values are `true`, `false`, `1`, `0` (case-insensitive).
 
 Note: if input is invalid, the default value will be used if defined
 
+Note: `BUKUSERVER_LOCALE` requires either `flask_babel` or `flask_babelex` installed
+
 e.g. to set bukuserver to show 100 item per page run the following command
 
 ```

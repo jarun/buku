@@ -31,14 +31,13 @@ tests_require = [
     'setuptools>=41.0.1',
     'vcrpy>=1.13.0',
     'lxml',
-    'flask_babelex',
-    'pytz',
+    'flask_babel',
 ]
 
 
 server_require = [
     "arrow>=1.2.2",
-    "Flask-Admin>=1.6.0",
+    "Flask-Admin>=1.6.1",
     "Flask-API>=3.0.post1",
     "Flask-Bootstrap>=3.3.7.1",
     "flask-paginate>=2022.1.8",
