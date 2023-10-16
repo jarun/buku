@@ -3969,17 +3969,17 @@ def network_handler(
     except Exception as e:
         LOGERR('network_handler(): %s', e)
         exception = True
-    finally:
-        if manager:
-            manager.clear()
-        if exception:
-            return (None, None, None, 0, 0)
-        if method == 'HEAD':
-            return ('', '', '', 1, 0)
-        if page_title is None:
-            return ('', page_desc, page_keys, 0, 0)
 
-        return (page_title, page_desc, page_keys, 0, 0)
+    if manager:
+        manager.clear()
+    if exception:
+        return (None, None, None, 0, 0)
+    if method == 'HEAD':
+        return ('', '', '', 1, 0)
+    if page_title is None:
+        return ('', page_desc, page_keys, 0, 0)
+
+    return (page_title, page_desc, page_keys, 0, 0)
 
 
 def parse_tags(keywords=[]):
@@ -4210,8 +4210,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                 print_single_rec(row, count, columns)
         except Exception:
             pass
-        finally:
-            return
+        return
 
     while True:
         if new_results or nav == 'n':

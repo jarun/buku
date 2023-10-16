@@ -14,6 +14,10 @@ from bukuserver import server
 from bukuserver.views import BookmarkModelView, TagModelView
 
 
+def _add_rec(db, *args, **kw):
+    """Use THIS instead of db.add_rec() UNLESS you want to wait for unnecessary network requests."""
+    return db.add_rec(*args, fetch=False, **kw)
+
 @pytest.fixture()
 def dbfile(tmp_path):
     return (tmp_path / "test.db").as_posix()
@@ -30,7 +34,7 @@ def env_fixture(name, **kwargs):
     """Produces a fixture that mocks a test parameter directly in an env var (before app init)"""
     def _env_fixture(dbfile, monkeypatch, request):
         if request.param is not None:  # default value placeholder
-            monkeypatch.setenv(name, request.param)
+            monkeypatch.setenv(name, str(request.param))
         app = server.create_app(dbfile)
         app.config.update({'TESTING': True, 'WTF_CSRF_ENABLED': False})
         return request.param
@@ -85,9 +89,9 @@ def test_tag_model_view_get_list_empty_db(tmv_instance):
     ],
 )
 def test_tag_model_view_get_list(tmv_instance, sort_field, sort_desc, filters, exp_res):
-    tmv_instance.bukudb.add_rec('http://example.com/1.jpg', tags_in='t1,t2,t3')
-    tmv_instance.bukudb.add_rec('http://example.com/2.jpg', tags_in='t2,t3')
-    tmv_instance.bukudb.add_rec('http://example.com/3.jpg', tags_in='t3')
+    _add_rec(tmv_instance.bukudb, 'http://example.com/1.jpg', tags_in='t1,t2,t3')
+    _add_rec(tmv_instance.bukudb, 'http://example.com/2.jpg', tags_in='t2,t3')
+    _add_rec(tmv_instance.bukudb, 'http://example.com/3.jpg', tags_in='t3')
     res = tmv_instance.get_list(0, sort_field, sort_desc, None, filters)
     assert res == exp_res
 
@@ -141,7 +145,7 @@ def assert_bookmark(bookmark, query, tags=None):
 def test_bookmarklet_view(bukudb, client, exists, uri, tab, args):
     query = {'url': 'http://example.com', 'title': 'Sample site', 'description': 'Foo bar baz'}
     if exists:
-        bukudb.add_rec(query['url'], fetch=False)
+        _add_rec(bukudb, query['url'])
 
     response = client.get('/bookmarklet', query_string=query, follow_redirects=True)
     dom = assert_response(response, uri, argnames=args)
@@ -188,7 +192,7 @@ def test_create_redirect(client, redirect, uri, args):
 
 def test_create_duplicate(bukudb, client):
     query = {'link': 'http://example.com', 'title': '', 'description': '', 'tags': ''}
-    bukudb.add_rec(query['link'])
+    _add_rec(bukudb, query['link'])
 
     response = client.post('/bookmark/new/', data=query, follow_redirects=True)
     dom = assert_response(response, '/bookmark/new/')
@@ -197,10 +201,10 @@ def test_create_duplicate(bukudb, client):
 
 @pytest.mark.parametrize('override', [False, True])
 def test_update(bukudb, client, override):
-    bukudb.add_rec('http://example.org', fetch=False)
+    _add_rec(bukudb, 'http://example.org')
     query = {'link': 'http://example.com', 'title': 'Sample site', 'description': 'Foo bar baz', 'tags': 'foo, bar, baz'}
     if override:
-        bukudb.add_rec(query['link'], fetch=False)
+        _add_rec(bukudb, query['link'])
 
     response = client.post('/bookmark/edit/', query_string={'id': 1}, data=query, follow_redirects=True)
     if override:
@@ -218,7 +222,7 @@ def test_update(bukudb, client, override):
     ('_continue_editing', '/bookmark/edit/', {'id': '1'}),
 ])
 def test_update_redirect(bukudb, client, redirect, uri, args):
-    bukudb.add_rec('http://example.org', fetch=False)
+    _add_rec(bukudb, 'http://example.org')
     query = {'link': 'http://example.com', 'title': 'Sample site', 'description': 'Foo bar baz', 'tags': 'foo, bar, baz', redirect: 'on'}
 
     response = client.post('/bookmark/edit/', query_string={'id': 1}, data=query, follow_redirects=True)
@@ -231,7 +235,7 @@ def test_update_redirect(bukudb, client, redirect, uri, args):
 @pytest.mark.parametrize('exists', [True, False])
 def test_delete(client, bukudb, exists):
     if exists:
-        bukudb.add_rec('http://example.com', fetch=False)
+        _add_rec(bukudb, 'http://example.com')
 
     response = client.post('/bookmark/delete/', data={'id': 1}, follow_redirects=True)
     dom = assert_response(response, '/bookmark/')
@@ -256,7 +260,7 @@ def test_delete(client, bukudb, exists):
 ])
 def test_env_per_page(bukudb, app, client, total, per_page, pages, last_page):
     for i in range(1, total+1):
-        bukudb.add_rec(f'http://example.com/{i}', fetch=False)
+        _add_rec(bukudb, f'http://example.com/{i}')
     if per_page:
         app.config.update({'BUKUSERVER_PER_PAGE': per_page})
 
@@ -274,7 +278,7 @@ def test_env_per_page(bukudb, app, client, total, per_page, pages, last_page):
 @pytest.mark.parametrize('mode', ['full', 'netloc', None])
 def test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab):
     url, netloc, title, desc, tags = 'http://example.com', 'example.com', 'Sample site', 'Foo bar baz', ',bar,baz,foo,'
-    bukudb.add_rec(url, title, tags, desc, fetch=False)
+    _add_rec(bukudb, url, title, tags, desc)
     _tags = tags.strip(',').split(',')
     if mode:
         app.config.update({'BUKUSERVER_URL_RENDER_MODE': mode})
@@ -301,7 +305,7 @@ def test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab):
 readonly = env_fixture('BUKUSERVER_READONLY', params=[False, True, None])
 
 def test_env_readonly(bukudb, readonly, client):
-    bukudb.add_rec('http://example.com', fetch=False)
+    _add_rec(bukudb, 'http://example.com')
     edit = not readonly
 
     response = client.get('/bookmark/')
@@ -366,7 +370,7 @@ _DICT = {
 @pytest.mark.parametrize('locale', ['en', 'de', 'fr', 'ru', None])
 def test_env_locale(bukudb, app, client, locale):
     strings = _DICT[locale or 'en']
-    bukudb.add_rec('http://example.com', fetch=False)
+    _add_rec(bukudb, 'http://example.com')
     if locale:
         app.config.update({'BUKUSERVER_LOCALE': locale})
 
