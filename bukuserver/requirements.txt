@@ -6,3 +6,4 @@ flask-paginate>=2022.1.8
 flask-reverse-proxy-fix @ https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.3.zip
 Flask-WTF>=1.0.1
 Flask>=2.2.2,<2.3
+werkzeug<2.4

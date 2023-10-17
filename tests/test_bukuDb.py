@@ -23,6 +23,10 @@ from hypothesis import strategies as st
 from buku import BukuDb, parse_tags, prompt
 
 
+def _add_rec(db, *args, **kw):
+    """Use THIS instead of db.add_rec() UNLESS you want to wait for unnecessary network requests."""
+    return db.add_rec(*args, fetch=False, **kw)
+
 def get_temp_dir_path():
     with TemporaryDirectory(prefix="bukutest_") as dir_obj:
         return dir_obj
@@ -147,7 +151,7 @@ class TestBukuDb(unittest.TestCase):
     def test_get_rec_by_id(self):
         for bookmark in self.bookmarks:
             # adding bookmark from self.bookmarks
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         # the expected bookmark
         expected = (
@@ -167,7 +171,7 @@ class TestBukuDb(unittest.TestCase):
     def test_get_rec_id(self):
         for idx, bookmark in enumerate(self.bookmarks):
             # adding bookmark from self.bookmarks to database
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
             # asserting index is in order
             idx_from_db = self.bdb.get_rec_id(bookmark[0])
             self.assertEqual(idx + 1, idx_from_db)
@@ -179,7 +183,7 @@ class TestBukuDb(unittest.TestCase):
     def test_add_rec(self):
         for bookmark in self.bookmarks:
             # adding bookmark from self.bookmarks to database
-            self.bdb.add_rec(*bookmark)
+            self.bdb.add_rec(*bookmark, fetch=False)
             # retrieving bookmark from database
             index = self.bdb.get_rec_id(bookmark[0])
             from_db = self.bdb.get_rec_by_id(index)
@@ -192,7 +196,7 @@ class TestBukuDb(unittest.TestCase):
 
     def test_suggest_tags(self):
         for bookmark in self.bookmarks:
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         tagstr = ",test,old,"
         with mock.patch("builtins.input", return_value="1 2 3"):
@@ -211,7 +215,7 @@ class TestBukuDb(unittest.TestCase):
         new_values = self.bookmarks[1]
 
         # adding bookmark and getting index
-        self.bdb.add_rec(*old_values)
+        _add_rec(self.bdb, *old_values)
         index = self.bdb.get_rec_id(old_values[0])
         # updating with new values
         self.bdb.update_rec(index, *new_values)
@@ -224,7 +228,7 @@ class TestBukuDb(unittest.TestCase):
 
     def test_append_tag_at_index(self):
         for bookmark in self.bookmarks:
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         # tags to add
         old_tags = self.bdb.get_rec_by_id(1)[3]
@@ -240,7 +244,7 @@ class TestBukuDb(unittest.TestCase):
 
     def test_append_tag_at_all_indices(self):
         for bookmark in self.bookmarks:
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         # tags to add
         new_tags = ",foo,bar,baz"
@@ -266,7 +270,7 @@ class TestBukuDb(unittest.TestCase):
     def test_delete_tag_at_index(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         get_tags_at_idx = lambda i: self.bdb.get_rec_by_id(i)[3]
         # list of two-tuples, each containing bookmark index and corresponding tags
@@ -285,7 +289,7 @@ class TestBukuDb(unittest.TestCase):
     def test_search_keywords_and_filter_by_tags(self):
         # adding bookmark
         for bookmark in self.bookmarks:
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         with mock.patch("buku.prompt"):
             expected = [
@@ -337,7 +341,7 @@ class TestBukuDb(unittest.TestCase):
     def test_searchdb(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         get_first_tag = lambda x: "".join(x[2].split(",")[:2])
         for i, bookmark in enumerate(self.bookmarks):
@@ -359,7 +363,7 @@ class TestBukuDb(unittest.TestCase):
     def test_search_by_tag(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         with mock.patch("buku.prompt"):
             get_first_tag = lambda x: "".join(x[2].split(",")[:2])
@@ -470,8 +474,8 @@ class TestBukuDb(unittest.TestCase):
             "test case for bookmark with hyphenated tag",
         ]
 
-        self.bdb.add_rec(*bookmark1)
-        self.bdb.add_rec(*bookmark2)
+        _add_rec(self.bdb, *bookmark1)
+        _add_rec(self.bdb, *bookmark2)
 
         with mock.patch("buku.prompt"):
             # check that space separation for ' + ' operator is enforced
@@ -515,7 +519,7 @@ class TestBukuDb(unittest.TestCase):
     def test_search_by_tags_exclusion(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         new_bookmark = [
             "https://newbookmark.com",
@@ -524,7 +528,7 @@ class TestBukuDb(unittest.TestCase):
             "additional bookmark to test multiple tag search",
         ]
 
-        self.bdb.add_rec(*new_bookmark)
+        _add_rec(self.bdb, *new_bookmark)
 
         with mock.patch("buku.prompt"):
             # search for bookmarks matching ANY of the supplied tags
@@ -614,7 +618,7 @@ class TestBukuDb(unittest.TestCase):
     def test_search_and_open_in_browser_by_range(self):
         # adding bookmarks
         for bookmark in self.bookmarks:
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
 
         # simulate user input, select range of indices 1-3
         index_range = "1-%s" % len(self.bookmarks)
@@ -669,7 +673,7 @@ class TestBukuDb(unittest.TestCase):
 
     def test_delete_rec(self):
         # adding bookmark and getting index
-        self.bdb.add_rec(*self.bookmarks[0])
+        _add_rec(self.bdb, *self.bookmarks[0])
         index = self.bdb.get_rec_id(self.bookmarks[0][0])
         # deleting bookmark
         self.bdb.delete_rec(index)
@@ -689,7 +693,7 @@ class TestBukuDb(unittest.TestCase):
 
     def test_cleardb(self):
         # adding bookmarks
-        self.bdb.add_rec(*self.bookmarks[0])
+        _add_rec(self.bdb, *self.bookmarks[0])
         # deleting all bookmarks
         with mock.patch("builtins.input", return_value="y"):
             self.bdb.cleardb()
@@ -700,7 +704,7 @@ class TestBukuDb(unittest.TestCase):
         indices = []
         for bookmark in self.bookmarks:
             # adding bookmark, getting index
-            self.bdb.add_rec(*bookmark)
+            _add_rec(self.bdb, *bookmark)
             index = self.bdb.get_rec_id(bookmark[0])
             indices += [index]
 
@@ -799,7 +803,7 @@ def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     args = ["http://example.com"]
     if title_in:
         args.append(title_in)
-    bdb.add_rec(*args)
+    _add_rec(bdb, *args)
     bdb.refreshdb(1, 1)
     from_db = bdb.get_rec_by_id(1)
     assert from_db[2] == exp_res, "from_db: {}".format(from_db)
@@ -853,7 +857,7 @@ def test_print_caplog(caplog):
 def test_print_rec(setup, kwargs, rec, exp_res, tmp_path, caplog):
     bdb = BukuDb(dbfile=tmp_path / "tmp.db")
     if rec:
-        bdb.add_rec(*rec)
+        _add_rec(bdb, *rec)
     # run the function
     assert (bdb.print_rec(**kwargs), caplog.record_tuples) == exp_res
 
@@ -862,9 +866,9 @@ def test_list_tags(capsys, setup):
     bdb = BukuDb()
 
     # adding bookmarks
-    bdb.add_rec("http://one.com", "", parse_tags(["cat,ant,bee,1"]), "")
-    bdb.add_rec("http://two.com", "", parse_tags(["Cat,Ant,bee,1"]), "")
-    bdb.add_rec("http://three.com", "", parse_tags(["Cat,Ant,3,Bee,2"]), "")
+    _add_rec(bdb, "http://one.com", "", parse_tags(["cat,ant,bee,1"]), "")
+    _add_rec(bdb, "http://two.com", "", parse_tags(["Cat,Ant,bee,1"]), "")
+    _add_rec(bdb, "http://three.com", "", parse_tags(["Cat,Ant,3,Bee,2"]), "")
 
     # listing tags, asserting output
     out, err = capsys.readouterr()
@@ -880,7 +884,7 @@ def test_compactdb(setup):
 
     # adding bookmarks
     for bookmark in TEST_BOOKMARKS:
-        bdb.add_rec(*bookmark)
+        _add_rec(bdb, *bookmark)
 
     # manually deleting 2nd index from db, calling compactdb
     bdb.cur.execute("DELETE FROM bookmarks WHERE id = ?", (2,))
@@ -948,7 +952,7 @@ def test_delete_rec_range_and_delay_commit(
 
     # Fill bookmark
     for bookmark in TEST_BOOKMARKS:
-        bdb.add_rec(*bookmark)
+        _add_rec(bdb, *bookmark)
 
     with mock.patch("builtins.input", return_value=input_retval):
         res = bdb.delete_rec(**kwargs)
@@ -978,7 +982,7 @@ def test_delete_rec_index_and_delay_commit(setup, index, delay_commit, input_ret
 
     # Fill bookmark
     for bookmark in TEST_BOOKMARKS:
-        bdb.add_rec(*bookmark)
+        _add_rec(bdb, *bookmark)
     db_len = len(TEST_BOOKMARKS)
 
     n_index = index
@@ -1055,7 +1059,7 @@ def test_delete_rec_on_non_integer(
     bdb = BukuDb(dbfile=tmp_path / "tmp.db")
 
     for bookmark in TEST_BOOKMARKS:
-        bdb.add_rec(*bookmark)
+        _add_rec(bdb, *bookmark)
 
     def mockreturn():
         return "y"
@@ -1075,7 +1079,7 @@ def test_delete_rec_on_non_integer(
 def test_add_rec_add_invalid_url(caplog, url):
     """test method."""
     bdb = BukuDb()
-    res = bdb.add_rec(url=url)
+    res = _add_rec(bdb, url=url)
     assert res is None
     caplog.records[0].levelname == "ERROR"
     caplog.records[0].getMessage() == "Invalid URL"
@@ -1385,7 +1389,7 @@ def test_exportdb_empty_db():
 def test_exportdb_single_rec(tmpdir):
     with NamedTemporaryFile(delete=False) as f:
         db = BukuDb(dbfile=f.name)
-        db.add_rec("http://example.com")
+        _add_rec(db, "http://example.com")
         exp_file = tmpdir.join("export")
         db.exportdb(exp_file.strpath)
         with open(exp_file.strpath, encoding="utf8", errors="surrogateescape") as f:
@@ -1397,8 +1401,8 @@ def test_exportdb_to_db():
         delete=False, suffix=".db"
     ) as f2:
         db = BukuDb(dbfile=f1.name)
-        db.add_rec("http://example.com")
-        db.add_rec("http://google.com")
+        _add_rec(db, "http://example.com")
+        _add_rec(db, "http://google.com")
         with mock.patch("builtins.input", return_value="y"):
             db.exportdb(f2.name)
         db2 = BukuDb(dbfile=f2.name)
@@ -1417,7 +1421,7 @@ def test_get_max_id(urls, exp_res):
     with NamedTemporaryFile(delete=False) as f:
         db = BukuDb(dbfile=f.name)
         if urls:
-            list(map(lambda x: db.add_rec(x), urls))
+            list(map(lambda x: _add_rec(db, x), urls))
         assert db.get_max_id() == exp_res
 
 
