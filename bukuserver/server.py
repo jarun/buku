@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from flask.cli import FlaskGroup
 from flask_admin import Admin
-from flask_api import FlaskAPI, status
+from flask_api import FlaskAPI
 from flask_bootstrap import Bootstrap
 
 from buku import BukuDb, __version__, network_handler
@@ -20,45 +20,40 @@ except ImportError:
 import click
 import flask
 from flask import __version__ as flask_version  # type: ignore
-from flask import (
-    current_app,
-    jsonify,
-    redirect,
-    request,
-    url_for,
-)
+from flask import current_app, redirect, request, url_for
 
 try:
-    from . import api, response, views
+    from . import api, views
+    from response import Response
 except ImportError:
-    from bukuserver import api, response, views
+    from bukuserver import api, views
+    from bukuserver.response import Response
 
 
 STATISTIC_DATA = None
 
 def handle_network():
-    failed_resp = response.response_template['failure'], status.HTTP_400_BAD_REQUEST
     url = request.data.get('url', None)
     if not url:
-        return failed_resp
+        return Response.FAILURE()
     try:
         res = network_handler(url)
         keys = ['title', 'description', 'tags', 'recognized mime', 'bad url']
         res_dict = dict(zip(keys, res))
-        return jsonify(res_dict)
+        return Response.SUCCESS(data=res_dict)
     except Exception as e:
         current_app.logger.debug(str(e))
-    return failed_resp
+    return Response.FAILURE()
 
 
 def refresh_bookmark(rec_id: Union[int, None]):
     result_flag = getattr(flask.g, 'bukudb', api.get_bukudb()).refreshdb(rec_id or 0, request.form.get('threads', 4))
-    return api.to_response(result_flag)
+    return Response.from_flag(result_flag)
 
 
 def get_tiny_url(rec_id):
     url = getattr(flask.g, 'bukudb', api.get_bukudb()).tnyfy_url(rec_id)
-    return jsonify({'url': url}) if url else api.response_bad()
+    return Response.SUCCESS(data={'url': url}) if url else Response.FAILURE()
 
 
 _BOOL_VALUES = {'true': True, '1': True, 'false': False, '0': False}
@@ -132,8 +127,8 @@ def create_app(db_file=None):
     # routing
     #  api
     tag_api_view = api.ApiTagView.as_view('tag_api')
-    app.add_url_rule('/api/tags', defaults={'tag': None}, view_func=tag_api_view, methods=['GET'])
-    app.add_url_rule('/api/tags/<tag>', view_func=tag_api_view, methods=['GET', 'PUT'])
+    app.add_url_rule('/api/tags', defaults={'tag': None}, view_func=tag_api_view, methods=['GET'], strict_slashes=False)
+    app.add_url_rule('/api/tags/<tag>', view_func=tag_api_view, methods=['GET', 'PUT', 'DELETE'])
     bookmark_api_view = api.ApiBookmarkView.as_view('bookmark_api')
     app.add_url_rule('/api/bookmarks', defaults={'rec_id': None}, view_func=bookmark_api_view, methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/api/bookmarks/<int:rec_id>', view_func=bookmark_api_view, methods=['GET', 'PUT', 'DELETE'])
