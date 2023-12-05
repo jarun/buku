@@ -3570,7 +3570,7 @@ def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
         comment_tag = tag.findNextSibling('dd')
 
         if comment_tag:
-            desc = comment_tag.find(text=True, recursive=False)
+            desc = comment_tag.find(string=True, recursive=False)
 
         if add_parent_folder_as_tag:
             # add parent folder as tag
@@ -4721,6 +4721,8 @@ def browse(url):
             # Found a GUI browser, suppress browser output
             browse.suppress_browser_output = True
             break
+    if sys.platform == 'win32':  # GUI apps have no terminal IO on Windows
+        browse.suppress_browser_output = False
 
     if browse.suppress_browser_output:
         _stderr = os.dup(2)
@@ -5276,10 +5278,12 @@ def main():
     """Main."""
     global ID_STR, ID_DB_STR, MUTE_STR, URL_STR, DESC_STR, DESC_WRAP, TAG_STR, TAG_WRAP, PROMPTMSG
     # readline should not be loaded when buku is used as a library
+    import readline
     try:
-        import readline
+        import colorama
+        colorama.just_fix_windows_console()  # noop on non-Windows systems
     except ImportError:
-        import pyreadline3 as readline  # type: ignore
+        pass
 
     title_in = None
     tags_in = None

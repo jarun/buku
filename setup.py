@@ -59,6 +59,7 @@ install_requires = [
     'html5lib>=1.0.1',
     'urllib3>=1.23,<2',
     'pyreadline3; sys_platform == \'win32\'',
+    'colorama; sys_platform == \'win32\'',
 ]
 
 setup(
