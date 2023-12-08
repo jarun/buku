@@ -69,13 +69,33 @@ def vcr_cassette_dir(request):
     return os.path.join("tests", "vcr_cassettes", request.module.__name__)
 
 
+def rmdb(*bdbs):
+    for bdb in bdbs:
+        try:
+            bdb.cur.close()
+            bdb.conn.close()
+        except Exception:
+            pass
+    if exists(TEST_TEMP_DBFILE_PATH):
+        os.remove(TEST_TEMP_DBFILE_PATH)
+
+
 @pytest.fixture()
-def setup():
+def bukuDb():
     os.environ["XDG_DATA_HOME"] = TEST_TEMP_DIR_PATH
 
     # start every test from a clean state
-    if exists(TEST_TEMP_DBFILE_PATH):
-        os.remove(TEST_TEMP_DBFILE_PATH)
+    rmdb()
+
+    bdbs = []
+
+    def _bukuDb(*args, **kwargs):
+        nonlocal bdbs
+        bdbs += [BukuDb(*args, **kwargs)]
+        return bdbs[-1]
+
+    yield _bukuDb
+    rmdb(*bdbs)
 
 
 class PrettySafeLoader(
@@ -95,21 +115,21 @@ class TestBukuDb(unittest.TestCase):
         os.environ["XDG_DATA_HOME"] = TEST_TEMP_DIR_PATH
 
         # start every test from a clean state
-        if exists(TEST_TEMP_DBFILE_PATH):
-            os.remove(TEST_TEMP_DBFILE_PATH)
+        rmdb()
 
         self.bookmarks = TEST_BOOKMARKS
         self.bdb = BukuDb()
 
     def tearDown(self):
         os.environ["XDG_DATA_HOME"] = TEST_TEMP_DIR_PATH
+        rmdb(self.bdb)
 
     @pytest.mark.non_tox
     def test_get_default_dbdir(self):
         dbdir_expected = TEST_TEMP_DBDIR_PATH
-        dbdir_local_expected = os.path.join(
-            os.path.expanduser("~"), ".local", "share", "buku"
-        )
+        home = os.path.expanduser("~")
+        dbdir_local_expected = (os.path.join(home, ".local", "share", "buku") if sys.platform != 'win32' else
+                                os.path.join(home, "AppData", "Roaming", "buku"))
         dbdir_relative_expected = os.path.abspath(".")
 
         # desktop linux
@@ -124,7 +144,7 @@ class TestBukuDb(unittest.TestCase):
         # -- home is defined differently on various platforms.
         # -- keep a copy and set it back once done
         originals = {}
-        for env_var in ["HOME", "HOMEPATH", "HOMEDIR"]:
+        for env_var in ["HOME", "HOMEPATH", "HOMEDIR", "APPDATA"]:
             try:
                 originals[env_var] = os.environ.pop(env_var)
             except KeyError:
@@ -138,15 +158,16 @@ class TestBukuDb(unittest.TestCase):
     #     self.fail()
 
     def test_initdb(self):
-        if exists(TEST_TEMP_DBFILE_PATH):
-            os.remove(TEST_TEMP_DBFILE_PATH)
+        rmdb(self.bdb)
         self.assertIs(False, exists(TEST_TEMP_DBFILE_PATH))
-        conn, curr = BukuDb.initdb()
-        self.assertIsInstance(conn, sqlite3.Connection)
-        self.assertIsInstance(curr, sqlite3.Cursor)
-        self.assertIs(True, exists(TEST_TEMP_DBFILE_PATH))
-        curr.close()
-        conn.close()
+        try:
+            conn, curr = BukuDb.initdb()
+            self.assertIsInstance(conn, sqlite3.Connection)
+            self.assertIsInstance(curr, sqlite3.Cursor)
+            self.assertIs(True, exists(TEST_TEMP_DBFILE_PATH))
+        finally:
+            curr.close()
+            conn.close()
 
     def test_get_rec_by_id(self):
         for bookmark in self.bookmarks:
@@ -778,13 +799,13 @@ def refreshdb_fixture():
     os.environ["XDG_DATA_HOME"] = TEST_TEMP_DIR_PATH
 
     # start every test from a clean state
-    if exists(TEST_TEMP_DBFILE_PATH):
-        os.remove(TEST_TEMP_DBFILE_PATH)
+    rmdb()
 
     bdb = BukuDb()
 
     yield bdb
 
+    rmdb(bdb)
     # Teardown
     os.environ["XDG_DATA_HOME"] = TEST_TEMP_DIR_PATH
 
@@ -854,16 +875,16 @@ def test_print_caplog(caplog):
         [{"low": 2, "high": 3, "is_range": True}, None, (True, [])],
     ],
 )
-def test_print_rec(setup, kwargs, rec, exp_res, tmp_path, caplog):
-    bdb = BukuDb(dbfile=tmp_path / "tmp.db")
+def test_print_rec(bukuDb, kwargs, rec, exp_res, tmp_path, caplog):
+    bdb = bukuDb(dbfile=tmp_path / "tmp.db")
     if rec:
         _add_rec(bdb, *rec)
     # run the function
     assert (bdb.print_rec(**kwargs), caplog.record_tuples) == exp_res
 
 
-def test_list_tags(capsys, setup):
-    bdb = BukuDb()
+def test_list_tags(capsys, bukuDb):
+    bdb = bukuDb()
 
     # adding bookmarks
     _add_rec(bdb, "http://one.com", "", parse_tags(["cat,ant,bee,1"]), "")
@@ -879,8 +900,8 @@ def test_list_tags(capsys, setup):
     assert err == ""
 
 
-def test_compactdb(setup):
-    bdb = BukuDb()
+def test_compactdb(bukuDb):
+    bdb = bukuDb()
 
     # adding bookmarks
     for bookmark in TEST_BOOKMARKS:
@@ -943,10 +964,10 @@ def test_compactdb(setup):
     ],
 )
 def test_delete_rec_range_and_delay_commit(
-    setup, tmp_path, low, high, delay_commit, input_retval, exp_res
+    bukuDb, tmp_path, low, high, delay_commit, input_retval, exp_res
 ):
     """test delete rec, range and delay commit."""
-    bdb = BukuDb(dbfile=tmp_path / "tmp.db")
+    bdb = bukuDb(dbfile=tmp_path / "tmp.db")
     kwargs = {"is_range": True, "low": low, "high": high, "delay_commit": delay_commit}
     kwargs["index"] = 0
 
@@ -975,10 +996,10 @@ def test_delete_rec_range_and_delay_commit(
         [100, False, True],
     ],
 )
-def test_delete_rec_index_and_delay_commit(setup, index, delay_commit, input_retval):
+def test_delete_rec_index_and_delay_commit(bukuDb, index, delay_commit, input_retval):
     """test delete rec, index and delay commit."""
-    bdb = BukuDb()
-    bdb_dc = BukuDb()  # instance for delay_commit check.
+    bdb = bukuDb()
+    bdb_dc = bukuDb()  # instance for delay_commit check.
 
     # Fill bookmark
     for bookmark in TEST_BOOKMARKS:
@@ -1021,9 +1042,9 @@ def test_delete_rec_index_and_delay_commit(setup, index, delay_commit, input_ret
         (0, False, 0, 0),
     ],
 )
-def test_delete_rec_on_empty_database(setup, index, is_range, low, high):
+def test_delete_rec_on_empty_database(bukuDb, index, is_range, low, high):
     """test delete rec, on empty database."""
-    bdb = BukuDb()
+    bdb = bukuDb()
     with mock.patch("builtins.input", return_value="y"):
         res = bdb.delete_rec(index, is_range, low, high)
 
@@ -1051,12 +1072,12 @@ def test_delete_rec_on_empty_database(setup, index, is_range, low, high):
     ],
 )
 def test_delete_rec_on_non_integer(
-    setup, tmp_path, monkeypatch, kwargs, exp_res, raise_error
+    bukuDb, tmp_path, monkeypatch, kwargs, exp_res, raise_error
 ):
     """test delete rec on non integer arg."""
     import buku
 
-    bdb = BukuDb(dbfile=tmp_path / "tmp.db")
+    bdb = bukuDb(dbfile=tmp_path / "tmp.db")
 
     for bookmark in TEST_BOOKMARKS:
         _add_rec(bdb, *bookmark)
@@ -1076,9 +1097,9 @@ def test_delete_rec_on_non_integer(
 
 
 @pytest.mark.parametrize("url", ["", False, None, 0])
-def test_add_rec_add_invalid_url(caplog, url):
+def test_add_rec_add_invalid_url(bukuDb, caplog, url):
     """test method."""
-    bdb = BukuDb()
+    bdb = bukuDb()
     res = _add_rec(bdb, url=url)
     assert res is None
     caplog.records[0].levelname == "ERROR"
@@ -1119,18 +1140,22 @@ def test_add_rec_add_invalid_url(caplog, url):
         ],
     ],
 )
-def test_add_rec_exec_arg(kwargs, exp_arg):
+def test_add_rec_exec_arg(bukuDb, kwargs, exp_arg):
     """test func."""
-    bdb = BukuDb()
-    bdb.cur = mock.Mock()
-    bdb.get_rec_id = mock.Mock(return_value=None)
-    bdb.add_rec(**kwargs)
-    assert bdb.cur.execute.call_args[0][1] == exp_arg
+    bdb = bukuDb()
+    _cur = bdb.cur
+    try:
+        bdb.cur = mock.Mock()
+        bdb.get_rec_id = mock.Mock(return_value=None)
+        bdb.add_rec(**kwargs)
+        assert bdb.cur.execute.call_args[0][1] == exp_arg
+    finally:
+        bdb.cur = _cur
 
 
-def test_update_rec_index_0(caplog):
+def test_update_rec_index_0(bukuDb, caplog):
     """test method."""
-    bdb = BukuDb()
+    bdb = bukuDb()
     res = bdb.update_rec(index=0, url="http://example.com")
     assert not res
     assert caplog.records[0].getMessage() == "All URLs cannot be same"
@@ -1145,17 +1170,17 @@ def test_update_rec_index_0(caplog):
         [{"index": 1, "url": ''}, False],
     ],
 )
-def test_update_rec(tmp_path, kwargs, exp_res):
-    bdb = BukuDb(tmp_path / "tmp.db")
+def test_update_rec(bukuDb, tmp_path, kwargs, exp_res):
+    bdb = bukuDb(tmp_path / "tmp.db")
     res = bdb.update_rec(**kwargs)
     assert res == exp_res
 
 
 @pytest.mark.parametrize("invalid_tag", ["+,", "-,"])
-def test_update_rec_invalid_tag(caplog, invalid_tag):
+def test_update_rec_invalid_tag(bukuDb, caplog, invalid_tag):
     """test method."""
     url = "http://example.com"
-    bdb = BukuDb()
+    bdb = bukuDb()
     res = bdb.update_rec(index=1, url=url, tags_in=invalid_tag)
     assert not res
     try:
@@ -1183,11 +1208,11 @@ def test_update_rec_invalid_tag(caplog, invalid_tag):
     ],
 )
 def test_update_rec_update_all_bookmark(
-    caplog, tmp_path, setup, read_in_retval, exp_res, record_tuples
+    caplog, tmp_path, bukuDb, read_in_retval, exp_res, record_tuples
 ):
     """test method."""
     with mock.patch("buku.read_in", return_value=read_in_retval):
-        bdb = BukuDb(tmp_path / "tmp.db")
+        bdb = bukuDb(tmp_path / "tmp.db")
         res = bdb.update_rec(index=0, tags_in="tags1")
         assert (res, caplog.record_tuples) == (exp_res, record_tuples)
 
@@ -1387,26 +1412,28 @@ def test_exportdb_empty_db():
 
 
 def test_exportdb_single_rec(tmpdir):
-    with NamedTemporaryFile(delete=False) as f:
-        db = BukuDb(dbfile=f.name)
-        _add_rec(db, "http://example.com")
-        exp_file = tmpdir.join("export")
-        db.exportdb(exp_file.strpath)
-        with open(exp_file.strpath, encoding="utf8", errors="surrogateescape") as f:
-            assert f.read()
+    f1 = NamedTemporaryFile(delete=False)
+    f1.close()
+    db = BukuDb(dbfile=f1.name)
+    _add_rec(db, "http://example.com")
+    exp_file = tmpdir.join("export")
+    db.exportdb(exp_file.strpath)
+    with open(exp_file.strpath, encoding="utf8", errors="surrogateescape") as f2:
+        assert f2.read()
 
 
 def test_exportdb_to_db():
-    with NamedTemporaryFile(delete=False) as f1, NamedTemporaryFile(
-        delete=False, suffix=".db"
-    ) as f2:
-        db = BukuDb(dbfile=f1.name)
-        _add_rec(db, "http://example.com")
-        _add_rec(db, "http://google.com")
-        with mock.patch("builtins.input", return_value="y"):
-            db.exportdb(f2.name)
-        db2 = BukuDb(dbfile=f2.name)
-        assert db.get_rec_all() == db2.get_rec_all()
+    f1 = NamedTemporaryFile(delete=False)
+    f1.close()
+    f2 = NamedTemporaryFile(delete=False, suffix=".db")
+    f2.close()
+    db = BukuDb(dbfile=f1.name)
+    _add_rec(db, "http://example.com")
+    _add_rec(db, "http://google.com")
+    with mock.patch("builtins.input", return_value="y"):
+        db.exportdb(f2.name)
+    db2 = BukuDb(dbfile=f2.name)
+    assert db.get_rec_all() == db2.get_rec_all()
 
 
 @pytest.mark.parametrize(
