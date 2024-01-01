@@ -5455,6 +5455,7 @@ POSITIONAL ARGUMENTS:
     --shorten index|URL  fetch shortened url from tny.im service
     --expand index|URL   expand a tny.im shortened url
     --cached index|URL   browse a cached page from Wayback Machine
+    --offline            add a bookmark without connecting to web
     --suggest            show similar tags when adding bookmarks
     --tacit              reduce verbosity, skip some confirmations
     --nostdin            do not wait for input (must be first arg)
@@ -5479,6 +5480,7 @@ POSITIONAL ARGUMENTS:
     addarg('--shorten', nargs=1, help=hide)
     addarg('--expand', nargs=1, help=hide)
     addarg('--cached', nargs=1, help=hide)
+    addarg('--offline', action='store_true', help=hide)
     addarg('--suggest', action='store_true', help=hide)
     addarg('--tacit', action='store_true', help=hide)
     addarg('--nostdin', action='store_true', help=hide)
@@ -5623,7 +5625,7 @@ POSITIONAL ARGUMENTS:
                 url, title_in, tags, desc_in = result
                 if args.suggest:
                     tags = bdb.suggest_similar_tag(tags)
-                bdb.add_rec(url, title_in, tags, desc_in, _immutable(args))
+                bdb.add_rec(url, title_in, tags, desc_in, _immutable(args), False, not args.offline)
 
     # Add record
     if args.add is not None:
@@ -5661,7 +5663,7 @@ POSITIONAL ARGUMENTS:
         if edit_aborted is False:
             if args.suggest:
                 tags = bdb.suggest_similar_tag(tags)
-            bdb.add_rec(url, title_in, tags, desc_in, _immutable(args))
+            bdb.add_rec(url, title_in, tags, desc_in, _immutable(args), False, not args.offline)
 
     # Search record
     search_results = None

@@ -38,6 +38,7 @@ _buku () {
         -s --sany
         -S --sall
         --shorten
+        --offline
         --suggest
         -t --stag
         --tacit

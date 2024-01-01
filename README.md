@@ -247,6 +247,7 @@ POWER TOYS:
       --shorten index|URL  fetch shortened url from tny.im service
       --expand index|URL   expand a tny.im shortened url
       --cached index|URL   browse a cached page from Wayback Machine
+      --offline            add a bookmark without connecting to web
       --suggest            show similar tags when adding bookmarks
       --tacit              reduce verbosity, skip some confirmations
       --nostdin            do not wait for input (must be first arg)
