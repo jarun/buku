@@ -2,7 +2,7 @@
 #
 # Bookmark management utility
 #
-# Copyright © 2015-2023 Arun Prakash Jana <engineerarun@gmail.com>
+# Copyright © 2015-2024 Arun Prakash Jana <engineerarun@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -2947,7 +2947,7 @@ SYMBOLS:
       #                    tags
 
 Version %s
-Copyright © 2015-2023 %s
+Copyright © 2015-2024 %s
 License: %s
 Webpage: https://github.com/jarun/buku
 ''' % (__version__, __author__, __license__))
