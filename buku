@@ -5279,11 +5279,12 @@ def main():
     global ID_STR, ID_DB_STR, MUTE_STR, URL_STR, DESC_STR, DESC_WRAP, TAG_STR, TAG_WRAP, PROMPTMSG
     # readline should not be loaded when buku is used as a library
     import readline
-    try:
-        import colorama
-        colorama.just_fix_windows_console()  # noop on non-Windows systems
-    except ImportError:
-        pass
+    if sys.platform == 'win32':
+        try:
+            import colorama
+            colorama.just_fix_windows_console()  # noop on non-Windows systems
+        except ImportError:
+            pass
 
     title_in = None
     tags_in = None
