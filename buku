@@ -48,6 +48,7 @@ from typing import Any, Dict, List, Optional, Tuple, NamedTuple
 
 import urllib3
 from bs4 import BeautifulSoup
+from bs4.dammit import EncodingDetector
 from urllib3.exceptions import LocationParseError
 from urllib3.util import Retry, make_headers, parse_url
 
@@ -3821,27 +3822,13 @@ def get_data_from_page(resp):
     """
 
     try:
-        soup = BeautifulSoup(resp.data, 'html.parser')
-    except Exception as e:
-        LOGERR('get_data_from_page(): %s', e)
+        charset = EncodingDetector.find_declared_encoding(resp.data, is_html=True)
 
-    try:
-        charset = None
-
-        if soup.meta and soup.meta.get('charset') is not None:
-            charset = soup.meta.get('charset')
-        elif 'content-type' in resp.headers:
+        if not charset and 'content-type' in resp.headers:
             m = email.message.Message()
             m['content-type'] = resp.headers['content-type']
             if m.get_param('charset') is not None:
                 charset = m.get_param('charset')
-
-        if not charset and soup:
-            meta_tag = soup.find('meta', attrs={'http-equiv': 'Content-Type'})
-            if meta_tag:
-                m = email.message.Message()
-                m['content'] = meta_tag.attrs['content']
-                charset = m.get_param('charset', charset)
 
         if charset:
             LOGDBG('charset: %s', charset)
