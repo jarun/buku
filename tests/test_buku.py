@@ -945,3 +945,20 @@ def test_convert_tags_to_org_mode_tags(tags, data):
 
     res = convert_tags_to_org_mode_tags(tags)
     assert res == data
+
+
+@pytest.mark.parametrize('charset', ['ISO-8859-1', 'UTF-8'])
+@pytest.mark.parametrize('mode', ['charset', 'content', 'header'])
+def test_get_data_from_page(charset, mode):
+    from urllib3.response import HTTPResponse
+    from buku import get_data_from_page
+    title = 'Répertoire des articles relatifs à l\'Asiminier - Asimina triloba (L.) Dunal (site Les Fruitiers Rares)'
+    headers = (None if mode != 'header' else {'Content-Type': f'text/html; charset={charset}'})
+    meta = {
+        'charset': f'\n<meta charset="{charset}"/>',
+        'content': f'\n<meta http-equiv="content-type" content="text/html; charset={charset}"/>',
+    }.get(mode, '')
+    body = f'<html>\n\n<head>{meta}\n<title>{title}</title>\n</head>\n<body></body>\n\n</html>\n'
+    resp = HTTPResponse(body.encode(charset), headers)
+    parsed_title, desc, keywords = get_data_from_page(resp)
+    assert parsed_title == title
