@@ -67,6 +67,8 @@ DELIM = ','  # Delimiter used to store tags in DB
 SKIP_MIMES = {'.pdf', '.txt'}
 PROMPTMSG = 'buku (? for help): '  # Prompt message string
 
+strip_delim = lambda s, delim=DELIM, sub=' ': str(s).replace(delim, sub)
+
 # Default format specifiers to print records
 ID_STR = '%d. %s [%s]\n'
 ID_DB_STR = '%d. %s'
@@ -2304,7 +2306,7 @@ class BukuDb:
 
         for item in sublist:
             if item['type'] == 'folder':
-                next_folder_name = folder_name + ',' + item['name']
+                next_folder_name = folder_name + DELIM + strip_delim(item['name'])
                 for i in self.traverse_bm_folder(
                         item['children'],
                         unique_tag,
@@ -2404,7 +2406,7 @@ class BukuDb:
                 # add timestamp tag
                 bookmark_tags.append(unique_tag)
 
-            formatted_tags = [DELIM + tag for tag in bookmark_tags]
+            formatted_tags = [DELIM + strip_delim(tag) for tag in bookmark_tags]
             tags = parse_tags(formatted_tags)
 
             # get the title
@@ -2445,7 +2447,7 @@ class BukuDb:
                     add_parent_folder_as_tag):
                 self.add_rec(*item)
 
-    def auto_import_from_browser(self):
+    def auto_import_from_browser(self, firefox_profile=None):
         """Import bookmarks from a browser default database file.
 
         Supports Firefox, Google Chrome, Vivaldi, and Microsoft Edge.
@@ -2456,7 +2458,8 @@ class BukuDb:
             True on success, False on failure.
         """
 
-        ff_bm_db_path = None
+        ff_bm_db_paths = {}
+        firefox_profile = firefox_profile and [firefox_profile]
 
         if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
             gc_bm_db_path = '~/.config/google-chrome/Default/Bookmarks'
@@ -2464,9 +2467,10 @@ class BukuDb:
             vi_bm_db_path = '~/.config/vivaldi/Default/Bookmarks'
 
             default_ff_folder = os.path.expanduser('~/.mozilla/firefox')
-            profile = get_firefox_profile_name(default_ff_folder)
-            if profile:
-                ff_bm_db_path = '~/.mozilla/firefox/{}/places.sqlite'.format(profile)
+            profiles = firefox_profile or get_firefox_profile_names(default_ff_folder)
+            if profiles:
+                ff_bm_db_paths = {s: '~/.mozilla/firefox/{}/places.sqlite'.format(s)
+                                  for s in profiles}
 
             me_bm_db_path = '~/.config/microsoft-edge/Default/Bookmarks'
         elif sys.platform == 'darwin':
@@ -2475,10 +2479,10 @@ class BukuDb:
             vi_bm_db_path = '~/Library/Application Support/Vivaldi/Default/Bookmarks'
 
             default_ff_folder = os.path.expanduser('~/Library/Application Support/Firefox')
-            profile = get_firefox_profile_name(default_ff_folder)
-            if profile:
-                ff_bm_db_path = ('~/Library/Application Support/Firefox/'
-                                 '{}/places.sqlite'.format(profile))
+            profiles = firefox_profile or get_firefox_profile_names(default_ff_folder)
+            if profiles:
+                ff_bm_db_paths = {s: '~/Library/Application Support/Firefox/{}/places.sqlite'.format(s)
+                                  for s in profiles}
 
             me_bm_db_path = '~/Library/Application Support/Microsoft Edge/Default/Bookmarks'
         elif sys.platform == 'win32':
@@ -2487,9 +2491,10 @@ class BukuDb:
             vi_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Vivaldi/User Data/Default/Bookmarks')
 
             default_ff_folder = os.path.expandvars('%APPDATA%/Mozilla/Firefox/')
-            profile = get_firefox_profile_name(default_ff_folder)
-            if profile:
-                ff_bm_db_path = os.path.join(default_ff_folder, '{}/places.sqlite'.format(profile))
+            profiles = firefox_profile or get_firefox_profile_names(default_ff_folder)
+            if profiles:
+                ff_bm_db_paths = {s: os.path.join(default_ff_folder, '{}/places.sqlite'.format(s))
+                                  for s in profiles}
 
             me_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Microsoft/Edge/User Data/Default/Bookmarks')
         else:
@@ -2511,61 +2516,70 @@ class BukuDb:
         resp = 'y'
 
         try:
-            if self.chatty:
-                resp = input('Import bookmarks from google chrome? (y/n): ')
-            if resp == 'y':
-                bookmarks_database = os.path.expanduser(gc_bm_db_path)
-                if not os.path.exists(bookmarks_database):
-                    raise FileNotFoundError
-                self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+            if os.path.isfile(os.path.expanduser(gc_bm_db_path)):
+                if self.chatty:
+                    resp = input('Import bookmarks from google chrome? (y/n): ')
+                if resp == 'y':
+                    bookmarks_database = os.path.expanduser(gc_bm_db_path)
+                    if not os.path.exists(bookmarks_database):
+                        raise FileNotFoundError
+                    self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
             print('Could not import bookmarks from google-chrome')
 
         try:
-            if self.chatty:
-                resp = input('Import bookmarks from chromium? (y/n): ')
-            if resp == 'y':
-                bookmarks_database = os.path.expanduser(cb_bm_db_path)
-                if not os.path.exists(bookmarks_database):
-                    raise FileNotFoundError
-                self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+            if os.path.isfile(os.path.expanduser(cb_bm_db_path)):
+                if self.chatty:
+                    resp = input('Import bookmarks from chromium? (y/n): ')
+                if resp == 'y':
+                    bookmarks_database = os.path.expanduser(cb_bm_db_path)
+                    if not os.path.exists(bookmarks_database):
+                        raise FileNotFoundError
+                    self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
             print('Could not import bookmarks from chromium')
 
         try:
-            if self.chatty:
-                resp = input('Import bookmarks from Vivaldi? (y/n): ')
-            if resp == 'y':
-                bookmarks_database = os.path.expanduser(vi_bm_db_path)
-                if not os.path.exists(bookmarks_database):
-                    raise FileNotFoundError
-                self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+            if os.path.isfile(os.path.expanduser(vi_bm_db_path)):
+                if self.chatty:
+                    resp = input('Import bookmarks from Vivaldi? (y/n): ')
+                if resp == 'y':
+                    bookmarks_database = os.path.expanduser(vi_bm_db_path)
+                    if not os.path.exists(bookmarks_database):
+                        raise FileNotFoundError
+                    self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
             print('Could not import bookmarks from Vivaldi')
 
         try:
-            if self.chatty:
-                resp = input('Import bookmarks from Firefox? (y/n): ')
-            if resp == 'y':
-                bookmarks_database = os.path.expanduser(ff_bm_db_path)
-                if not os.path.exists(bookmarks_database):
-                    raise FileNotFoundError
-                self.load_firefox_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+            ff_bm_db_paths = {k: s for k, s in ff_bm_db_paths.items() if os.path.isfile(os.path.expanduser(s))}
+            for idx, (name, ff_bm_db_path) in enumerate(ff_bm_db_paths.items(), start=1):
+                if self.chatty:
+                    profile = ('' if len(ff_bm_db_paths) < 2 else
+                               f' profile {name} [{idx}/{len(ff_bm_db_paths)}]')
+                    resp = input(f'Import bookmarks from Firefox{profile}? (y/n): ')
+                if resp == 'y':
+                    bookmarks_database = os.path.expanduser(ff_bm_db_path)
+                    if not os.path.exists(bookmarks_database):
+                        raise FileNotFoundError
+                    self.load_firefox_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+                    break
         except Exception as e:
             LOGERR(e)
             print('Could not import bookmarks from Firefox.')
 
         try:
-            if self.chatty:
-                resp = input('Import bookmarks from microsoft edge? (y/n): ')
-            if resp == 'y':
-                bookmarks_database = os.path.expanduser(me_bm_db_path)
-                if not os.path.exists(bookmarks_database):
-                    raise FileNotFoundError
-                self.load_edge_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+            if os.path.isfile(os.path.expanduser(me_bm_db_path)):
+                if self.chatty:
+                    resp = input('Import bookmarks from microsoft edge? (y/n): ')
+                if resp == 'y':
+                    bookmarks_database = os.path.expanduser(me_bm_db_path)
+                    if not os.path.exists(bookmarks_database):
+                        raise FileNotFoundError
+                    self.load_edge_database(bookmarks_database, newtag, add_parent_folder_as_tag)
         except Exception as e:
             LOGERR(e)
             print('Could not import bookmarks from microsoft-edge')
@@ -3127,16 +3141,17 @@ def convert_bookmark_set(
     return {'data': out, 'count': count}
 
 
-def get_firefox_profile_name(path):
-    """List folder and detect default Firefox profile name.
+def get_firefox_profile_names(path):
+    """List folder and detect default Firefox profile names for all installs.
 
     Returns
     -------
-    profile : str
-        Firefox profile name.
+    profiles : [str]
+        All default Firefox profile names.
     """
     from configparser import ConfigParser, NoOptionError
 
+    profiles = []
     profile_path = os.path.join(path, 'profiles.ini')
     if os.path.exists(profile_path):
         config = ConfigParser()
@@ -3145,34 +3160,33 @@ def get_firefox_profile_name(path):
         install_names = [section for section in config.sections() if section.startswith('Install')]
         for name in install_names:
             try:
-                profile_path = config.get(name, 'default')
-                return profile_path
+                profiles += [config.get(name, 'default')]
             except NoOptionError:
                 pass
+        if profiles:
+            return profiles
 
         profiles_names = [section for section in config.sections() if section.startswith('Profile')]
-        if not profiles_names:
-            return None
         for name in profiles_names:
             try:
                 # If profile is default
                 if config.getboolean(name, 'default'):
-                    profile_path = config.get(name, 'path')
-                    return profile_path
+                    profiles += [config.get(name, 'path')]
+                    continue
             except NoOptionError:
                 pass
             try:
                 # alternative way to detect default profile
                 if config.get(name, 'name').lower() == "default":
-                    profile_path = config.get(name, 'path')
-                    return profile_path
+                    profiles += [config.get(name, 'path')]
             except NoOptionError:
                 pass
 
-        # There is no default profile
-        return None
-    LOGDBG('get_firefox_profile_name(): {} does not exist'.format(path))
-    return None
+        return profiles
+
+    # There are no default profiles
+    LOGDBG('get_firefox_profile_names(): {} does not exist'.format(path))
+    return profiles
 
 
 def walk(root):
@@ -3588,9 +3602,9 @@ def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
                     header = parent.find_previous_sibling('h3')
                     if header:
                         if tag.has_attr('tags'):
-                            tag['tags'] += (DELIM + header.text)
+                            tag['tags'] += (DELIM + strip_delim(header.text))
                         else:
-                            tag['tags'] = header.text
+                            tag['tags'] = strip_delim(header.text)
             else:
                 # could be its folder or not
                 possible_folder = tag.find_previous('h3')
@@ -3600,16 +3614,16 @@ def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
                 if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
                     # then it's the folder of this bookmark
                     if tag.has_attr('tags'):
-                        tag['tags'] += (DELIM + possible_folder.text)
+                        tag['tags'] += (DELIM + strip_delim(possible_folder.text))
                     else:
-                        tag['tags'] = possible_folder.text
+                        tag['tags'] = strip_delim(possible_folder.text)
 
         # add unique tag if opted
         if newtag:
             if tag.has_attr('tags'):
-                tag['tags'] += (DELIM + newtag)
+                tag['tags'] += (DELIM + strip_delim(newtag))
             else:
-                tag['tags'] = newtag
+                tag['tags'] = strip_delim(newtag)
 
         yield (
             tag['href'], tag.string,
@@ -5411,6 +5425,8 @@ POSITIONAL ARGUMENTS:
         title='POWER TOYS',
         description='''    --ai                 auto-import bookmarks from web browsers
                          Firefox, Chrome, Chromium, Vivaldi, Edge
+                         (Firefox profile can be specified using
+                         environment variable FIREFOX_PROFILE)
     -e, --export file    export bookmarks to Firefox format HTML
                          export XBEL, if file ends with '.xbel'
                          export Markdown, if file ends with '.md'
@@ -5986,7 +6002,7 @@ POSITIONAL ARGUMENTS:
 
     # Import bookmarks from browser
     if args.ai:
-        bdb.auto_import_from_browser()
+        bdb.auto_import_from_browser(firefox_profile=os.environ.get('FIREFOX_PROFILE'))
 
     # Open URL in browser
     if args.open is not None:

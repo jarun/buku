@@ -709,10 +709,10 @@ def test_import_html_and_add_parent():
 
     from buku import import_html
 
-    html_text = """<DT><H3>1s</H3>
+    html_text = """<DT><H3>1s (blah,blah)</H3>
 <DL><p>
 <DT><A HREF="http://example.com/"></A>"""
-    exp_res = ("http://example.com/", None, ",1s,", None, 0, True, False)
+    exp_res = ("http://example.com/", None, ",1s (blah blah),", None, 0, True, False)
     html_soup = BeautifulSoup(html_text, "html.parser")
     res = list(import_html(html_soup, True, None))
     assert res[0] == exp_res
@@ -737,7 +737,7 @@ def test_import_html_and_add_parent():
                 (
                     "http://example13.com",
                     None,
-                    ",folder11,folder12,folder13,tag3,tag4,",
+                    ",folder11,folder12,folder13 (blah blah),tag3,tag4,",
                     None,
                     0,
                     True,
@@ -760,7 +760,7 @@ def test_import_html_and_add_parent():
                 ("http://example11.com", None, ",folder11,", None, 0, True, False),
                 ("http://example121.com", None, ",folder121,", None, 0, True, False),
                 ("http://example12.com", None, None, None, 0, True, False),
-                ("http://example13.com", None, ",folder13,tag3,tag4,", None, 0, True, False),
+                ("http://example13.com", None, ",folder13 (blah blah),tag3,tag4,", None, 0, True, False),
             ],
         ),
     ],
@@ -788,7 +788,7 @@ def test_import_html_and_add_all_parent(add_all_parent, exp_res):
             <DT><A HREF="http://example121.com"></A></DT>
         </DL><p></DT>
         <DT><A HREF="http://example12.com"></A></DT>
-        <DT><H3>Folder13</H3><DL><p>
+        <DT><H3>Folder13 (blah,blah)</H3><DL><p>
             <DT><A HREF="http://example13.com" TAGS="tag3,tag4"></A></DT>
         </DL><p></DT>
     </DL><p></DT>
