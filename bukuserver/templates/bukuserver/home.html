@@ -41,14 +41,34 @@
       </form>
     </div>
     <div class=" col-md-4 col-md-offset-4">
-      <p style="padding: 2em"> Bookmarklet:
-	<a title="Drag this link to your bookmarks toolbar"
-	   href="javascript:void%20function(){var%20e=location.href,t=document.title.trim()||%22%22,o=document.getSelection().toString().trim()||(document.querySelector(%22meta[name$=description%20i],%20meta[property$=description%20i]%22)||{}).content||%22%22;o.length%3E4e3%26%26(o=o.substr(0,4e3)+%22...%22,alert(%22The%20selected%20text%20is%20too%20long,%20it%20will%20be%20truncated.%22)),e=%22{{url_for("bookmarklet",_external=True)}}%3Furl=%22+encodeURIComponent(e)+%22%26title=%22+encodeURIComponent(t)+%22%26description=%22+encodeURIComponent(o),window.open(e,%22_blank%22,%22menubar=no,%20height=600,%20width=600,%20toolbar=no,%20scrollbars=yes,%20status=no,%20dialog=1%22)}();">
-	  <b>✚ Add to Buku</b>
-	</a><br/>
+      <p style="padding-top: 2em"> Bookmarklet:
+        <a title="Drag this link to your bookmarks toolbar" href="{{ buku.bookmarklet() }}">
+          <b>✚ Add to Buku</b>
+        </a><br/>
         <em style="font-size: smaller">Note: if you select text on the page before activating the bookmarklet, it'll be used as description instead of page metadata.</em>
       </p>
     </div>
+
+    <details class="col-md-6 col-md-offset-3">
+      <summary style="display: list-item;  cursor: pointer"> <em><strong>Location Bar (keyboard-only) shortcut</strong></em> </summary>
+      <dl>
+        <dt>in Firefox:</dt>
+        <dd>Open the bookmarks editor and set <code>@buku</code> in the Keyword field of the bookmarklet.</dd>
+
+        <dt>in Chrome:</dt>
+        <dd>
+          In <em>Settings &gt; Search engine &gt; Manage… &gt; Site Search</em>, add a new row
+          (by placing <code>✚ Add to Buku</code>, <code>@buku</code>, and the copied bookmarklet URL in respective fields).
+        </dd>
+
+        <dt>usage:</dt>
+        <dd>
+          By hitting <code>Ctrl+L</code> (thus switching to Location Bar), then typing <code>@buku</code>
+          and hitting <code>Enter</code>, you'll be able to open the bookmarklet dialog via keyboard only.<br/>
+          <em style="font-size: smaller">Note: in Firefox this changes displayed URL, but you can reset it by switching back to Location Bar and hitting <code>Esc</code> twice.</em>
+        </dd>
+      </dl>
+    </details>
   </div>
 </main>
 {% endblock %}

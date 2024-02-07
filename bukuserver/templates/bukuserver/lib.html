@@ -1,5 +1,11 @@
 {% macro filter(name, value) %}{{ url_for('bookmark.index_view', **{'flt0_'+name: value}) }}{% endmacro %}
 
+{% macro bookmarklet() -%}
+  {% with url = url_for('bookmarklet', _external=True) -%}
+    {% include 'bukuserver/bookmarklet.url' %}
+  {%- endwith %}
+{%- endmacro %}
+
 {% macro script(filename) %}
   <script src="{{ url_for('static', filename='bukuserver/js/'+filename) }}"></script>
 {% endmacro %}
