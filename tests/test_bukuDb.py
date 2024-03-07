@@ -5,12 +5,9 @@
 import math
 import os
 import re
-import shutil
 import sqlite3
 import sys
 import unittest
-import urllib
-import zipfile
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import mock
 
@@ -1318,19 +1315,15 @@ def test_load_chrome_database(chrome_db, add_pt):
 
 @pytest.fixture()
 def firefox_db(tmpdir):
-    zip_url = "https://github.com/jarun/buku/files/1319933/bookmarks.zip"
     dir_path = os.path.dirname(os.path.realpath(__file__))
     res_yaml_file = os.path.join(dir_path, "test_bukuDb", "firefox_res.yaml")
     res_nopt_yaml_file = os.path.join(dir_path, "test_bukuDb", "firefox_res_nopt.yaml")
     ff_db_path = os.path.join(dir_path, "test_bukuDb", "places.sqlite")
     if not os.path.isfile(ff_db_path):
-        tmp_zip = tmpdir.join("bookmarks.zip")
-        with urllib.request.urlopen(zip_url) as response, open(
-            tmp_zip.strpath, "wb"
-        ) as out_file:
-            shutil.copyfileobj(response, out_file)
-        with zipfile.ZipFile(tmp_zip.strpath) as zip_obj:
-            zip_obj.extractall(path=os.path.join(dir_path, "test_bukuDb"))
+        db = sqlite3.connect(ff_db_path)
+        with open(os.path.join(dir_path, 'test_bukuDb', 'places.sql'), encoding='utf-8') as sql:
+            db.cursor().executescript(sql.read())
+        db.commit()
     return ff_db_path, res_yaml_file, res_nopt_yaml_file
 
 
