@@ -45,13 +45,6 @@ server_require = [
     "Flask>=2.2.2,<2.3",
     "werkzeug<2.4",
 ]
-reverse_proxy = " ".join(
-    [
-        "flask-reverse-proxy-fix",
-        "@",
-        "https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.3.zip",
-    ]
-)
 install_requires = [
     'beautifulsoup4>=4.4.1',
     'certifi',
@@ -82,9 +75,8 @@ setup(
         'console_scripts': ['buku=buku:main', 'bukuserver=bukuserver.server:cli']
     },
     extras_require={
-        "tests": tests_require + server_require + [reverse_proxy],
+        "tests": tests_require + server_require,
         "server": server_require,
-        "reverse_proxy": [reverse_proxy],
         "docs": [
             "myst-parser>=0.17.0",
             "sphinx-rtd-theme>=1.0.0",

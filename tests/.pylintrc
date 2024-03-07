@@ -2,6 +2,7 @@
 disable=
   assigning-non-slot,
   broad-except,
+  c-extension-no-member,
   consider-using-f-string,
   consider-using-with,
   dangerous-default-value,
