@@ -275,6 +275,25 @@ tag if
 .I new
 tag is not specified.
 .TP
+.BI \--url-redirect
+when fetching an URL, use the resulting URL from following \fBpermanent\fR redirects (when combined with --export, the old URL is included as additional metadata).
+.TP
+.BI \--tag-redirect " [tag]"
+when fetching an URL that causes permanent redirect, add a
+.I tag
+in specified pattern (using 'http:{}' if not specified).
+.TP
+.BI \--tag-error " [tag]"
+when fetching an URL that causes an HTTP error, add a
+.I tag
+in specified pattern (using 'http:{}' if not specified).
+.TP
+.BI \--del-error " [...]"
+when fetching an URL causes any (given) HTTP error, delete/do not add it. (Use a parameter like '404' or '400-404,500')
+.TP
+.BI \--export-on " [...]"
+export records affected by the above options, including removed info (requires --update and --export; specific HTTP response filter can be provided).
+.TP
 .BI \--shorten " index|URL"
 Shorten the URL at DB
 .I index
@@ -843,6 +862,44 @@ List bookmarks with \fBcolored output\fR:
 .EX
 .IP
 .B $ buku --colors oKlxm -p
+.EE
+.PP
+.IP 39. 4
+Add a bookmark after following all permanent redirects, but only if the server doesn't respond with an error (and there's no network failure)
+.PP
+.EX
+.IP
+.B buku --add http://wikipedia.net --url-redirect --del-error
+.br
+2. Wikipedia
+.br
+   > https://www.wikipedia.org/
+.br
+   + Wikipedia is a free online encyclopedia, created and edited by volunteers around the world and hosted by the Wikimedia Foundation.
+.EE
+.PP
+.IP 40. 4
+Add a bookmark with tag 'http redirect' if the server responds with a permanent redirect, or tag shaped like 'http 404' on an error response:
+.PP
+.EX
+.IP
+.B buku --add http://wikipedia.net/notfound --tag-redirect 'http redirect' --tag-error 'http {}'
+.br
+[ERROR] [404] Not Found
+.br
+3. Not Found
+.br
+   > http://wikipedia.net/notfound
+.br
+   # http 404,http redirect
+.EE
+.PP
+.IP 41. 4
+Update all bookmarks matching the search by updating the URL if the server responds with a permanent redirect, deleting the bookmark if the server responds with HTTP error 400, 401, 402, 403, 404 or 500, or adding a tag shaped like 'http:{}' in case of any other HTTP error; then export those affected by such changes into an HTML file, marking deleted records as well as old URLs for those replaced by redirect.
+.PP
+.EX
+.IP
+.B buku -S ://wikipedia.net -u --url-redirect --tag-error --del-error 400-404,500 --export-on --export backup.html
 .EE
 .PP
 

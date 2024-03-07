@@ -3,9 +3,11 @@ import pytest
 import flask
 from flask_api.status import HTTP_405_METHOD_NOT_ALLOWED
 from click.testing import CliRunner
+from buku import FetchResult
 from bukuserver import server
 from bukuserver.response import Response
 from bukuserver.server import get_bool_from_env_var
+from tests.util import mock_http, mock_fetch
 
 
 def assert_response(response, exp_res: Response, data: Dict[str, Any] = None):
@@ -105,7 +107,8 @@ def test_invalid_id(client, method, url, json, exp_res):
 
 def test_tag_api(client):
     url = 'http://google.com'
-    rd = client.post('/api/bookmarks', json={'url': url, 'tags': ['tag1', 'TAG2']})
+    with mock_fetch(title='Google'):
+        rd = client.post('/api/bookmarks', json={'url': url, 'tags': ['tag1', 'TAG2']})
     assert_response(rd, Response.SUCCESS)
     rd = client.get('/api/tags')
     assert_response(rd, Response.SUCCESS, {'tags': ['tag1', 'tag2']})
@@ -145,10 +148,11 @@ def test_bookmark_api(client):
     rd = client.post('/api/bookmarks', json={})
     errors = {'url': ['This field is required.']}
     assert_response(rd, Response.INPUT_NOT_VALID, data={'errors': errors})
-    rd = client.post('/api/bookmarks', json={'url': url})
-    assert_response(rd, Response.SUCCESS)
-    rd = client.post('/api/bookmarks', json={'url': url})
-    assert_response(rd, Response.FAILURE)
+    with mock_fetch(title='Google'):
+        rd = client.post('/api/bookmarks', json={'url': url})
+        assert_response(rd, Response.SUCCESS)
+        rd = client.post('/api/bookmarks', json={'url': url})
+        assert_response(rd, Response.FAILURE)
     rd = client.get('/api/bookmarks')
     assert_response(rd, Response.SUCCESS, {'bookmarks': [{'description': '', 'tags': [], 'title': 'Google', 'url': url}]})
     rd = client.get('/api/bookmarks/1')
@@ -157,7 +161,8 @@ def test_bookmark_api(client):
     assert_response(rd, Response.INPUT_NOT_VALID, data={'errors': {'tags': 'List of tags expected.'}})
     rd = client.put('/api/bookmarks/1', json={'tags': ['tag1', 'tag2']})
     assert_response(rd, Response.SUCCESS)
-    rd = client.put('/api/bookmarks/1', json={})
+    with mock_fetch(title='Google'):
+        rd = client.put('/api/bookmarks/1', json={})
     assert_response(rd, Response.SUCCESS)
     rd = client.get('/api/bookmarks/1')
     assert_response(rd, Response.SUCCESS, {'description': '', 'tags': ['tag1', 'tag2'], 'title': 'Google', 'url': url})
@@ -170,7 +175,7 @@ def test_bookmark_api(client):
 @pytest.mark.parametrize('d_url', ['/api/bookmarks', '/api/bookmarks/1'])
 def test_bookmark_api_delete(client, d_url):
     url = 'http://google.com'
-    rd = client.post('/api/bookmarks', json={'url': url})
+    rd = client.post('/api/bookmarks', json={'url': url, 'fetch': False})
     assert_response(rd, Response.SUCCESS)
     rd = client.delete(d_url)
     assert_response(rd, Response.SUCCESS)
@@ -179,53 +184,62 @@ def test_bookmark_api_delete(client, d_url):
 @pytest.mark.parametrize('api_url', ['/api/bookmarks/refresh', '/api/bookmarks/1/refresh'])
 def test_refresh_bookmark(client, api_url):
     url = 'http://google.com'
-    rd = client.post('/api/bookmarks', json={'url': url})
-    assert_response(rd, Response.SUCCESS)
-    rd = client.post(api_url)
-    assert_response(rd, Response.SUCCESS)
+    with mock_fetch(title='Google'):
+        rd = client.post('/api/bookmarks', json={'url': url})
+        assert_response(rd, Response.SUCCESS)
+        rd = client.post(api_url)
+        assert_response(rd, Response.SUCCESS)
     rd = client.get('/api/bookmarks/1')
     assert_response(rd, Response.SUCCESS, {'description': '', 'tags': [], 'title': 'Google', 'url': url})
 
 
 @pytest.mark.parametrize(
-    'url, exp_res, data', [
-        ['http://google.com', Response.SUCCESS, {'url': 'http://tny.im/2'}],
-        ['chrome://bookmarks/', Response.FAILURE, None],
+    'url, title, exp_res, tiny', [
+        ['http://google.com', 'Google', Response.SUCCESS, 'http://tny.im/2'],
+        ['chrome://bookmarks/', '', Response.FAILURE, None],
     ])
-def test_get_tiny_url(client, url, exp_res, data):
-    rd = client.post('/api/bookmarks', json={'url': url})
+def test_get_tiny_url(client, url, title, exp_res, tiny):
+    with mock_fetch(title=title):
+        rd = client.post('/api/bookmarks', json={'url': url})
     assert_response(rd, Response.SUCCESS)
-    rd = client.get('/api/bookmarks/1/tiny')
-    assert_response(rd, exp_res, data)
+    with mock_http(body=tiny, status=(200 if tiny else 400)):
+        rd = client.get('/api/bookmarks/1/tiny')
+    assert_response(rd, exp_res, tiny and {'url': tiny})
 
 
-@pytest.mark.parametrize('kwargs, exp_res, data', [
+@pytest.mark.parametrize('kwargs, kwmock, exp_res, data', [
     [
-        {"data": {'url': 'http://google.com'}},
+        {'data': {'url': 'http://google.com'}},
+        {'title': 'Google', 'fetch_status': 200},
         Response.SUCCESS,
-        {'bad url': 0, 'recognized mime': 0, 'tags': None, 'title': 'Google'}
+        {'bad url': 0, 'recognized mime': 0, 'tags': '', 'title': 'Google'}
     ],
-    [{}, Response.FAILURE, None],
+    [{}, {}, Response.FAILURE, None],
     [
-        {"data": {'url': 'chrome://bookmarks/'}},
+        {'data': {'url': 'chrome://bookmarks/'}},
+        {'bad': True},
         Response.SUCCESS,
-        {'bad url': 1, 'recognized mime': 0, 'tags': None, 'title': None}
+        {'bad url': 1, 'recognized mime': 0, 'tags': '', 'title': ''}
     ],
 ])
-def test_network_handle(client, kwargs, exp_res, data):
-    rd = client.post('/api/network_handle', **kwargs)
+@pytest.mark.parametrize('endpoint', ['/api/fetch_data', '/api/network_handle'])
+def test_fetch_data(client, endpoint, kwargs, kwmock, exp_res, data):
+    with mock_fetch(**kwmock):
+        rd = client.post(endpoint, **kwargs)
     assert rd.status_code == exp_res.status_code
     rd_json = rd.get_json()
     rd_json.pop('description', None)
+    if endpoint == '/api/fetch_data':
+        data = data and FetchResult(kwargs['data']['url'], **kwmock)._asdict()
     assert rd_json == exp_res.json(data=data)
 
 
 def test_bookmark_range_api(client):
-    kwargs_list = [
-        {"json": {'url': 'http://google.com'}},
-        {"json": {'url': 'http://example.com'}}]
-    for kwargs in kwargs_list:
-        rd = client.post('/api/bookmarks', **kwargs)
+    bookmarks = [('http://google.com', 'Google'),
+                 ('http://example.com', 'Example Domain')]
+    for url, title in bookmarks:
+        with mock_fetch(title=title):
+            rd = client.post('/api/bookmarks', json={'url': url})
         assert_response(rd, Response.SUCCESS)
 
     rd = client.put('/api/bookmarks/1/2', json={
@@ -278,7 +292,8 @@ def test_bookmark_range_api(client):
 
 
 def test_bookmark_search(client):
-    rd = client.post('/api/bookmarks', json={'url': 'http://google.com'})
+    with mock_fetch(title='Google'):
+        rd = client.post('/api/bookmarks', json={'url': 'http://google.com'})
     assert_response(rd, Response.SUCCESS)
     rd = client.get('/api/bookmarks/search', query_string={'keywords': ['google']})
     assert_response(rd, Response.SUCCESS, {'bookmarks': [

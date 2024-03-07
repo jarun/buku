@@ -11,7 +11,8 @@ from flask_admin import Admin
 from flask_api import FlaskAPI
 from flask_bootstrap import Bootstrap
 
-from buku import BukuDb, __version__, network_handler
+import buku
+from buku import BukuDb, __version__
 
 try:
     from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
@@ -32,18 +33,23 @@ except ImportError:
 
 STATISTIC_DATA = None
 
-def handle_network():
-    url = request.data.get('url', None)
-    if not url:
-        return Response.FAILURE()
+def _fetch_data():
+    url = request.data.get('url')
     try:
-        res = network_handler(url)
-        keys = ['title', 'description', 'tags', 'recognized mime', 'bad url']
-        res_dict = dict(zip(keys, res))
-        return Response.SUCCESS(data=res_dict)
+        return (None if not url else buku.fetch_data(url))
     except Exception as e:
         current_app.logger.debug(str(e))
-    return Response.FAILURE()
+        return None
+
+def handle_network():
+    res = _fetch_data()
+    res_dict = res and {'title': res.title, 'description': res.desc, 'tags': res.keywords,
+                        'recognized mime': int(res.mime), 'bad url': int(res.bad)}
+    return (Response.FAILURE() if not res else Response.SUCCESS(data=res_dict))
+
+def fetch_data():
+    res = _fetch_data()
+    return (Response.FAILURE() if not res else Response.SUCCESS(data=res._asdict()))
 
 
 def refresh_bookmark(rec_id: Union[int, None]):
@@ -136,6 +142,7 @@ def create_app(db_file=None):
     app.add_url_rule('/api/bookmarks/<int:rec_id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<int:rec_id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
     app.add_url_rule('/api/network_handle', 'network_handle', handle_network, methods=['POST'])
+    app.add_url_rule('/api/fetch_data', 'fetch_data', fetch_data, methods=['POST'])
     bookmark_range_api_view = api.ApiBookmarkRangeView.as_view('bookmark_range_api')
     app.add_url_rule(
         '/api/bookmarks/<int:starting_id>/<int:ending_id>',

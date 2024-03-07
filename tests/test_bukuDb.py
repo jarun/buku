@@ -20,12 +20,9 @@ from genericpath import exists
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
-from buku import BukuDb, parse_tags, prompt
+from buku import PERMANENT_REDIRECTS, BukuDb, FetchResult, BookmarkVar, bookmark_vars, parse_tags, prompt
+from tests.util import mock_http, mock_fetch, _add_rec, _tagset
 
-
-def _add_rec(db, *args, **kw):
-    """Use THIS instead of db.add_rec() UNLESS you want to wait for unnecessary network requests."""
-    return db.add_rec(*args, fetch=False, **kw)
 
 def get_temp_dir_path():
     with TemporaryDirectory(prefix="bukutest_") as dir_obj:
@@ -145,13 +142,12 @@ class TestBukuDb(unittest.TestCase):
         # -- keep a copy and set it back once done
         originals = {}
         for env_var in ["HOME", "HOMEPATH", "HOMEDIR", "APPDATA"]:
-            try:
+            if env_var in os.environ:
                 originals[env_var] = os.environ.pop(env_var)
-            except KeyError:
-                pass
-        self.assertEqual(dbdir_relative_expected, BukuDb.get_default_dbdir())
-        for key, value in list(originals.items()):
-            os.environ[key] = value
+        try:
+            self.assertEqual(dbdir_relative_expected, BukuDb.get_default_dbdir())
+        finally:
+            os.environ.update(originals)
 
     # # not sure how to test this in nondestructive manner
     # def test_move_legacy_dbfile(self):
@@ -397,6 +393,7 @@ class TestBukuDb(unittest.TestCase):
                 expected[0] += tuple([0])
                 self.assertEqual(results, expected)
 
+    @pytest.mark.slow
     @pytest.mark.vcr("tests/vcr_cassettes/test_search_by_multiple_tags_search_any.yaml")
     def test_search_by_multiple_tags_search_any(self):
         # adding bookmarks
@@ -447,6 +444,7 @@ class TestBukuDb(unittest.TestCase):
             ]
             self.assertEqual(results, expected)
 
+    @pytest.mark.slow
     @pytest.mark.vcr("tests/vcr_cassettes/test_search_by_multiple_tags_search_all.yaml")
     def test_search_by_multiple_tags_search_all(self):
         # adding bookmarks
@@ -664,6 +662,7 @@ class TestBukuDb(unittest.TestCase):
                 # checking if browse called with expected arguments
                 self.assertEqual(arg_list, expected)
 
+    @pytest.mark.slow
     @pytest.mark.vcr("tests/vcr_cassettes/test_search_and_open_all_in_browser.yaml")
     def test_search_and_open_all_in_browser(self):
         # adding bookmarks
@@ -766,13 +765,16 @@ class TestBukuDb(unittest.TestCase):
                 self.assertEqual(from_db[3], parse_tags(["test,tes,est,__04"]))
 
     def test_tnyfy_url(self):
+        tny, full = 'http://tny.im/yt', 'https://www.google.com'
         # shorten a well-known url
-        shorturl = self.bdb.tnyfy_url(url="https://www.google.com", shorten=True)
-        self.assertEqual(shorturl, "http://tny.im/yt")
+        with mock_http(tny, status=200):
+            shorturl = self.bdb.tnyfy_url(url=full, shorten=True)
+        self.assertEqual(shorturl, tny)
 
         # expand a well-known short url
-        url = self.bdb.tnyfy_url(url="http://tny.im/yt", shorten=False)
-        self.assertEqual(url, "https://www.google.com")
+        with mock_http(full, status=200):
+            url = self.bdb.tnyfy_url(url=tny, shorten=False)
+        self.assertEqual(url, full)
 
     # def test_browse_by_index(self):
     # self.fail()
@@ -791,6 +793,265 @@ class TestBukuDb(unittest.TestCase):
 
     # def test_import_bookmark(self):
     # self.fail()
+
+
+@pytest.mark.parametrize('status', [None, 200, 302, 307, 404, 500])
+@pytest.mark.parametrize('fetch, url_redirect, tag_redirect, tag_error, del_error', [
+    (False, False, False, False, None),                # offline
+    (True, True, False, False, None),                  # url-redirect
+    (True, False, True, True, None),                   # tag-redirect, tag-error
+    (True, True, 'http-{}', 'error:{}', None),         # url-redirect, fetch-tags (custom patterns)
+    (True, True, 'redirect', 'error', None),           # ... (patterns without codes)
+    (True, True, 'redirect', False, range(400, 600)),  # del-error (any errors)
+    (True, True, 'redirect', 'error', {404}),          # ... (some errors)
+])
+def test_add_rec_fetch(bukuDb, caplog, fetch, url_redirect, tag_redirect, tag_error, del_error, status):
+    '''Testing add_rec() behaviour with fetch-status params'''
+    title_in, title, desc = 'Custom Title', 'Fetched Title', 'Fetched description.'
+    tags_in, url_in, url_new = ',custom,tags,', 'https://example.com', 'https://example.com/redirect'
+    url = (url_new if status in PERMANENT_REDIRECTS else url_in)
+    bdb = bukuDb()
+    with mock_fetch(url=url, title=title, desc=desc, fetch_status=status) as fetch_data:
+        index = bdb.add_rec(url=url_in, title_in=title_in, tags_in=tags_in, fetch=fetch,
+                            url_redirect=url_redirect, tag_redirect=tag_redirect,
+                            tag_error=tag_error, del_error=del_error)
+
+    # del-error?
+    if del_error and (not status or status in del_error):
+        assert index is None
+        assert bdb.get_max_id() is None
+        err = ('Network error' if not status else 'HTTP error {}'.format(status))
+        assert caplog.record_tuples == [('root', 40, 'add_rec(): '+err)]
+        return
+    rec = bdb.get_rec_by_id(index)
+
+    # offline?
+    if not fetch:
+        fetch_data.assert_not_called()
+        assert (rec.url, rec.title, rec.desc) == (url_in, title_in, '')
+        assert _tagset(rec.tags_raw) == _tagset(tags_in)
+        return
+
+    # url-redirect?
+    if url_redirect and status in PERMANENT_REDIRECTS:
+        assert rec.url == url_new
+    else:
+        assert rec.url == url_in
+
+    # custom title, fetched description
+    assert (rec.title, rec.desc) == (title_in, desc), 'custom title overrides fetched title'
+
+    # fetch-tags?
+    _tags = _tagset(tags_in)
+    if tag_redirect and status in PERMANENT_REDIRECTS:
+        _tags |= {('http:{}' if tag_redirect is True else tag_redirect).format(status).lower()}
+    if tag_error and (status or 0) >= 400:
+        _tags |= {('http:{}' if tag_error is True else tag_error).format(status).lower()}
+    assert _tagset(rec.tags) == _tags
+
+
+@pytest.mark.parametrize('index', [1, {2, 3}, None])
+@pytest.mark.parametrize('export_on', [None, PERMANENT_REDIRECTS, range(400, 600), PERMANENT_REDIRECTS | {404}])
+@pytest.mark.parametrize('url_in, title_in, tags_in, url_redirect, tag_redirect, tag_error, del_error', [
+    (None, None, None, False, False, False, None),                                          # fetched title/desc, no network test
+    (None, 'Custom Title', ',custom,tags,', False, False, False, None),                     # title, tags, no network test
+    ('http://custom.url', None, None, False, False, False, None),                           # url, fetched title/desc, no network test
+    ('http://custom.url', 'Custom Title', ',custom,tags,', False, False, False, None),      # url, title, tags, no network test
+    (None, 'Custom Title', '+,custom,tags,', True, False, False, None),                     # title, +tags, url-redirect
+    ('http://custom.url', 'Custom Title', '+,custom,tags,', False, True, True, None),       # url, title, +tags, fetch-tags
+    (None, 'Custom Title', None, True, 'http-{}', 'error:{}', None),                        # title, url-redirect, fetch-tags (custom)
+    (None, None, '-,initial%,', True, 'redirect', 'error', None),                           # -tags, url-redirect, fetch-tags (no codes)
+    ('http://custom.url', 'Custom Title', None, True, 'redirect', False, range(400, 600)),  # url, title, url-redirect, del-error
+    (None, None, ',custom,tags,', True, 'redirect', 'error', {404}),                        # tags, url-redirect, fetch-tags, del-error
+])
+def test_update_rec_fetch(bukuDb, caplog, url_in, title_in, tags_in, url_redirect, tag_redirect, tag_error, del_error, export_on, index):
+    '''Testing update_rec() behaviour with fetch-status params'''
+    # redirected URL, nonexistent page, nonexistend domain
+    urls = {
+        'http://wikipedia.net': {'fetch_status': 301, 'url': 'https://www.wikipedia.org', 'title': 'Wikipedia',
+                                 'desc': 'Wikipedia is a free online encyclopedia, created and edited blah blah'},
+        'https://python.org/notfound': {'fetch_status': 404, 'title': 'Welcome to Python.org',
+                                        'desc': 'The official home of the Python Programming Language'},
+        'http://nonexistent.url': {'fetch_status': None},  # unable to resolve host address
+    }
+    # for the URL override
+    custom_url = {'fetch_status': 200, 'title': 'Fetched Title', 'desc': 'Fetched description.'}
+
+    def custom_fetch(url, http_head=False):
+        data = dict(urls.get(url, custom_url))
+        _url = data.pop('url', url)
+        return FetchResult(url_in or _url, **data)
+
+    # computed test parameters
+    title_initial, tags_initial, desc = 'Initial Title', ',initial%,tags,', 'Initial description.'
+    fetch_title = title_in is tags_in is None  # when no custom params are passed (except for URL), titles are fetched
+    network_test = url_redirect or tag_redirect or tag_error or del_error or export_on or fetch_title
+    indices = ({index} if isinstance(index, int) else index or range(1, len(urls)+1))
+    tags = _tagset(tags_in if (tags_in or '').startswith(',') else tags_initial)
+    if not (tags_in or ',').startswith(','):
+        tags = (tags | _tagset(tags_in[1:]) if tags_in.startswith('+') else tags - _tagset(tags_in[1:]))
+
+    # setup
+    bdb = bukuDb()
+    for url_initial in urls:
+        _add_rec(bdb, url_initial, title_in=title_initial, tags_in=tags_initial, desc=desc)
+    assert bdb.get_max_id() == len(urls), 'expecting correct setup'
+    with mock_fetch(custom_fetch) as fetch_data:
+        with mock.patch('buku.read_in', return_value='y'):
+            ok = bdb.update_rec(index=index, url=url_in, title_in=title_in, tags_in=tags_in,
+                                url_redirect=url_redirect, tag_redirect=tag_redirect,
+                                tag_error=tag_error, del_error=del_error, export_on=export_on)
+    recs = bdb.get_rec_all()
+
+    # custom URL on multiple records?
+    if url_in and len(indices) != 1:
+        assert not ok, 'expected to fail'
+        assert caplog.record_tuples == [('root', 40, 'All URLs cannot be same')]
+        fetch_data.assert_not_called()
+        assert recs == [BookmarkVar(id, url, title_initial, tags_initial, desc)
+                        for id, url in enumerate(urls, start=1)]
+        return
+    assert ok, 'expected to succeed'
+
+    # offline?
+    if not network_test and not (url_in and title_in is None):
+        _tags = ',' + ','.join(sorted(tags)) + ','
+        fetch_data.assert_not_called()
+        for rec, url in zip(recs, urls):
+            if rec.id in indices:
+                assert rec == BookmarkVar(rec.id, url_in or url, title_in or title_initial, _tags, desc)
+            else:
+                assert rec == BookmarkVar(rec.id, url, title_initial, tags_initial, desc)
+        return
+
+    # export-on (given HTTP codes)?
+    if not export_on:
+        assert bdb._to_export is None, f'expected no to_export backup: {bdb._to_export}'
+    else:
+        assert isinstance(bdb._to_export, dict), f'to_export backup is not a dict: {bdb._to_export}'
+    to_export = dict(bdb._to_export or {})
+    _urls, _recs = set(urls), {x.url: x for x in recs}
+
+    # one fetch per index
+    assert fetch_data.call_count == len(indices), f'expected {len(indices)} fetches, done {fetch_data.call_count}'
+    for call in fetch_data.call_args_list:
+        # determining fetched, original and redirected URLs, along with fetched data
+        url = call.args[0]
+        url_old = url if not url_in else list(urls)[index-1]  # url_in applies to a single record
+        _urls -= {url_old}
+        data = urls.get(url, custom_url)
+        url_new = (url if not url_redirect else data.get('url', url))
+        rec = _recs.pop(url_new, None)
+        status = data.get('fetch_status')
+
+        # del-error? export-on?
+        old = to_export.pop(url_new, None)
+        if not export_on or status not in export_on:
+            assert old is None, f'{url_old}: backup not expected'
+        if del_error and status in del_error:
+            assert rec is None, f'{url_old}: HTTP error {status}, should delete'
+            if export_on and status in export_on:
+                assert isinstance(old, BookmarkVar), f'{url_old}: should backup old record'
+                assert (old.url, old.title, old.tags_raw, old.desc) == (url_old, title_initial, tags_initial, desc)
+            continue
+        if export_on and status in export_on:
+            assert old == url_old, f'{url_old}: should backup old url on redirect'
+
+        # url-redirect?
+        if url_redirect and status in PERMANENT_REDIRECTS:
+            assert url_new != url_old, f'{url_old}: redirect expected'
+            assert rec.url == url_new, f'{url_old}: should replace with {url_new}'
+        else:
+            assert url_new == rec.url, f'{url_old}: redirect not expected'
+            assert url_new == (url_in or url_old), f'{url_old}: URL should not be changed'
+
+        # title
+        if title_in or (fetch_title and 'title' in data):
+            assert rec.title == (title_in or data['title']), f'{url_old}: should update title'
+        else:
+            assert rec.title == title_initial, f'{url_old}: should not update title'
+
+        # description
+        if fetch_title and 'desc' in data:
+            assert rec.desc == data['desc'], f'{url_old}: should update description'
+        else:
+            assert rec.desc == desc, f'{url_old}: should not update description'
+
+        # tags (+fetch-tags)
+        _tags = set()
+        if tag_redirect and status in PERMANENT_REDIRECTS:
+            _tags |= {('http:{}' if tag_redirect is True else tag_redirect).format(status).lower()}
+        elif tag_error and status in range(400, 600):
+            _tags |= {('http:{}' if tag_error is True else tag_error).format(status).lower()}
+        _tags_str = ',' + ','.join(sorted(_tags)) + ','
+        assert _tagset(rec.tags) == tags | _tags, f'{url_old}: [{tags_initial} | {tags_in or ","} | {_tags_str}] -> {rec.tags}'
+
+    # other records should not have been affected (other than possibly indices)
+    assert not to_export, f'unexpected to_export backup: {to_export}'
+    assert set(_recs) == _urls
+    for rec in _recs.values():
+        assert rec == BookmarkVar(rec.id, rec.url, title_initial, tags_initial, desc)
+
+
+@pytest.mark.parametrize('ext, expected', [
+    ('db', [(1, 'http://custom.url', 'Fetched Title (DELETED)', ',', 'Fetched description.'),
+            (2, 'https://www.wikipedia.org', 'Wikipedia (OLD URL = http://wikipedia.net)', ',http:301,', 'Wikipedia is a free...'),
+            (3, 'https://python.org/notfound', 'Welcome to Python.org', ',http:404,', 'The official home...')]),
+    ('md', ['- [Fetched Title (DELETED)](http://custom.url)',
+            '- [Wikipedia (OLD URL = http://wikipedia.net)](https://www.wikipedia.org) <!-- TAGS: http:301 -->',
+            '- [Welcome to Python.org](https://python.org/notfound) <!-- TAGS: http:404 -->']),
+    ('org', ['* [[http://custom.url][Fetched Title (DELETED)]]',
+             '* [[https://www.wikipedia.org][Wikipedia (OLD URL = http://wikipedia.net)]] :http_301:',
+             '* [[https://python.org/notfound][Welcome to Python.org]] :http_404:']),
+    ('xbel', ['<?xml version="1.0" encoding="UTF-8"?>',
+              '<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" '
+                                    '"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">',
+              '<xbel version="1.0">',
+                  '<bookmark href="http://custom.url">', '<title>Fetched Title (DELETED)</title>', '</bookmark>',
+                  '<bookmark href="https://www.wikipedia.org" TAGS="http:301">',
+                      '<title>Wikipedia (OLD URL = http://wikipedia.net)</title>',
+                  '</bookmark>',
+                  '<bookmark href="https://python.org/notfound" TAGS="http:404">',
+                      '<title>Welcome to Python.org</title>',
+                  '</bookmark>',
+              '</xbel>',]),
+    ('html', ['<!DOCTYPE NETSCAPE-Bookmark-file-1>', '',
+              '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">',
+              '<TITLE>Bookmarks</TITLE>', '<H1>Bookmarks</H1>', '',
+              '<DL><p>',
+              '    <DT><H3 ADD_DATE="{0}" LAST_MODIFIED="{0}" PERSONAL_TOOLBAR_FOLDER="true">buku bookmarks</H3>',
+              '    <DL><p>',
+              '        <DT><A HREF="http://custom.url" ADD_DATE="{0}" LAST_MODIFIED="{0}">Fetched Title (DELETED)</A>',
+              '        <DD>Fetched description.',
+              '        <DT><A HREF="https://www.wikipedia.org" ADD_DATE="{0}" LAST_MODIFIED="{0}" '
+                             'TAGS="http:301">Wikipedia (OLD URL = http://wikipedia.net)</A>',
+              '        <DD>Wikipedia is a free...',
+              '        <DT><A HREF="https://python.org/notfound" ADD_DATE="{0}" LAST_MODIFIED="{0}" '
+                             'TAGS="http:404">Welcome to Python.org</A>',
+              '        <DD>The official home...',
+              '    </DL><p>',
+              '</DL><p>']),
+])
+def test_export_on(bukuDb, ext, expected):
+    '''Testing exportdb() behaviour after update_rec() with export_on'''
+    outfile = TEST_TEMP_DIR_PATH + '/export-on.' + ext
+    bdb = bukuDb()
+    _add_rec(bdb, 'https://www.wikipedia.org', 'Wikipedia', ',http:301,', 'Wikipedia is a free...')
+    _add_rec(bdb, 'https://python.org/notfound', 'Welcome to Python.org', ',http:404,', 'The official home...')
+    _add_rec(bdb, 'https://nonexistent.url', 'Custom Title')                    # not exported
+    to_export = {'http://custom.url': BookmarkVar(1, 'http://custom.url', 'Fetched Title', ',', 'Fetched description.'),  # deleted
+                 'https://www.wikipedia.org': 'http://wikipedia.net',           # redirect
+                 'https://python.org/notfound': 'https://python.org/notfound'}  # unchanged
+    bdb._to_export = dict(to_export)
+    bdb.exportdb(outfile, None)
+    if ext == 'db':
+        assert BukuDb(dbfile=outfile).get_rec_all() == list(bookmark_vars(expected))
+    else:
+        with open(outfile, encoding='utf-8') as fout:
+            output = fout.read()
+        match = re.search('ADD_DATE="([0-9]+)"', output)
+        timestamp = match and match.group(1)
+        assert output.splitlines() == [s.format(timestamp) for s in expected]
 
 
 @pytest.fixture(scope="function")
@@ -825,7 +1086,8 @@ def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     if title_in:
         args.append(title_in)
     _add_rec(bdb, *args)
-    bdb.refreshdb(1, 1)
+    with mock_fetch(title=exp_res):
+        bdb.refreshdb(1, 1)
     from_db = bdb.get_rec_by_id(1)
     assert from_db[2] == exp_res, "from_db: {}".format(from_db)
 
@@ -1147,7 +1409,8 @@ def test_add_rec_exec_arg(bukuDb, kwargs, exp_arg):
     try:
         bdb.cur = mock.Mock()
         bdb.get_rec_id = mock.Mock(return_value=None)
-        bdb.add_rec(**kwargs)
+        with mock_fetch(title=exp_arg[1]):
+            bdb.add_rec(**kwargs)
         assert bdb.cur.execute.call_args[0][1] == exp_arg
     finally:
         bdb.cur = _cur
@@ -1183,26 +1446,14 @@ def test_update_rec_invalid_tag(bukuDb, caplog, invalid_tag):
     bdb = bukuDb()
     res = bdb.update_rec(index=1, url=url, tags_in=invalid_tag)
     assert not res
-    try:
-        assert caplog.records[0].getMessage() == "Please specify a tag"
-        assert caplog.records[0].levelname == "ERROR"
-    except IndexError as e:
-        if (sys.version_info.major, sys.version_info.minor) == (3, 4):
-            print("caplog records: {}".format(caplog.records))
-            for idx, record in enumerate(caplog.records):
-                print(
-                    "idx:{};{};message:{};levelname:{}".format(
-                        idx, record, record.getMessage(), record.levelname
-                    )
-                )
-        else:
-            raise e
+    assert caplog.records[0].getMessage() == "Please specify a tag"
+    assert caplog.records[0].levelname == "ERROR"
 
 
 @pytest.mark.parametrize(
     "read_in_retval, exp_res, record_tuples",
     [
-        ["y", False, [("root", 40, "No matching index 0")]],
+        ["y", False, [("root", 40, "No matches found")]],
         ["n", False, []],
         ["", False, []],
     ],

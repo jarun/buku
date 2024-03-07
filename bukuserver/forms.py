@@ -63,6 +63,7 @@ class ApiBookmarkCreateForm(ApiTagForm):
     title = StringField()
     description = StringField()
     tags = FieldList(StringField(validators=[validate_tag]), min_entries=0)
+    fetch = HiddenField(filters=[bool], default=True)
 
 
 class ApiBookmarkEditForm(ApiBookmarkCreateForm):

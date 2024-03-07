@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import signal
-import sys
 import unittest
 from itertools import product
 from unittest import mock
@@ -11,9 +10,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from buku import DELIM, FIELD_FILTER, ALL_FIELDS, is_int, prep_tag_search, print_rec_with_filter
-
-only_python_3_5 = pytest.mark.skipif(sys.version_info < (3, 5), reason="requires Python 3.5 or later")
+from buku import DELIM, FIELD_FILTER, ALL_FIELDS, FetchResult, is_int, prep_tag_search, print_rec_with_filter, parse_range
 
 
 def check_import_html_results_contains(result, expected_result):
@@ -269,7 +266,6 @@ def test_browse(url, opened_url, platform):
             get_func_retval.open.assert_called_once_with(opened_url, new=2)
 
 
-@only_python_3_5
 @pytest.mark.parametrize("status_code, latest_release", product([200, 404], [True, False]))
 def test_check_upstream_release(status_code, latest_release):
     """test func."""
@@ -316,7 +312,6 @@ def test_delim_wrap(token, exp_res):
     assert res == exp_res
 
 
-@only_python_3_5
 def test_read_in():
     """test func."""
     message = mock.Mock()
@@ -432,7 +427,6 @@ def test_parse_temp_file_content(content, exp_res):
     assert res == exp_res
 
 
-@only_python_3_5
 @pytest.mark.skip(reason="can't patch subprocess")
 def test_edit_rec():
     """test func."""
@@ -489,24 +483,21 @@ def test_sigint_handler(capsys):
         assert err == "\nInterrupted.\n"
 
 
-@pytest.mark.vcr("tests/vcr_cassettes/test_network_handler_with_url.yaml")
+@pytest.mark.vcr("tests/vcr_cassettes/test_fetch_data_with_url.yaml")
 @pytest.mark.parametrize(
     "url, exp_res",
     [
-        ["http://example.com.", (None, None, None, 0, 1)],
-        ["http://example.com", ("Example Domain", None, None, 0, 0)],
-        ["http://example.com/page1.txt", (("", "", "", 1, 0))],
-        ["about:new_page", ((None, None, None, 0, 1))],
-        ["chrome://version/", ((None, None, None, 0, 1))],
-        ["chrome://version/", ((None, None, None, 0, 1))],
+        ["http://example.com.", {'bad': True}],
+        ["http://example.com", {'title': 'Example Domain', 'fetch_status': 200}],
+        ["http://example.com/page1.txt", {'mime': True, 'fetch_status': 404}],
+        ["about:new_page", {'bad': True}],
+        ["chrome://version/", {'bad': True}],
+        ["chrome://version/", {'bad': True}],
         # [
         #     'http://4pda.ru/forum/index.php?showtopic=182463&st=1640#entry6044923',
-        #     (
-        #         'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
-        #         'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
-        #         None,
-        #         0, 0
-        #     )
+        #     {'title': 'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
+        #      'desc':  'Samsung GT-I5800 Galaxy 580 - Обсуждение - 4PDA',
+        #      'fetch_status': 200},
         # ],
         [
             "https://www.google.ru/search?"
@@ -515,22 +506,17 @@ def test_sigint_handler(capsys):
             "gs_l=serp.3..33i21.28976559.28977886.0."
             "28978017.6.6.0.0.0.0.167.668.0j5.5.0....0...1c.1.64."
             "serp..1.2.311.06cSKPTLo18",
-            ("xkbcomp alt gr", None, None, 0, 0),
+            {'title': 'xkbcomp alt gr', 'fetch_status': 200},
         ],
         [
             "http://www.vim.org/scripts/script.php?script_id=4641",
-            (
-                'mlessnau_case - "in-case" selection, deletion and substitution for underscore, camel, mixed case : vim online',
-                None,
-                None,
-                0,
-                0,
-            ),
+            {'title': 'mlessnau_case - "in-case" selection, deletion and substitution for underscore, camel, mixed case : vim online',
+             'fetch_status': 200},
         ],
     ],
     ids=lambda s: (s.split('?')[0] + '~' if isinstance(s, str) and '?' in s else None),
 )
-def test_network_handler_with_url(url, exp_res):
+def test_fetch_data_with_url(url, exp_res):
     """test func."""
     import urllib3
 
@@ -538,14 +524,10 @@ def test_network_handler_with_url(url, exp_res):
 
     buku.urllib3 = urllib3
     buku.myproxy = None
-    res = buku.network_handler(url)
+    res = buku.fetch_data(url)
     if urlparse(url).netloc == "www.google.ru":
-        temp_res = [
-            res[0].split(" - ")[0],
-        ]
-        temp_res.extend(res[1:])
-        res = tuple(temp_res)
-    assert res == exp_res
+        res = res._replace(title=res.title.split(' - ')[0])
+    assert res == FetchResult(url, **exp_res)
 
 
 @pytest.mark.parametrize(
@@ -962,3 +944,24 @@ def test_get_data_from_page(charset, mode):
     resp = HTTPResponse(body.encode(charset), headers)
     parsed_title, desc, keywords = get_data_from_page(resp)
     assert parsed_title == title
+
+
+@pytest.mark.parametrize('tokens, valid, expected', [
+    (None, None, None),
+    ('404', None, {404}),
+    ('403,404', None, {403, 404}),
+    ({'400', '500'}, None, {400, 500}),
+    (('400-404', '500'), None, {400, 401, 402, 403, 404, 500}),
+    (['400-404', '500'], lambda x: x in range(400, 600), {400, 401, 402, 403, 404, 500}),
+    (['400-404', '300'], lambda x: x in range(400, 600), ValueError('Not a valid range')),
+])
+def test_parse_range(tokens, valid, expected):
+    if not isinstance(expected, Exception):
+        assert parse_range(tokens, valid) == expected
+    else:
+        try:
+            parse_range(tokens, valid)
+            assert False, 'error expected'
+        except Exception as e:
+            assert type(e) is type(expected)
+            assert str(e) == str(expected)
