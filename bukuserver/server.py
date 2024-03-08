@@ -14,9 +14,9 @@ from flask_bootstrap import Bootstrap
 from buku import BukuDb, __version__, network_handler
 
 try:
-    from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
+    from .middleware import ReverseProxyPrefixFix
 except ImportError:
-    ReverseProxyPrefixFix = None
+    from bukuserver.middleware import ReverseProxyPrefixFix
 import click
 import flask
 from flask import __version__ as flask_version  # type: ignore
@@ -99,10 +99,7 @@ def create_app(db_file=None):
         if reverse_proxy_path.endswith('/'):
             print('Warning: reverse proxy path should not include trailing slash')
         app.config['REVERSE_PROXY_PATH'] = reverse_proxy_path
-        if ReverseProxyPrefixFix:
-            ReverseProxyPrefixFix(app)
-        else:
-            raise ImportError('Failed to import ReverseProxyPrefixFix')
+        ReverseProxyPrefixFix(app)
     bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
     app.config['FLASK_ADMIN_SWATCH'] = (os.getenv('BUKUSERVER_THEME') or 'default').lower()
     app.config['BUKUSERVER_LOCALE'] = os.getenv('BUKUSERVER_LOCALE') or 'en'
