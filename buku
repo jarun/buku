@@ -1127,8 +1127,7 @@ class BukuDb:
                 processed['value'] += count
                 cond.notify()
 
-        if recs < threads:
-            threads = recs
+        threads = min(threads, recs)
 
         for i in range(threads):
             thread = threading.Thread(target=refresh, args=(i, cond))
@@ -2307,12 +2306,11 @@ class BukuDb:
         for item in sublist:
             if item['type'] == 'folder':
                 next_folder_name = folder_name + DELIM + strip_delim(item['name'])
-                for i in self.traverse_bm_folder(
+                yield from self.traverse_bm_folder(
                         item['children'],
                         unique_tag,
                         next_folder_name,
-                        add_parent_folder_as_tag):
-                    yield i
+                        add_parent_folder_as_tag)
             elif item['type'] == 'url':
                 try:
                     if is_nongeneric_url(item['url']):
