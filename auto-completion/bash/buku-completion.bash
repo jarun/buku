@@ -37,6 +37,11 @@ _buku () {
         --replace
         -s --sany
         -S --sall
+        --url-redirect
+        --tag-redirect
+        --tag-error
+        --del-error
+        --export-on
         --shorten
         --offline
         --suggest

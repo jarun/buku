@@ -17,6 +17,7 @@ def test_get_filehash(tmpdir):
     assert res == exp_res
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     'filesize',
     list(range(0, 17)) + [511, 512, 513, 1023, 1024, 1025, 524288, 524289, 1000000, 1048576, 2097152, 4194304]

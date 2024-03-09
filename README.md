@@ -244,6 +244,22 @@ POWER TOYS:
       --oa                 browse all search results immediately
       --replace old new    replace old tag with new tag everywhere
                            delete old tag, if new tag not specified
+      --url-redirect       when fetching an URL, use the resulting
+                           URL from following *permanent* redirects
+                           (when combined with --export, the old URL
+                           is included as additional metadata)
+      --tag-redirect [tag] when fetching an URL that causes permanent
+                           redirect, add a tag in specified pattern
+                           (using 'http:{}' if not specified)
+      --tag-error [tag]    when fetching an URL that causes an HTTP
+                           error, add a tag in specified pattern
+                           (using 'http:{}' if not specified)
+      --del-error [...]    when fetching an URL causes any (given)
+                           HTTP error, delete/do not add it
+      --export-on [...]    export records affected by the above
+                           options, including removed info
+                           (requires --update and --export; specific
+                           HTTP response filter can be provided)
       --shorten index|URL  fetch shortened url from tny.im service
       --expand index|URL   expand a tny.im shortened url
       --cached index|URL   browse a cached page from Wayback Machine
@@ -489,7 +505,23 @@ PROMPT KEYS:
 38. List bookmarks with **colored output**:
 
         $ buku --colors oKlxm -p
-39. More **help**:
+39. Add a bookmark after following all permanent redirects, but only if the server doesn't respond with an error (and there's no network failure)
+
+        $ buku --add http://wikipedia.net --url-redirect --del-error
+        2. Wikipedia
+           > https://www.wikipedia.org/
+           + Wikipedia is a free online encyclopedia, created and edited by volunteers around the world and hosted by the Wikimedia Foundation.
+40. Add a bookmark with tag `http redirect` if the server responds with a permanent redirect, or tag shaped like `http 404` on an error response:
+
+        $ buku --add http://wikipedia.net/notfound --tag-redirect 'http redirect' --tag-error 'http {}'
+        [ERROR] [404] Not Found
+        3. Not Found
+           > http://wikipedia.net/notfound
+           # http 404,http redirect
+41. Update all bookmarks matching the search by updating the URL if the server responds with a permanent redirect, deleting the bookmark if the server responds with HTTP error 400, 401, 402, 403, 404 or 500, or adding a tag shaped like `http:{}` in case of any other HTTP error; then export those affected by such changes into an HTML file, marking deleted records as well as old URLs for those replaced by redirect.
+
+        $ buku -S ://wikipedia.net -u --url-redirect --tag-error --del-error 400-404,500 --export-on --export backup.html
+42. More **help**:
 
         $ buku -h
         $ man buku

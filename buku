@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with buku.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import annotations  # for |
 
 import argparse
 import calendar
@@ -45,6 +46,8 @@ from enum import Enum
 from itertools import chain
 from subprocess import DEVNULL, PIPE, Popen
 from typing import Any, Dict, List, Optional, Tuple, NamedTuple
+from collections.abc import Sequence, Set, Callable
+from warnings import warn
 
 import urllib3
 from bs4 import BeautifulSoup
@@ -68,6 +71,9 @@ SKIP_MIMES = {'.pdf', '.txt'}
 PROMPTMSG = 'buku (? for help): '  # Prompt message string
 
 strip_delim = lambda s, delim=DELIM, sub=' ': str(s).replace(delim, sub)
+taglist = lambda ss: sorted(s.lower() for s in set(ss) if s)
+taglist_str = lambda s: delim_wrap(DELIM.join(taglist(s.split(DELIM))))
+like_escape = lambda s, c='`': s.replace(c, c+c).replace('_', c+'_').replace('%', c+'%')
 
 # Default format specifiers to print records
 ID_STR = '%d. %s [%s]\n'
@@ -115,6 +121,14 @@ MYHEADERS = None  # Default dictionary of headers
 MYPROXY = None  # Default proxy
 TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
 IGNORE_FF_BOOKMARK_FOLDERS = frozenset(["placesRoot", "bookmarksMenuFolder"])
+PERMANENT_REDIRECTS = {301, 308}
+
+# IntSet: TypeAlias = Set[int] | range      # TODO: use after dropping 3.8 & 3.9
+# Ints: TypeAlias = Sequence[int] | IntSet
+# IntOrInts: TypeAlias = int | Ints
+# T = TypeVar('T')
+# Values: TypeAlias = Sequence[T] | Set[T]
+# del T
 
 # Set up logging
 LOGGER = logging.getLogger()
@@ -377,6 +391,27 @@ class BukuCrypt:
             sys.exit(1)
 
 
+class FetchResult(NamedTuple):
+    url: str                            # resulting URL after following PERMANENT redirects
+    title: str = ''
+    desc: str = ''
+    keywords: str = ''
+    mime: bool = False
+    bad: bool = False
+    fetch_status: Optional[int] = None  # None means no fetch occurred (e.g. due to a network error)
+
+    def tag_redirect(self, pattern: str = None) -> str:
+        return ('' if self.fetch_status not in PERMANENT_REDIRECTS else (pattern or 'http:{}').format(self.fetch_status))
+
+    def tag_error(self, pattern: str = None) -> str:
+        return ('' if (self.fetch_status or 0) < 400 else (pattern or 'http:{}').format(self.fetch_status))
+
+    def tags(self, *, keywords: bool = True, redirect: bool | str = False, error: bool | str = False) -> str:
+        _redirect = redirect and self.tag_redirect(None if redirect is True else redirect)
+        _error = error and self.tag_error(None if error is True else error)
+        return DELIM.join(taglist((keywords and self.keywords or '').split(DELIM) + [_redirect, _error]))
+
+
 class BookmarkVar(NamedTuple):
     """Bookmark data named tuple"""
     id: int
@@ -442,6 +477,8 @@ class BukuDb:
         self.chatty = chatty
         self.colorize = colorize
         self.conn, self.cur = BukuDb.initdb(dbfile, self.chatty)
+        self._to_export = None  # type: Optional[Dict[str, str | BookmarkVar]]
+        self._to_delete = None  # type: Optional[int | Sequence[int] | Set[int] | range]
 
     @staticmethod
     def get_default_dbdir():
@@ -581,6 +618,23 @@ class BukuDb:
 
         return self._fetch_first('SELECT * FROM bookmarks WHERE id = ?', index)
 
+    def get_rec_all_by_ids(self, indices: Sequence[int] | Set[int] | range):  # Ints
+        """Get all the bookmarks in the database.
+
+        Parameters
+        ----------
+        indices : int[] | int{} | range
+            DB indices of bookmark records.
+
+        Returns
+        -------
+        list
+            A list of tuples representing bookmark records.
+        """
+
+        placeholder = ', '.join(['?'] * len(indices))
+        return indices and self._fetch(f'SELECT * FROM bookmarks WHERE id IN ({placeholder})', list(indices))
+
     def get_rec_id(self, url):
         """Check if URL already exists in DB.
 
@@ -597,6 +651,26 @@ class BukuDb:
 
         row = self._fetch_first('SELECT * FROM bookmarks WHERE url = ?', url)
         return row and row.id
+
+    def get_rec_ids(self, urls: Sequence[str] | Set[str]):  # Values[str]
+        """Check if URL already exists in DB.
+
+        Parameters
+        ----------
+        urls : str[] | str{}
+            URLs to search for in the DB.
+
+        Returns
+        -------
+        list
+            A list of DB indices.
+        """
+
+        if not urls:
+            return []
+        placeholder = ', '.join(['?'] * len(urls))
+        self.cur.execute(f'SELECT id FROM bookmarks WHERE url IN ({placeholder})', list(urls))
+        return [x[0] for x in self.cur.fetchall()]
 
     def get_max_id(self) -> int:
         """Fetch the ID of the last record.
@@ -618,14 +692,18 @@ class BukuDb:
             desc: Optional[str] = None,
             immutable: bool = False,
             delay_commit: bool = False,
-            fetch: bool = True) -> int:
+            fetch: bool = True,
+            url_redirect: bool = False,
+            tag_redirect: bool | str = False,
+            tag_error: bool | str = False,
+            del_error: Optional[Set[int] | range] = None) -> int:  # Optional[IntSet]
         """Add a new bookmark.
 
         Parameters
         ----------
         url : str
             URL to bookmark.
-        title_in :str, optional
+        title_in : str, optional
             Title to add manually. Default is None.
         tags_in : str, optional
             Comma-separated tags to add manually.
@@ -638,7 +716,18 @@ class BukuDb:
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
         fetch : bool
-            Fetch page from web and parse for data
+            Fetch page from web and parse for data. Required fetch-status params to take effect.
+        url_redirect : bool
+            Bookmark the URL produced after following all PERMANENT redirects.
+        tag_redirect : bool | str
+            Adds a tag by the given pattern if the url resolved to a PERMANENT
+            redirect. (True means the default pattern 'http:{}'.)
+        tag_error : bool | str
+            Adds a tag by the given pattern if the url resolved to a HTTP error.
+            (True means the default pattern 'http:{}'.)
+        del_error : int{} | range, optional
+            Do not add the bookmark if HTTP response status is in the given set or range.
+            Also prevents the bookmark from being added on a network error.
 
         Returns
         -------
@@ -659,36 +748,37 @@ class BukuDb:
 
         if fetch:
             # Fetch data
-            ptitle, pdesc, ptags, mime, bad = network_handler(url)
-            if bad:
+            result = fetch_data(url)
+            if result.bad:
                 print('Malformed URL\n')
-            elif mime:
+            elif result.mime:
                 LOGDBG('HTTP HEAD requested')
-            elif ptitle == '' and title_in is None:
+            elif not result.title and title_in is None:
                 print('No title\n')
             else:
-                LOGDBG('Title: [%s]', ptitle)
+                LOGDBG('Title: [%s]', result.title)
         else:
-            ptitle = pdesc = ptags = ''
-            LOGDBG('ptags: [%s]', ptags)
+            result = FetchResult(url, fetch_status=200)
+            LOGDBG('ptags: [%s]', result.tags(redirect=tag_redirect, error=tag_error))
 
-        if title_in is not None:
-            ptitle = title_in
+        url = (result.url if url_redirect else url)
+        title = (title_in if title_in is not None else result.title)
 
         # Fix up tags, if broken
-        tags_in = delim_wrap(tags_in)
+        tags_in = taglist_str((tags_in or '') + DELIM + result.tags(redirect=tag_redirect, error=tag_error))
 
         # Process description
-        if desc is None:
-            desc = '' if pdesc is None else pdesc
+        desc = (desc if desc is not None else result.desc) or ''
 
         try:
+            assert not del_error or result.fetch_status is not None, 'Network error'
+            assert not del_error or result.fetch_status not in del_error, f'HTTP error {result.fetch_status}'
             flagset = FLAG_NONE
             if immutable:
                 flagset |= FLAG_IMMUTABLE
 
             qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
-            self.cur.execute(qry, (url, ptitle, tags_in, desc, flagset))
+            self.cur.execute(qry, (url, title, tags_in, desc, flagset))
             if not delay_commit:
                 self.conn.commit()
             if self.chatty:
@@ -703,8 +793,8 @@ class BukuDb:
 
         Parameters
         ----------
-        index : int
-            DB index of the record. 0 indicates all records.
+        index : int | int[] | int{} | range, optional
+            DB index of the record. 0 or empty indicates all records.
         tags_in : str
             Comma-separated tags to add manually.
         delay_commit : bool
@@ -719,15 +809,17 @@ class BukuDb:
 
         if tags_in is None or tags_in == DELIM:
             return True
+        indices = (None if not index else [index] if isinstance(index, int) else index)
 
-        if index == 0:
+        if not indices:
             resp = read_in('Append the tags to ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
             self.cur.execute('SELECT id, tags FROM bookmarks ORDER BY id ASC')
         else:
-            self.cur.execute('SELECT id, tags FROM bookmarks WHERE id = ? LIMIT 1', (index,))
+            placeholder = ', '.join(['?'] * len(indices))
+            self.cur.execute(f'SELECT id, tags FROM bookmarks WHERE id IN ({placeholder}) ORDER BY id ASC', tuple(indices))
 
         resultset = self.cur.fetchall()
         if resultset:
@@ -751,8 +843,8 @@ class BukuDb:
 
         Parameters
         ----------
-        index : int
-            DB index of bookmark record. 0 indicates all records.
+        index : int | int[] | int{} | range, optional
+            DB index of bookmark record. 0 or empty indicates all records.
         tags_in : str
             Comma-separated tags to delete manually.
         delay_commit : bool
@@ -771,23 +863,26 @@ class BukuDb:
             return True
 
         tags_to_delete = tags_in.strip(DELIM).split(DELIM)
+        indices = (None if not index else [index] if isinstance(index, int) else index)
 
-        if index == 0:
-            if chatty:
+        if len(indices or []) != 1:
+            if not indices and chatty:
                 resp = read_in('Delete the tag(s) from ALL bookmarks? (y/n): ')
                 if resp != 'y':
                     return False
 
+            query = "UPDATE bookmarks SET tags = replace(tags, ?, ?) WHERE tags LIKE ? ESCAPE '`'"
+            if indices:
+                query += ' AND id IN ({})'.format(', '.join(['?'] * len(indices)))
+
             count = 0
-            match = "'%' || ? || '%'"
             for tag in tags_to_delete:
                 tag = delim_wrap(tag)
-                q = ("UPDATE bookmarks SET tags = replace(tags, '%s', '%s') "
-                     "WHERE tags LIKE %s" % (tag, DELIM, match))
-                self.cur.execute(q, (tag,))
+                args = (tag, DELIM, '%'+like_escape(tag, '`')+'%') + tuple(indices or [])
+                self.cur.execute(query, args)
                 count += self.cur.rowcount
 
-            if count and not delay_commit:
+            if count > 0 and not delay_commit:
                 self.conn.commit()
                 if self.chatty:
                     print('%d record(s) updated' % count)
@@ -797,7 +892,7 @@ class BukuDb:
         # Process a single index
         # Use SELECT and UPDATE to handle multiple tags at once
         query = 'SELECT id, tags FROM bookmarks WHERE id = ? LIMIT 1'
-        self.cur.execute(query, (index,))
+        self.cur.execute(query, list(indices))
         resultset = self.cur.fetchall()
         if resultset:
             query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
@@ -820,22 +915,27 @@ class BukuDb:
 
     def update_rec(
             self,
-            index: int,
+            index: Optional[int | Sequence[int] | Set[int] | range],  # Optional[IntOrInts]
             url: Optional[str] = None,
             title_in: Optional[str] = None,
             tags_in: Optional[str] = None,
             desc: Optional[str] = None,
             immutable: Optional[bool] = None,
-            threads: int = 4) -> bool:
-        """Update an existing record at index.
+            threads: int = 4,
+            url_redirect: bool = False,
+            tag_redirect: bool | str = False,
+            tag_error: bool | str = False,
+            del_error: Optional[Set[int] | range] = None,             # Optional[IntSet]
+            export_on: Optional[Set[int] | range] = None) -> bool:    # Optional[IntSet]
+        """Update an existing record at (each) index.
 
-        Update all records if index is 0 and url is not specified.
+        Update all records if index is 0 or empty, and url is not specified.
         URL is an exception because URLs are unique in DB.
 
         Parameters
         ----------
-        index : int
-            DB index of record. 0 indicates all records.
+        index : int | int[] | int{} | range, optional
+            DB index(es) of record(s). 0 or empty value indicates all records.
         url : str, optional
             Bookmark address.
         title_in : str, optional
@@ -850,58 +950,52 @@ class BukuDb:
             Disable title fetch from web if True. Default is None (no change).
         threads : int
             Number of threads to use to refresh full DB. Default is 4.
+        url_redirect : bool
+            Update the URL to one produced after following all PERMANENT redirects.
+            (This could fail if the new URL is bookmarked already.)
+        tag_redirect : bool | str
+            Adds a tag by the given pattern if the url resolved to a PERMANENT
+            redirect. (True means the default pattern 'http:{}'.)
+        tag_error : bool | str
+            Adds a tag by the given pattern if the url resolved to a HTTP error.
+            (True means the default pattern 'http:{}'.)
+        del_error : int{} | range, optional
+            Delete the bookmark if HTTP response status is in the given set or range.
+            Does NOT cause deletion of the bookmark on a network error.
+        export_on : int{} | range, optional
+            Limit the export to URLs returning one of given HTTP codes; store old URLs.
 
         Returns
         -------
         bool
-            True on success, False on Failure.
+            True on success, False on failure. (Deletion by del_error counts as success.)
         """
 
         arguments = []  # type: List[Any]
         query = 'UPDATE bookmarks SET'
-        to_update = False
         tag_modified = False
-        ret = False
+        ret = True
+        indices = (None if not index else [index] if isinstance(index, int) else index)
+        index = indices and list(indices or [])[0]
+        single = len(indices or []) == 1
+        export_on, self._to_export = (export_on or set()), ({} if export_on else None)
+        tags_in = (tags_in or None if not tags_in or re.match('[+-],', tags_in) else delim_wrap(tags_in))
 
-        # Update URL if passed as argument
-        if url is not None and url != '':
-            if index == 0:
-                LOGERR('All URLs cannot be same')
-                return False
-            query += ' URL = ?,'
-            arguments += (url,)
-            to_update = True
+        if url and not single:
+            LOGERR('All URLs cannot be same')
+            return False
 
-        # Update tags if passed as argument
-        if tags_in is not None:
-            if tags_in in ('+,', '-,'):
-                LOGERR('Please specify a tag')
-                return False
+        if tags_in in ('+,', '-,'):
+            LOGERR('Please specify a tag')
+            return False
 
-            if tags_in.startswith('+,'):
-                chatty = self.chatty
-                self.chatty = False
-                ret = self.append_tag_at_index(index, tags_in[1:])
-                self.chatty = chatty
-                tag_modified = True
-            elif tags_in.startswith('-,'):
-                chatty = self.chatty
-                self.chatty = False
-                ret = self.delete_tag_at_index(index, tags_in[1:])
-                self.chatty = chatty
-                tag_modified = True
-            else:
-                tags_in = delim_wrap(tags_in)
-
-                query += ' tags = ?,'
-                arguments += (tags_in,)
-                to_update = True
+        if indices and min(indices) > (self.get_max_id() or 0):  # none of the indices exist in DB?
+            return False
 
         # Update description if passed as an argument
         if desc is not None:
             query += ' desc = ?,'
             arguments += (desc,)
-            to_update = True
 
         # Update immutable flag if passed as argument
         if immutable is not None:
@@ -911,7 +1005,6 @@ class BukuDb:
             else:
                 query += ' flags = flags & ?,'
                 arguments += (~FLAG_IMMUTABLE,)
-            to_update = True
 
         # Update title
         #
@@ -921,65 +1014,104 @@ class BukuDb:
         #    If URL is passed, update the title from web using the URL
         # 4. If no other argument (url, tag, comment, immutable) passed,
         #    update title from web using DB URL (if title is mutable)
-        title_to_insert = None
-        pdesc = None
-        ptags = None
-        if title_in is not None:
-            title_to_insert = title_in
-        elif url is not None and url != '':
-            title_to_insert, pdesc, ptags, mime, bad = network_handler(url)
-            if bad:
+        fetch_title = {url, title_in, tags_in, desc, immutable} == {None}
+        network_test = url_redirect or tag_redirect or tag_error or del_error or export_on or fetch_title
+        if url and title_in is None:
+            network_test = False
+            _url = url or self.get_rec_by_id(index).url
+            result = fetch_data(_url)
+            if result.bad:
                 print('Malformed URL')
-            elif mime:
+            elif result.mime:
                 LOGDBG('HTTP HEAD requested')
-            elif title_to_insert == '':
+            elif not result.title:
                 print('No title')
             else:
-                LOGDBG('Title: [%s]', title_to_insert)
+                LOGDBG('Title: [%s]', result.title)
 
-            if not desc:
-                if not pdesc:
-                    pdesc = ''
+            if result.desc and not desc:
                 query += ' desc = ?,'
-                arguments += (pdesc,)
-                to_update = True
-        elif not to_update and not tag_modified:
-            ret = self.refreshdb(index, threads)
-            if ret and index and self.chatty:
-                self.print_rec(index)
-            return ret
+                arguments += (result.desc,)
 
-        if title_to_insert is not None:
+            if url_redirect and result.url != _url:
+                url = result.url
+
+            if result.fetch_status in export_on:  # storing the old URL
+                self._to_export[url or _url] = _url
+        else:
+            result = FetchResult(url, title_in)
+
+        if result.title is not None:
             query += ' metadata = ?,'
-            arguments += (title_to_insert,)
-            to_update = True
+            arguments += (result.title,)
 
-        if not to_update:  # Nothing to update
-            # Show bookmark if tags were appended to deleted
-            if tag_modified and self.chatty:
-                self.print_rec(index)
-            return ret
+        # Update URL if passed as argument
+        if url:
+            query += ' URL = ?,'
+            arguments += (url,)
 
-        if index == 0:  # Update all records
+        if result.fetch_status in (del_error or []):
+            if result.fetch_status in export_on:  # storing the old record
+                self._to_export[url] = self.get_rec_by_id(index)
+            LOGERR('HTTP error %s', result.fetch_status)
+            return self.delete_rec(index)
+
+        if not indices and (arguments or tags_in):
             resp = read_in('Update ALL bookmarks? (y/n): ')
             if resp != 'y':
                 return False
 
-            query = query[:-1]
-        else:
-            query = query[:-1] + ' WHERE id = ?'
-            arguments += (index,)
+        if network_test:  # doing this before updates to backup records to-be-deleted in their original state
+            custom_tags = (tags_in if (tags_in or '').startswith(DELIM) else None)
+            ret = ret and self.refreshdb(indices, threads, url_redirect=url_redirect, tag_redirect=tag_redirect,
+                                         tag_error=tag_error, del_error=del_error, export_on=export_on,
+                                         update_title=fetch_title, custom_url=url, custom_tags=custom_tags, delay_delete=True)
+
+        # Update tags if passed as argument
+        _tags = result.tags(keywords=False, redirect=tag_redirect, error=tag_error)
+        if tags_in or _tags:
+            if not tags_in or tags_in.startswith('+,'):
+                tags = taglist_str((tags_in or '')[1:] + _tags)
+                chatty = self.chatty
+                self.chatty = False
+                ret = self.append_tag_at_index(indices, tags)
+                self.chatty = chatty
+                tag_modified = True
+            elif tags_in.startswith('-,'):
+                chatty = self.chatty
+                self.chatty = False
+                ret = self.delete_tag_at_index(indices, tags_in[1:])
+                if _tags:
+                    self.append_tag_at_index(indices, _tags)
+                self.chatty = chatty
+                tag_modified = True
+            elif not network_test:  # rely on custom_tags to avoid overwriting fetch-status tags
+                query += ' tags = ?,'
+                arguments += (taglist_str(tags_in + _tags),)
+
+        if not arguments:  # no arguments => nothing to update
+            if (tag_modified or network_test) and self.chatty:
+                self.print_rec(indices)
+            self.commit_delete()
+            return ret
+
+        query = query[:-1]
+        if indices:  # Only specified indices
+            query += ' WHERE id IN ({})'.format(', '.join(['?'] * len(indices)))
+            arguments += tuple(indices)
 
         LOGDBG('update_rec query: "%s", args: %s', query, arguments)
 
         try:
             self.cur.execute(query, arguments)
             self.conn.commit()
-            if self.cur.rowcount and self.chatty:
+            if self.cur.rowcount > 0 and self.chatty:
                 self.print_rec(index)
-
-            if self.cur.rowcount == 0:
-                LOGERR('No matching index %d', index)
+            elif self.cur.rowcount == 0:
+                if single:
+                    LOGERR('No matching index %d', index)
+                else:
+                    LOGERR('No matches found')
                 return False
         except sqlite3.IntegrityError:
             LOGERR('URL already exists')
@@ -987,32 +1119,87 @@ class BukuDb:
         except sqlite3.OperationalError as e:
             LOGERR(e)
             return False
+        finally:
+            self.commit_delete()
 
         return True
 
-    def refreshdb(self, index: int, threads: int) -> bool:
-        """Refresh ALL records in the database.
+    def refreshdb(
+            self,
+            index: Optional[int | Sequence[int] | Set[int] | range],  # Optional[IntOrInts]
+            threads: int,
+            url_redirect: bool = False,
+            tag_redirect: bool | str = False,
+            tag_error: bool | str = False,
+            del_error: Optional[Set[int] | range] = None,             # Optional[IntSet]
+            export_on: Optional[Set[int] | range] = None,             # Optional[IntSet]
+            update_title: bool = True,
+            custom_url: Optional[str] = None,
+            custom_tags: Optional[str] = None,
+            delay_delete: bool = False) -> bool:
+        """Refresh ALL (or specified) records in the database.
 
         Fetch title for each bookmark from the web and update the records.
-        Doesn't update the record if fetched title is empty.
+        Doesn't update the title if fetched title is empty.
 
         Notes
         -----
             This API doesn't change DB index, URL or tags of a bookmark.
+            (Unless one or more fetch-status parameters are supplied.)
             This API is verbose.
 
         Parameters
         ----------
-        index : int
-            DB index of record to update. 0 indicates all records.
+        index : int | int[] | int{} | range, optional
+            DB index(es) of record(s) to update. 0 or empty value indicates all records.
         threads: int
             Number of threads to use to refresh full DB. Default is 4.
+        url_redirect : bool
+            Update the URL to one produced after following all PERMANENT redirects.
+            (This could fail if the new URL is bookmarked already.)
+        tag_redirect : bool | str
+            Adds a tag by the given pattern if the url resolved to a PERMANENT
+            redirect. (True means the default pattern 'http:{}'.)
+        tag_error : bool | str
+            Adds a tag by the given pattern if the url resolved to a HTTP error.
+            (True means the default pattern 'http:{}'.)
+        del_error : int{} | range, optional
+            Delete the bookmark if HTTP response status is in the given set or range.
+        export_on : int{} | range, optional
+            Limit the export to URLs returning one of given HTTP codes; store old URLs.
+        update_title : bool
+            Update titles/descriptions. (Can be turned off for network testing.)
+        custom_url : str, optional
+            Override URL to fetch. (Use for network testing of a single record before updating it.)
+        custom_tags : str, optional
+            Overwrite all tags. (Use to combine network testing with tags overwriting.)
+        delay_delete : bool
+            Delay scheduled deletions by del_error. (Use for network testing during update.)
+
+        Returns
+        -------
+        bool
+            True on success, False on failure. (Deletion by del_error counts as success.)
         """
 
-        if index == 0:
-            self.cur.execute('SELECT id, url, flags FROM bookmarks ORDER BY id ASC')
+        indices = (None if not index else [index] if isinstance(index, int) else index)
+        index = indices and list(indices)[0]
+        export_on, self._to_export = (export_on or set()), ({} if export_on else None)
+        self._to_delete = []
+
+        if not update_title and not (url_redirect or tag_redirect or tag_error or del_error or export_on):
+            LOGERR('Noop update request')
+            return False
+        if custom_url and len(indices or []) != 1:
+            LOGERR('custom_url is only supported for a singular index')
+            return False
+
+        if not indices:
+            self.cur.execute('SELECT id, url, tags, flags FROM bookmarks ORDER BY id ASC')
         else:
-            self.cur.execute('SELECT id, url, flags FROM bookmarks WHERE id = ? LIMIT 1', (index,))
+            placeholder = ', '.join(['?'] * len(indices))
+            self.cur.execute(f'SELECT id, url, tags, flags FROM bookmarks WHERE id IN ({placeholder}) ORDER BY id ASC',
+                             tuple(indices))
 
         resultset = self.cur.fetchall()
         recs = len(resultset)
@@ -1036,7 +1223,7 @@ class BukuDb:
         processed = {'value': 0}  # count number of records processed
 
         # An additional call to generate default headers
-        # gen_headers() is called within network_handler()
+        # gen_headers() is called within fetch_data()
         # However, this initial call to setup headers
         # ensures there is no race condition among the
         # initial threads to setup headers
@@ -1064,58 +1251,87 @@ class BukuDb:
 
                 cond.acquire()
                 if resultset:
-                    row = resultset.pop()
+                    id, url, tags, flags = resultset.pop()
                 else:
                     cond.release()
                     break
                 cond.release()
 
-                title, desc, tags, mime, bad = network_handler(row[1], row[2] & 1)
+                result = fetch_data(custom_url or url, http_head=(flags & FLAG_IMMUTABLE) > 0)
                 count += 1
 
                 cond.acquire()
 
-                if bad:
-                    print(bad_url_str % row[0])
+                if result.bad:
+                    print(bad_url_str % id)
+                    if custom_tags:
+                        self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (custom_tags, id))
                     cond.release()
                     continue
 
-                if mime:
+                if result.fetch_status in (del_error or []):
+                    if result.fetch_status in export_on:
+                        self._to_export[url] = self.get_rec_by_id(id)
+                    LOGERR('HTTP error %s', result.fetch_status)
+                    self._to_delete += [id]
+                    if result.mime and self.chatty:
+                        print(mime_str % id)
+                    if custom_tags:
+                        self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (custom_tags, id))
+                    cond.release()
+                    continue
+
+                if result.mime:
                     if self.chatty:
-                        print(mime_str % row[0])
+                        print(mime_str % id)
+                    if custom_tags:
+                        self.cur.execute('UPDATE bookmarks SET tags = ? WHERE id = ?', (custom_tags, id))
                     cond.release()
                     continue
 
-                to_update = False
-
-                if not title or title == '':
-                    LOGERR(blank_url_str, row[0])
-                else:
+                if not result.title:
+                    LOGERR(blank_url_str, id)
+                elif update_title:
                     query += ' metadata = ?,'
-                    arguments += (title,)
-                    to_update = True
+                    arguments += (result.title,)
 
-                if desc:
+                if update_title and result.desc:
                     query += ' desc = ?,'
-                    arguments += (desc,)
-                    to_update = True
+                    arguments += (result.desc,)
 
-                if not to_update:
+                _url = url
+                if url_redirect and result.url != url:
+                    query += ' url = ?,'
+                    arguments += (result.url,)
+                    _url = result.url
+
+                if result.fetch_status in export_on:
+                    self._to_export[_url] = url
+
+                _tags = result.tags(keywords=False, redirect=tag_redirect, error=tag_error)
+                if _tags:
+                    query += ' tags = ?,'
+                    arguments += (taglist_str((custom_tags or tags) + DELIM + _tags),)
+                elif custom_tags:
+                    query += ' tags = ?,'
+                    arguments += (taglist_str(custom_tags),)
+
+                if not arguments:  # nothing to update
                     cond.release()
                     continue
 
                 query = query[:-1] + ' WHERE id = ?'
-                arguments += (row[0],)
+                arguments += (id,)
                 LOGDBG('refreshdb query: "%s", args: %s', query, arguments)
 
                 self.cur.execute(query, arguments)
 
                 # Save after fetching 32 titles per thread
-                if count & 0b11111 == 0:
+                if count % 32 == 0:
                     self.conn.commit()
 
                 if self.chatty:
-                    print(success_str % (title, row[0]))
+                    print(success_str % (result.title, id))
                 cond.release()
 
                 if INTERRUPTED:
@@ -1142,8 +1358,19 @@ class BukuDb:
             LOGERR('Records: %d, processed: %d !!!', recs, processed['value'])
 
         cond.release()
-        self.conn.commit()
+        if delay_delete:
+            self.conn.commit()
+        else:
+            self.commit_delete()
         return True
+
+    def commit_delete(self, apply: bool = True):
+        """Commit delayed delete commands."""
+        if apply and self._to_delete is not None:
+            for id in sorted(set(self._to_delete), reverse=True):
+                self.delete_rec(id, delay_commit=True, chatty=False)
+            self.conn.commit()
+        self._to_delete = None
 
     def edit_update_rec(self, index, immutable=None):
         """Edit in editor and update a record.
@@ -1507,7 +1734,8 @@ class BukuDb:
             low: int = 0,
             high: int = 0,
             is_range: bool = False,
-            delay_commit: bool = False
+            delay_commit: bool = False,
+            chatty: Optional[bool] = None,
     ) -> bool:
         """Delete a single record or remove the table if index is 0.
 
@@ -1525,6 +1753,8 @@ class BukuDb:
         delay_commit : bool
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
+        chatty : Optional[bool]
+            Override for self.chatty
 
         Raises
         ------
@@ -1582,6 +1812,7 @@ class BukuDb:
         All bookmarks deleted
         True
         """
+        chatty = (chatty if chatty is not None else self.chatty)
         params = [low, high]
         if not is_range:
             params.append(index)
@@ -1601,7 +1832,7 @@ class BukuDb:
                 return self.cleardb()
 
             try:
-                if self.chatty:
+                if chatty:
                     self.cur.execute('SELECT COUNT(*) from bookmarks where id '
                                      'BETWEEN ? AND ?', (low, high))
                     count = self.cur.fetchone()
@@ -1635,7 +1866,7 @@ class BukuDb:
             return self.cleardb()
         else:  # Remove a single entry
             try:
-                if self.chatty:
+                if chatty:
                     self.cur.execute('SELECT COUNT(*) FROM bookmarks WHERE '
                                      'id = ? LIMIT 1', (index,))
                     count = self.cur.fetchone()
@@ -1751,7 +1982,8 @@ class BukuDb:
 
         return False
 
-    def print_rec(self, index: int = 0, low: int = 0, high: int = 0, is_range: bool = False) -> bool:
+    def print_rec(self, index: Optional[int | Sequence[int] | Set[int] | range] = 0,  # Optional[IntOrInts]
+                  low: int = 0, high: int = 0, is_range: bool = False) -> bool:
         """Print bookmark details at index or all bookmarks if index is 0.
 
         A negative index behaves like tail, if title is blank show "Untitled".
@@ -1760,8 +1992,9 @@ class BukuDb:
 
         Parameters
         -----------
-        index : int
-            DB index of record to print. 0 prints all records.
+        index : int | int[] | int{} | range, optional
+            DB index(es) of record(s) to print. 0 or empty prints all records.
+            Negative value prints out last `index` rows.
         low : int
             Actual lower index of range.
         high : int
@@ -1806,7 +2039,10 @@ class BukuDb:
         >>> edb.print_rec(low=-1, high=-1, is_range=True)
         False
         """
-        if not is_range and index < 0:
+        if isinstance(index, range) and index.step == 1:
+            return self.print_rec(None, is_range=True, low=index.start, high=index.stop)
+
+        if not is_range and isinstance(index, int) and index < 0:
             # Show the last n records
             _id = self.get_max_id()
             if not _id:
@@ -1814,8 +2050,7 @@ class BukuDb:
                 return False
 
             low = (1 if _id <= -index else _id + index + 1)
-            high = _id
-            is_range = True
+            return self.print_rec(None, is_range=True, low=low, high=_id)
 
         if is_range:
             if low < 0 or high < 0:
@@ -1836,14 +2071,17 @@ class BukuDb:
             except IndexError:
                 LOGERR('Index out of range')
                 return False
-        elif index != 0:  # Show record at index
+        elif index:  # Show record at index
             try:
-                results = self._fetch('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', index)
-                if not results:
-                    LOGERR('No matching index %d', index)
-                    return False
+                if isinstance(index, int):
+                    results = self._fetch('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', index)
+                else:
+                    placeholder = ', '.join(['?'] * len(index))
+                    results = self._fetch(f'SELECT * FROM bookmarks WHERE id IN ({placeholder}) ORDER BY id', *index)
             except IndexError:
-                LOGERR('No matching index %d', index)
+                results = None
+            if not results:
+                LOGERR('No matching index %s', index)
                 return False
 
             if self.json is None:
@@ -1855,7 +2093,7 @@ class BukuDb:
 
             return True
         else:  # Show all entries
-            self.cur.execute('SELECT * FROM bookmarks')
+            self.cur.execute('SELECT * FROM bookmarks ORDER BY id')
             resultset = self.cur.fetchall()
 
         if not resultset:
@@ -2207,7 +2445,8 @@ class BukuDb:
 
     def exportdb(self, filepath: str, resultset: Optional[List[BookmarkVar]] = None) -> bool:
         """Export DB bookmarks to file.
-        Exports full DB, if resultset is None
+        Exports full DB, if resultset is None.
+        Additionally, if run after a (batch) update with export_on, only export those records.
 
         If destination file name ends with '.db', bookmarks are
         exported to a buku database file.
@@ -2225,7 +2464,8 @@ class BukuDb:
         filepath : str
             Path to export destination file.
         resultset : list of tuples
-            List of results to export.
+            List of results to export. Use `None` to get current DB.
+            Ignored if run after a (batch) update with export_on.
 
 
         Returns
@@ -2242,6 +2482,16 @@ class BukuDb:
                 print('No records found')
                 return False
 
+        old = self._to_export or {}
+        if self._to_export is not None:
+            _resultset = dict(old)
+            _resultset.update({x.url: x for x in resultset if x.url in old})
+            resultset = list(_resultset.values())
+            self._to_export = None
+            if not resultset:
+                print('No records to export')
+                return False
+
         if os.path.exists(filepath):
             resp = read_in(filepath + ' exists. Overwrite? (y/n): ')
             if resp != 'y':
@@ -2254,7 +2504,11 @@ class BukuDb:
             outdb = BukuDb(dbfile=filepath)
             qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
             for row in resultset:
-                outdb.cur.execute(qry, (row.url, row.title, row.tags_raw, row.desc, row.flags))
+                _old = old.get(row.url)
+                _add = (f' (OLD URL = {_old})' if isinstance(_old, str) and _old != row.url else
+                        ' (DELETED)' if _old is row else '')
+                title = ((row.title or '') + _add if _add else row.title)
+                outdb.cur.execute(qry, (row.url, title, row.tags_raw, row.desc, row.flags))
                 count += 1
             outdb.conn.commit()
             outdb.close()
@@ -2264,19 +2518,19 @@ class BukuDb:
         with open(filepath, mode='w', encoding='utf-8') as outfp:
             res = {}  # type: Dict
             if filepath.endswith('.md'):
-                res = convert_bookmark_set(resultset, 'markdown')
+                res = convert_bookmark_set(resultset, 'markdown', old)
                 count += res['count']
                 outfp.write(res['data'])
             elif filepath.endswith('.org'):
-                res = convert_bookmark_set(resultset, 'org')
+                res = convert_bookmark_set(resultset, 'org', old)
                 count += res['count']
                 outfp.write(res['data'])
             elif filepath.endswith('.xbel'):
-                res = convert_bookmark_set(resultset, 'xbel')
+                res = convert_bookmark_set(resultset, 'xbel', old)
                 count += res['count']
                 outfp.write(res['data'])
             else:
-                res = convert_bookmark_set(resultset, 'html')
+                res = convert_bookmark_set(resultset, 'html', old)
                 count += res['count']
                 outfp.write(res['data'])
             print('%s exported' % count)
@@ -2790,7 +3044,7 @@ n: don't add parent folder as tag
 
         from urllib.parse import quote_plus as qp
 
-        url = url if url is not None else ''
+        url = url or ''
         urlbase = 'https://tny.im/yourls-api.php?action='
         if shorten:
             _u = urlbase + 'shorturl&format=simple&url=' + qp(url)
@@ -3052,8 +3306,7 @@ def convert_tags_to_org_mode_tags(tags: str) -> str:
         buku_tags = tags.split(DELIM)[1:-1]
         buku_tags = [re.sub(r'[^a-zA-Z0-9_@]', ' ', tag) for tag in buku_tags]
         buku_tags = [re.sub(r'\s+', ' ', tag) for tag in buku_tags]
-        buku_tags = list(
-            sorted(set(map(lambda x: x.replace(' ', '_'), buku_tags)), reverse=False))
+        buku_tags = taglist(x.replace(' ', '_') for x in buku_tags)
         if buku_tags:
             return ' :{}:\n'.format(':'.join(buku_tags))
     return '\n'
@@ -3061,13 +3314,15 @@ def convert_tags_to_org_mode_tags(tags: str) -> str:
 
 def convert_bookmark_set(
         bookmark_set: List[BookmarkVar],
-        export_type: str) -> ConverterResult:  # type: ignore
+        export_type: str,
+        old: Optional[Dict[str, str | BookmarkVar]] = None) -> ConverterResult:  # type: ignore
     """Convert list of bookmark set into multiple data format.
 
     Parameters
     ----------
         bookmark_set: bookmark set
-        export type: one of supported type: markdown, html, org, XBEL
+        export_type: one of supported type: markdown, html, org, XBEL
+        old: cached values of deleted records/replaced URLs to save
 
     Returns
     -------
@@ -3077,12 +3332,19 @@ def convert_bookmark_set(
     assert export_type in ['markdown', 'html', 'org', 'xbel']
     #  compatibility
     resultset = bookmark_vars(bookmark_set)
+    old = old or {}
+
+    def title(row, fallback=''):
+        _old = old.get(row.url)
+        _add = (f' (OLD URL = {_old})' if isinstance(_old, str) and _old != row.url else
+                ' (DELETED)' if _old == row else '')
+        return (row.title or fallback) + _add
 
     count = 0
     out = ''
     if export_type == 'markdown':
         for row in resultset:
-            out += '- [' + (row.title or 'Untitled') + '](' + row.url + ')'
+            out += '- [' + title(row, 'Untitled') + '](' + row.url + ')'
 
             if row.tags:
                 out += ' <!-- TAGS: {} -->\n'.format(row.tags)
@@ -3092,7 +3354,7 @@ def convert_bookmark_set(
             count += 1
     elif export_type == 'org':
         for row in resultset:
-            out += '* [[{}][{}]]'.format(row.url, row.title or 'Untitled')
+            out += '* [[{}][{}]]'.format(row.url, title(row, 'Untitled'))
             out += convert_tags_to_org_mode_tags(row.tags_raw)
             count += 1
     elif export_type == 'xbel':
@@ -3109,7 +3371,7 @@ def convert_bookmark_set(
             if row.tags:
                 out += ' TAGS="' + html.escape(row.tags).encode('ascii', 'xmlcharrefreplace').decode('utf-8') + '"'
             out += '>\n<title>{}</title>\n</bookmark>\n'\
-                .format(html.escape(row.title).encode('ascii', 'xmlcharrefreplace').decode('utf-8') if row.title else '')
+                .format(html.escape(title(row)).encode('ascii', 'xmlcharrefreplace').decode('utf-8'))
             count += 1
 
         out += '</xbel>'
@@ -3129,7 +3391,7 @@ def convert_bookmark_set(
             out += '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row.url, timestamp, timestamp)
             if row.tags:
                 out += ' TAGS="' + row.tags + '"'
-            out += '>{}</A>\n'.format(row.title or '')
+            out += '>{}</A>\n'.format(title(row))
             if row.desc:
                 out += '        <DD>' + row.desc + '\n'
             count += 1
@@ -3765,9 +4027,9 @@ def parse_decoded_page(page):
         (title, description, keywords).
     """
 
-    title = None
-    desc = None
-    keys = None
+    title = ''
+    desc = ''
+    keys = ''
 
     soup = BeautifulSoup(page, 'html5lib')
 
@@ -3808,7 +4070,7 @@ def parse_decoded_page(page):
                     else:
                         desc = '* ' + keys
 
-                keys = None
+                keys = ''
     except Exception as e:
         LOGDBG(e)
 
@@ -3816,7 +4078,7 @@ def parse_decoded_page(page):
     LOGDBG('desc : %s', desc)
     LOGDBG('keys : %s', keys)
 
-    return (title, desc, keys)
+    return (title, desc, keys and keys.strip(DELIM))
 
 
 def get_data_from_page(resp):
@@ -3908,7 +4170,25 @@ def get_PoolManager():
 def network_handler(
         url: str,
         http_head: bool = False
-) -> Tuple[Optional[str], Optional[str], Optional[str], int, int]:
+) -> Tuple[str, str, str, int, int]:
+    """Handle server connection and redirections.
+
+    Deprecated; use fetch_data() instead.
+
+    Returns
+    -------
+    tuple
+        (title, description, tags, recognized mime, bad url)
+    """
+    warn('\'buku.network_handler()\' is deprecated; use \'buku.fetch_data()\' instead.', DeprecationWarning)
+    result = fetch_data(url, http_head)
+    return (result.title, result.desc, result.keywords, int(result.mime), int(result.bad))
+
+
+def fetch_data(
+        url: str,
+        http_head: bool = False
+) -> FetchResult:
     """Handle server connection and redirections.
 
     Parameters
@@ -3920,17 +4200,19 @@ def network_handler(
 
     Returns
     -------
-    tuple
-        (title, description, tags, recognized mime, bad url).
+    FetchResult
+        (url, title, desc, keywords, mime, bad, fetch_status)
     """
 
-    page_title = None
-    page_desc = None
-    page_keys = None
+    page_status = None
+    page_url = url
+    page_title = ''
+    page_desc = ''
+    page_keys = ''
     exception = False
 
     if is_nongeneric_url(url) or is_bad_url(url):
-        return (None, None, None, 0, 1)
+        return FetchResult(url, bad=True)
 
     if is_ignored_mime(url) or http_head:
         method = 'HEAD'
@@ -3945,9 +4227,14 @@ def network_handler(
 
         while True:
             resp = manager.request(method, url, retries=Retry(redirect=10))
+            page_status = resp.status
 
             if resp.status == 200:
                 if method == 'GET':
+                    for retry in resp.retries.history:
+                        if retry.status not in PERMANENT_REDIRECTS:
+                            break
+                        page_status, page_url = retry.status, retry.redirect_location
                     page_title, page_desc, page_keys = get_data_from_page(resp)
             elif resp.status == 403 and url.endswith('/'):
                 # HTTP response Forbidden
@@ -3961,6 +4248,7 @@ def network_handler(
                 resp.close()
                 continue
             else:
+                page_title, page_desc, page_keys = get_data_from_page(resp)
                 LOGERR('[%s] %s', resp.status, resp.reason)
 
             if resp:
@@ -3968,19 +4256,17 @@ def network_handler(
 
             break
     except Exception as e:
-        LOGERR('network_handler(): %s', e)
+        LOGERR('fetch_data(): %s', e)
         exception = True
 
     if manager:
         manager.clear()
     if exception:
-        return (None, None, None, 0, 0)
+        return FetchResult(url)
     if method == 'HEAD':
-        return ('', '', '', 1, 0)
-    if page_title is None:
-        return ('', page_desc, page_keys, 0, 0)
+        return FetchResult(url, mime=True, fetch_status=page_status)
 
-    return (page_title, page_desc, page_keys, 0, 0)
+    return FetchResult(page_url, title=page_title, desc=page_desc, keywords=page_keys, fetch_status=page_status)
 
 
 def parse_tags(keywords=[]):
@@ -4033,14 +4319,8 @@ def parse_tags(keywords=[]):
     if tags == DELIM:
         return tags
 
-    # original tags in lower case
-    orig_tags = tags.lower().strip(DELIM).split(DELIM)
-
-    # Create list of unique tags and sort
-    unique_tags = sorted(set(orig_tags))
-
-    # Wrap with delimiter
-    return delim_wrap(DELIM.join(unique_tags))
+    # sorted unique tags in lowercase, wrapped with delimiter
+    return taglist_str(tags)
 
 
 def prep_tag_search(tags: str) -> Tuple[List[str], Optional[str], Optional[str]]:
@@ -5272,6 +5552,44 @@ def monkeypatch_textwrap_for_cjk():
     textwrap.wrap.patched = True
     textwrap.fill.patched = True
 
+
+def parse_range(tokens: Optional[str | Sequence[str] | Set[str]],  # Optional[str | Values[str]]
+                valid: Optional[Callable[[int], bool]] = None) -> Optional[Set[int]]:
+    """Convert a token or sequence/set of token into a set of indices.
+
+    Raises a ValueError on invalid token. Returns None if passed None as tokens.
+
+    Parameters
+    ----------
+    tokens : str | str[] | str{}, optional
+        String(s) containing an index (#), or a range (#-#), or a comma-separated list thereof.
+    valid : (int) -> bool, optional
+        Additional check for invalid indices (default is None).
+
+    Returns
+    -------
+    Optional[Set[int]]
+        None if tokens is None, otherwise parsed indices as unordered set.
+    """
+    if tokens is None:
+        return None
+    result = set()
+    for token in ([tokens] if isinstance(tokens, str) else tokens):
+        for idx in token.split(','):
+            if is_int(idx):
+                result |= {int(idx)}
+            elif '-' in idx:
+                l, r = map(int, idx.split('-'))
+                if l > r:
+                    l, r = r, l
+                result |= set(range(l, r + 1))
+            elif idx:
+                raise ValueError(f'Invalid token: {idx}')
+    if valid and any(not valid(idx) for idx in result):
+        raise ValueError('Not a valid range')
+    return result
+
+
 # main starts here
 def main():
     """Main."""
@@ -5454,6 +5772,22 @@ POSITIONAL ARGUMENTS:
     --oa                 browse all search results immediately
     --replace old new    replace old tag with new tag everywhere
                          delete old tag, if new tag not specified
+    --url-redirect       when fetching an URL, use the resulting
+                         URL from following *permanent* redirects
+                         (when combined with --export, the old URL
+                         is included as additional metadata)
+    --tag-redirect [tag] when fetching an URL that causes permanent
+                         redirect, add a tag in specified pattern
+                         (using 'http:{}' if not specified)
+    --tag-error [tag]    when fetching an URL that causes an HTTP
+                         error, add a tag in specified pattern
+                         (using 'http:{}' if not specified)
+    --del-error [...]    when fetching an URL causes any (given)
+                         HTTP error, delete/do not add it
+    --export-on [...]    export records affected by the above
+                         options, including removed info
+                         (requires --update and --export; specific
+                         HTTP response filter can be provided)
     --shorten index|URL  fetch shortened url from tny.im service
     --expand index|URL   expand a tny.im shortened url
     --cached index|URL   browse a cached page from Wayback Machine
@@ -5479,6 +5813,11 @@ POSITIONAL ARGUMENTS:
     addarg('-o', '--open', nargs='*', help=hide)
     addarg('--oa', action='store_true', help=hide)
     addarg('--replace', nargs='+', help=hide)
+    addarg('--url-redirect', action='store_true', help=hide)
+    addarg('--tag-redirect', nargs='?', const=True, default=False, help=hide)
+    addarg('--tag-error', nargs='?', const=True, default=False, help=hide)
+    addarg('--del-error', nargs='*', help=hide)
+    addarg('--export-on', nargs='*', help=hide)
     addarg('--shorten', nargs=1, help=hide)
     addarg('--expand', nargs=1, help=hide)
     addarg('--cached', nargs=1, help=hide)
@@ -5573,24 +5912,47 @@ POSITIONAL ARGUMENTS:
 
     # Set up title
     if args.title is not None:
-        if args.title:
-            title_in = ' '.join(args.title)
-        else:
-            title_in = ''
+        title_in = ' '.join(args.title)
 
     # Set up tags
     if args.tag is not None:
-        if args.tag:
-            tags_in = args.tag
-        else:
-            tags_in = [DELIM, ]
+        tags_in = args.tag or [DELIM]
 
     # Set up comment
     if args.comment is not None:
-        if args.comment:
-            desc_in = ' '.join(args.comment)
-        else:
-            desc_in = ''
+        desc_in = ' '.join(args.comment)
+
+    # validating HTTP-code handling args
+    tag_redirect = args.tag_redirect
+    if isinstance(args.tag_redirect, str):
+        try:
+            args.tag_redirect.format(301)
+            tag_redirect = args.tag_redirect.strip() or True
+        except (IndexError, KeyError):
+            LOGERR('Invalid format of --tag-redirect (should use "{}" as placeholder)')
+            sys.exit(1)
+    tag_error = args.tag_error
+    if isinstance(args.tag_error, str):
+        try:
+            args.tag_error.format(301)
+            tag_error = args.tag_error.strip() or True
+        except (IndexError, KeyError):
+            LOGERR('Invalid format of --tag-error (should use "{}" as placeholder)')
+            sys.exit(1)
+    try:
+        del_error = (None if args.del_error is None else
+                     parse_range(args.del_error, lambda x: 400 <= x < 600) or range(400, 600))
+    except ValueError:
+        LOGERR('Invalid HTTP code(s) given for --del-error (should be within 4xx/5xx ranges)')
+        sys.exit(1)
+    try:
+        _default = (set() if not args.url_redirect and not tag_redirect else PERMANENT_REDIRECTS)
+        _default |= set([] if not tag_error else range(400, 600)) | set(del_error or [])
+        export_on = (None if args.export_on is None else
+                     parse_range(args.export_on, lambda x: 100 <= x < 600) or _default)
+    except ValueError:
+        LOGERR('Invalid HTTP code(s) given for --export-on')
+        sys.exit(1)
 
     # Initialize the database and get handles, set verbose by default
     bdb = BukuDb(
@@ -5665,7 +6027,8 @@ POSITIONAL ARGUMENTS:
         if edit_aborted is False:
             if args.suggest:
                 tags = bdb.suggest_similar_tag(tags)
-            bdb.add_rec(url, title_in, tags, desc_in, _immutable(args), False, not args.offline)
+            bdb.add_rec(url, title_in, tags, desc_in, _immutable(args), delay_commit=False, fetch=not args.offline,
+                        url_redirect=args.url_redirect, tag_redirect=tag_redirect, tag_error=tag_error, del_error=del_error)
 
     # Search record
     search_results = None
@@ -5819,7 +6182,7 @@ POSITIONAL ARGUMENTS:
             print_json_safe(search_results, field_filter=args.format)
 
         # Export the results, if opted
-        if args.export is not None:
+        if args.export and not (args.update is not None and export_on):
             bdb.exportdb(args.export[0], search_results)
 
         # In case of search and delete/update,
@@ -5852,77 +6215,27 @@ POSITIONAL ARGUMENTS:
         if not args.update:
             # Update all records only if search was not opted
             if not search_opted:
-                bdb.update_rec(0, url_in, title_in, tags, desc_in, _immutable(args), args.threads)
-            elif search_results and search_results is not None and update_search_results:
+                _indices = []
+            elif search_results and update_search_results:
                 if not args.tacit:
                     print('Updated results:\n')
 
-                pos = len(search_results) - 1
-                while pos >= 0:
-                    idx = search_results[pos][0]
-                    bdb.update_rec(
-                        idx,
-                        url_in,
-                        title_in,
-                        tags,
-                        desc_in,
-                        _immutable(args),
-                        args.threads
-                    )
-
-                    # Commit at every 200th removal
-                    if pos % 200 == 0:
-                        bdb.conn.commit()
-
-                    pos -= 1
+                _indices = [x.id for x in search_results]
+            else:
+                _indices = None
         else:
-            for idx in args.update:
-                if is_int(idx):
-                    bdb.update_rec(
-                        int(idx),
-                        url_in,
-                        title_in,
-                        tags,
-                        desc_in,
-                        _immutable(args),
-                        args.threads
-                    )
-                elif '-' in idx:
-                    try:
-                        vals = [int(x) for x in idx.split('-')]
-                        if vals[0] > vals[1]:
-                            vals[0], vals[1] = vals[1], vals[0]
-
-                        # Update only once if range starts from 0 (all)
-                        if vals[0] == 0:
-                            bdb.update_rec(
-                                0,
-                                url_in,
-                                title_in,
-                                tags,
-                                desc_in,
-                                _immutable(args),
-                                args.threads
-                            )
-                        else:
-                            for _id in range(vals[0], vals[1] + 1):
-                                bdb.update_rec(
-                                    _id,
-                                    url_in,
-                                    title_in,
-                                    tags,
-                                    desc_in,
-                                    _immutable(args),
-                                    args.threads
-                                )
-                                if INTERRUPTED:
-                                    break
-                    except ValueError:
-                        LOGERR('Invalid index or range to update')
-                        bdb.close_quit(1)
-
-                if INTERRUPTED:
-                    break
+            try:
+                _indices = parse_range(args.update, lambda x: x >= 0)
+            except ValueError:
+                LOGERR('Invalid index or range to update')
+                bdb.close_quit(1)
+            _indices = ([] if 0 in _indices else _indices)
+        if _indices is not None:
+            bdb.update_rec(_indices, url_in, title_in, tags, desc_in, _immutable(args), threads=args.threads,
+                           url_redirect=args.url_redirect, tag_redirect=tag_redirect,
+                           tag_error=tag_error, del_error=del_error, export_on=export_on)
+            if args.export and bdb._to_export is not None:
+                bdb.exportdb(args.export[0], None)
 
     # Delete record
     if args.delete is not None:
@@ -5991,7 +6304,7 @@ POSITIONAL ARGUMENTS:
                 bdb.close_quit(1)
 
     # Export bookmarks
-    if args.export is not None and not search_opted:
+    if args.export and not search_opted and not export_on:
         bdb.exportdb(args.export[0])
 
     # Import bookmarks

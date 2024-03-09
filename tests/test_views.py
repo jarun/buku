@@ -8,15 +8,11 @@ import pytest
 from flask import request
 from lxml import etree
 
-import buku
 from buku import BukuDb
 from bukuserver import server
 from bukuserver.views import BookmarkModelView, TagModelView
+from tests.util import mock_fetch, _add_rec
 
-
-def _add_rec(db, *args, **kw):
-    """Use THIS instead of db.add_rec() UNLESS you want to wait for unnecessary network requests."""
-    return db.add_rec(*args, fetch=False, **kw)
 
 @pytest.fixture()
 def dbfile(tmp_path):
@@ -138,6 +134,8 @@ def assert_bookmark(bookmark, query, tags=None):
     assert bookmark.tags == tags or query['tags']
 
 
+@pytest.mark.gui
+@pytest.mark.slow
 @pytest.mark.parametrize('exists, uri, tab, args', [
     (False, '/bookmark/new/', 'Create', ['link', 'title', 'description']),
     (True, '/bookmark/edit/', 'Edit', ['id']),
@@ -154,6 +152,8 @@ def test_bookmarklet_view(bukudb, client, exists, uri, tab, args):
     assert bool(dom.xpath('//input[@name="id"]')) == exists
 
 
+@pytest.mark.gui
+@pytest.mark.slow
 @pytest.mark.parametrize('fetch, title, desc', [
     (True, 'Some title', ''),
     (True, '', 'Some description'),
@@ -165,9 +165,9 @@ def test_create_and_fetch(bukudb, monkeypatch, client, fetch, title, desc):
     _title, _desc = 'Sample site', 'Foo bar baz'
     if fetch:
         query['fetch'] = 'on'
-    monkeypatch.setattr(buku, 'network_handler', lambda *_: (_title, _desc, None, 0, 0))
 
-    response = client.post('/bookmark/new/', data=query, follow_redirects=True)
+    with mock_fetch(title=_title, desc=_desc):
+        response = client.post('/bookmark/new/', data=query, follow_redirects=True)
     dom = assert_response(response, '/bookmark/')
     assert_success_alert(dom, edit=False)
     [bookmark] = bukudb.get_rec_all()
@@ -178,6 +178,8 @@ def test_create_and_fetch(bukudb, monkeypatch, client, fetch, title, desc):
     })
 
 
+@pytest.mark.gui
+@pytest.mark.slow
 @pytest.mark.parametrize('redirect, uri, args', [
     ('_add_another', '/bookmark/new/', {}),
     ('_continue_editing', '/bookmark/edit/', {'id': '1', 'url': '/bookmark/'}),
@@ -190,6 +192,8 @@ def test_create_redirect(client, redirect, uri, args):
     assert_success_alert(dom, edit=False)
 
 
+@pytest.mark.gui
+@pytest.mark.slow
 def test_create_duplicate(bukudb, client):
     query = {'link': 'http://example.com', 'title': '', 'description': '', 'tags': ''}
     _add_rec(bukudb, query['link'])
@@ -199,6 +203,8 @@ def test_create_duplicate(bukudb, client):
     assert_failure_alert(dom, edit=False)
 
 
+@pytest.mark.gui
+@pytest.mark.slow
 @pytest.mark.parametrize('override', [False, True])
 def test_update(bukudb, client, override):
     _add_rec(bukudb, 'http://example.org')
@@ -217,6 +223,8 @@ def test_update(bukudb, client, override):
         assert_bookmark(bookmark, query, tags=',bar,baz,foo,')
 
 
+@pytest.mark.gui
+@pytest.mark.slow
 @pytest.mark.parametrize('redirect, uri, args', [
     ('_add_another', '/bookmark/new/', {'url': '/bookmark/'}),
     ('_continue_editing', '/bookmark/edit/', {'id': '1'}),
@@ -232,6 +240,8 @@ def test_update_redirect(bukudb, client, redirect, uri, args):
     assert_bookmark(bookmark, query, tags=',bar,baz,foo,')
 
 
+@pytest.mark.gui
+@pytest.mark.slow
 @pytest.mark.parametrize('exists', [True, False])
 def test_delete(client, bukudb, exists):
     if exists:
@@ -243,6 +253,8 @@ def test_delete(client, bukudb, exists):
                      xpath_alert('danger', 'Record does not exist.'))
 
 
+@pytest.mark.gui
+@pytest.mark.slow
 @pytest.mark.parametrize('total, per_page, pages, last_page', [
     (0, 5, 1, 0),
     (1, 5, 1, 1),
@@ -273,6 +285,8 @@ def test_env_per_page(bukudb, app, client, total, per_page, pages, last_page):
         assert cell.xpath(f'//a[@href="{url}"]/text()') == ['<EMPTY TITLE>', url]
 
 
+@pytest.mark.gui
+@pytest.mark.slow
 @pytest.mark.parametrize('new_tab', [False, True, None])
 @pytest.mark.parametrize('favicons', [False, True, None])
 @pytest.mark.parametrize('mode', ['full', 'netloc', None])
@@ -304,6 +318,8 @@ def test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab):
 
 readonly = env_fixture('BUKUSERVER_READONLY', params=[False, True, None])
 
+@pytest.mark.gui
+@pytest.mark.slow
 def test_env_readonly(bukudb, readonly, client):
     _add_rec(bukudb, 'http://example.com')
     edit = not readonly
@@ -326,6 +342,8 @@ def test_env_readonly(bukudb, readonly, client):
 
 proxy_path = env_fixture('BUKUSERVER_REVERSE_PROXY_PATH', params=['', '/buku', None])
 
+@pytest.mark.gui
+@pytest.mark.slow
 def test_env_reverse_proxy_path(proxy_path, client):
     links = [(proxy_path or '') + s for s in ['/', '/bookmark/', '/tag/', '/statistic/']]
 
@@ -342,6 +360,8 @@ def test_env_reverse_proxy_path(proxy_path, client):
 
 theme = env_fixture('BUKUSERVER_THEME', params=['default', 'slate', None])
 
+@pytest.mark.gui
+@pytest.mark.slow
 def test_env_theme(theme, client):
     dom = assert_response(client.get('/'), '/')
     assert dom.xpath('//head/link[@rel="stylesheet"][@href=$href]',
@@ -367,6 +387,8 @@ _DICT = {
            '//td[@class="list-buttons-column"]/form/button/@title': ['Delete record']},
 }
 
+@pytest.mark.gui
+@pytest.mark.slow
 @pytest.mark.parametrize('locale', ['en', 'de', 'fr', 'ru', None])
 def test_env_locale(bukudb, app, client, locale):
     strings = _DICT[locale or 'en']
