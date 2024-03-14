@@ -48,6 +48,7 @@ from subprocess import DEVNULL, PIPE, Popen
 from typing import Any, Dict, List, Optional, Tuple, NamedTuple
 from collections.abc import Sequence, Set, Callable
 from warnings import warn
+import xml.etree.ElementTree as ET
 
 import urllib3
 from bs4 import BeautifulSoup
@@ -2529,6 +2530,10 @@ class BukuDb:
                 res = convert_bookmark_set(resultset, 'xbel', old)
                 count += res['count']
                 outfp.write(res['data'])
+            elif filepath.endswith('.rss'):
+                res = convert_bookmark_set(resultset, 'rss', old)
+                count += res['count']
+                outfp.write(res['data'])
             else:
                 res = convert_bookmark_set(resultset, 'html', old)
                 count += res['count']
@@ -2881,6 +2886,8 @@ class BukuDb:
             items = import_md(filepath=filepath, newtag=newtag)
         elif filepath.endswith('org'):
             items = import_org(filepath=filepath, newtag=newtag)
+        elif filepath.endswith('rss'):
+            items = import_rss(filepath=filepath, newtag=newtag)
         elif filepath.endswith('json'):
             if not tacit:
                 resp = input('Add parent folder names as tags? (y/n): ')
@@ -3330,7 +3337,7 @@ def convert_bookmark_set(
         converted data and count of converted bookmark set
     """
     import html
-    assert export_type in ['markdown', 'html', 'org', 'xbel']
+    assert export_type in ['markdown', 'html', 'org', 'xbel', 'rss']
     #  compatibility
     resultset = bookmark_vars(bookmark_set)
     old = old or {}
@@ -3376,6 +3383,29 @@ def convert_bookmark_set(
             count += 1
 
         out += '</xbel>'
+    elif export_type == 'rss':
+        out = (
+            '<feed xmlns="http://www.w3.org/2005/Atom">\n'
+            '    <title>Bookmarks</title>\n'
+            '    <generator uri="https://github.com/jarun/buku">buku</generator>\n'
+        )
+
+        for row in resultset:
+            out += '    <entry>\n'
+            out += '        <title>' + title(row) + '</title>\n'
+            _url = html.escape(row.url).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
+            out += '        <link href="%s" rel="alternate" type="text/html"/>\n' % _url
+            out += '        <id>%s</id>\n' % row.id
+            for tag in (t for t in row.tags.split(',') if t):
+                _tag = html.escape(tag).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
+                out += '        <category term="%s"/>\n' % _tag
+            if row.desc:
+                _desc = html.escape(row.desc).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
+                out += '        <content type="html"> <![CDATA[ <p>%s</p> ]]> </content>\n' % _desc
+            out += '    </entry>\n'
+            count += 1
+
+        out += '</feed>'
     elif export_type == 'html':
         timestamp = str(int(time.time()))
         out = (
@@ -3518,6 +3548,34 @@ def import_md(filepath: str, newtag: Optional[str]):
                     parse_tags([tags])
 
                     yield (url, title, delim_wrap(tags), None, 0, True, False)
+
+def import_rss(filepath: str, newtag: Optional[str]):
+    """Parse bookmark RSS file.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to RSS file.
+    newtag : str, optional
+        New tag for bookmarks in RSS file.
+
+    Returns
+    tuple
+        Parsed result.
+    """
+
+    with open(filepath, mode='r', encoding='utf-8') as infp:
+        ns = {'atom': 'http://www.w3.org/2005/Atom'}
+        root = ET.fromstring(infp.read())
+        for entry in root.findall('atom:entry', ns):
+            title = entry.find('atom:title', ns).text
+            url = entry.find('atom:link', ns).attrib['href']
+            tags = ','.join([tag.attrib['term'] for tag in entry.findall('atom:category', ns)])
+            if newtag is not None:
+                tags = newtag + ',' + tags
+            desc = entry.find('atom:content', ns)
+            desc = desc.text if desc is not None else None
+            yield (url, title, delim_wrap(tags), desc, 0, True, False)
 
 def import_org(filepath: str, newtag: Optional[str]):
     """Parse bookmark org file.
