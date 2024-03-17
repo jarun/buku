@@ -539,6 +539,7 @@ You may encounter issues with GUI editors which maintain only one instance by de
 ### Collaborators
 
 - [Arun Prakash Jana](https://github.com/jarun)
+- [Alexey Gulenko](https://github.com/LeXofLeviafan)
 - [Rachmadani Haryono](https://github.com/rachmadaniHaryono)
 - [Johnathan Jenkins](https://github.com/shaggytwodope)
 - [SZ Lin](https://github.com/szlin)
