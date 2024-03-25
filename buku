@@ -5850,6 +5850,10 @@ POSITIONAL ARGUMENTS:
         if args.colorstr is None and colorstr_env is not None:
             args.nc = True
 
+    # Handle NO_COLOR as well:
+    if os.environment.get('NO_COLOR') is not None:
+        args.nc = True
+
     # Handle color output preference
     if args.nc:
         logging.basicConfig(format='[%(levelname)s] %(message)s')
