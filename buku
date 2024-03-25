@@ -5851,7 +5851,7 @@ POSITIONAL ARGUMENTS:
             args.nc = True
 
     # Handle NO_COLOR as well:
-    if os.environment.get('NO_COLOR') is not None:
+    if os.environ.get('NO_COLOR') is not None:
         args.nc = True
 
     # Handle color output preference
