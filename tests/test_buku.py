@@ -849,18 +849,18 @@ def test_copy_to_clipboard(platform, params):
             "<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n\n<DL><p>\n"
             '    <DT><H3 ADD_DATE="1556430615" LAST_MODIFIED="1556430615" PERSONAL_TOOLBAR_FOLDER="true">buku bookmarks</H3>\n'
             "    <DL><p>\n"
-            '        <DT><A HREF="htttp://example.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
-            '        <DT><A HREF="htttp://example.org" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
+            '        <DT><A HREF="http://example.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
+            '        <DT><A HREF="http://example.org" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
             '        <DT><A HREF="http://google.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615">Google</A>\n'
             "    </DL><p>\n</DL><p>",
         ],
         [
             "org",
-            "* [[htttp://example.com][Untitled]]\n* [[htttp://example.org][Untitled]]\n* [[http://google.com][Google]]\n",
+            "* [[http://example.com][Untitled]]\n* [[http://example.org][Untitled]]\n* [[http://google.com][Google]]\n",
         ],
         [
             "markdown",
-            "- [Untitled](htttp://example.com)\n- [Untitled](htttp://example.org)\n- [Google](http://google.com)\n",
+            "- [Untitled](http://example.com)\n- [Untitled](http://example.org)\n- [Google](http://google.com)\n",
         ],
         ["random", None],
         [
@@ -872,10 +872,10 @@ def test_copy_to_clipboard(platform, params):
                     'DTD XML Bookmark Exchange Language 1.0//EN//XML" '
                     '"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">',
                     '<xbel version="1.0">',
-                    '<bookmark href="htttp://example.com">',
+                    '<bookmark href="http://example.com">',
                     "<title></title>",
                     "</bookmark>",
-                    '<bookmark href="htttp://example.org">',
+                    '<bookmark href="http://example.org">',
                     "<title></title>",
                     "</bookmark>",
                     '<bookmark href="http://google.com">',
@@ -892,8 +892,8 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
     from buku import convert_bookmark_set
 
     bms = [
-        (1, "htttp://example.com", "", ",", "", 0),
-        (1, "htttp://example.org", None, ",", "", 0),
+        (1, "http://example.com", "", ",", "", 0),
+        (1, "http://example.org", None, ",", "", 0),
         (2, "http://google.com", "Google", ",", "", 0),
     ]
     if export_type == "random":
