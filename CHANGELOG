@@ -1,3 +1,17 @@
+buku v4.9
+2024-04-07
+
+- fixed profile detection for multiple Firefox installs (#711)
+- added option `--offline` to add a bookmark without web connection
+- added a mini-guide for quick keyboard access to the bookmarklet
+- support environment variable `NO_COLOR`
+- fixed HTML encoding detection (#713)
+- fixed Windows profile detection (#683)
+- support python 3.11 (support for python 3.7 removed)
+- fixed readline internal error on Windows (#704)
+
+-------------------------------------------------------------------------------
+
 buku v4.8
 2023-02-18
 
