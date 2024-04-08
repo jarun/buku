@@ -1685,7 +1685,7 @@ def test_exportdb_to_db():
     [
         [[], None],
         [["http://example.com"], 1],
-        [["htttp://example.com", "http://google.com"], 2],
+        [["http://example.com", "http://google.com"], 2],
     ],
 )
 def test_get_max_id(urls, exp_res):
