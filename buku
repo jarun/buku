@@ -6199,10 +6199,7 @@ POSITIONAL ARGUMENTS:
 
     # Update record
     if args.update is not None:
-        if args.url is not None:
-            url_in = args.url[0]
-        else:
-            url_in = ''
+        url_in = (args.url[0] if args.url else None)
 
         # Parse tags into a comma-separated string
         if tags_in:
