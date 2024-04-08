@@ -43,7 +43,7 @@ lint-template: &lint-template
 jobs:
   lint:
     docker:
-      - image: python:3.11-slim
+      - image: python:3.12-slim
     <<: *lint-template
 
   py38:
@@ -64,6 +64,11 @@ jobs:
   py311:
     docker:
       - image: python:3.11-slim
+    <<: *test-template
+
+  py312:
+    docker:
+      - image: python:3.12-slim
     <<: *test-template
 
 #  package-and-publish:
@@ -161,4 +166,3 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-
