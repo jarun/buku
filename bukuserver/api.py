@@ -228,7 +228,7 @@ class ApiBookmarkSearchView(MethodView):
 
     def get(self):
         arg_obj = request.args
-        keywords = arg_obj.getlist('keywords')
+        keywords = arg_obj.getlist('keywords')  # pylint: disable=E1101
         all_keywords = arg_obj.get('all_keywords')
         deep = arg_obj.get('deep')
         regex = arg_obj.get('regex')
