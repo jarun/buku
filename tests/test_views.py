@@ -7,6 +7,7 @@ from argparse import Namespace
 import pytest
 from flask import request
 from lxml import etree
+from werkzeug.datastructures import MultiDict
 
 from buku import BukuDb
 from bukuserver import server
@@ -98,7 +99,7 @@ def test_tag_model_view_get_list(tmv_instance, sort_field, sort_desc, filters, e
 ])
 def test_bmv_create_form(bmv_instance, url, backlink, app):
     with app.test_request_context():
-        request.args = {'link': url, 'url': backlink} if backlink else {'link': url}
+        request.args = MultiDict({'link': url, 'url': backlink} if backlink else {'link': url})
         form = bmv_instance.create_form()
         assert form.url.data == url
 
