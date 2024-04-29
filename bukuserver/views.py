@@ -68,7 +68,7 @@ def last_page(self):
                                 view_args.search, view_args.filters, page_size=page_size)
 
     args = request.args.copy()
-    args.setlist('page', [max(0, (count - 1) // page_size)])  # pylint: disable=E1101
+    args.setlist('page', [max(0, (count - 1) // page_size)])
     return redirect(url_for('.index_view', **args))
 
 
