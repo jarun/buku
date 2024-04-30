@@ -940,10 +940,11 @@ def test_get_data_from_page(charset, mode):
         'charset': f'\n<meta charset="{charset}"/>',
         'content': f'\n<meta http-equiv="content-type" content="text/html; charset={charset}"/>',
     }.get(mode, '')
-    body = f'<html>\n\n<head>{meta}\n<title>{title}</title>\n</head>\n<body></body>\n\n</html>\n'
+    keywords = '<meta name="keywords" content="foo, bar   baz, quux"/>'
+    body = f'<html>\n\n<head>{meta}\n{keywords}\n<title>{title}</title>\n</head>\n<body></body>\n\n</html>\n'
     resp = HTTPResponse(body.encode(charset), headers)
-    parsed_title, desc, keywords = get_data_from_page(resp)
-    assert parsed_title == title
+    parsed_title, desc, tags = get_data_from_page(resp)
+    assert (parsed_title, tags) == (title, "foo,bar baz,quux")
 
 
 @pytest.mark.parametrize('tokens, valid, expected', [
