@@ -2752,6 +2752,7 @@ class BukuDb:
         else:
             LOGERR('buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
+            return  # clarifying execution interrupt for the linter
 
         if self.chatty:
             resp = input('Generate auto-tag (YYYYMonDD)? (y/n): ')
@@ -6157,9 +6158,9 @@ POSITIONAL ARGUMENTS:
     check_stdout_encoding()
     monkeypatch_textwrap_for_cjk()
 
+    update_search_results = False
     if search_results:
         oneshot = args.np
-        update_search_results = False
 
         # Open all results in browser right away if args.oa
         # is specified. The has priority over delete/update.
