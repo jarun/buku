@@ -564,6 +564,7 @@ See also our documentation here <a href="http://buku.readthedocs.io/en/stable/?b
 - [poku](https://github.com/shanedabes/poku), sync between Pocket and buku
 - [Ebuku](https://github.com/flexibeast/ebuku), Emacs interface to buku
 - [diigoku](https://github.com/dppdppd/diigoku), buku importer for Diigo
+- [BukuBot](https://git.xmpp-it.net/sch/BukuBot), Chat bot for XMPP with an extended visual interface
 
 
 ### Videos
