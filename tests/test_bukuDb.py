@@ -168,19 +168,20 @@ class TestBukuDb(unittest.TestCase):
             _add_rec(self.bdb, *bookmark)
 
         # the expected bookmark
-        expected = (
-            1,
-            "http://slashdot.org",
-            "SLASHDOT",
-            ",news,old,",
-            "News for old nerds, stuff that doesn't matter",
-            0,
-        )
+        expected = (1,) + tuple(TEST_BOOKMARKS[0]) + (0,)
         bookmark_from_db = self.bdb.get_rec_by_id(1)
         # asserting bookmark matches expected
         self.assertEqual(expected, bookmark_from_db)
         # asserting None returned if index out of range
         self.assertIsNone(self.bdb.get_rec_by_id(len(self.bookmarks[0]) + 1))
+
+    def test_get_rec_all_by_ids(self):
+        for bookmark in self.bookmarks:
+            # adding bookmark from self.bookmarks
+            _add_rec(self.bdb, *bookmark)
+        expected = [(i+1,) + tuple(TEST_BOOKMARKS[i]) + (0,) for i in [0, 2]]
+        bookmarks_from_db = self.bdb.get_rec_all_by_ids([3, 1, 1, 3, 5])  # ignoring order and duplicates
+        self.assertEqual(expected, bookmarks_from_db)
 
     def test_get_rec_id(self):
         for idx, bookmark in enumerate(self.bookmarks):

@@ -633,7 +633,7 @@ class BukuDb:
         """
 
         placeholder = ', '.join(['?'] * len(indices))
-        return indices and self._fetch(f'SELECT * FROM bookmarks WHERE id IN ({placeholder})', list(indices))
+        return indices and self._fetch(f'SELECT * FROM bookmarks WHERE id IN ({placeholder})', *list(indices))
 
     def get_rec_id(self, url):
         """Check if URL already exists in DB.
