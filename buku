@@ -5808,10 +5808,11 @@ POSITIONAL ARGUMENTS:
                          format: [title](url) <!-- TAGS -->
                          export Orgfile, if file ends with '.org'
                          format: *[[url][title]] :tags:
+                         export rss feed if file ends with '.rss'
                          export buku DB, if file ends with '.db'
                          combines with search results, if opted
     -i, --import file    import bookmarks from file
-                         supports .html .xbel .json .md .org .db
+                         supports .html .xbel .json .md .org .rss .db
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
                          -n shows the last n results (like tail)
