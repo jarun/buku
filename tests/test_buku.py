@@ -562,6 +562,28 @@ def test_import_md(tmpdir, newtag, exp_res):
     res = list(import_md(p.strpath, newtag))
     assert res[0] == exp_res
 
+@pytest.mark.parametrize(
+    "newtag, exp_res",
+    [
+        (None, ("http://example.com", "text1", ",", None, 0, True, False)),
+        ("tag1", ("http://example.com", "text1", ",tag1,", None, 0, True, False)),
+    ],
+)
+def test_import_rss(tmpdir, newtag, exp_res):
+    from buku import import_rss
+
+    p = tmpdir.mkdir("importrss").join("test.rss")
+    p.write(
+        '<feed xmlns="http://www.w3.org/2005/Atom">\n'
+        '    <title>Bookmarks</title>\n'
+        '    <generator uri="https://github.com/jarun/buku">buku</generator>\n'
+        '    <entry>\n'
+        '        <title>text1</title>\n'
+        '        <link href="http://example.com"/>\n'
+        '    </entry>\n'
+        '</feed>\n')
+    res = list(import_rss(p.strpath, newtag))
+    assert res[0] == exp_res
 
 @pytest.mark.parametrize(
     "newtag, exp_res",
@@ -861,6 +883,28 @@ def test_copy_to_clipboard(platform, params):
         [
             "markdown",
             "- [Untitled](http://example.com)\n- [Untitled](http://example.org)\n- [Google](http://google.com)\n",
+        ],
+        [
+            "rss",
+            '<feed xmlns="http://www.w3.org/2005/Atom">\n'
+            '    <title>Bookmarks</title>\n'
+            '    <generator uri="https://github.com/jarun/buku">buku</generator>\n'
+            '    <entry>\n'
+            '        <title></title>\n'
+            '        <link href="http://example.com" rel="alternate" type="text/html"/>\n'
+            '        <id>1</id>\n'
+            '    </entry>\n'
+            '    <entry>\n'
+            '        <title></title>\n'
+            '        <link href="http://example.org" rel="alternate" type="text/html"/>\n'
+            '        <id>1</id>\n'
+            '    </entry>\n'
+            '    <entry>\n'
+            '        <title>Google</title>\n'
+            '        <link href="http://google.com" rel="alternate" type="text/html"/>\n'
+            '        <id>2</id>\n'
+            '    </entry>\n'
+            '</feed>',
         ],
         ["random", None],
         [
