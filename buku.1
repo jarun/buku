@@ -19,7 +19,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Powerful search options (regex, substring...)
   * Continuous search with on the fly mode switch
   * Portable, merge-able database to sync between systems
-  * Import/export bookmarks from/to HTML, XBEL, Markdown or Orgfile
+  * Import/export bookmarks from/to HTML, XBEL, Markdown, RSS or Orgfile
   * Smart tag management using redirection (>>, >, <<)
   * Multithreaded full DB refresh
   * Manual encryption support
@@ -211,6 +211,10 @@ Orgfile is used if
 .I file
 has extension '.org' Orgfile format: * [[url][title]], 1 entry per line.
 .br
+RSS is used if
+.I file
+has extension '.rss' RSS format: <entry> per bookmark with <title>, <link>, <category>, <content> elements
+.br
 A buku database is generated if
 .I file
 has extension '.db'.
@@ -218,7 +222,7 @@ has extension '.db'.
 .BI \-i " " \--import " file"
 Import bookmarks from Firefox bookmarks formatted HTML.
 .I file
-is considered Firefox-exported JSON if it has '.json' extension, XBEL if it is '.xbel', Markdown (compliant with --export format) if it is '.md', Orgfile if the extension is '.org' or another buku database if the extension is '.db'.
+is considered Firefox-exported JSON if it has '.json' extension, XBEL if it is '.xbel', Markdown (compliant with --export format) if it is '.md', Orgfile if the extension is '.org', RSS if the extension is '.rss' or another buku database if the extension is '.db'.
 .TP
 .BI \-p " " \--print " [...]"
 Show details (DB index, URL, title, tags and comment) of bookmark record by DB index. If no arguments, all records with actual index from DB are shown. Accepts hyphenated ranges and space-separated indices. A negative value (introduced for convenience) behaves like the tail utility, e.g., -n shows the details of the last n bookmarks.
