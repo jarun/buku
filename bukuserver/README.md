@@ -10,7 +10,7 @@
   - [Using Docker Compose](#using-docker-compose)
 - [Webserver options](#webserver-options)
 - [Configuration](#configuration)
-- [Screenshots](#screenshots)
+- [Screenshots](#screenshots) ([imgur album](https://imgur.com/a/nk9dPEk))
 
 ### Installation
 
@@ -120,7 +120,7 @@ The following are os env config variables available for bukuserver.
 | URL_RENDER_MODE | url render mode | `full` or `netloc` [default: `full`] |
 | DB_FILE | full path to db file | path string [default: standard path for buku] |
 | READONLY | read-only mode | boolean [default: `false`] |
-| DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean [default: `true`] |
+| DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean [default: `true`] ([here's why](#why-favicons-are-disabled-by-default))|
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path | string |
 | THEME | [GUI theme](https://bootswatch.com/3) | string [default: `default`] (`slate` is a good pick for dark mode) |
@@ -151,7 +151,25 @@ Note: the value for BUKUSERVER_REVERSE_PROXY_PATH
 is recommended to include preceding slash and not have trailing slash
 (i.e. use `/foo` not `/foo/`)
 
+#### Why favicons are disabled by default
+
+At Bukuserver, we have [disabled favicon as a default setting](#configuration) in order to prevent any non-user triggered network activity.
+
+Our favicon is generated with the assistance of Google.
+
+It is important to be aware that favicon has the potential to be used for browser fingerprinting,
+a technique used to identify and track a person's web browsing habits.
+
+- [Github repo example supercookie](https://github.com/jonasstrehle/supercookie)
+- [Paper by Scientists at University of Illinois, Chicago](https://www.cs.uic.edu/~polakis/papers/solomos-ndss21.pdf)
+- [Article published in 2021 at Heise Online](https://heise.de/-5027814)
+  ([English translation](https://www-heise-de.translate.goog/news/Browser-Fingerprinting-Favicons-als-Super-Cookies-5027814.html?_x_tr_sl=de&_x_tr_tl=en&_x_tr_hl=en))
+
+It is important to note that favicon can potentially be exploited in this way.
+
 ### Screenshots
+
+([imgur album](https://imgur.com/a/nk9dPEk))
 
 <p><br></p>
 <p align="center">
@@ -169,7 +187,13 @@ is recommended to include preceding slash and not have trailing slash
 <p align="center">
 <a href="https://i.imgur.com/1eMruZD.png"><img src="https://i.imgur.com/1eMruZD.png" alt="index page" width="650"/></a>
 </p>
-<p align="center"><i>bookmark page</i></a></p>
+<p align="center"><i>bookmark page <a href="#configuration">with favicon enabled</a></i></p>
+
+<p><br><br></p>
+<p align="center">
+<a href="https://i.imgur.com/DtUcjIl.png"><img src="https://i.imgur.com/KaZIezk.png" alt="index page" width="650"/></a>
+</p>
+<p align="center"><i>bookmark page with 'slate' theme and favicon enabled</i></a></p>
 
 <p><br><br></p>
 <p align="center">
