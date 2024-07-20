@@ -76,8 +76,8 @@ def init_locale(app):
         except ImportError:
             from flask_babel import Babel
             Babel().init_app(app, locale_selector=lambda: app.config['BUKUSERVER_LOCALE'])
-    except Exception:
-        app.logger.warning('failed to init locale')
+    except Exception as e:
+        app.logger.warning(f'failed to init locale ({e})')
 
 
 def create_app(db_file=None):

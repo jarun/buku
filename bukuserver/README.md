@@ -20,22 +20,19 @@ So be sure to have `python3`, `python3-pip` , `python3-dev`, `libffi-dev` packag
 #### Dependencies
 
 ```
-$ python3 -m pip install --user --upgrade pip
-$ python3 -m pip install --user virtualenv
-$ python3 -m virtualenv env
-$ source env/bin/activate
+$ # venv activation (for development)
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ pip install --upgrade pip
 ```
 
 #### From PyPi
 
 ```sh
-$ # basic server
+$ # regular/venv install
 $ pip3 install "buku[server]"
-$ # server with reverse proxy
-$ pip3 install "buku[server,reverse_proxy]"
-$ # pipx install bukuserver with reverse proxy
+$ # pipx install
 $ pipx install "buku[server]"
-$ pipx inject buku https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/archive/refs/tags/v0.2.2rc1.zip
 ```
 
 #### From source
@@ -43,10 +40,8 @@ $ pipx inject buku https://github.com/rachmadaniHaryono/flask-reverse-proxy-fix/
 ```sh
 $ git clone https://github.com/jarun/buku
 $ cd buku
-$ # basic server
+$ # regular/venv install
 $ pip3 install ".[server]"
-$ # server with reverse_proxy
-$ pip3 install ".[server,reverse_proxy]"
 ```
 
 #### Using Docker
