@@ -9,3 +9,18 @@ table tr td:not(:first-child) {
         width: min(1000px, 80%);
     }
 }
+
+.link {
+    display: block;
+}
+
+.tag-list {
+    font-size: larger;
+    display: flex;
+    gap: 1px;
+    flex-wrap: wrap;
+}
+
+.description {
+    white-space: pre-wrap;
+}

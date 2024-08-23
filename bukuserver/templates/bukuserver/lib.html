@@ -27,8 +27,8 @@
   <script>
     $('.admin-form [name=fetch]').remove();
     $('.admin-form').append(
-      $(`<label class="form-group" style="display: block"><span class="col-md-2 text-right">{{ _gettext('Fetch') }}</span>`
-        +`<span class="col-md-10"><input type="checkbox" name="fetch"{% if checked %} checked{% endif %}></span></label>`))
+      $(`<div class="form-group"><label style="display: block"><span class="col-md-2 text-right">{{ _gettext('Fetch') }} &nbsp; </span>`
+        +`<span class="col-md-10"><input type="checkbox" name="fetch"{% if checked %} checked{% endif %}></span></label></div>`));
   </script>
 {% endmacro %}
 

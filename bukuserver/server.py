@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 from flask.cli import FlaskGroup
 from flask_admin import Admin
 from flask_api import FlaskAPI
-from flask_bootstrap import Bootstrap
 
 import buku
 from buku import BukuDb, __version__
@@ -120,7 +119,6 @@ def create_app(db_file=None):
 
     app.jinja_env.filters['netloc'] = lambda x: urlparse(x).netloc  # pylint: disable=no-member
 
-    Bootstrap(app)
     admin = Admin(
         app, name='buku server', template_mode='bootstrap3',
         index_view=views.CustomAdminIndexView(

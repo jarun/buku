@@ -1,0 +1,16 @@
+/* limit dialog height with a scrollbox */
+.modal-body {
+    max-height: calc(100vh - 120px);
+    overflow: auto;
+}
+
+/* make the table header sticky */
+.modal-body thead {
+    position: sticky;
+    /* setting `top:` with JS, to account for theme differences */
+}
+
+/* overriding icon-button text color with theme color */
+.modal-header :is(button, button:hover) {
+    color: inherit;
+}

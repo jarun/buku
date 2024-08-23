@@ -109,6 +109,7 @@ def test_bmv_create_form(bmv_instance, url, backlink, app):
 #
 
 xpath_alert = lambda kind, message: f'//div[@class="alert alert-{kind} alert-dismissable"][contains(., "{message}")]'
+xpath_cls = lambda s: ''.join(f'[contains(concat(" ", @class, " "), " {s} ")]' for s in s.split(' ') if s)
 
 def assert_success_alert(dom, edit, id=1):
     message = f'Record was successfully {"saved" if edit else "created"}.'
@@ -148,7 +149,7 @@ def test_bookmarklet_view(bukudb, client, exists, uri, tab, args):
 
     response = client.get('/bookmarklet', query_string=query, follow_redirects=True)
     dom = assert_response(response, uri, argnames=args)
-    assert dom.xpath('//ul[@class="nav nav-tabs"]/li[@class="active"]/a/text()') == [tab]
+    assert dom.xpath(f'//ul{xpath_cls("nav nav-tabs")}/li{xpath_cls("active")}/a/text()') == [tab]
     assert dom.xpath('//input[@name="link"]/@value') == [query['url']]
     assert bool(dom.xpath('//input[@name="id"]')) == exists
 
@@ -279,7 +280,7 @@ def test_env_per_page(bukudb, app, client, total, per_page, pages, last_page):
 
     response = client.get('/bookmark/last-page', follow_redirects=True)
     dom = assert_response(response, '/bookmark/', args={'page': str(pages - 1)})
-    cells = dom.xpath('//td[@class="col-Entry"]')
+    cells = dom.xpath(f'//td{xpath_cls("col-Entry")}')
     assert len(cells) == last_page
     for i, cell in enumerate(cells, start=1):
         url = f'http://example.com/{total - last_page + i}'
@@ -303,18 +304,18 @@ def test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab):
         app.config.update({'BUKUSERVER_OPEN_IN_NEW_TAB': new_tab})
 
     dom = assert_response(client.get('/bookmark/'), '/bookmark/')
-    cell = ' '.join(etree.tostring(dom.xpath('//td[@class="col-Entry"]')[0], encoding='unicode').strip().split())
+    cell = ' '.join(etree.tostring(dom.xpath(f'//td{xpath_cls("col-Entry")}')[0], encoding='unicode').strip().split())
     target = '' if not new_tab else ' target="_blank"'
-    icon = '' if not favicons else f'<img src="http://www.google.com/s2/favicons?domain={netloc}"/> '
-    prefix = f'<td class="col-Entry"> {icon}<a href="{url}"{target}>{title}</a>'
-    suffix = (''.join(f'<a class="btn btn-default" href="/bookmark/?flt0_tags_contain={s}">{s}</a>' for s in _tags) +
-              f'<br/>{desc} </td>')
+    icon = '' if not favicons else f'<img class="favicon" src="http://www.google.com/s2/favicons?domain={netloc}"/> '
+    prefix = f'<td class="col-Entry"> {icon}<span class="title"><a href="{url}"{target}>{title}</a></span>'
+    tags = [f'<a class="btn label label-default" href="/bookmark/?flt0_tags_contain={s}">{s}</a>' for s in _tags]
+    netloc_tag = ('' if mode == 'netloc' else
+                  f'<a class="btn label label-success" href="/bookmark/?flt0_url_netloc_match={netloc}">netloc:{netloc}</a>')
+    suffix = f'<div class="tag-list">{netloc_tag}{"".join(tags)}</div><div class="description">{desc}</div> </td>'
     if mode == 'netloc':
-        assert cell == prefix + f' (<a href="/bookmark/?flt0_url_netloc_match={netloc}">{netloc}</a>)<br/>' + suffix
+        assert cell == f'{prefix}<span class="netloc"> (<a href="/bookmark/?flt0_url_netloc_match={netloc}">{netloc}</a>)</span>{suffix}'
     else:
-        assert cell == (prefix + f'<br/><a href="{url}"{target}>{url}</a><br/>' +
-                        f'<a class="btn btn-default" href="/bookmark/?flt0_url_netloc_match={netloc}">netloc:{netloc}</a>' +
-                        suffix)
+        assert cell == f'{prefix}<span class="link"><a href="{url}"{target}>{url}</a></span>{suffix}'
 
 
 readonly = env_fixture('BUKUSERVER_READONLY', params=[False, True, None])
@@ -327,12 +328,12 @@ def test_env_readonly(bukudb, readonly, client):
 
     response = client.get('/bookmark/')
     dom = assert_response(response, '/bookmark/')
-    assert bool(dom.xpath('//td[@class="list-buttons-column"]/a[@title="Edit Record"]')) == edit, 'edit icon'
-    assert bool(dom.xpath('//td[@class="list-buttons-column"]/form[@action="/bookmark/delete/"]')) == edit, 'delete icon'
+    assert bool(dom.xpath(f'//td{xpath_cls("list-buttons-column")}/a[@title="Edit Record"]')) == edit, 'edit icon'
+    assert bool(dom.xpath(f'//td{xpath_cls("list-buttons-column")}/form[@action="/bookmark/delete/"]')) == edit, 'delete icon'
 
     response = client.get('/bookmark/details/', query_string={'id': 1})
     dom = assert_response(response, '/bookmark/details/')
-    assert (dom.xpath('//ul[@class="nav nav-tabs"]/li/a/text()') ==
+    assert (dom.xpath(f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()') ==
             (['List', 'Details'] if readonly else ['List', 'Create', 'Edit', 'Details']))
 
     response = client.get('/bookmark/new/', follow_redirects=True)
@@ -349,7 +350,7 @@ def test_env_reverse_proxy_path(proxy_path, client):
     links = [(proxy_path or '') + s for s in ['/', '/bookmark/', '/tag/', '/statistic/']]
 
     dom = assert_response(client.get(links[0]), links[0])
-    assert dom.xpath('//nav[@class="navbar navbar-default"]//a/@href') == ['/'] + links
+    assert dom.xpath(f'//nav{xpath_cls("navbar")}//a/@href ') == ['/'] + links
     body_links = dom.xpath('//main//a/@href')
     assert body_links[-1].startswith('javascript:')
     assert body_links[:-1] == links[1:]
@@ -365,27 +366,27 @@ theme = env_fixture('BUKUSERVER_THEME', params=['default', 'slate', None])
 @pytest.mark.slow
 def test_env_theme(theme, client):
     dom = assert_response(client.get('/'), '/')
-    assert dom.xpath('//head/link[@rel="stylesheet"][@href=$href]',
-                     href=f'/static/admin/bootstrap/bootstrap3/swatch/{theme or "default"}/bootstrap.min.css?v=3.3.5')
+    assert dom.xpath('//head/link[@rel="stylesheet"][starts-with(@href, $href)]',
+                     href=f'/static/admin/bootstrap/bootstrap3/swatch/{theme or "default"}/bootstrap.min.css?')
 
 
 _DICT = {
-    'en': {'//ul[@class="nav navbar-nav"]/li/a/text()': ['Home', 'Bookmarks', 'Tags', 'Statistic'],
-           '//ul[@class="nav nav-tabs actions-nav"]/li/a/text()': ['List (1)', 'Create', 'Add Filter', '10 items'],
-           '//td[@class="list-buttons-column"]/a/@title': ['View Record', 'Edit Record'],
-           '//td[@class="list-buttons-column"]/form/button/@title': ['Delete record']},
-    'de': {'//ul[@class="nav navbar-nav"]/li/a/text()': ['Start', 'Bookmarks', 'Tags', 'Statistic'],
-           '//ul[@class="nav nav-tabs actions-nav"]/li/a/text()': ['Liste (1)', 'Erstellen', 'Filter hinzufügen', '10 Elemente'],
-           '//td[@class="list-buttons-column"]/a/@title': ['Eintrag ansehen', 'Eintrag bearbeiten'],
-           '//td[@class="list-buttons-column"]/form/button/@title': ['Delete record']},
-    'fr': {'//ul[@class="nav navbar-nav"]/li/a/text()': ['Accueil', 'Bookmarks', 'Tags', 'Statistic'],
-           '//ul[@class="nav nav-tabs actions-nav"]/li/a/text()': ['Liste (1)', 'Créer', 'Ajouter un filtre', '10 items'],
-           '//td[@class="list-buttons-column"]/a/@title': ['Afficher L\'enregistrement', 'Modifier enregistrement'],
-           '//td[@class="list-buttons-column"]/form/button/@title': ['Delete record']},
-    'ru': {'//ul[@class="nav navbar-nav"]/li/a/text()': ['Главная', 'Bookmarks', 'Tags', 'Statistic'],
-           '//ul[@class="nav nav-tabs actions-nav"]/li/a/text()': ['Список (1)', 'Создать', 'Добавить Фильтр', '10 элементы'],
-           '//td[@class="list-buttons-column"]/a/@title': ['Просмотр записи', 'Редактировать запись'],
-           '//td[@class="list-buttons-column"]/form/button/@title': ['Delete record']},
+    'en': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Home', 'Bookmarks', 'Tags', 'Statistic'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['List (1)', 'Create', 'Add Filter', '10 items'],
+           f'//td{xpath_cls("list-buttons-column")}/a/@title': ['View Record', 'Edit Record'],
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
+    'de': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Start', 'Bookmarks', 'Tags', 'Statistic'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Erstellen', 'Filter hinzufügen', '10 Elemente'],
+           f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Eintrag ansehen', 'Eintrag bearbeiten'],
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
+    'fr': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Accueil', 'Bookmarks', 'Tags', 'Statistic'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Créer', 'Ajouter un filtre', '10 items'],
+           f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Afficher L\'enregistrement', 'Modifier enregistrement'],
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
+    'ru': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Главная', 'Bookmarks', 'Tags', 'Statistic'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Список (1)', 'Создать', 'Добавить Фильтр', '10 элементы'],
+           f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Просмотр записи', 'Редактировать запись'],
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
 }
 
 @pytest.mark.gui

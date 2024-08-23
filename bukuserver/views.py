@@ -4,7 +4,7 @@ import itertools
 import logging
 import types
 from argparse import Namespace
-from collections import Counter
+from collections import Counter, namedtuple
 from typing import Any, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -29,10 +29,11 @@ except ImportError:
     from bukuserver.filters import BookmarkField, FilterType  # type: ignore
 
 
-STATISTIC_DATA = None
-DEFAULT_URL_RENDER_MODE = "full"
+COLORS = ['#F7464A', '#46BFBD', '#FDB45C', '#FEDCBA', '#ABCDEF', '#DDDDDD',
+          '#ABCABC', '#4169E1', '#C71585', '#FF4500', '#FEDCBA', '#46BFBD']
+DEFAULT_URL_RENDER_MODE = 'full'
 DEFAULT_PER_PAGE = 10
-LOG = logging.getLogger("bukuserver.views")
+LOG = logging.getLogger('bukuserver.views')
 
 
 class CustomAdminIndexView(AdminIndexView):
@@ -107,46 +108,34 @@ class BookmarkModelView(BaseModelView):
         LOG.debug("context: %s, name: %s", context, name)
         parsed_url = urlparse(model.url)
         netloc = parsed_url.netloc
-        tag_text = []
-        br_tag = "<br/>"
         get_index_view_url = functools.partial(url_for, "bookmark.index_view")
-        for tag in filter(None, model.tags.split(",")):
-            tag_text.append(
-                f'<a class="btn btn-default" href="{escape(get_index_view_url(flt0_tags_contain=tag.strip()))}">{escape(tag)}</a>'
-            )
-        tag_text_markup = "".join(tag_text)
-        description = model.description and br_tag.join(map(escape, model.description.split('\n')))
-        if not netloc:
-            return Markup(br_tag.join([escape(model.title), escape(model.url), tag_text_markup, description]))
         res = []
-        if not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False) and netloc:
-            res.append(
-                f'<img src="http://www.google.com/s2/favicons?domain={netloc}"/> '
-            )
-        title = model.title or escape('<EMPTY TITLE>')
-        target = ' target="_blank"' if current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False) else ""
+        if netloc and not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False):
+            res += [f'<img class="favicon" src="http://www.google.com/s2/favicons?domain={netloc}"/> ']
+        title = model.title or '<EMPTY TITLE>'
+        new_tab = current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False)
         url_for_index_view_netloc = None
         if netloc:
             url_for_index_view_netloc = get_index_view_url(flt0_url_netloc_match=netloc)
-        if parsed_url.scheme:
-            res.append(f'<a href="{escape(model.url)}"{target}>{escape(title)}</a>')
+        if netloc and parsed_url.scheme:
+            res += [f'<span class="title">{link(title, model.url, new_tab=new_tab)}</span>']
         else:
-            res.append(escape(title))
-        if self.url_render_mode == "netloc" and url_for_index_view_netloc:
-            res.append(f' (<a href="{url_for_index_view_netloc}">{netloc}</a>)')
-        res.append(br_tag)
+            res += [f'<span class="title">{escape(title)}</span>']
+        if self.url_render_mode == 'netloc' and url_for_index_view_netloc:
+            res += [f'<span class="netloc"> ({link(netloc, url_for_index_view_netloc)})</span>']
         if not parsed_url.scheme:
-            res.extend((escape(model.url), br_tag))
-        elif self.url_render_mode is None or self.url_render_mode == "full":
-            res.extend((f'<a href="{escape(model.url)}"{target}>{escape(model.url)}</a>', br_tag))
-        if self.url_render_mode != "netloc" and url_for_index_view_netloc:
-            res.append(
-                f'<a class="btn btn-default" href="{url_for_index_view_netloc}">netloc:{netloc}</a>'
-            )
-        if tag_text_markup:
-            res.append(tag_text_markup)
+            res += [f'<span class="link">{escape(model.url)}</span>']
+        elif self.url_render_mode is None or self.url_render_mode == 'full':
+            res += [f'<span class="link">{link(model.url, model.url, new_tab=new_tab)}</span>']
+        tag_links = []
+        if netloc and self.url_render_mode != 'netloc' and url_for_index_view_netloc:
+            tag_links += [link(f'netloc:{netloc}', url_for_index_view_netloc, badge='success')]
+        for tag in filter(None, model.tags.split(',')):
+            tag_links += [link(tag, get_index_view_url(flt0_tags_contain=tag.strip()), badge='default')]
+        res += [f'<div class="tag-list">{"".join(tag_links)}</div>']
+        description = model.description and f'<div class="description">{escape(model.description)}</div>'
         if description:
-            res.extend((br_tag, description))
+            res += [description]
         return Markup("".join(res))
 
     can_set_page_size = True
@@ -171,12 +160,11 @@ class BookmarkModelView(BaseModelView):
     extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
     last_page = expose('/last-page')(last_page)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, bukudb: buku.BukuDb, *args, **kwargs):
         readonly_check(self)
-        self.bukudb: buku.BukuDb = args[0]
-        custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="bookmark")
-        args = [custom_model] + list(args[1:])
-        super().__init__(*args, **kwargs)
+        self.bukudb = bukudb
+        custom_model = types.SimpleNamespace(bukudb=bukudb, __name__='bookmark')
+        super().__init__(custom_model, *args, **kwargs)
 
     @property
     def page_size(self):
@@ -430,8 +418,8 @@ class TagModelView(BaseModelView):
     def _name_formatter(self, _, model, name):
         data = getattr(model, name)
         query, title = (({'flt0_tags_contain': data}, data) if data else
-                        ({'flt0_tags_number_equal': 0}, '<EMPTY TAG>'))
-        return Markup(f'<a href="{escape(url_for("bookmark.index_view", **query))}">{escape(title)}</a>')
+                        ({'flt0_tags_number_equal': 0}, '<UNTAGGED>'))
+        return Markup(link(title, url_for("bookmark.index_view", **query)))
 
     can_create = False
     can_set_page_size = True
@@ -443,13 +431,12 @@ class TagModelView(BaseModelView):
     extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
     last_page = expose('/last-page')(last_page)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, bukudb, *args, **kwargs):
         readonly_check(self)
-        self.bukudb = args[0]
+        self.bukudb = bukudb
         self.all_tags = self.bukudb.get_tag_all()
-        custom_model = types.SimpleNamespace(bukudb=self.bukudb, __name__="tag")
-        args = [custom_model] + list(args[1:])
-        super().__init__(*args, **kwargs)
+        custom_model = types.SimpleNamespace(bukudb=bukudb, __name__='tag')
+        super().__init__(custom_model, *args, **kwargs)
 
     @property
     def page_size(self):
@@ -589,114 +576,36 @@ class TagModelView(BaseModelView):
 
 
 class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
-    def __init__(self, *args, **kwargs):
-        self.bukudb = args[0]
-        args = list(args[1:])
+    _data = None
+    extra_css = ['/static/bukuserver/css/statistic.css']
+
+    def __init__(self, bukudb, *args, **kwargs):
+        self.bukudb = bukudb
         super().__init__(*args, **kwargs)
 
     @expose("/", methods=("GET", "POST"))
     def index(self):
-        bukudb = self.bukudb
-        global STATISTIC_DATA
-        statistic_data = STATISTIC_DATA
-        if not statistic_data or request.method == "POST":
-            all_bookmarks = bukudb.get_rec_all()
-            netloc = [urlparse(x[1]).netloc for x in all_bookmarks]
-            tag_set = [x[3] for x in all_bookmarks]
-            tag_items = []
-            for tags in tag_set:
-                tag_items.extend([x.strip() for x in tags.split(",") if x.strip()])
-            tag_counter = Counter(tag_items)
-            title_items = [x[2] for x in all_bookmarks]
-            title_counter = Counter(title_items)
-            statistic_datetime = arrow.now()
-            STATISTIC_DATA = {
-                "datetime": statistic_datetime,
-                "netloc": netloc,
-                "tag_counter": tag_counter,
-                "title_counter": title_counter,
+        data = StatisticView._data
+        if not data or request.method == 'POST':
+            all_bookmarks = self.bukudb.get_rec_all()
+            netlocs = [urlparse(x.url).netloc for x in all_bookmarks]
+            tags = [s for x in all_bookmarks for s in x.taglist]
+            titles = [x.title for x in all_bookmarks]
+            data = StatisticView._data = {
+                'netlocs': sorted_counter(netlocs),
+                'tags': sorted_counter(tags),
+                'titles': sorted_counter(titles, min_count=1),
+                'generated': arrow.now(),
             }
-        else:
-            netloc = statistic_data["netloc"]
-            statistic_datetime = statistic_data["datetime"]
-            tag_counter = statistic_data["tag_counter"]
-            title_counter = statistic_data["title_counter"]
 
-        netloc_counter = Counter(netloc)
-        unique_netloc_len = len(set(netloc))
-        colors = [
-            "#F7464A",
-            "#46BFBD",
-            "#FDB45C",
-            "#FEDCBA",
-            "#ABCDEF",
-            "#DDDDDD",
-            "#ABCABC",
-            "#4169E1",
-            "#C71585",
-            "#FF4500",
-            "#FEDCBA",
-            "#46BFBD",
-        ]
-        show_netloc_table = False
-        if unique_netloc_len > len(colors):
-            max_netloc_item = len(colors)
-            netloc_colors = colors
-            show_netloc_table = True
-        else:
-            netloc_colors = colors[:unique_netloc_len]
-            max_netloc_item = unique_netloc_len
-        most_common_netlocs = netloc_counter.most_common(max_netloc_item)
-        most_common_netlocs = [
-            [val[0], val[1], netloc_colors[idx]]
-            for idx, val in enumerate(most_common_netlocs)
-        ]
-
-        unique_tag_len = len(tag_counter)
-        show_tag_rank_table = False
-        if unique_tag_len > len(colors):
-            max_tag_item = len(colors)
-            tag_colors = colors
-            show_tag_rank_table = True
-        else:
-            tag_colors = colors[:unique_tag_len]
-            max_tag_item = unique_tag_len
-        most_common_tags = tag_counter.most_common(max_tag_item)
-        most_common_tags = [
-            [val[0], val[1], tag_colors[idx]]
-            for idx, val in enumerate(most_common_tags)
-        ]
-
-        unique_title_len = len(title_counter)
-        show_title_rank_table = False
-        if unique_title_len > len(colors):
-            max_title_item = len(colors)
-            title_colors = colors
-            show_title_rank_table = True
-        else:
-            title_colors = colors[:unique_title_len]
-            max_title_item = unique_title_len
-        most_common_titles = title_counter.most_common(max_title_item)
-        most_common_titles = [
-            [val[0], val[1], title_colors[idx]]
-            for idx, val in enumerate(most_common_titles)
-        ]
-
+        datetime = data['generated']
         return self.render(
-            "bukuserver/statistic.html",
-            most_common_netlocs=most_common_netlocs,
-            netloc_counter=netloc_counter,
-            show_netloc_table=show_netloc_table,
-            most_common_tags=most_common_tags,
-            tag_counter=tag_counter,
-            show_tag_rank_table=show_tag_rank_table,
-            most_common_titles=most_common_titles,
-            title_counter=title_counter,
-            show_title_rank_table=show_title_rank_table,
-            datetime=statistic_datetime,
-            datetime_text=statistic_datetime.humanize(
-                arrow.now(), granularity="second"
-            ),
+            'bukuserver/statistic.html',
+            netlocs=CountedData(data['netlocs']),
+            tags=CountedData(data['tags']),
+            titles=CountedData(data['titles']),
+            datetime=datetime,
+            datetime_text=datetime.humanize(arrow.now(), granularity='second'),
         )
 
 
@@ -715,4 +624,30 @@ def filter_key(flt, idx=''):
 
 def format_value(field, bookmark, spacing=''):
     s = bookmark[field.value]
-    return s if field != BookmarkField.TAGS else s.strip(',').replace(',', ','+spacing)
+    return s if field != BookmarkField.TAGS else (s or '').strip(',').replace(',', ','+spacing)
+
+def link(text, url, new_tab=False, badge=''):
+    target = ('' if not new_tab else ' target="_blank"')
+    cls = ('' if not badge else f' class="btn label label-{badge}"')
+    return f'<a{cls} href="{escape(url)}"{target}>{escape(text)}</a>'
+
+def sorted_counter(keys, *, min_count=0):
+    data = Counter(keys)
+    return Counter({k: v for k, v in sorted(data.items()) if v > min_count})
+
+
+ColoredData = namedtuple('ColoredData', 'name amount color')
+
+class CountedData(list):
+    def __init__(self, counter):
+        self._counter = Counter(counter)
+        data = self._counter.most_common(len(COLORS))
+        self += [ColoredData(name, amount, color) for (name, amount), color in zip(data, COLORS)]
+
+    @property
+    def cropped(self):
+        return len(self) < len(self._counter)
+
+    @property
+    def all(self):
+        return self._counter.most_common()

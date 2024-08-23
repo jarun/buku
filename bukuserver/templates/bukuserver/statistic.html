@@ -4,48 +4,63 @@
 {% block head %}
   {{ super() }}
   {{ buku.close_if_popup() }}
+  <script>// realtime redrawing "Data created" datetime
+    const UNITS = {day: 60*60*24, hour: 60*60, minute: 60, second: 1};
+    addEventListener('load', function recalcReltime() {
+      let diff = Date.now()/1000 - created.getAttribute('data-timestamp');
+      let unit = (diff < 5 ? "" : Object.keys(UNITS).find(k => diff >= UNITS[k]));
+      created.innerText = (!unit ? "just now" : `${parseInt(diff/UNITS[unit])} ${unit}s ago`);
+      setTimeout(recalcReltime, 1000 * {second: 1, minute: 15, hour: 60, day: 15*60}[unit||'second']);
+    });
+  </script>
 {% endblock %}
 
 {% block body %}
 <div class="container">
-  <form class="form-inline" action="{{url_for('statistic.index')}}" method="POST">
+  <form class="form-inline" action="{{ url_for('statistic.index') }}" method="POST">
     Data created
-    <span rel="tooltip" title="{{datetime}}">{{datetime_text}}</span>
+    <span id="created" rel="tooltip" title="{{ datetime }}" data-timestamp={{ datetime.timestamp() }}>{{ datetime_text }}</span>
     <button type="submit" class="btn btn-default btn-sm">refresh</button>
   </form>
   <h3>Netloc</h3>
 
-  {% if most_common_netlocs %}
-  <div class="col-md-6">
-    <canvas id="mostCommonChart" width="500" height="500"></canvas>
-  </div>
+  {% if netlocs %}
+  <div>
+    <div class="col-md-6">
+      <canvas id="mostCommonChart" width="500" height="500"></canvas>
+    </div>
 
-  <div class="col-md-6">
-    {% if show_netloc_table %}
-    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#netlocModal">
-      View all
-    </button>
-    {% endif %}
-    <table class="table">
-      <tr>
-        <th>Rank</th>
-        <th>Netloc</th>
-        <th>Number</th>
-      </tr>
-      {% for item, number, _ in most_common_netlocs %}
-      <tr>
-        <td>{{loop.index}}</td>
-        <td> <a href="{{buku.filter('url_netloc_match', item)}}">{{item}}</a> </td>
-        <td class="text-right">{{number}}</td>
-      </tr>
-      {% endfor %}
-    </table>
+    <div class="col-md-6">
+      {% if netlocs.cropped %}
+      <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#netlocModal">
+        View all
+      </button>
+      {% endif %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Netloc</th>
+            <th class="text-right">Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in netlocs %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td> <a href="{{ buku.filter('url_netloc_match', item.name) }}">{{ item.name or '(no netloc)' }}</a> </td>
+            <td class="text-right">{{ item.amount }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
   {% else %}
-  <span> No bookmark found.</span>
+  <span> No bookmarks found.</span>
   {% endif %}
 
-  {% if show_netloc_table %}
+  {% if netlocs.cropped %}
   <div class="modal fade" id="netlocModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -55,26 +70,24 @@
         </div>
         <div class="modal-body">
           <table class="table table-condensed">
-            <tr>
-              <th>Rank</th>
-              <th>Netloc</th>
-              <th>Number</th>
-            </tr>
-            {% for item, number in netloc_counter.most_common() %}
-              {% if number > 1 %}
+            <thead class="bg-primary">
               <tr>
-                <td>{{loop.index}}</td>
-                <td>
-                  {% if item %}
-                  <a href="{{buku.filter('url_netloc_match', item)}}">{{item}}</a>
-                  {% else %}
-                  <span class="btn btn-default" disabled="disabled">(No Netloc)</span>
-                  {% endif %}
-                </td>
-                <td class="text-right">{{number}}</td>
+                <th>Rank</th>
+                <th>Netloc</th>
+                <th class="text-right">Number</th>
               </tr>
-              {% endif %}
-            {% endfor %}
+            </thead>
+            <tbody>
+              {% for name, amount in netlocs.all %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                  <a href="{{ buku.filter('url_netloc_match', name) }}">{{ name or '(no netloc)' }}</a>
+                </td>
+                <td class="text-right">{{ amount }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
           </table>
         </div>
       </div>
@@ -84,39 +97,45 @@
 
   <h3 class="col-md-12">Tag</h3>
 
-  {% if most_common_tags %}
-  <div class="col-md-6">
-    <canvas id="mostCommonTagChart" width="500" height="500"></canvas>
-  </div>
+  {% if tags %}
+  <div>
+    <div class="col-md-6">
+      <canvas id="mostCommonTagChart" width="500" height="500"></canvas>
+    </div>
 
-  <div class="col-md-6">
-    {% if show_tag_rank_table %}
-    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#tagRankModal">
-      View all
-    </button>
-    {% endif %}
-    <table class="table">
-      <tr>
-        <th>Rank</th>
-        <th>Tag</th>
-        <th>Number</th>
-      </tr>
-      {% for item, number, _ in most_common_tags %}
-      <tr>
-        <td>{{loop.index}}</td>
-        <td>
-          <a href="{{buku.filter('tags_contain', item)}}">{{item}}</a>
-        </td>
-        <td class="text-right">{{number}}</td>
-      </tr>
-      {% endfor %}
-    </table>
+    <div class="col-md-6">
+      {% if tags.cropped %}
+      <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#tagRankModal">
+        View all
+      </button>
+      {% endif %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Tag</th>
+            <th class="text-right">Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in tags %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>
+              <a href="{{ buku.filter('tags_contain', item.name) }}">{{ item.name }}</a>
+            </td>
+            <td class="text-right">{{ item.amount }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
   {% else %}
-  <span> No tag found.</span>
+  <span> No tags found.</span>
   {% endif %}
 
-  {% if show_tag_rank_table %}
+  {% if tags.cropped %}
   <div class="modal fade" id="tagRankModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -126,18 +145,22 @@
         </div>
         <div class="modal-body">
           <table class="table table-condensed">
-            <tr>
-              <th>Rank</th>
-              <th>Tag</th>
-              <th>Number</th>
-            </tr>
-            {% for item, number in tag_counter.most_common() %}
+            <thead class="bg-primary">
               <tr>
-                <td>{{loop.index}}</td>
-                <td> <a href="{{buku.filter('tags_contain', item)}}">{{item}}</a> </td>
-                <td class="text-right">{{number}}</td>
+                <th>Rank</th>
+                <th>Tag</th>
+                <th class="text-right">Number</th>
               </tr>
-            {% endfor %}
+            </thead>
+            <tbody>
+              {% for name, amount in tags.all %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td> <a href="{{ buku.filter('tags_contain', name) }}">{{ name }}</a> </td>
+                <td class="text-right">{{ amount }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
           </table>
         </div>
       </div>
@@ -145,74 +168,74 @@
   </div>
   {% endif %}
 
-  <h3 class="col-md-12">Title</h3>
+  <h3 class="col-md-12">Title (common)</h3>
 
-  {% if most_common_titles %}
-  <div class="col-md-6">
-    <canvas id="mostCommonTitleChart" width="500" height="500"></canvas>
-  </div>
+  {% if titles %}
+  <div>
+    <div class="col-md-6">
+      <canvas id="mostCommonTitleChart" width="500" height="500"></canvas>
+    </div>
 
-  <div class="col-md-6">
-    {% if show_title_rank_table %}
-    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#titleModal">
-      View all
-    </button>
-    {% endif %}
-    <table class="table">
-      <tr>
-        <th>Rank</th>
-        <th>Title</th>
-        <th>Number</th>
-      </tr>
-      {% for item, number, _ in most_common_titles %}
-      <tr>
-        <td>{{loop.index}}</td>
-        <td>
-          {% if item %}
-          <a href="{{buku.filter('title_equals', item)}}">{{item}}</a>
-          {% else %}
-          (No Title)
-          {% endif %}
-        </td>
-        <td class="text-right">{{number}}</td>
-      </tr>
-      {% endfor %}
-    </table>
+    <div class="col-md-6">
+      {% if titles.cropped %}
+      <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#titleModal">
+        View all
+      </button>
+      {% endif %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Title</th>
+            <th class="text-right">Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in titles %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>
+              <a href="{{ buku.filter('title_equals', item.name) }}">{{ item.name or '(no title)'}}</a>
+            </td>
+            <td class="text-right">{{ item.amount }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
   {% else %}
-  <span> No Title found.</span>
+  <span> No common titles found.</span>
   {% endif %}
 
-  {% if show_title_rank_table %}
+  {% if titles.cropped %}
   <div class="modal fade" id="titleModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="myModalLabel">Title ranking</h4>
+          <h4 class="modal-title" id="myModalLabel">Common titles ranking</h4>
         </div>
         <div class="modal-body">
           <table class="table table-condensed">
-            <tr>
-              <th>Rank</th>
-              <th>Title</th>
-              <th>Number</th>
-            </tr>
-            {% for item, number in title_counter.most_common() %}
-              {% if number > 1 %}
+            <thead class="bg-primary">
               <tr>
-                <td>{{loop.index}}</td>
-                <td style="word-break:break-all;">
-                  {% if item %}
-                  <a href="{{buku.filter('title_equals', item)}}">{{item}}</a>
-                  {% else %}
-                  <span class="btn btn-default" disabled="disabled">(No Title)</span>
-                  {% endif %}
-                </td>
-                <td class="text-right">{{number}}</td>
+                <th>Rank</th>
+                <th>Title</th>
+                <th class="text-right">Number</th>
               </tr>
-              {% endif %}
-            {% endfor %}
+            </thead>
+            <tbody>
+              {% for name, amount in titles.all %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td style="word-break:break-all;">
+                  <a href="{{ buku.filter('title_equals', name) }}">{{ name or '(no title)' }}</a>
+                </td>
+                <td class="text-right">{{ amount }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
           </table>
         </div>
       </div>
@@ -223,29 +246,35 @@
 
 {% block tail %}
   {{ super() }}
+  <script>// sticky table headers in modals
+    $('.modal-body').each(function () {
+      $('thead', this).css({top: '-' + $.css(this, 'padding-top')});
+    });
+  </script>
   {{ buku.script('Chart.js') }}
+  {% set NO_NETLOC = '\u200B(no netloc)\u200B' %}
   <script>
-  var netlocCtx = document.getElementById("mostCommonChart").getContext('2d');
-  var netlocChart = new Chart(netlocCtx, {
+  var netlocCtx = document.getElementById("mostCommonChart")?.getContext('2d');
+  var netlocChart = netlocCtx && new Chart(netlocCtx, {
     type: 'pie',
     data: {
       datasets: [{
         data: [
-          {% for val in most_common_netlocs %} {{val.1}}, {% endfor %}
+          {% for val in netlocs %} {{val.amount}}, {% endfor %}
         ],
         backgroundColor: [
-          {% for val in most_common_netlocs %} {{val.2|tojson}}, {% endfor %}
+          {% for val in netlocs %} {{val.color|tojson}}, {% endfor %}
         ],
       }],
       // These labels appear in the legend and in the tooltips when hovering different arcs
       labels: [
-        {% for val in most_common_netlocs %} {{val.0|tojson}}, {% endfor %}
+        {% for val in netlocs %} {{(val.name or NO_NETLOC)|tojson}}, {% endfor %}
       ]
     },
     options: {
       onClick (evt, item) {
         if (!item[0]) return;
-        var value = this.data.labels[item[0]._index];
+        var value = this.data.labels[item[0]._index].replace({{NO_NETLOC|tojson}}, "");
         var form = $('<form></form>');
 
         form.attr("method", "get");
@@ -266,21 +295,21 @@
     }
   });
 
-  var tagRankCtx = document.getElementById("mostCommonTagChart").getContext('2d');
-  var tagRankChart = new Chart(tagRankCtx, {
+  var tagRankCtx = document.getElementById("mostCommonTagChart")?.getContext('2d');
+  var tagRankChart = tagRankCtx && new Chart(tagRankCtx, {
     type: 'pie',
     data: {
       datasets: [{
         data: [
-          {% for val in most_common_tags %} {{val.1}}, {% endfor %}
+          {% for val in tags %} {{val.amount}}, {% endfor %}
         ],
         backgroundColor: [
-          {% for val in most_common_tags %} {{val.2|tojson}}, {% endfor %}
+          {% for val in tags %} {{val.color|tojson}}, {% endfor %}
         ],
       }],
       // These labels appear in the legend and in the tooltips when hovering different arcs
       labels: [
-        {% for val in most_common_tags %} {{val.0|tojson}}, {% endfor %}
+        {% for val in tags %} {{val.name|tojson}}, {% endfor %}
       ]
     },
     options: {
@@ -293,27 +322,28 @@
     }
   });
 
-  var titleCtx = document.getElementById("mostCommonTitleChart").getContext('2d');
-  var titleChart = new Chart(titleCtx, {
+  {% set NO_TITLE = '\u200B(no title)\u200B' -%}
+  var titleCtx = document.getElementById("mostCommonTitleChart")?.getContext('2d');
+  var titleChart = titleCtx && new Chart(titleCtx, {
     type: 'pie',
     data: {
       datasets: [{
         data: [
-          {% for val in most_common_titles %} {{val.1}}, {% endfor %}
+          {% for val in titles %} {{val.amount}}, {% endfor %}
         ],
         backgroundColor: [
-          {% for val in most_common_titles %} {{val.2|tojson}}, {% endfor %}
+          {% for val in titles %} {{val.color|tojson}}, {% endfor %}
         ],
       }],
       // These labels appear in the legend and in the tooltips when hovering different arcs
       labels: [
-        {% for val in most_common_titles %} {{val.0|trim|tojson}}, {% endfor %}
+        {% for val in titles %} {{(val.name|trim or NO_TITLE)|tojson}}, {% endfor %}
       ]
     },
     options: {
       onClick (evt, item) {
         if (!item[0]) return;
-        var value = this.data.labels[item[0]._index];
+        var value = this.data.labels[item[0]._index].replace({{NO_TITLE|tojson}}, "");
         var form = $('<form></form>');
 
         form.attr("method", "get");
@@ -333,8 +363,6 @@
       }
     }
   });
-
-  titleChart.canvas.parentNode.style.height = '128px';
   </script>
 
 </div>
