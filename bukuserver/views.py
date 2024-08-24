@@ -291,57 +291,39 @@ class BookmarkModelView(BaseModelView):
                     )
                 )
         elif name == BookmarkField.ID.name.lower():
-            res.extend(
-                [
-                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
-                    bs_filters.BookmarkBaseFilter(
-                        name, filter_type=FilterType.NOT_EQUAL
-                    ),
-                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
-                    bs_filters.BookmarkBaseFilter(
-                        name, filter_type=FilterType.NOT_IN_LIST
-                    ),
-                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.GREATER),
-                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.SMALLER),
-                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.TOP_X),
-                    bs_filters.BookmarkBaseFilter(
-                        name, filter_type=FilterType.BOTTOM_X
-                    ),
-                ]
-            )
+            res += [
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.GREATER),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.SMALLER),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.TOP_X),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.BOTTOM_X),
+            ]
         elif name == BookmarkField.URL.name.lower():
 
             def netloc_match_func(query, value, index):
                 return filter(lambda x: urlparse(x[index]).netloc == value, query)
 
-            res.extend(
-                [
-                    bs_filters.BookmarkBaseFilter(
-                        name, "netloc match", netloc_match_func
-                    ),
-                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
-                    bs_filters.BookmarkBaseFilter(
-                        name, filter_type=FilterType.NOT_EQUAL
-                    ),
-                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
-                    bs_filters.BookmarkBaseFilter(
-                        name, filter_type=FilterType.NOT_IN_LIST
-                    ),
-                ]
-            )
+            res += [
+                bs_filters.BookmarkBaseFilter(name, "netloc match", netloc_match_func),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.CONTAINS),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_CONTAINS),
+            ]
         elif name == BookmarkField.TITLE.name.lower():
-            res.extend(
-                [
-                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
-                    bs_filters.BookmarkBaseFilter(
-                        name, filter_type=FilterType.NOT_EQUAL
-                    ),
-                    bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
-                    bs_filters.BookmarkBaseFilter(
-                        name, filter_type=FilterType.NOT_IN_LIST
-                    ),
-                ]
-            )
+            res += [
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.CONTAINS),
+                bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_CONTAINS),
+            ]
         elif name == BookmarkField.TAGS.name.lower():
 
             def get_list_from_buku_tags(item):
@@ -357,16 +339,14 @@ class BookmarkModelView(BaseModelView):
                     if value not in get_list_from_buku_tags(item[index]):
                         yield item
 
-            res.extend(
-                [
-                    bs_filters.BookmarkBaseFilter(name, "contain", tags_contain_func),
-                    bs_filters.BookmarkBaseFilter(name, "not contain", tags_not_contain_func),
-                    bs_filters.BookmarkTagNumberEqualFilter(name, "number equal"),
-                    bs_filters.BookmarkTagNumberNotEqualFilter(name, "number not equal"),
-                    bs_filters.BookmarkTagNumberGreaterFilter(name, "number greater than"),
-                    bs_filters.BookmarkTagNumberSmallerFilter(name, "number smaller than"),
-                ]
-            )
+            res += [
+                bs_filters.BookmarkBaseFilter(name, "contain", tags_contain_func),
+                bs_filters.BookmarkBaseFilter(name, "not contain", tags_not_contain_func),
+                bs_filters.BookmarkTagNumberEqualFilter(name, "number equal"),
+                bs_filters.BookmarkTagNumberNotEqualFilter(name, "number not equal"),
+                bs_filters.BookmarkTagNumberGreaterFilter(name, "number greater than"),
+                bs_filters.BookmarkTagNumberSmallerFilter(name, "number smaller than"),
+            ]
         elif name in self.scaffold_list_columns():
             pass
         else:
@@ -508,26 +488,22 @@ class TagModelView(BaseModelView):
             most_common_item = [x[0] for x in most_common]
             return filter(lambda x: x[index] in most_common_item, query)
 
-        res.extend(
-            [
-                bs_filters.TagBaseFilter(name, filter_type=FilterType.EQUAL),
-                bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
-                bs_filters.TagBaseFilter(name, filter_type=FilterType.IN_LIST),
-                bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
-            ]
-        )
+        res += [
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.EQUAL),
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.IN_LIST),
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.CONTAINS),
+            bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_CONTAINS),
+        ]
         if name == "usage_count":
-            res.extend(
-                [
-                    bs_filters.TagBaseFilter(name, filter_type=FilterType.GREATER),
-                    bs_filters.TagBaseFilter(name, filter_type=FilterType.SMALLER),
-                    bs_filters.TagBaseFilter(name, filter_type=FilterType.TOP_X),
-                    bs_filters.TagBaseFilter(name, filter_type=FilterType.BOTTOM_X),
-                    bs_filters.TagBaseFilter(
-                        name, "top most common", top_most_common_func
-                    ),
-                ]
-            )
+            res += [
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.GREATER),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.SMALLER),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.TOP_X),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.BOTTOM_X),
+                bs_filters.TagBaseFilter(name, "top most common", top_most_common_func),
+            ]
         elif name == "name":
             pass
         else:

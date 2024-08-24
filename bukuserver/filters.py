@@ -19,6 +19,14 @@ def not_equal_func(query, value, index):
     return filter(lambda x: x[index] != value, query)
 
 
+def contains_func(query, value, index):
+    return filter(lambda x: value in x[index], query)
+
+
+def not_contains_func(query, value, index):
+    return filter(lambda x: value not in x[index], query)
+
+
 def greater_func(query, value, index):
     return filter(lambda x: x[index] > value, query)
 
@@ -51,6 +59,8 @@ class FilterType(Enum):
 
     EQUAL = {'func': equal_func, 'text':'equals'}
     NOT_EQUAL = {'func': not_equal_func, 'text':'not equal'}
+    CONTAINS = {'func': contains_func, 'text':'contains'}
+    NOT_CONTAINS = {'func': not_contains_func, 'text':'not contains'}
     GREATER = {'func': greater_func, 'text':'greater than'}
     SMALLER = {'func': smaller_func, 'text':'smaller than'}
     IN_LIST = {'func': in_list_func, 'text':'in list'}
