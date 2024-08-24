@@ -26,6 +26,7 @@ tests_require = [
     'pylint>=1.7.2',
     'pytest-cov',
     'pytest-recording>=0.12.1',
+    'pytest-timeout',
     'pytest>=6.2.1',
     'PyYAML>=4.2b1',
     'setuptools>=41.0.1',
