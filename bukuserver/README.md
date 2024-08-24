@@ -150,42 +150,56 @@ is recommended to include preceding slash and not have trailing slash
 
 <p><br></p>
 <p align="center">
-<a href="https://i.imgur.com/LozEqsT.png"><img src="https://i.imgur.com/LozEqsT.png" alt="home page" width="650"/></a>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/home-page.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/home-page.png" alt="home page" width="650"/>
+  </a>
 </p>
 <p align="center"><i>home page</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-<a href="https://i.imgur.com/DJUzs1d.png"><img src="https://i.imgur.com/DJUzs1d.png" alt="index page" width="650"/></a>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/bookmark-stats.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/bookmark-stats.png" alt="bookmark stats" width="650"/>
+  </a>
 </p>
 <p align="center"><i>bookmark stats</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-<a href="https://i.imgur.com/1eMruZD.png"><img src="https://i.imgur.com/1eMruZD.png" alt="index page" width="650"/></a>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/bookmark-page.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/bookmark-page.png" alt="bookmark page" width="650"/>
+  </a>
 </p>
 <p align="center"><i>bookmark page</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-<a href="https://i.imgur.com/W4VUKQV.png"><img src="https://i.imgur.com/W4VUKQV.png" alt="index page" width="650"/></a>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/create-bookmark.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/create-bookmark.png" alt="create bookmark" width="650"/>
+  </a>
 </p>
 <p align="center"><i>create bookmark</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-<a href="https://i.imgur.com/213y0Ft.png"><img src="https://i.imgur.com/213y0Ft.png" alt="index page" width="650"/></a>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/edit-bookmark.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/edit-bookmark.png" alt="edit bookmark" width="650"/>
+  </a>
 </p>
 <p align="center"><i>edit bookmark</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-<a href="https://i.imgur.com/MQM07VZ.png"><img src="https://i.imgur.com/MQM07VZ.png" alt="index page" width="650"/></a>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/view-bookmark-details.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/view-bookmark-details.png" alt="view bookmark details" width="650"/>
+  </a>
 </p>
 <p align="center"><i>view bookmark details</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-<a href="https://i.imgur.com/0bYgpER.png"><img src="https://i.imgur.com/0bYgpER.png" alt="index page" width="650"/></a>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/tag-page.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/tag-page.png" alt="tag page" width="650"/>
+  </a>
 </p>
 <p align="center"><i>tag page</i></a></p>
