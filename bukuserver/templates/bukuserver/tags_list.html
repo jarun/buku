@@ -8,6 +8,11 @@
 
 {% block model_menu_bar_before_filters %}
   {{ super() }}
-  <form id="refresh" style="display:none" method="POST" action="refresh"></form>
+  <form id="refresh" class="hidden" method="POST" action="refresh"></form>
   <li><a href="#" onclick="refresh.submit()">{{ _gettext('Refresh') }}</a></li>
+{% endblock %}
+
+{% block tail %}
+  {{ super() }}
+  <script>$('tr:has(a[href$="/bookmark/?flt0_tags_number_equal=0"]) .list-buttons-column').html('')</script>
 {% endblock %}

@@ -40,7 +40,6 @@ server_require = [
     "arrow>=1.2.2",
     "Flask-Admin>=1.6.1,<2",
     "Flask-API>=3.0.post1",
-    "Flask-Bootstrap>=3.3.7.1",
     "flask-paginate>=2022.1.8",
     "Flask-WTF>=1.0.1",
     "Flask>=2.2.2,<2.3",
