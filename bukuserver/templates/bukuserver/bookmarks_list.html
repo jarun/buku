@@ -8,5 +8,6 @@
 
 {% block tail %}
   {{ super() }}
+  {{ buku.focus(None) }}
   {{ buku.link_saved() }}
 {% endblock %}

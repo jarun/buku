@@ -14,5 +14,6 @@
 
 {% block tail %}
   {{ super() }}
+  {{ buku.focus(None) }}
   <script>$('tr:has(a[href$="/bookmark/?flt0_tags_number_equal=0"]) .list-buttons-column').html('')</script>
 {% endblock %}
