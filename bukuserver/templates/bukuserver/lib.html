@@ -23,6 +23,14 @@
   <script>opener && (opener !== window) && document.body.classList.add('popup')</script>
 {% endmacro %}
 
+{% macro focus(location='body') %}
+  {% if location %}
+  <script>setTimeout(() => $('{{location|safe}} input:not([type=hidden])')[0]?.focus(), 500)</script>
+  {% else %}
+  <script>$(document).ready(() => document.activeElement?.blur())</script>
+  {% endif %}
+{% endmacro %}
+
 {% macro fetch_checkbox(checked=True) %}
   <script>
     $('.admin-form [name=fetch]').remove();
