@@ -9,8 +9,10 @@
 
 {% block model_menu_bar_before_filters %}
   {{ super() }}
-  <form id="refresh" class="hidden" method="POST" action="refresh"></form>
-  <li><a href="#" onclick="refresh.submit()">{{ _('Refresh') }}</a></li>
+  <form id="refresh" class="d-none" method="POST" action="refresh"></form>
+  <li class="nav-item">
+    <a class="nav-link" href="#" onclick="refresh.submit()">{{ _('Refresh') }}</a>
+  </li>
 {% endblock %}
 
 {% block tail %}

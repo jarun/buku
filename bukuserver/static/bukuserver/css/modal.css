@@ -5,7 +5,7 @@ body.modal-open {
 
 /* limit dialog height with a scrollbox */
 .modal-content {
-    max-height: calc(100vh - 60px);
+    max-height: calc(100vh - 3.5rem);
     display: flex;
     flex-direction: column;
 }

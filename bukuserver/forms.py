@@ -2,7 +2,7 @@
 # pylint: disable=too-few-public-methods, missing-docstring
 from typing import Any, Dict, Tuple
 from flask_wtf import FlaskForm
-from wtforms.fields import BooleanField, FieldList, StringField, TextAreaField, HiddenField
+from wtforms.fields import BooleanField, FieldList, URLField, StringField, TextAreaField, HiddenField
 from wtforms.validators import DataRequired, InputRequired, ValidationError
 from buku import DELIM, parse_tags
 from bukuserver import _, _l, LazyString
@@ -35,7 +35,7 @@ class HomeForm(SearchBookmarksForm):
 
 
 class BookmarkForm(FlaskForm):
-    url = StringField(_l('URL'), name='link', validators=[InputRequired()])
+    url = URLField(_l('URL'), name='link', validators=[InputRequired()])
     title = StringField(_l('Title'))
     tags = StringField(_l('Tags'))
     description = TextAreaField(_l('Description'))
