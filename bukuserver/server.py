@@ -118,7 +118,7 @@ def create_app(db_file=None):
     app.jinja_env.globals.update(_p=_p, dbfile=bukudb.dbfile, dbname=bukudb.dbname)
 
     admin = Admin(
-        app, name='buku server', template_mode='bootstrap3',
+        app, name='buku server', template_mode='bootstrap4',
         index_view=views.CustomAdminIndexView(
             template='bukuserver/home.html', url='/'
         )

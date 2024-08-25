@@ -168,7 +168,7 @@ def test_bookmarklet_view(bukudb, client, exists, uri, tab, args):
 
     response = client.get('/bookmarklet', query_string=query, follow_redirects=True)
     dom = assert_response(response, uri, argnames=args)
-    assert dom.xpath(f'//ul{xpath_cls("nav nav-tabs")}/li{xpath_cls("active")}/a/text()') == [tab]
+    assert dom.xpath(f'//ul{xpath_cls("nav nav-tabs")}//a{xpath_cls("nav-link active")}/text()') == [tab]
     assert dom.xpath('//input[@name="link"]/@value') == [query['url']]
     assert bool(dom.xpath('//input[@name="id"]')) == exists
 
@@ -343,9 +343,9 @@ def _test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab, 
     urltext = title or '&lt;EMPTY TITLE&gt;'
     _title = (urltext if not netloc and mode in ('full', None) else f'<a href="{url}"{target}>{urltext}</a>')
     prefix = f'<td class="col-entry"> {icon}<span class="title" title="{url}">{_title}</span>'
-    tags = [f'<a class="btn label label-default" href="/bookmark/?flt0_tags_contain={s}">{s}</a>' for s in _tags]
+    tags = [f'<a class="btn badge badge-secondary" href="/bookmark/?flt0_tags_contain={s}">{s}</a>' for s in _tags]
     netloc_tag = ('' if mode == 'netloc' or not netloc else
-                  f'<a class="btn label label-success" href="/bookmark/?flt0_url_netloc_match={netloc}">netloc:{netloc}</a>')
+                  f'<a class="btn badge badge-success" href="/bookmark/?flt0_url_netloc_match={netloc}">netloc:{netloc}</a>')
     suffix = f'<div class="tag-list">{netloc_tag}{"".join(tags)}</div><div class="description">{desc}</div> </td>'
     if mode == 'netloc':
         _netloc = netloc and f'<span class="netloc"> (<a href="/bookmark/?flt0_url_netloc_match={netloc}">{netloc}</a>)</span>'
@@ -405,7 +405,7 @@ theme = env_fixture('BUKUSERVER_THEME', params=['default', 'slate', None])
 def test_env_theme(theme, client):
     dom = assert_response(client.get('/'), '/')
     assert dom.xpath('//head/link[@rel="stylesheet"][starts-with(@href, $href)]',
-                     href=f'/static/admin/bootstrap/bootstrap3/swatch/{theme or "default"}/bootstrap.min.css?')
+                     href=f'/static/admin/bootstrap/bootstrap4/swatch/{theme or "default"}/bootstrap.min.css?')
 
 
 _DICT = {

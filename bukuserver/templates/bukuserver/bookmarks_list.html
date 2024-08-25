@@ -22,13 +22,15 @@
   {{ super() }}
   {% if data %}
     {% set _random = url_for('.details_view', modal=True, id='random', url=return_url, **(request.args|flt)) %}
-    <li><a id="random" data-target="#fa_modal_window" data-toggle="modal" href="{{ _random }}">{{ _('Random') }}</a></li>
+    <li class="nav-item">
+      <a id="random" class="nav-link" data-target="#fa_modal_window" data-toggle="modal" href="{{ _random }}">{{ _('Random') }}</a>
+    </li>
   {% endif %}
-  <li id="reorderButton" class="hidden">
-    <form id="reorder" class="hidden" method="POST" action="reorder">
+  <li id="reorderButton" class="nav-item d-none">
+    <form id="reorder" class="d-none" method="POST" action="reorder">
       <input type="hidden" name="filters"/>
     </form>
-    <a href="#" title="{{ _('Update indices to match this order') }}"
+    <a class="nav-link" href="#" title="{{ _('Update indices to match this order') }}"
        onclick="reorder.confirmAndSubmit()">{{ _('Reorder') }}</a>
   </li>
   <script>
@@ -36,11 +38,11 @@
     addEventListener('DOMContentLoaded', () => {
       let flt = JSON.parse( $('#active-filters-data').attr('data-initial') );
       if ((flt.length > 0) && flt.every(x => x[1] == 'order')) {
-        reorderButton.classList.remove('hidden');
+        reorderButton.classList.remove('d-none');
         $('#reorder [name=filters]').val(JSON.stringify(flt));
-        $(`.field-filters .filter, .filters .remove-filter`).on('click', () => reorderButton.classList.add('hidden'));
-        $(`.filters select`).on('change', () => reorderButton.classList.add('hidden'));
-        $(`.filters input`).on('input', () => reorderButton.classList.add('hidden'));
+        $(`.field-filters .filter, .filters .remove-filter`).on('click', () => reorderButton.classList.add('d-none'));
+        $(`.filters select`).on('change', () => reorderButton.classList.add('d-none'));
+        $(`.filters input`).on('input', () => reorderButton.classList.add('d-none'));
       }
     });
   </script>
@@ -67,13 +69,13 @@
     {{ action.render_ctx(get_pk_value(row), row) }}
   {% endfor %}
   {% if request.args|flt|length == 0 %}  {# only shown when filters/ordering are disabled #}
-    <div class="swap-toolbar" style="margin-left: 10px">
+    <div class="swap-toolbar" style="margin-left: 9px">
       {% if row.id < 2 %}
-        <div style="display: inline-block;  width: 14px"><!-- placeholder for the 1st row button --></div>
+        <div class="d-inline-block" style="width: 14px"><!-- placeholder for the 1st row button --></div>
       {% else %}
         {{ swap_rows_action('arrow-up', row.id, -1) }}
       {% endif %}
-      {{ swap_rows_action('transfer', row.id) }}
+      {{ swap_rows_action('exchange', row.id) }}
       {% if row.id < count %}
         {{ swap_rows_action('arrow-down', row.id, +1) }}
       {% endif %}
