@@ -15,10 +15,15 @@ table tr td:not(:first-child) {
 }
 
 .tag-list {
-    font-size: larger;
     display: flex;
     gap: 1px;
     flex-wrap: wrap;
+}
+.tag-list, .link .netloc {
+    font-size: larger;
+}
+.tag-list a, .link .netloc, .select2-search-choice > *, .select2-result-label {
+    white-space: pre;
 }
 
 .description {

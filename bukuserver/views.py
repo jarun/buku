@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 
 import arrow
 import wtforms
+from jinja2 import pass_context
 from flask import current_app, flash, redirect, request, session, url_for
 from flask_admin.babel import gettext
 from flask_admin.base import AdminIndexView, BaseView, expose
@@ -73,8 +74,11 @@ def last_page(self):
     return redirect(url_for('.index_view', **args))
 
 
+def app_param(key, default=None):
+    return current_app.config.get(f'BUKUSERVER_{key}', default)
+
 def readonly_check(self):
-    if current_app.config.get("BUKUSERVER_READONLY", False):
+    if app_param('READONLY'):
         self.can_create = False
         self.can_edit = False
         self.can_delete = False
@@ -110,10 +114,10 @@ class BookmarkModelView(BaseModelView):
         netloc = parsed_url.netloc
         get_index_view_url = functools.partial(url_for, "bookmark.index_view")
         res = []
-        if netloc and not current_app.config.get("BUKUSERVER_DISABLE_FAVICON", False):
+        if netloc and not app_param('DISABLE_FAVICON'):
             res += [f'<img class="favicon" src="http://www.google.com/s2/favicons?domain={netloc}"/> ']
         title = model.title or '<EMPTY TITLE>'
-        new_tab = current_app.config.get("BUKUSERVER_OPEN_IN_NEW_TAB", False)
+        new_tab = app_param('OPEN_IN_NEW_TAB')
         url_for_index_view_netloc = None
         if netloc:
             url_for_index_view_netloc = get_index_view_url(flt0_url_netloc_match=netloc)
@@ -137,6 +141,25 @@ class BookmarkModelView(BaseModelView):
         if description:
             res += [description]
         return Markup("".join(res))
+
+    @pass_context
+    def get_detail_value(self, context, model, name):
+        value = super().get_detail_value(context, model, name)
+        if name == 'tags':
+            tags = (link(s.strip(), url_for('bookmark.index_view', flt0_tags_contain=s.strip()), badge='default')
+                    for s in (value or '').split(',') if s.strip())
+            return Markup(f'<div class="tag-list">{"".join(tags)}</div>')
+        if name == 'url':
+            res, netloc, scheme = [], (parsed := urlparse(value)).netloc, parsed.scheme
+            if netloc and not app_param('DISABLE_FAVICON', False):
+                icon = f'<img class="favicon" title="netloc:{netloc}" src="http://www.google.com/s2/favicons?domain={netloc}"/>'
+                res += [link(icon, url_for('bookmark.index_view', flt0_url_netloc_match=netloc), html=True)]
+            elif netloc:
+                badge = f'<span class="netloc">netloc:{escape(netloc)}</span>'
+                res += [link(badge, url_for('bookmark.index_view', flt0_url_netloc_match=netloc), html=True, badge='success')]
+            res += [escape(value) if not scheme else link(value, value, new_tab=app_param('OPEN_IN_NEW_TAB'))]
+            return Markup(f'<div class="link">{" ".join(res)}</div>')
+        return Markup(f'<div class="{name}">{escape(value)}</div>')
 
     can_set_page_size = True
     can_view_details = True
@@ -168,11 +191,11 @@ class BookmarkModelView(BaseModelView):
 
     @property
     def page_size(self):
-        return current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE)
+        return app_param('PER_PAGE', DEFAULT_PER_PAGE)
 
     @property
     def url_render_mode(self):
-        return current_app.config.get('BUKUSERVER_URL_RENDER_MODE', DEFAULT_URL_RENDER_MODE)
+        return app_param('URL_RENDER_MODE', DEFAULT_URL_RENDER_MODE)
 
     def create_form(self, obj=None):
         form = super().create_form(obj)
@@ -421,7 +444,7 @@ class TagModelView(BaseModelView):
 
     @property
     def page_size(self):
-        return current_app.config.get('BUKUSERVER_PER_PAGE', DEFAULT_PER_PAGE)
+        return app_param('PER_PAGE', DEFAULT_PER_PAGE)
 
     @expose('/refresh', methods=['POST'])
     def refresh(self):
@@ -603,10 +626,10 @@ def format_value(field, bookmark, spacing=''):
     s = bookmark[field.value]
     return s if field != BookmarkField.TAGS else (s or '').strip(',').replace(',', ','+spacing)
 
-def link(text, url, new_tab=False, badge=''):
+def link(text, url, new_tab=False, html=False, badge=''):
     target = ('' if not new_tab else ' target="_blank"')
     cls = ('' if not badge else f' class="btn label label-{badge}"')
-    return f'<a{cls} href="{escape(url)}"{target}>{escape(text)}</a>'
+    return f'<a{cls} href="{escape(url)}"{target}>{text if html else escape(text)}</a>'
 
 def sorted_counter(keys, *, min_count=0):
     data = Counter(keys)

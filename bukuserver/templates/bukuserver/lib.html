@@ -41,14 +41,9 @@
 {% endmacro %}
 
 {% macro details_formatting(prefix='') %}
-  <script>{
-    $(`{{prefix}} td:nth-child(2)`).html((_, s) => s.trim().replaceAll('\n', '<br/>'));
-    {%- if session.pop('netloc', None) %}
-    const NEW_TAB = {{ config.get('BUKUSERVER_OPEN_IN_NEW_TAB', False)|tojson }};
-    const TARGET = (!NEW_TAB && !document.body.matches('.popup') ? '' : ' target="_blank"');
-    $(`{{prefix}} td:contains({{ _gettext('Url') | tojson }}) + td`).html((_, s) => `<a href="${s.replaceAll('"', '&quot;')}"${TARGET}>${s}</a>`);
-    {%- endif %}
-  }</script>
+  <script>
+    $(`body.popup {{prefix}} a`).attr('target', '_blank');
+  </script>
 {% endmacro %}
 
 {% macro link_saved() %}
