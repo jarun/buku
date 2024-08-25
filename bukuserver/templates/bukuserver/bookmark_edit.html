@@ -21,9 +21,9 @@
 
 {% block tail %}
   {{ super() }}
+  {{ buku.limit_navigation_if_popup() }}
   {{ buku.script('bookmark.js') }}
   {{ buku.focus() }}
   {{ buku.link_saved() }}
-  {{ buku.limit_navigation_if_popup() }}
   <script>$('.submit-row').append($('.delete-form'))</script>
 {% endblock %}
