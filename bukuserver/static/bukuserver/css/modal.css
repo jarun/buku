@@ -1,0 +1,31 @@
+/* prevent unnecessary scrollbox from appearing at the main window */
+body.modal-open {
+    overflow-y: inherit;
+}
+
+/* limit dialog height with a scrollbox */
+.modal-content {
+    max-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+}
+.modal-body {
+    max-height: 100%;
+    overflow: auto;
+}
+
+/* header size should not be affected */
+.modal-header {
+    flex-shrink: 0;
+}
+
+/* make the table header sticky */
+.modal-body thead {
+    position: sticky;
+    /* setting `top:` with JS, to account for theme differences */
+}
+
+/* overriding icon-button text color with theme color */
+.modal-header .close {
+    color: inherit;
+}

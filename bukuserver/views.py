@@ -156,7 +156,7 @@ class BookmarkModelView(BaseModelView):
     edit_modal_template = "bukuserver/bookmark_edit_modal.html"
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
-    extra_css = ['/static/bukuserver/css/bookmark.css']
+    extra_css = ['/static/bukuserver/css/' + it for it in ('bookmark.css', 'modal.css')]
     extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
     last_page = expose('/last-page')(last_page)
 
@@ -553,7 +553,7 @@ class TagModelView(BaseModelView):
 
 class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
     _data = None
-    extra_css = ['/static/bukuserver/css/statistic.css']
+    extra_css = ['/static/bukuserver/css/modal.css']
 
     def __init__(self, bukudb, *args, **kwargs):
         self.bukudb = bukudb
