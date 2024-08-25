@@ -1,20 +1,34 @@
+/* overriding icon-button text color with theme color */
+form.icon button {
+    color: inherit;
+}
+
+/* fixing table layout */
+.list-buttons-column {width: 0}
+.list-buttons-column .icon:last-child {margin-right: 10px}
+.list-buttons-column .swap-toolbar .icon:last-child {margin-right: 9px}
+
 .filters .filter-op  {width: var(--filter-op) !important}
 .filters .filter-val {width: calc(var(--filters) - var(--filter-op) - var(--filter-buttons) - var(--filter-type)) !important}
 #filter_form[action^='/tag/'] {--filter-type: var(--filter-type-tags)}
 
-:root {--filters: 645px;  --filter-op: 9em;  --filter-buttons: 12.5em;  --filter-type: 5.5em;  --filter-type-tags: 9em}
+:root {--filters: 510px;  --filter-op: 9rem;  --filter-buttons: 12.5rem;  --filter-type: 6rem;  --filter-type-tags: 9.5rem}
 /* due to how flask-admin filters are set up, each language requires manual adjustments for full-width sizes */
-html[lang=de] {--filter-buttons: 19em}
-html[lang=fr] {--filter-buttons: 17em}
-html[lang=ru] {--filter-buttons: 16.5em;  --filter-type: 8.5em;  --filter-type-tags: 11em}
+html[lang=de] {--filter-buttons: 18rem}
+html[lang=fr] {--filter-buttons: 16rem}
+html[lang=ru] {--filter-buttons: 16.5rem;  --filter-type: 8.5rem;  --filter-type-tags: 11.5rem}
 
+@media (max-width: 767px) {
+  .filters .filter-val {width: calc(var(--filters) - var(--filter-op) - var(--filter-type)) !important}
+  #filter_form .pull-right:first-child {margin: .5ex 0}
+}
 @media (min-width: 768px) {
-  :root {--filters: 710px;  --filter-op: 11.5em}
+  :root {--filters: 690px;  --filter-op: 11.5rem}
 }
 @media (min-width: 992px) {
-  :root {--filters: 930px;  --filter-op: 20em}
+  :root {--filters: 930px;  --filter-op: 20rem}
 }
 @media (min-width: 1200px) {
-  :root {--filters: 1130px;  --filter-op: 20em}
-  html[lang=ru] #filter_form[action^='/bookmark/'] {--filter-op: 25em} /* the last 'buku' filter has a rather long name */
+  :root {--filters: 1110px;  --filter-op: 20rem}
+  html[lang=ru] #filter_form[action^='/bookmark/'] {--filter-op: 25rem} /* the last 'buku' filter has a rather long name */
 }

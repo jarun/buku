@@ -124,7 +124,7 @@ _**Important:** all of them have a shared prefix_ **`BUKUSERVER_`**.
 | AUTOFETCH | initial Fetch value in Create form | boolean<em>¹</em> [default: `true`] |
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean<em>¹</em> [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path<em>⁵</em> | string |
-| THEME | [GUI theme](https://bootswatch.com/3) | string [default: `default`] (`slate` is a good pick for dark mode) |
+| THEME | [GUI theme](https://bootswatch.com/4) | string [default: `default`] (`slate` is a good pick for dark mode) |
 | LOCALE | GUI language<em>⁴</em> (partial support) | string [default: `en`] |
 | DEBUG | debug mode (verbose logging etc.) | boolean<em>¹</em> [default: `false`] |
 
@@ -203,24 +203,24 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
 
 <p><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/home-page.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/home-page.png" alt="home page" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/home-page.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/home-page.png" alt="home page" width="650"/>
   </a>
 </p>
 <p align="center"><i>home page</i></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-stats.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-stats.png" alt="bookmark stats" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/bookmark-stats.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/bookmark-stats.png" alt="bookmark stats" width="650"/>
   </a>
 </p>
 <p align="center"><i>bookmark stats</i></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-page-with-favicon-enabled.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-page-with-favicon-enabled.png"
+  <a href="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/bookmark-page-with-favicon-enabled.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/bookmark-page-with-favicon-enabled.png"
           alt="bookmark page with favicon enabled and 'netloc-tag' URL render mode" width="650"/>
   </a>
 </p>
@@ -228,8 +228,8 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-page-with-slate-theme-and-favicon-enabled.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-page-with-slate-theme-and-favicon-enabled.png"
+  <a href="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/bookmark-page-with-slate-theme-and-favicon-enabled.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/bookmark-page-with-slate-theme-and-favicon-enabled.png"
          alt="bookmark page with 'slate' theme and favicon enabled" width="650"/>
   </a>
 </p>
@@ -237,32 +237,32 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/create-bookmark.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/create-bookmark.png" alt="create bookmark" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/create-bookmark.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/create-bookmark.png" alt="create bookmark" width="650"/>
   </a>
 </p>
 <p align="center"><i>create bookmark</i></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/edit-bookmark.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/edit-bookmark.png" alt="edit bookmark" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/edit-bookmark.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/edit-bookmark.png" alt="edit bookmark" width="650"/>
   </a>
 </p>
 <p align="center"><i>edit bookmark</i></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/view-bookmark-details.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/view-bookmark-details.png" alt="view bookmark details" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/view-bookmark-details.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/view-bookmark-details.png" alt="view bookmark details" width="650"/>
   </a>
 </p>
 <p align="center"><i>view bookmark details</i></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/tag-page.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/tag-page.png" alt="tag page" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/tag-page.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v5.0-bootstrap4/bukuserver/tag-page.png" alt="tag page" width="650"/>
   </a>
 </p>
 <p align="center"><i>tag page</i></p>

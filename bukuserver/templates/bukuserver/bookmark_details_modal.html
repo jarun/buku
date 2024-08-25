@@ -4,8 +4,8 @@
 {% block header_text %}
   <h3>
     {% if request.args.get('id') == 'random' %}
-    <button id="modal-random" class="btn btn-default" title="{{ _('Pick another') }}">
-      <span class="fa fa-eye glyphicon glyphicon-repeat"></span>
+    <button id="modal-random" class="btn btn-secondary" title="{{ _('Pick another') }}">
+      <span class="fa fa-repeat glyphicon glyphicon-repeat"></span>
     </button>
     {% endif %}
     <a href="{{ url_for('bookmark.details_view', id=model.id, url=request.args.url) }}">{{_gettext('View Record')}} #{{model.id}}</a>
