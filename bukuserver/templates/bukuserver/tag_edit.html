@@ -1,0 +1,7 @@
+{% extends 'admin/model/edit.html' %}
+{% import 'bukuserver/lib.html' as buku with context %}
+
+{% block tail %}
+  {{ super() }}
+  {{ buku.focus() }}
+{% endblock %}
