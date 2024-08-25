@@ -3,8 +3,8 @@
 
 {% block tail %}
   {{ super() }}
+  {{ buku.limit_navigation_if_popup() }}
   {{ buku.details_formatting() }}
   <script>$('#fa_filter, .table.searchable a').attr('tabindex', 1)</script>
   {{ buku.link_saved() }}
-  {{ buku.limit_navigation_if_popup() }}
 {% endblock %}
