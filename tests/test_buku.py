@@ -547,20 +547,23 @@ def test_is_nongeneric_url(url, exp_res):
     assert res == exp_res
 
 
-@pytest.mark.parametrize(
-    "newtag, exp_res",
-    [
-        (None, ("http://example.com", "text1", ",", None, 0, True, False)),
-        ("tag1", ("http://example.com", "text1", ",tag1,", None, 0, True, False)),
-    ],
-)
-def test_import_md(tmpdir, newtag, exp_res):
+@pytest.mark.parametrize('tags, newtag, exp_tags', [
+    ('', None, ','), ('', 'new tag', ',new tag,'),
+    ('foo, bar, baz', None, ',bar,baz,foo,'),
+    ('foo, bar, baz', 'new tag', ',bar,baz,foo,new tag,'),
+])
+@pytest.mark.parametrize('title', ['Bookmark title', '', None])
+@pytest.mark.parametrize('url', ['http://example.com', 'javascript:void(0)', ''])
+def test_import_md(tmpdir, url, title, tags, newtag, exp_tags):
     from buku import import_md
 
     p = tmpdir.mkdir("importmd").join("test.md")
-    p.write("[text1](http://example.com)")
+    print(line := (f'<{url}>' if title is None else f'[{title}]({url})') +
+                  ('' if not tags else f' <!-- TAGS: {tags} -->'))
+    p.write(line)
     res = list(import_md(p.strpath, newtag))
-    assert res[0] == exp_res
+    assert res == ([] if not url else  # `<>` and `[title]()` are not valid
+                   [(url, title or '', exp_tags, None, 0, True, False)])
 
 @pytest.mark.parametrize(
     "newtag, exp_res",
@@ -585,42 +588,23 @@ def test_import_rss(tmpdir, newtag, exp_res):
     res = list(import_rss(p.strpath, newtag))
     assert res[0] == exp_res
 
-@pytest.mark.parametrize(
-    "newtag, exp_res",
-    [
-        (
-            None,
-            (
-                "http://example.com",
-                "text1",
-                ",tag1,:tag2,tag:3,tag4:,tag::5,tag:6:,",
-                None,
-                0,
-                True,
-                False,
-            ),
-        ),
-        (
-            "tag0",
-            (
-                "http://example.com",
-                "text1",
-                ",tag0,tag1,:tag2,tag:3,tag4:,tag::5,tag:6:,",
-                None,
-                0,
-                True,
-                False,
-            ),
-        ),
-    ],
-)
-def test_import_org(tmpdir, newtag, exp_res):
+@pytest.mark.parametrize('tags, newtag, exp_tags', [
+    ('', None, ','), ('', 'new tag', ',new tag,'),
+    ('tag1: ::tag2:tag::3:tag4:: :tag:::5: ta g::6:: ', None, ',tag1,:tag2,tag:3,tag4:,tag::5,ta g:6:,'),
+    ('tag1: ::tag2:tag::3:tag4:: :tag:::5: ta g::6:: ', 'new tag', ',new tag,tag1,:tag2,tag:3,tag4:,tag::5,ta g:6:,'),
+])
+@pytest.mark.parametrize('title', ['Bookmark title', '', None])
+@pytest.mark.parametrize('url', ['http://example.com', 'javascript:void(0)', ''])
+def test_import_org(tmpdir, url, title, tags, newtag, exp_tags):
     from buku import import_org
 
     p = tmpdir.mkdir("importorg").join("test.org")
-    p.write("[[http://example.com][text1]] :tag1: ::tag2:tag::3:tag4:: :tag:::5:tag::6:: :")
+    print(line := (f'[[{url}]]' if title is None else f'[[{url}][{title}]]') +
+                  ('' if not tags else f' :{tags}:'))
+    p.write(line)
     res = list(import_org(p.strpath, newtag))
-    assert res[0] == exp_res
+    assert res == ([] if not url or title == '' else  # `[[]]`, `[[][title]]` and `[[url][]]` are not valid
+                   [(url, title or '', exp_tags, None, 0, True, False)])
 
 
 @pytest.mark.parametrize(

@@ -3560,41 +3560,22 @@ def import_md(filepath: str, newtag: Optional[str]):
     tuple
         Parsed result.
     """
+    # Supported Markdown format: `[title](url) <!-- TAGS: tags -->` (or `<url> <!-- TAGS: tags -->`)
+    _named_link, _raw_link = r'\[(?P<title>.*)\]\((?P<url>.+)\)', r'\<(?P<url_raw>[^!>][^>]*)\>'
+    pattern = re.compile(r'(%s|%s)(\s+<!-- TAGS: (?P<tags>.*) -->)?' % (_named_link, _raw_link))
     with open(filepath, mode='r', encoding='utf-8') as infp:
         for line in infp:
-            # Supported Markdown format: [title](url)
-            # Find position of title end, url start delimiter combo
-            index = line.find('](')
-            if index != -1:
-                # Find title start delimiter
-                title_start_delim = line[:index].find('[')
-                # Reverse find the url end delimiter
-                url_end_delim = line[index + 2:].rfind(')')
+            if match := pattern.search(line):
+                title = match.group('title') or ''
+                url = match.group('url') or match.group('url_raw')
 
-                if title_start_delim != -1 and url_end_delim > 0:
-                    # Parse title
-                    title = line[title_start_delim + 1:index]
-                    # Parse url
-                    url = line[index + 2:index + 2 + url_end_delim]
-                    if is_nongeneric_url(url):
-                        continue
+                if is_nongeneric_url(url):
+                    continue
 
-                    # Find tag start delimiter
-                    tag_start_delim = line.find('<!-- TAGS: ')
-                    # Reverse find tag end delimiter
-                    tag_end_delim = line.rfind(' -->')
+                tags = DELIM.join(s for s in [newtag, match.group('tags')] if s)
+                tags = parse_tags([tags])
 
-                    if tag_start_delim != -1 and tag_end_delim > 0:
-                        if newtag is not None:
-                            tags = newtag + ',' + line[tag_start_delim + 11:tag_end_delim]
-                        else:
-                            tags = line[tag_start_delim + 11:tag_end_delim]
-                    else:
-                        tags = newtag
-
-                    parse_tags([tags])
-
-                    yield (url, title, delim_wrap(tags), None, 0, True, False)
+                yield (url, title, delim_wrap(tags), None, 0, True, False)
 
 def import_rss(filepath: str, newtag: Optional[str]):
     """Parse bookmark RSS file.
@@ -3656,7 +3637,7 @@ def import_org(filepath: str, newtag: Optional[str]):
         list
             List of tags
         """
-        tag_list_raw = [i for i in re.split(r'(?<!\:)\:', tag_string) if i]
+        tag_list_raw = [s for s in re.split(r'(?<!\:)\:', tag_string) if s]
         tag_list_cleaned = []
         for i, tag in enumerate(tag_list_raw):
             if tag.startswith(":"):
@@ -3670,34 +3651,24 @@ def import_org(filepath: str, newtag: Optional[str]):
                 tag_list_cleaned.append(tag.strip())
         return tag_list_cleaned
 
+    # Supported OrgMode format: `[[url][title]] :tags:` (or `[[url]] :tags:`)
+    _url, _maybe_title = r'(?P<url>((?!\]\[).)+?)', r'(\]\[(?P<title>.+))?'
+    pattern = re.compile(r'\[\[%s%s\]\](?P<tags>\s+:.*:)?' % (_url, _maybe_title))
     with open(filepath, mode='r', encoding='utf-8') as infp:
-        # Supported Markdown format: * [[url][title]] :tags:
-        # Find position of url end, title start delimiter combo
         for line in infp:
-            index = line.find('][')
-            if index != -1:
-                # Find url start delimiter
-                url_start_delim = line[:index].find('[[')
-                # Reverse find title end delimiter
-                title_end_delim = line[index + 2:].rfind(']]')
+            if match := pattern.search(line):
+                title = match.group('title') or ''
+                url = match.group('url')
 
-                if url_start_delim != -1 and title_end_delim > 0:
-                    # Parse title
-                    title = line[index + 2: index + 2 + title_end_delim]
-                    # Parse url
-                    url = line[url_start_delim + 2:index]
-                    # Parse Tags
-                    tags = list(collections.OrderedDict.fromkeys(get_org_tags(line[(index + 4 + title_end_delim):])))
-                    tags_string = DELIM.join(tags)
+                if is_nongeneric_url(url):
+                    continue
 
-                    if is_nongeneric_url(url):
-                        continue
+                tags = list(dict.fromkeys(get_org_tags(match.group('tags') or '')))
+                tags_string = DELIM.join(tags)
+                if newtag and newtag.lower() not in tags:
+                    tags_string = (newtag + DELIM) + tags_string
 
-                    if newtag:
-                        if newtag.lower() not in tags:
-                            tags_string = (newtag + DELIM) + tags_string
-
-                    yield (url, title, delim_wrap(tags_string), None, 0, True, False)
+                yield (url, title, delim_wrap(tags_string), None, 0, True, False)
 
 def import_firefox_json(json, add_bookmark_folder_as_tag=False, unique_tag=None):
     """Open Firefox JSON export file and import data.
