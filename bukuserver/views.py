@@ -408,6 +408,7 @@ class TagModelView(BaseModelView):
         "name": _name_formatter,
     }
     list_template = 'bukuserver/tags_list.html'
+    edit_template = "bukuserver/tag_edit.html"
     extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
     last_page = expose('/last-page')(last_page)
 
