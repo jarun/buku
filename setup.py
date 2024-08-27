@@ -43,6 +43,7 @@ server_require = [
     "flask-paginate>=2022.1.8",
     "Flask-WTF>=1.0.1",
     "Flask>=2.2.2,<2.3",
+    "Jinja2>=3",
     "werkzeug<2.4",
 ]
 install_requires = [
