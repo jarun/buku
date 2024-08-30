@@ -793,7 +793,7 @@ class TestBukuDb(unittest.TestCase):
     # self.fail()
 
 
-@pytest.mark.parametrize('status', [None, 200, 302, 307, 404, 500])
+@pytest.mark.parametrize('status', [None, 200, 302, 308, 404, 500])
 @pytest.mark.parametrize('fetch, url_redirect, tag_redirect, tag_error, del_error', [
     (False, False, False, False, None),                # offline
     (True, True, False, False, None),                  # url-redirect
@@ -846,6 +846,30 @@ def test_add_rec_fetch(bukuDb, caplog, fetch, url_redirect, tag_redirect, tag_er
     if tag_error and (status or 0) >= 400:
         _tags |= {('http:{}' if tag_error is True else tag_error).format(status).lower()}
     assert _tagset(rec.tags) == _tags
+
+
+@pytest.mark.parametrize('status, tags_fetched, tags_in, tags_except, expected', [
+    (None, None, 'foo,qux,foo bar,bar,baz', 'except,bar,foo,', ',baz,foo bar,qux,'),
+    (200, '', 'foo,qux,foo bar,bar,baz', None, ',bar,baz,foo,foo bar,qux,'),
+    (200, 'there,have been,some,tags,fetched', None,
+     'except,bar,tags,there,foo', ',fetched,have been,some,'),
+    (200, 'there,have been,some,tags,fetched', 'foo,qux,foo bar,bar,baz',
+     'except,bar,tags,there,foo', ',baz,fetched,foo bar,have been,qux,some,'),
+    (404, None, 'foo,foo bar,qux,bar,baz', 'except,bar,foo', ',baz,foo bar,http:error,qux,'),
+    (301, 'there,have been,some,tags,fetched', 'foo,foo bar,qux,bar,baz',
+     'except,bar,tags,there,foo', ',baz,fetched,foo bar,have been,http:redirect,qux,some,'),
+    (308, 'there,have been,some,tags,fetched', 'foo,foo bar,qux,bar,baz',
+     'except,http:redirect,bar,tags,there,foo', ',baz,fetched,foo bar,have been,qux,some,'),
+])
+def test_add_rec_tags(bukuDb, caplog, status, tags_fetched, tags_in, tags_except, expected):
+    '''Testing add_rec() behaviour with tags params'''
+    url, keywords = 'https://example.com', (',fetched,tags,' if tags_fetched is None else tags_fetched)
+    bdb = bukuDb()
+    with mock_fetch(url=url, title='Title', keywords=keywords, fetch_status=status):
+        index = bdb.add_rec(url=url, fetch=status is not None, tags_in=tags_in, tags_except=tags_except,
+                            tags_fetch=tags_fetched is not None, tag_redirect='http:redirect', tag_error='http:error')
+    rec = bdb.get_rec_by_id(index)
+    assert rec.tags_raw == expected
 
 
 @pytest.mark.parametrize('index', [1, {2, 3}, None])

@@ -87,9 +87,9 @@ def test_get_PoolManager(m_myproxy):
 @pytest.mark.parametrize(
     "keywords, exp_res",
     [
-        ("", DELIM),
-        (",", DELIM),
-        ("tag1, tag2", ",t a g 1,t a g 2,"),
+        ([""], DELIM),
+        ([","], DELIM),
+        (["tag1, tag2"], ",tag1,tag2,"),
         ([" a tag , ,   ,  ,\t,\n,\r,\x0b,\x0c"], ",a tag,"),  # whitespaces
         ([",,,,,"], ","),  # empty tags
         (["\"tag\",'tag',tag"], ",\"tag\",'tag',tag,"),  # escaping quotes
@@ -114,14 +114,17 @@ def test_get_PoolManager(m_myproxy):
         ),
     ],
 )
-def test_parse_tags(keywords, exp_res):
+@pytest.mark.parametrize('prefix', [None, '', '+', '-'])
+def test_parse_tags(prefix, keywords, exp_res):
     """test func."""
     import buku
 
+    edit_input = prefix is not None
     if keywords is None:
-        assert buku.parse_tags(keywords) is None
+        assert buku.parse_tags(keywords, edit_input=edit_input) is None
     else:
-        assert buku.parse_tags(keywords) == exp_res
+        _keywords = ([] if not prefix else [prefix]) + keywords
+        assert buku.parse_tags(_keywords, edit_input=edit_input) == (prefix or '') + exp_res
 
 
 def test_parse_tags_no_args():
