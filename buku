@@ -73,8 +73,11 @@ PROMPTMSG = 'buku (? for help): '  # Prompt message string
 
 strip_delim = lambda s, delim=DELIM, sub=' ': str(s).replace(delim, sub)
 taglist = lambda ss: sorted(s.lower() for s in set(ss) if s)
-taglist_str = lambda s: delim_wrap(DELIM.join(taglist(s.split(DELIM))))
 like_escape = lambda s, c='`': s.replace(c, c+c).replace('_', c+'_').replace('%', c+'%')
+
+def taglist_str(tag_str, convert=None):
+    tags = taglist(tag_str.split(DELIM))
+    return delim_wrap(DELIM.join(tags if not convert else taglist(convert(tags))))
 
 # Default format specifiers to print records
 ID_STR = '%d. %s [%s]\n'
@@ -725,7 +728,9 @@ class BukuDb:
             url_redirect: bool = False,
             tag_redirect: bool | str = False,
             tag_error: bool | str = False,
-            del_error: Optional[Set[int] | range] = None) -> int:  # Optional[IntSet]
+            del_error: Optional[Set[int] | range] = None,
+            tags_fetch: bool = True,
+            tags_except: Optional[str] = None) -> int:  # Optional[IntSet]
         """Add a new bookmark.
 
         Parameters
@@ -735,8 +740,11 @@ class BukuDb:
         title_in : str, optional
             Title to add manually. Default is None.
         tags_in : str, optional
-            Comma-separated tags to add manually.
-            Must start and end with comma. Default is None.
+            Comma-separated tags to add manually, instead of fetching them. Default is None.
+        tags_except : str, optional
+            These are removed from the resulting tags list. Default is None.
+        tags_fetch : bool
+            True if tags parsed from the fetched page should be included. Default is True.
         desc : str, optional
             Description of the bookmark. Default is None.
         immutable : bool
@@ -794,7 +802,11 @@ class BukuDb:
         title = (title_in if title_in is not None else result.title)
 
         # Fix up tags, if broken
-        tags_in = taglist_str((tags_in or '') + DELIM + result.tags(redirect=tag_redirect, error=tag_error))
+        tags_exclude = set(taglist((tags_except or '').split(DELIM)))
+        tags_fetched = result.tags(keywords=tags_fetch, redirect=tag_redirect, error=tag_error)
+        tags = taglist_str((tags_in or '') + DELIM + tags_fetched,
+                           lambda ss: [s for s in ss if s not in tags_exclude])
+        LOGDBG('tags: [%s]', tags)
 
         # Process description
         desc = (desc if desc is not None else result.desc) or ''
@@ -808,7 +820,7 @@ class BukuDb:
 
             qry = 'INSERT INTO bookmarks(URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?)'
             with self.lock:
-                self.cur.execute(qry, (url, title, tags_in, desc, flagset))
+                self.cur.execute(qry, (url, title, tags, desc, flagset))
                 if not delay_commit:
                     self.conn.commit()
                 if self.chatty:
@@ -4346,13 +4358,16 @@ def fetch_data(
     return FetchResult(page_url, title=page_title, desc=page_desc, keywords=page_keys, fetch_status=page_status)
 
 
-def parse_tags(keywords=[]):
+def parse_tags(keywords=[], *, edit_input=False):
     """Format and get tag string from tokens.
 
     Parameters
     ----------
     keywords : list
         List of tags to parse. Default is empty list.
+    edit_input : bool
+        Whether the taglist is an edit input (i.e. may start with '+'/'-').
+        Defaults to False.
 
     Returns
     -------
@@ -4367,14 +4382,16 @@ def parse_tags(keywords=[]):
     if keywords is None:
         return None
 
-    if not keywords or not keywords[0]:
+    tagstr = ' '.join(s for s in keywords if s)
+    if not tagstr:
         return DELIM
 
-    tags = DELIM
+    if edit_input and keywords[0] in ('+', '-'):
+        return keywords[0] + parse_tags(keywords[1:])
 
     # Cleanse and get the tags
-    tagstr = ' '.join(keywords)
     marker = tagstr.find(DELIM)
+    tags = DELIM
 
     while marker >= 0:
         token = tagstr[0:marker]
@@ -5668,7 +5685,7 @@ def parse_range(tokens: Optional[str | Sequence[str] | Set[str]],  # Optional[st
 
 
 # main starts here
-def main():
+def main(argv=sys.argv[1:], *, program_name=os.path.basename(sys.argv[0])):
     """Main."""
     global ID_STR, ID_DB_STR, MUTE_STR, URL_STR, DESC_STR, DESC_WRAP, TAG_STR, TAG_WRAP, PROMPTMSG
     # readline should not be loaded when buku is used as a library
@@ -5686,26 +5703,26 @@ def main():
     pipeargs = []
     colorstr_env = os.getenv('BUKU_COLORS')
 
-    if len(sys.argv) >= 2 and sys.argv[1] != '--nostdin':
+    if argv and argv[0] != '--nostdin':
         try:
-            piped_input(sys.argv, pipeargs)
+            piped_input(argv, pipeargs)
         except KeyboardInterrupt:
             pass
 
         # If piped input, set argument vector
         if pipeargs:
-            sys.argv = pipeargs
+            argv = pipeargs
 
     # Setup custom argument parser
     argparser = ExtendedArgumentParser(
+        prog=program_name,
         description='''Bookmark manager like a text-based mini-web.
 
 POSITIONAL ARGUMENTS:
       KEYWORD              search keywords''',
         formatter_class=argparse.RawTextHelpFormatter,
         usage='''buku [OPTIONS] [KEYWORD [KEYWORD ...]]''',
-        add_help=False
-    )
+        add_help=False)
     hide = argparse.SUPPRESS
 
     argparser.add_argument('keywords', nargs='*', metavar='KEYWORD', help=hide)
@@ -5716,8 +5733,9 @@ POSITIONAL ARGUMENTS:
 
     general_grp = argparser.add_argument_group(
         title='GENERAL OPTIONS',
-        description='''    -a, --add URL [tag, ...]
+        description='''    -a, --add URL [+|-] [tag, ...]
                          bookmark URL with comma-separated tags
+                         (prepend tags with '+' or '-' to use fetched tags)
     -u, --update [...]   update fields of an existing bookmark
                          accepts indices and ranges
                          refresh title and desc if no edit options
@@ -5913,11 +5931,11 @@ POSITIONAL ARGUMENTS:
     addarg('--db', nargs=1, help=hide)
 
     # Parse the arguments
-    args = argparser.parse_args()
+    args = argparser.parse_args(argv)
 
     # Show help and exit if help requested
     if args.help:
-        argparser.print_help(sys.stdout)
+        argparser.print_help()
         sys.exit(0)
 
     # By default, buku uses ANSI colors. As Windows does not really use them,
@@ -5972,7 +5990,7 @@ POSITIONAL ARGUMENTS:
     browse.override_text_browser = False
 
     # Fallback to prompt if no arguments
-    if len(sys.argv) <= 2 and (len(sys.argv) == 1 or (len(sys.argv) == 2 and args.nostdin)):
+    if argv in ([], ['--nostdin']):
         bdb = BukuDb()
         prompt(bdb, None)
         bdb.close_quit(0)
@@ -6056,15 +6074,7 @@ POSITIONAL ARGUMENTS:
         elif args.add is None:
             # Edit and add a new bookmark
             # Parse tags into a comma-separated string
-            if tags_in:
-                if tags_in[0] == '+':
-                    tags = '+' + parse_tags(tags_in[1:])
-                elif tags_in[0] == '-':
-                    tags = '-' + parse_tags(tags_in[1:])
-                else:
-                    tags = parse_tags(tags_in)
-            else:
-                tags = DELIM
+            tags = parse_tags(tags_in, edit_input=True)
 
             result = edit_rec(args.write, '', title_in, tags, desc_in)
             if result is not None:
@@ -6080,22 +6090,28 @@ POSITIONAL ARGUMENTS:
             bdb.close_quit(1)
 
         # Parse tags into a comma-separated string
-        tags = DELIM
-        keywords = args.add
-        if tags_in is not None:
-            if tags_in[0] == '+':
-                if len(tags_in) > 1:
-                    # The case: buku -a url tag1, tag2 --tag + tag3, tag4
-                    tags_in = tags_in[1:]
-                    # In case of add, args.add may have URL followed by tags
-                    # Add delimiter as url+tags may not end with one
-                    keywords = args.add + [DELIM] + tags_in
+        # --add may have URL followed by tags
+        keywords_except, keywords = [], args.add[1:]
+        # taglists are taken from --add (starting from 2nd value) and from --tags
+        # if taglist starts with '-', its contents are excluded from resulting tags
+        # if BOTH taglists is are either empty or start with '+'/'-', fetched tags are included
+        if keywords and keywords[0] == '-':
+            keywords, keywords_except = [], keywords[1:]
+        tags_add = (not keywords or keywords[0] == '+')
+        if tags_add:
+            keywords = keywords[1:]
+        if tags_in:
+            # note: need to add a delimiter as url+tags may not end with one
+            if tags_in[0] == '-':
+                keywords_except += [DELIM] + tags_in[1:]
+            elif tags_in[0] == '+':
+                keywords += [DELIM] + tags_in[1:]
             else:
-                keywords = args.add + [DELIM] + tags_in
+                keywords += [DELIM] + tags_in
+                tags_add = False
 
-        if len(keywords) > 1:  # args.add is URL followed by optional tags
-            tags = parse_tags(keywords[1:])
-
+        tags, tags_except = parse_tags(keywords), parse_tags(keywords_except)
+        tags, tags_except = ((s if s and s != DELIM else None) for s in [tags, tags_except])
         url = args.add[0]
         edit_aborted = False
 
@@ -6109,8 +6125,11 @@ POSITIONAL ARGUMENTS:
         if edit_aborted is False:
             if args.suggest:
                 tags = bdb.suggest_similar_tag(tags)
-            bdb.add_rec(url, title_in, tags, desc_in, _immutable(args), delay_commit=False, fetch=not args.offline,
-                        url_redirect=args.url_redirect, tag_redirect=tag_redirect, tag_error=tag_error, del_error=del_error)
+            network_test = args.url_redirect or tag_redirect or tag_error or del_error
+            fetch = not args.offline and (network_test or tags_add or title_in is None)
+            bdb.add_rec(url, title_in, tags, desc_in, _immutable(args), delay_commit=False, fetch=fetch,
+                        tags_fetch=tags_add, tags_except=tags_except, url_redirect=args.url_redirect,
+                        tag_redirect=tag_redirect, tag_error=tag_error, del_error=del_error)
 
     # Search record
     search_results = None
@@ -6280,15 +6299,8 @@ POSITIONAL ARGUMENTS:
         url_in = (args.url[0] if args.url else None)
 
         # Parse tags into a comma-separated string
-        if tags_in:
-            if tags_in[0] == '+':
-                tags = '+' + parse_tags(tags_in[1:])
-            elif tags_in[0] == '-':
-                tags = '-' + parse_tags(tags_in[1:])
-            else:
-                tags = parse_tags(tags_in)
-        else:
-            tags = None
+        tags = parse_tags(tags_in, edit_input=True)
+        tags = (None if tags == DELIM else tags)
 
         # No arguments to --update, update all
         if not args.update:

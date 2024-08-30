@@ -1,5 +1,8 @@
 from unittest import mock
+import os
+
 from urllib3 import HTTPResponse
+
 from buku import FetchResult
 
 
@@ -19,3 +22,11 @@ def _add_rec(db, *args, **kw):
 
 def _tagset(s):
     return set(x for x in str(s or '').lower().split(',') if x)
+
+def append(buffer, text):
+    pos = buffer.tell()
+    try:
+        buffer.seek(0, os.SEEK_END)
+        return buffer.write(text)
+    finally:
+        buffer.seek(pos)
