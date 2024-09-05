@@ -1,6 +1,7 @@
 """Forms module."""
 # pylint: disable=too-few-public-methods, missing-docstring
 from typing import Any, Dict, Tuple
+from textwrap import dedent
 from flask_wtf import FlaskForm
 from wtforms.fields import BooleanField, FieldList, StringField, TextAreaField, HiddenField
 from wtforms.validators import DataRequired, InputRequired, ValidationError
@@ -16,9 +17,17 @@ def validate_tag(form, field):
 
 class SearchBookmarksForm(FlaskForm):
     keywords = FieldList(StringField('Keywords'), min_entries=1)
-    all_keywords = BooleanField('Match all keywords')
-    deep = BooleanField('Deep search')
-    regex = BooleanField('Regex')
+    all_keywords = BooleanField('Match all keywords', default=True, description='Exclude partial matches (with multiple keywords)')
+    markers = BooleanField('With markers', default=True, description=dedent('''\
+        The search string will be split into multiple keywords, each will be applied to a field based on prefix:
+         - keywords starting with '.', '>' or ':' will be searched for in title, description and URL respectively
+         - '#' will be searched for in tags (comma-separated, partial matches; not affected by Deep Search)
+         - '#,' is the same but will match FULL tags only
+         - '*' will be searched for in all fields (this prefix can be omitted in the 1st keyword)
+        Keywords need to be separated by placing spaces before the prefix.
+    '''))
+    deep = BooleanField('Deep search', description='When unset, only FULL words will be matched.')
+    regex = BooleanField('Regex', description='The keyword(s) are regular expressions (overrides other options).')
 
 
 class HomeForm(SearchBookmarksForm):

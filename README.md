@@ -158,8 +158,9 @@ POSITIONAL ARGUMENTS:
       KEYWORD              search keywords
 
 GENERAL OPTIONS:
-      -a, --add URL [tag, ...]
+      -a, --add URL [+|-] [tag, ...]
                            bookmark URL with comma-separated tags
+                           (prepend tags with '+' or '-' to use fetched tags)
       -u, --update [...]   update fields of an existing bookmark
                            accepts indices and ranges
                            refresh title and desc if no edit options
@@ -199,6 +200,12 @@ SEARCH OPTIONS:
                            "blank": entries with empty title/tag
                            "immutable": entries with locked title
       --deep               match substrings ('pen' matches 'opens')
+      --markers            search for keywords in specific fields
+                           based on (optional) prefix markers:
+                           '.' - title, '>' - description, ':' - URL,
+                           '#' - tags (comma-separated, PARTIAL matches)
+                           '#,' - tags (comma-separated, EXACT matches)
+                           '*' - any field (same as no prefix)
       -r, --sreg expr      run a regex search
       -t, --stag [tag [,|+] ...] [- tag, ...]
                            search bookmarks by tags
@@ -207,6 +214,8 @@ SEARCH OPTIONS:
                            excludes entries with tags after ' - '
                            list all tags, if no search keywords
       -x, --exclude [...]  omit records matching specified keywords
+      --order fields [...] comma-separated list of fields to order the output by
+                           (prepend with '+'/'-' to choose sort direction)
 
 ENCRYPTION OPTIONS:
       -l, --lock [N]       encrypt DB in N (default 8) # iterations
@@ -446,54 +455,57 @@ PROMPT KEYS:
 22. **Search** for bookmarks matching any of the keywords `hello` or `world`, excluding the keywords `real` and `life`, matching both the tags `kernel` and `debugging`, but **excluding** the tags `general kernel concepts` and `books`:
 
         $ buku hello world --exclude real life --stag 'kernel + debugging - general kernel concepts, books'
-23. List **all unique tags** alphabetically:
+23. **Search** for bookmarks with different tokens for each field, and print them out sorted by the tags (ascending) and URL (descending)
+
+        $ buku --order +tags,-url --markers --sall 'global substring' '.title substring' ':url substring' :https '> description substring' '#partial,tags:' '#,exact,tags' '*another global substring'
+24. List **all unique tags** alphabetically:
 
         $ buku --stag
-24. Run a **search and update** the results:
+25. Run a **search and update** the results:
 
         $ buku -s kernel debugging -u --tag + linux kernel
-25. Run a **search and delete** the results:
+26. Run a **search and delete** the results:
 
         $ buku -s kernel debugging -d
-26. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
+27. **Encrypt or decrypt** DB with **custom number of iterations** (15) to generate key:
 
         $ buku -l 15
         $ buku -k 15
     The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
-27. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
+28. **Show details** of bookmarks at index 15012014 and ranges 20-30, 40-50:
 
         $ buku -p 20-30 15012014 40-50
-28. Show details of the **last 10 bookmarks**:
+29. Show details of the **last 10 bookmarks**:
 
         $ buku -p -10
-29. **Show all** bookmarks with real index from database:
+30. **Show all** bookmarks with real index from database:
 
         $ buku -p
         $ buku -p | more
-30. **Replace tag** 'old tag' with 'new tag':
+31. **Replace tag** 'old tag' with 'new tag':
 
         $ buku --replace 'old tag' 'new tag'
-31. **Delete tag** 'old tag' from DB:
+32. **Delete tag** 'old tag' from DB:
 
         $ buku --replace 'old tag'
-32. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
+33. **Append (or delete) tags** 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 
         $ buku -u 15012014 --tag + tag 1, tag 2
         $ buku -u 15012014 --tag - tag 1, tag 2
-33. **Open URL** at index 15012014 in browser:
+34. **Open URL** at index 15012014 in browser:
 
         $ buku -o 15012014
-34. List bookmarks with **no title or tags** for bookkeeping:
+35. List bookmarks with **no title or tags** for bookkeeping:
 
         $ buku -S blank
-35. List bookmarks with **immutable title**:
+36. List bookmarks with **immutable title**:
 
         $ buku -S immutable
-36. **Shorten URL** www.google.com and the URL at index 20:
+37. **Shorten URL** www.google.com and the URL at index 20:
 
         $ buku --shorten www.google.com
         $ buku --shorten 20
-37. **Append, remove tags at prompt** (taglist index to the left, bookmark index to the right):
+38. **Append, remove tags at prompt** (taglist index to the left, bookmark index to the right):
 
         // append tags at taglist indices 4 and 6-9 to existing tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 >> 5 3-2
@@ -503,26 +515,26 @@ PROMPT KEYS:
         buku (? for help) g > 5 3-2
         // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 << 5 3-2
-38. List bookmarks with **colored output**:
+39. List bookmarks with **colored output**:
 
         $ buku --colors oKlxm -p
-39. Add a bookmark after following all permanent redirects, but only if the server doesn't respond with an error (and there's no network failure)
+40. Add a bookmark after following all permanent redirects, but only if the server doesn't respond with an error (and there's no network failure)
 
         $ buku --add http://wikipedia.net --url-redirect --del-error
         2. Wikipedia
            > https://www.wikipedia.org/
            + Wikipedia is a free online encyclopedia, created and edited by volunteers around the world and hosted by the Wikimedia Foundation.
-40. Add a bookmark with tag `http redirect` if the server responds with a permanent redirect, or tag shaped like `http 404` on an error response:
+41. Add a bookmark with tag `http redirect` if the server responds with a permanent redirect, or tag shaped like `http 404` on an error response:
 
         $ buku --add http://wikipedia.net/notfound --tag-redirect 'http redirect' --tag-error 'http {}'
         [ERROR] [404] Not Found
         3. Not Found
            > http://wikipedia.net/notfound
            # http 404,http redirect
-41. Update all bookmarks matching the search by updating the URL if the server responds with a permanent redirect, deleting the bookmark if the server responds with HTTP error 400, 401, 402, 403, 404 or 500, or adding a tag shaped like `http:{}` in case of any other HTTP error; then export those affected by such changes into an HTML file, marking deleted records as well as old URLs for those replaced by redirect.
+42. Update all bookmarks matching the search by updating the URL if the server responds with a permanent redirect, deleting the bookmark if the server responds with HTTP error 400, 401, 402, 403, 404 or 500, or adding a tag shaped like `http:{}` in case of any other HTTP error; then export those affected by such changes into an HTML file, marking deleted records as well as old URLs for those replaced by redirect.
 
         $ buku -S ://wikipedia.net -u --url-redirect --tag-error --del-error 400-404,500 --export-on --export backup.html
-42. More **help**:
+43. More **help**:
 
         $ buku -h
         $ man buku

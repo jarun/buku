@@ -67,14 +67,16 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 \fBSearch\fR works in mysterious ways:
   - Case-insensitive.
   - Matches words in URL, title and tags.
-  - --sany : match any of the keywords in URL, title or tags. Default search option.
-  - --sall : match all the keywords in URL, title or tags.
-  - --deep : match \fBsubstrings\fR (`match` matches `rematched`) in URL, title and tags.
+  - --sany : match any of the keywords in URL, title, description or tags. Default search option.
+  - --sall : match all the keywords in URL, title, description or tags.
+  - --deep : match \fBsubstrings\fR (`match` matches `rematched`) in URL, title, description and tags.
+  - --markers : match each keyword to a \fBspecific\fR field, depending on its prefix.
   - --sreg : match a regular expression (ignores --deep).
   - --stag : search bookmarks by tags, or list all tags alphabetically with usage count (if no arguments). Delimit the list of tags in the query with `,` to search for bookmarks that match ANY of the listed tags. Delimit tags with `+` to search for bookmarks that match ALL of the listed tags. Note that `,` and `+` cannot be used together in the same search. Exclude bookmarks matching certain tags from the results by using ` - ` followed by the tags. Note that the ` - ` operator and the ` + ` delimiter must be space separated: ` - ` instead of `-` and ` + ` instead of `+`. This is to distinguish them from hyphenated tags (e.g., `some-tag-name`) and tags with '+'s (e.g., `some+tag+name`).
   - Search for keywords along with tag filtering is possible. Two searches are issued (one for keywords and another for tags) and the intersection of the 2 sets is returned as the resultset.
   - Search results are indexed incrementally. This index is different from actual database index of a bookmark record which is shown within '[]' after the title.
   - Results for \fIany\fR keyword matches are ordered by the number of keyword matches - results matching more keywords (\fImatch score\fR) will appear earlier in the list. Results having the same number of matches will be ranked by their record DB index. If only one keyword is searched, results will be ordered by DB index, since all matching records will have the same \fImatch score\fR.
+  - Sorting order can be specified (for matches with same amount of matched keywords, if relevant). This option also works with regular printing/export.
 .PP
 .IP 9. 4
 \fBImport\fR:
@@ -102,10 +104,10 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - Note that this option is useful if you want to store the db file in cloud synced location. Another mechanism could be to have the db file synced and create a symlink to it at the default location.
 .SH GENERAL OPTIONS
 .TP
-.BI \-a " " \--add " URL [tag, ...]"
+.BI \-a " " \--add " URL [+|-] [tag, ...]"
 Bookmark
 .I URL
-along with comma-separated tags. A tag can have multiple words.
+along with comma-separated tags. A tag can have multiple words. (These tags \fBoverride\fR fetched tags, unless preceded with '+' or '-'.)
 .TP
 .BI \-u " " \--update " [...]"
 Update fields of the bookmarks at specified indices in DB. If no arguments are specified, all titles and descriptions are refreshed from the web. Tags remain untouched. Works with update modifiers for the fields url, title, tag and comment. If only indices are passed without any edit options, titles and descriptions are fetched and updated (if not empty). Accepts hyphenated ranges and space-separated indices. Updates search results when used with search options, if no arguments.
@@ -162,6 +164,15 @@ NOTE: To search the keywords, use --sany
 .BI \--deep
 Search modifier to match substrings. Works with --sany, --sall.
 .TP
+.BI \--markers
+Search modifier to match specific fields based on (optional) prefix markers (i.e. beginning of the keyword):
+  - '.' : search in title
+  - '>' : search in description
+  - ':' : search in URL
+  - '#' : search in tags (comma-separated, \fBpartial\fR matches; not affected by --deep)
+  - '#,' : search in tags (comma-separated, \fBexact\fR matches; not affected by --deep)
+  - '*' : search in all fields (same as no prefix)
+.TP
 .BI \-r " " \--sreg " expression"
 Scan for a regular expression match.
 .TP
@@ -180,6 +191,9 @@ List all tags alphabetically, if no arguments. The usage count (number of bookma
 .TP
 .BI \-x " " \--exclude " keyword [...]"
 Exclude bookmarks matching the specified keywords. Works with --sany, --sall, --sreg and --stag.
+.TP
+.BI \--order " fields [...]"
+Order printed/exported records by the given fields (from DB or JSON). You can specify sort direction for each by prepending '+'/'-' (default is '+').
 .SH ENCRYPTION OPTIONS
 .TP
 .BI \-l " " \--lock " [N]"
@@ -715,7 +729,17 @@ The last index is moved to the deleted index to keep the DB compact. Add --tacit
 .EX
 .IP
 .B buku hello world --exclude real life --stag 'kernel + debugging - general kernel concepts, books'
+.EE
+.PP
 .IP 23. 4
+\fBSearch\fR for bookmarks with different tokens for each field, and print them out sorted by the tags (ascending) and URL (descending)
+.PP
+.EX
+.IP
+.B buku --order +tags,-url --markers --sall 'global substring' '.title substring' ':url substring' :https '> description substring' '#partial,tags:' '#,exact,tags' '*another global substring'
+.EE
+.PP
+.IP 24. 4
 List \fBall unique tags\fR alphabetically:
 .PP
 .EX
@@ -723,7 +747,7 @@ List \fBall unique tags\fR alphabetically:
 .B buku --stag
 .EE
 .PP
-.IP 24. 4
+.IP 25. 4
 Run a \fBsearch and update\fR the results:
 .PP
 .EX
@@ -731,7 +755,7 @@ Run a \fBsearch and update\fR the results:
 .B buku -s kernel debugging -u --tag + linux kernel
 .EE
 .PP
-.IP 25. 4
+.IP 26. 4
 Run a \fBsearch and delete\fR the results:
 .PP
 .EX
@@ -739,7 +763,7 @@ Run a \fBsearch and delete\fR the results:
 .B buku -s kernel debugging -d
 .EE
 .PP
-.IP 26. 4
+.IP 27. 4
 \fBEncrypt or decrypt\fR DB with \fBcustom number of iterations\fR (15) to generate key:
 .PP
 .EX
@@ -752,7 +776,7 @@ Run a \fBsearch and delete\fR the results:
 .IP "" 4
 The same number of iterations must be specified for one lock & unlock instance. Default is 8, if omitted.
 .PP
-.IP 27. 4
+.IP 28. 4
 \fBShow details\fR of bookmarks at index 15012014 and ranges 20-30, 40-50:
 .PP
 .EX
@@ -760,7 +784,7 @@ The same number of iterations must be specified for one lock & unlock instance. 
 .B buku -p 20-30 15012014 40-50
 .EE
 .PP
-.IP 28. 4
+.IP 29. 4
 Show details of the \fBlast 10 bookmarks\fR:
 .PP
 .EX
@@ -768,7 +792,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -p -10
 .EE
 .PP
-.IP 29. 4
+.IP 30. 4
 \fBShow all\fR bookmarks with real index from database:
 .PP
 .EX
@@ -778,7 +802,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -p | more
 .EE
 .PP
-.IP 30. 4
+.IP 31. 4
 \fBReplace tag\fR 'old tag' with 'new tag':
 .PP
 .EX
@@ -786,7 +810,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku --replace 'old tag' 'new tag'
 .EE
 .PP
-.IP 31. 4
+.IP 32. 4
 \fBDelete tag\fR 'old tag' from DB:
 .PP
 .EX
@@ -794,7 +818,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku --replace 'old tag'
 .EE
 .PP
-.IP 32. 4
+.IP 33. 4
 \fBAppend (or delete) tags\fR 'tag 1', 'tag 2' to (or from) existing tags of bookmark at index 15012014:
 .PP
 .EX
@@ -804,7 +828,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -u 15012014 --tag - tag 1, tag 2
 .EE
 .PP
-.IP 33. 4
+.IP 34. 4
 \fBOpen URL\fR at index 15012014 in browser:
 .PP
 .EX
@@ -812,7 +836,7 @@ Show details of the \fBlast 10 bookmarks\fR:
 .B buku -o 15012014
 .EE
 .PP
-.IP 34. 4
+.IP 35. 4
 List bookmarks with \fBno title or tags\fR for bookkeeping:
 .PP
 .EX
@@ -820,7 +844,7 @@ List bookmarks with \fBno title or tags\fR for bookkeeping:
 .B buku -S blank
 .EE
 .PP
-.IP 35. 4
+.IP 36. 4
 List bookmarks with \fBimmutable title\fR:
 .PP
 .EX
@@ -828,7 +852,7 @@ List bookmarks with \fBimmutable title\fR:
 .B buku -S immutable
 .EE
 .PP
-.IP 36. 4
+.IP 37. 4
 \fBShorten\fR the URL www.google.com and the URL at index 20:
 .PP
 .EX
@@ -838,7 +862,7 @@ List bookmarks with \fBimmutable title\fR:
 .B buku --shorten 20
 .EE
 .PP
-.IP 37. 4
+.IP 38. 4
 \fBAppend, remove tags at prompt\fR (taglist index to the left, bookmark index to the right):
 .PP
 .EX
@@ -860,7 +884,7 @@ List bookmarks with \fBimmutable title\fR:
 .B buku (? for help) g 4 9-6 << 5 3-2
 .EE
 .PP
-.IP 38. 4
+.IP 39. 4
 List bookmarks with \fBcolored output\fR:
 .PP
 .EX
@@ -868,7 +892,7 @@ List bookmarks with \fBcolored output\fR:
 .B $ buku --colors oKlxm -p
 .EE
 .PP
-.IP 39. 4
+.IP 40. 4
 Add a bookmark after following all permanent redirects, but only if the server doesn't respond with an error (and there's no network failure)
 .PP
 .EX
@@ -882,7 +906,7 @@ Add a bookmark after following all permanent redirects, but only if the server d
    + Wikipedia is a free online encyclopedia, created and edited by volunteers around the world and hosted by the Wikimedia Foundation.
 .EE
 .PP
-.IP 40. 4
+.IP 41. 4
 Add a bookmark with tag 'http redirect' if the server responds with a permanent redirect, or tag shaped like 'http 404' on an error response:
 .PP
 .EX
@@ -898,7 +922,7 @@ Add a bookmark with tag 'http redirect' if the server responds with a permanent 
    # http 404,http redirect
 .EE
 .PP
-.IP 41. 4
+.IP 42. 4
 Update all bookmarks matching the search by updating the URL if the server responds with a permanent redirect, deleting the bookmark if the server responds with HTTP error 400, 401, 402, 403, 404 or 500, or adding a tag shaped like 'http:{}' in case of any other HTTP error; then export those affected by such changes into an HTML file, marking deleted records as well as old URLs for those replaced by redirect.
 .PP
 .EX

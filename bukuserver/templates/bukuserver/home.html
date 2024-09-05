@@ -4,14 +4,16 @@
 {% block head %}
   {{ super() }}
   {{ buku.close_if_popup() }}
-  {{ buku.focus('form[action="/"]') }}
+  {{ buku.focus('main form[action="/"]') }}
 {% endblock %}
 
 {% block menu_links %}
 {{ super() }}
-<form class="navbar-form navbar-right" action="{{ url_for('bookmark.index_view') }}" method="GET">
+<form class="navbar-form navbar-right" action="{{ url_for('admin.search') }}" method="POST">
   <div class="form-group">
-    <input type="text" class="form-control" id="inputKeywords" placeholder="Search bookmark" name="flt1_buku_search">
+    <input class="form-control" id="inputKeywords" placeholder="Search bookmark" name="keyword">
+    <input type="hidden" name="markers" value="true"/>
+    <input type="hidden" name="all_keywords" value="true"/>
   </div>
   <button type="submit" class="btn btn-default">Search</button>
 </form>
@@ -35,8 +37,9 @@
           {{ form.keyword(class_='form-control', style='display: inline;  width: auto') }}
         </div>
         <div class="text-left col-sm-offset-3">
-          <div class="checkbox"> {{form.deep()}} {{form.deep.label}} </div>
-          <div class="checkbox"> {{form.regex()}} {{form.regex.label}} </div>
+          {% for field in [form.all_keywords, form.markers, form.deep, form.regex] -%}
+          <div class="checkbox" title="{{ field.description }}" data-toggle="tooltip" data-placement="bottom"> {{field()}} {{field.label}} </div>
+          {%- endfor %}
         </div>
         <button type="submit" class="btn btn-default">Search</button>
       </form>
@@ -72,4 +75,13 @@
     </details>
   </div>
 </main>
+{% endblock %}
+
+{% block tail %}
+  <script>
+    $(`[data-toggle="tooltip"]`).attr('data-html', 'true').each(function () {
+      this.title = this.title.replace(/'(.*?)'/g, `'<strong><tt>$1</tt></strong>'`).replace(/\bFULL\b/g, `<strong><em>full</em></strong>`);
+    }).attr('data-container', 'body').attr('data-trigger', 'hover').tooltip();
+  </script>
+  <style>.tooltip-inner {text-align: left;  white-space: pre;  max-width: 600px}</style>
 {% endblock %}

@@ -8,6 +8,7 @@
 
 {% block tail %}
   {{ super() }}
+  {{ buku.script('buku_filter.js') }}
   {{ buku.focus(None) }}
   {{ buku.link_saved() }}
 {% endblock %}

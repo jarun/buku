@@ -10,7 +10,8 @@ from urllib.parse import urlparse
 
 import pytest
 
-from buku import DELIM, FIELD_FILTER, ALL_FIELDS, FetchResult, is_int, prep_tag_search, print_rec_with_filter, parse_range
+from buku import DELIM, FIELD_FILTER, ALL_FIELDS, SortKey, FetchResult, is_int, prep_tag_search, \
+                 print_rec_with_filter, parse_range, split_by_marker
 
 
 def check_import_html_results_contains(result, expected_result):
@@ -851,28 +852,33 @@ def test_copy_to_clipboard(platform, params):
 @pytest.mark.parametrize(
     "export_type, exp_res",
     [
+        ["random", None],
         [
-            "html",
-            "<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n"
+            'html',
+            '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n\n'
             '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
-            "<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n\n<DL><p>\n"
+            '<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n\n<DL><p>\n'
             '    <DT><H3 ADD_DATE="1556430615" LAST_MODIFIED="1556430615" PERSONAL_TOOLBAR_FOLDER="true">buku bookmarks</H3>\n'
-            "    <DL><p>\n"
+            '    <DL><p>\n'
             '        <DT><A HREF="http://example.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
-            '        <DT><A HREF="http://example.org" ADD_DATE="1556430615" LAST_MODIFIED="1556430615"></A>\n'
-            '        <DT><A HREF="http://google.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615">Google</A>\n'
-            "    </DL><p>\n</DL><p>",
+            '        <DT><A HREF="http://example.org" ADD_DATE="1556430615" LAST_MODIFIED="1556430615" TAGS="bar,baz,foo"></A>\n'
+            '        <DT><A HREF="http://google.com" ADD_DATE="1556430615" LAST_MODIFIED="1556430615" TAGS="bar,baz,foo">Google</A>\n'
+            '    </DL><p>\n</DL><p>',
         ],
         [
-            "org",
-            "* [[http://example.com][Untitled]]\n* [[http://example.org][Untitled]]\n* [[http://google.com][Google]]\n",
+            'org',
+            '* [[http://example.com]]\n'
+            '* [[http://example.org]] :bar:baz:foo:\n'
+            '* [[http://google.com][Google]] :bar:baz:foo:\n',
         ],
         [
-            "markdown",
-            "- [Untitled](http://example.com)\n- [Untitled](http://example.org)\n- [Google](http://google.com)\n",
+            'markdown',
+            '- <http://example.com>\n'
+            '- <http://example.org> <!-- TAGS: bar,baz,foo -->\n'
+            '- [Google](http://google.com) <!-- TAGS: bar,baz,foo -->\n',
         ],
         [
-            "rss",
+            'rss',
             '<feed xmlns="http://www.w3.org/2005/Atom">\n'
             '    <title>Bookmarks</title>\n'
             '    <generator uri="https://github.com/jarun/buku">buku</generator>\n'
@@ -884,37 +890,37 @@ def test_copy_to_clipboard(platform, params):
             '    <entry>\n'
             '        <title></title>\n'
             '        <link href="http://example.org" rel="alternate" type="text/html"/>\n'
-            '        <id>1</id>\n'
+            '        <id>2</id>\n'
+            '        <category term="bar"/>\n'
+            '        <category term="baz"/>\n'
+            '        <category term="foo"/>\n'
             '    </entry>\n'
             '    <entry>\n'
             '        <title>Google</title>\n'
             '        <link href="http://google.com" rel="alternate" type="text/html"/>\n'
-            '        <id>2</id>\n'
+            '        <id>3</id>\n'
+            '        <category term="bar"/>\n'
+            '        <category term="baz"/>\n'
+            '        <category term="foo"/>\n'
             '    </entry>\n'
             '</feed>',
         ],
-        ["random", None],
         [
-            "xbel",
-            "\n".join(
-                [
-                    '<?xml version="1.0" encoding="UTF-8"?>',
-                    '<!DOCTYPE xbel PUBLIC "+//IDN python.org//'
-                    'DTD XML Bookmark Exchange Language 1.0//EN//XML" '
-                    '"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">',
-                    '<xbel version="1.0">',
-                    '<bookmark href="http://example.com">',
-                    "<title></title>",
-                    "</bookmark>",
-                    '<bookmark href="http://example.org">',
-                    "<title></title>",
-                    "</bookmark>",
-                    '<bookmark href="http://google.com">',
-                    "<title>Google</title>",
-                    "</bookmark>",
-                    "</xbel>",
-                ]
-            ),
+            'xbel',
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML"'
+            ' "http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">\n\n'
+            '<xbel version="1.0">\n'
+            '    <bookmark href="http://example.com">\n'
+            '        <title></title>\n'
+            '    </bookmark>\n'
+            '    <bookmark href="http://example.org" TAGS="bar,baz,foo">\n'
+            '        <title></title>\n'
+            '    </bookmark>\n'
+            '    <bookmark href="http://google.com" TAGS="bar,baz,foo">\n'
+            '        <title>Google</title>\n'
+            '    </bookmark>\n'
+            '</xbel>'
         ],
     ],
 )
@@ -924,8 +930,8 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
 
     bms = [
         (1, "http://example.com", "", ",", "", 0),
-        (1, "http://example.org", None, ",", "", 0),
-        (2, "http://google.com", "Google", ",", "", 0),
+        (2, "http://example.org", None, ",bar,baz,foo,", "", 0),
+        (3, "http://google.com", "Google", ",bar,baz,foo,", "", 0),
     ]
     if export_type == "random":
         with pytest.raises(AssertionError):
@@ -997,3 +1003,28 @@ def test_parse_range(tokens, valid, expected):
         except Exception as e:
             assert type(e) is type(expected)
             assert str(e) == str(expected)
+
+
+def test_split_by_marker():
+    search_string = (' global substring  .title substring :url substring :https '
+                     '> description substring #partial,tags: #,exact,tags, *another global substring ')
+    assert split_by_marker(search_string) == [
+        ' global substring', '.title substring', ':url substring', ':https',
+        '> description substring', '#partial,tags:', '#,exact,tags,', '*another global substring ',
+    ]
+
+
+def test_SortKey():
+    assert repr(SortKey('foo', ascending=True)) == "+'foo'"
+    assert repr(SortKey('bar', ascending=False)) == "-'bar'"
+    assert SortKey('foo', ascending=True) > SortKey('bar', ascending=True)
+    assert not SortKey('foo', ascending=True) > SortKey('foo', ascending=True)  # pylint: disable=unnecessary-negation
+    assert not SortKey('foo', ascending=True) < SortKey('foo', ascending=True)  # pylint: disable=unnecessary-negation
+    assert not SortKey('foo', ascending=True) < SortKey('bar', ascending=True)  # pylint: disable=unnecessary-negation
+    assert SortKey('foo', ascending=False) < SortKey('bar', ascending=False)
+    assert not SortKey('foo', ascending=False) < SortKey('foo', ascending=False)  # pylint: disable=unnecessary-negation
+    assert not SortKey('foo', ascending=False) > SortKey('foo', ascending=False)  # pylint: disable=unnecessary-negation
+    assert not SortKey('foo', ascending=False) > SortKey('bar', ascending=False)  # pylint: disable=unnecessary-negation
+
+    custom_order = lambda s: (SortKey(len(s), ascending=False), SortKey(s, ascending=True))
+    assert sorted(['foo', 'bar', 'baz', 'quux'], key=custom_order) == ['quux', 'bar', 'baz', 'foo']

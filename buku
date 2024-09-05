@@ -44,6 +44,7 @@ import unicodedata
 import webbrowser
 from enum import Enum
 from itertools import chain
+from functools import total_ordering
 from subprocess import DEVNULL, PIPE, Popen
 from typing import Any, Dict, List, Optional, Tuple, NamedTuple
 from collections.abc import Sequence, Set, Callable
@@ -72,12 +73,18 @@ SKIP_MIMES = {'.pdf', '.txt'}
 PROMPTMSG = 'buku (? for help): '  # Prompt message string
 
 strip_delim = lambda s, delim=DELIM, sub=' ': str(s).replace(delim, sub)
-taglist = lambda ss: sorted(s.lower() for s in set(ss) if s)
+taglist = lambda ss: sorted(set(s.lower().strip() for s in ss if (s or '').strip()))
 like_escape = lambda s, c='`': s.replace(c, c+c).replace('_', c+'_').replace('%', c+'%')
+split_by_marker = lambda s: re.split(r'\s+(?=[.:>#*])', s)
 
 def taglist_str(tag_str, convert=None):
     tags = taglist(tag_str.split(DELIM))
     return delim_wrap(DELIM.join(tags if not convert else taglist(convert(tags))))
+
+def filter_from(values, subset, *, exclude=False):
+    subset, exclude = set(subset), bool(exclude)
+    return [x for x in values if (x in subset) != exclude]
+
 
 # Default format specifiers to print records
 ID_STR = '%d. %s [%s]\n'
@@ -395,6 +402,23 @@ class BukuCrypt:
             sys.exit(1)
 
 
+@total_ordering
+class SortKey:
+    def __init__(self, value, ascending=True):
+        self.value, self.ascending = value, bool(ascending)
+
+    def __eq__(self, other):
+        other = (other.value if isinstance(other, SortKey) else other)
+        return self.value == other
+
+    def __lt__(self, other):
+        other = (other.value if isinstance(other, SortKey) else other)
+        return self.value != other and ((self.value < other) == self.ascending)
+
+    def __repr__(self):
+        return ('+' if self.ascending else '-') + repr(self.value)
+
+
 class FetchResult(NamedTuple):
     url: str                            # resulting URL after following PERMANENT redirects
     title: str = ''
@@ -599,13 +623,37 @@ class BukuDb:
         rows = self._fetch(query + ' LIMIT 1', *args, lock=lock)
         return rows[0] if rows else None
 
-    def get_rec_all(self, *, lock: bool = True):
+    def _ordering(self, fields=['+id'], for_db=True) -> List[Tuple[str, bool]]:
+        """Converts field list to ordering parameters (for DB query or entity list sorting).
+        Fields are listed in priority order, with '+'/'-' prefix signifying ASC/DESC; assuming ASC if not specified.
+        Other than names from DB, you can pass those from JSON export."""
+        names = {'index': 'id', 'uri': 'url', 'description': 'desc', **({'title': 'metadata'} if for_db else {'metadata': 'title'})}
+        valid = list(names) + list(names.values()) + ['tags']
+        _fields = [(re.sub(r'^[+-]', '', s), not s.startswith('-')) for s in (fields or [])]
+        _fields = [(names.get(field, field), direction) for field, direction in _fields if field in valid]
+        return _fields or [('id', True)]
+
+    def _sort(self, records: List[BookmarkVar], fields=['+id'], ignore_case=True) -> List[BookmarkVar]:
+        text_fields = (set() if not ignore_case else {'url', 'desc', 'title', 'tags'})
+        get = lambda x, k: (getattr(x, k) if k not in text_fields else str(getattr(x, k) or '').lower())
+        order = self._ordering(fields, for_db=False)
+        return sorted(bookmark_vars(records), key=lambda x: [SortKey(get(x, k), ascending=asc) for k, asc in order])
+
+    def _order(self, fields=['+id'], ignore_case=True) -> str:
+        """Converts field list to SQL 'ORDER BY' parameters. (See also BukuDb._ordering().)"""
+        text_fields = (set() if not ignore_case else {'url', 'desc', 'metadata', 'tags'})
+        return ', '.join(f'{field if field not in text_fields else "LOWER("+field+")"} {"ASC" if direction else "DESC"}'
+                         for field, direction in self._ordering(fields))
+
+    def get_rec_all(self, *, lock: bool = True, order: List[str] = ['id']):
         """Get all the bookmarks in the database.
 
         Parameters
         ----------
         lock : bool
             Whether to restrict concurrent access (True by default).
+        order : list of str
+            Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
 
         Returns
         -------
@@ -613,7 +661,7 @@ class BukuDb:
             A list of tuples representing bookmark records.
         """
 
-        return self._fetch('SELECT * FROM bookmarks', lock=lock)
+        return self._fetch(f'SELECT * FROM bookmarks ORDER BY {self._order(order)}', lock=lock)
 
     def get_rec_by_id(self, index: int, *, lock: bool = True) -> Optional[BookmarkVar]:
         """Get a bookmark from database by its ID.
@@ -633,7 +681,7 @@ class BukuDb:
 
         return self._fetch_first('SELECT * FROM bookmarks WHERE id = ?', index, lock=lock)
 
-    def get_rec_all_by_ids(self, indices: Sequence[int] | Set[int] | range, *, lock: bool = True):  # Ints
+    def get_rec_all_by_ids(self, indices: Sequence[int] | Set[int] | range, *, lock: bool = True, order: List[str] = ['id']):  # Ints
         """Get all the bookmarks in the database.
 
         Parameters
@@ -642,6 +690,8 @@ class BukuDb:
             DB indices of bookmark records.
         lock : bool
             Whether to restrict concurrent access (True by default).
+        order : list of str
+            Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
 
         Returns
         -------
@@ -649,8 +699,9 @@ class BukuDb:
             A list of tuples representing bookmark records.
         """
 
-        placeholder = ', '.join(['?'] * len(indices))
-        return indices and self._fetch(f'SELECT * FROM bookmarks WHERE id IN ({placeholder})', *list(indices), lock=lock)
+        _order, placeholder = self._order(order), ', '.join(['?'] * len(indices))
+        return indices and self._fetch(f'SELECT * FROM bookmarks WHERE id IN ({placeholder}) ORDER BY {_order}',
+                                       *list(indices), lock=lock)
 
     def get_rec_id(self, url: str, *, lock: bool = True):
         """Check if URL already exists in DB.
@@ -1458,12 +1509,14 @@ class BukuDb:
 
         return False
 
-    def list_using_id(self, ids=[]):
+    def list_using_id(self, ids=[], order=['+id']):
         """List entries in the DB using the specified id list.
 
         Parameters
         ----------
-        ids : list of ids in string form
+        ids : list of ids/ranges in string form
+        order : list of strings
+          Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
 
         Returns
         -------
@@ -1492,17 +1545,63 @@ class BukuDb:
             q0 += ')'
 
         try:
-            return self._fetch(q0)
+            return self._fetch(q0 + f' ORDER BY {self._order(order)}')
         except sqlite3.OperationalError as e:
             LOGERR(e)
             return []
+
+    def _search_tokens(self, keyword: str, deep=False, regex=False, markers=False):
+        """Converts a keyword into a list of tokens, based on search parameters.
+        A token is a varied-length tuple of following values: (SQL field, deep, *SQL params)."""
+        deep = not regex and deep
+        if not markers or (re.sub(r'^\*', '', keyword) and not re.match(r'^[.:>#]', keyword)):
+            s = (keyword if not markers else re.sub(r'^\*', '', keyword))
+            if not s:
+                return []
+            tags = ([s] if regex and not markers else taglist(s.split(DELIM)))
+            return [('metadata', deep, s), ('url', deep, s), ('desc', deep, s)] + (tags and [('tags', deep, *tags)])
+        if re.match(r'^\..', keyword):  # checking prefix + ensuring keyword[1:] is not empty
+            return [('metadata', deep, keyword[1:])]
+        if re.match(r'^:.', keyword):
+            return [('url', deep, keyword[1:])]
+        if re.match(r'^>.', keyword):
+            return [('desc', deep, keyword[1:])]
+        if re.match(r'^#,?[^,]', keyword):
+            tags = ([re.sub(r'^#,?', '', keyword)] if regex else taglist(keyword[1:].split(DELIM)))
+            return tags and [('tags', not keyword.startswith('#,'), *tags)]
+        return []
+
+    def _search_clause(self, tokens, regex=False) -> Tuple[str, List[str]]:
+        """Converts a list of tokens into an SQL clause. (See also: BukuDb._search_tokens().)
+        If regex is True, the token is treated as a raw regex and the paired deep parameter is ignored."""
+        border = lambda k, c: (',' if k == 'tags' else r'\b' if c.isalnum() else '')
+
+        args, clauses = [], []
+        if regex:
+            for field, deep, param in tokens:
+                clauses += [field + ' REGEXP ?']
+                args += [param]
+        else:
+            for field, deep, *params in tokens:
+                _clauses = []
+                for param in params:
+                    if deep:
+                        _clauses += [field + " LIKE ('%' || ? || '%')"]
+                    else:
+                        _clauses += [field + ' REGEXP ?']
+                        param = border(field, param[0]) + re.escape(param) + border(field, param[-1])
+                    args += [param]
+                clauses += (_clauses if len(_clauses) < 2 else [f'({" AND ".join(_clauses)})'])
+        return ' OR '.join(clauses), args
 
     def searchdb(
             self,
             keywords: List[str],
             all_keywords: bool = False,
             deep: bool = False,
-            regex: bool = False
+            regex: bool = False,
+            markers: bool = False,
+            order: List[str] = ['+id'],
     ) -> List[BookmarkVar]:
         """Search DB for entries where tags, URL, or title fields match keywords.
 
@@ -1510,114 +1609,67 @@ class BukuDb:
         ----------
         keywords : list of str
             Keywords to search.
+        order : list of str
+            Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
+            Note: this applies to fields with the same number of matched keywords.
         all_keywords : bool
-            True to return records matching ALL keywords.
             False (default value) to return records matching ANY keyword.
+            True to return records matching ALL keywords. This also enables special
+            behaviour when keywords in (['blank'], ['immutable']).
         deep : bool
             True to search for matching substrings. Default is False.
+        markers : bool
+            True to use prefix markers for different fields. Default is False.
         regex : bool
             Match a regular expression if True. Default is False.
+            Overrides deep, all_keywords, and comma matching in tags with markers.
 
         Returns
         -------
         list
             List of search results.
         """
-        if not keywords:
+        _order = self._order(order)
+        clauses, qargs = [], []
+        for keyword in keywords:
+            tokens = self._search_tokens(keyword, deep=deep, markers=markers)
+            clause, args = self._search_clause(tokens, regex=regex)
+            if clause and args:
+                clauses += [f'({clause})']
+                qargs += args
+        if not qargs:
             return []
 
-        # Deep query string
-        q1 = ("(tags LIKE ('%' || ? || '%') OR "
-              "URL LIKE ('%' || ? || '%') OR "
-              "metadata LIKE ('%' || ? || '%') OR "
-              "desc LIKE ('%' || ? || '%')) ")
-        # Non-deep query string
-        q2 = ('(tags REGEXP ? OR '
-              'URL REGEXP ? OR '
-              'metadata REGEXP ? OR '
-              'desc REGEXP ?) ')
-        qargs = []  # type: List[Any]
-
-        case_statement = lambda x: 'CASE WHEN ' + x + ' THEN 1 ELSE 0 END'
+        _count = lambda x: f'CASE WHEN {x} THEN 1 ELSE 0 END'
         if regex:
-            q0 = 'SELECT id, url, metadata, tags, desc, flags FROM (SELECT *, '
-            for token in keywords:
-                if not token:
-                    continue
-
-                q0 += case_statement(q2) + ' + '
-                qargs += (token, token, token, token,)
-
-            if not qargs:
-                return []
-
-            q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
+            query = ('SELECT id, url, metadata, tags, desc, flags\nFROM (SELECT *, (' +
+                     '\n    + '.join(map(_count, clauses)) +
+                     f') AS score\n  FROM bookmarks WHERE score > 0 ORDER BY score DESC, {_order})')
         elif all_keywords:
-            if len(keywords) == 1 and keywords[0] == 'blank':
-                q0 = "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ? "
-                qargs += (DELIM,)
-            elif len(keywords) == 1 and keywords[0] == 'immutable':
-                q0 = 'SELECT * FROM bookmarks WHERE flags & 1 == 1 '
+            if keywords == ['blank']:
+                qargs, query = [DELIM], "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ?"
+            elif keywords == ['immutable']:
+                qargs, query = [], 'SELECT * FROM bookmarks WHERE flags & 1 == 1'
             else:
-                q0 = 'SELECT id, url, metadata, tags, desc, flags FROM bookmarks WHERE '
-                for token in keywords:
-                    if not token:
-                        continue
-
-                    if deep:
-                        q0 += q1 + 'AND '
-                    else:
-                        _pre = _post = ''
-                        if str.isalnum(token[0]):
-                            _pre = '\\b'
-                        if str.isalnum(token[-1]):
-                            _post = '\\b'
-                        token = _pre + re.escape(token.rstrip('/')) + _post
-                        q0 += q2 + 'AND '
-
-                    qargs += (token, token, token, token,)
-
-                if not qargs:
-                    return []
-
-                q0 = q0[:-4]
-            q0 += 'ORDER BY id ASC'
+                query = 'SELECT id, url, metadata, tags, desc, flags FROM bookmarks WHERE ' + '\n  AND '.join(clauses)
+            query += f'\nORDER BY {_order}'
         elif not all_keywords:
-            q0 = 'SELECT id, url, metadata, tags, desc, flags FROM (SELECT *, '
-            for token in keywords:
-                if not token:
-                    continue
-
-                if deep:
-                    q0 += case_statement(q1) + ' + '
-                else:
-                    _pre = _post = ''
-                    if str.isalnum(token[0]):
-                        _pre = '\\b'
-                    if str.isalnum(token[-1]):
-                        _post = '\\b'
-                    token = _pre + re.escape(token.rstrip('/')) + _post
-                    q0 += case_statement(q2) + ' + '
-
-                qargs += (token, token, token, token,)
-
-            if not qargs:
-                return []
-
-            q0 = q0[:-3] + ' AS score FROM bookmarks WHERE score > 0 ORDER BY score DESC)'
+            query = ('SELECT id, url, metadata, tags, desc, flags\nFROM (SELECT *, (' +
+                     '\n    + '.join(map(_count, clauses)) +
+                     f') AS score\n  FROM bookmarks WHERE score > 0 ORDER BY score DESC, {_order})')
         else:
             LOGERR('Invalid search option')
             return []
 
-        LOGDBG('query: "%s", args: %s', q0, qargs)
+        LOGDBG('query: "%s", args: %s', query, qargs)
 
         try:
-            return self._fetch(q0, *qargs)
+            return self._fetch(query, *qargs)
         except sqlite3.OperationalError as e:
             LOGERR(e)
             return []
 
-    def search_by_tag(self, tags: Optional[str]) -> List[BookmarkVar]:
+    def search_by_tag(self, tags: Optional[str], order: List[str] = ['+id']) -> List[BookmarkVar]:
         """Search bookmarks for entries with given tags.
 
         Parameters
@@ -1628,6 +1680,9 @@ class BukuDb:
             delimited with ','.
             Retrieves entries matching ALL tags if tags are
             delimited with '+'.
+        order : list of str
+            Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
+            Note: this applies to fields with the same number of matched tags.
 
         Returns
         -------
@@ -1635,56 +1690,47 @@ class BukuDb:
             List of search results.
         """
 
+        _order = self._order(order)
         LOGDBG(tags)
         if tags is None or tags == DELIM or tags == '':
             return []
 
-        tags_, search_operator, excluded_tags = prep_tag_search(tags)
+        qargs, search_operator, excluded_tags = prep_tag_search(tags)
         if search_operator is None:
             LOGERR("Cannot use both '+' and ',' in same search")
             return []
 
-        LOGDBG('tags: %s', tags_)
+        LOGDBG('tags: %s', qargs)
         LOGDBG('search_operator: %s', search_operator)
         LOGDBG('excluded_tags: %s', excluded_tags)
 
         if search_operator == 'AND':
-            query = ("SELECT id, url, metadata, tags, desc, flags FROM bookmarks "
-                     "WHERE tags LIKE '%' || ? || '%' ")
-            for tag in tags_[1:]:
-                query += "{} tags LIKE '%' || ? || '%' ".format(search_operator)
-
-            if excluded_tags:
-                tags_.append(excluded_tags)
-                query = query.replace('WHERE tags', 'WHERE (tags')
-                query += ') AND tags NOT REGEXP ? '
-            query += 'ORDER BY id ASC'
+            query = ('SELECT id, url, metadata, tags, desc, flags FROM bookmarks WHERE (' +
+                     f' {search_operator} '.join("tags LIKE '%' || ? || '%'" for tag in qargs) +
+                     ')' + ('' if not excluded_tags else ' AND tags NOT REGEXP ?') +
+                     f' ORDER BY {_order}')
         else:
-            query = 'SELECT id, url, metadata, tags, desc, flags FROM (SELECT *, '
-            case_statement = "CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END"
-            query += case_statement
+            query = ('SELECT id, url, metadata, tags, desc, flags FROM (SELECT *, ' +
+                     ' + '.join("CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END" for tag in qargs) +
+                     ' AS score FROM bookmarks WHERE score > 0' +
+                     ('' if not excluded_tags else ' AND tags NOT REGEXP ?') +
+                     f' ORDER BY score DESC, {_order})')
+        if excluded_tags:
+            qargs += [excluded_tags]
 
-            for tag in tags_[1:]:
-                query += ' + ' + case_statement
-
-            query += ' AS score FROM bookmarks WHERE score > 0'
-
-            if excluded_tags:
-                tags_.append(excluded_tags)
-                query += ' AND tags NOT REGEXP ? '
-
-            query += ' ORDER BY score DESC)'
-
-        LOGDBG('query: "%s", args: %s', query, tags_)
-        return self._fetch(query, *tags_)
+        LOGDBG('query: "%s", args: %s', query, qargs)
+        return self._fetch(query, *qargs)
 
     def search_keywords_and_filter_by_tags(
             self,
             keywords: List[str],
-            all_keywords: bool,
-            deep: bool,
-            regex: bool,
-            stag: str) -> List[BookmarkVar]:
+            all_keywords: bool = False,
+            deep: bool = False,
+            regex: bool = False,
+            stag: Optional[List[str]] = None,
+            without: Optional[List[str]] = None,
+            markers: bool = False,
+            order: List[str] = ['+id']) -> List[BookmarkVar]:
         """Search bookmarks for entries with keywords and specified
         criteria while filtering out entries with matching tags.
 
@@ -1692,15 +1738,19 @@ class BukuDb:
         ----------
         keywords : list of str
             Keywords to search.
+        without : list of str
+            Keywords to exclude; ignored if empty. Default is None.
         all_keywords : bool
             True to return records matching ALL keywords.
-            False to return records matching ANY keyword.
+            False to return records matching ANY keyword. (This is the default.)
         deep : bool
-            True to search for matching substrings.
+            True to search for matching substrings. Default is False
+        markers: bool
+            True to use prefix markers for different fields. Default is False.
         regex : bool
-            Match a regular expression if True.
-        stag : str
-            String of tags to search for.
+            Match a regular expression if True. Default is False.
+        stag : list of str
+            Strings of tags to search for. Default is None.
             Retrieves entries matching ANY tag if tags are
             delimited with ','.
             Retrieves entries matching ALL tags if tags are
@@ -1712,21 +1762,23 @@ class BukuDb:
             List of search results.
         """
 
-        keyword_results = self.searchdb(keywords, all_keywords, deep, regex)
-        stag_results = self.search_by_tag(''.join(stag))
-        return list(set(keyword_results) & set(stag_results))
+        results = self.searchdb(keywords, all_keywords=all_keywords, deep=deep, regex=regex, markers=markers, order=order)
+        results = (results if not stag else filter_from(results, self.search_by_tag(''.join(stag))))
+        return self.exclude_results_from_search(results, without, deep=deep, markers=markers)
 
-    def exclude_results_from_search(self, search_results, without, deep):
+    def exclude_results_from_search(self, search_results, without, deep=False, markers=False):
         """Excludes records that match keyword search using without parameters
 
         Parameters
         ----------
         search_results : list
-            List of search results
+            List of search results.
         without : list of str
-            Keywords to search.
+            Keywords to exclude. If empty, returning search_results unchanged.
         deep : bool
-            True to search for matching substrings.
+            True to search for matching substrings. Default is False.
+        markers: bool
+            True to use prefix markers for different fields. Default is False.
 
         Returns
         -------
@@ -1734,7 +1786,9 @@ class BukuDb:
             List of search results.
         """
 
-        return list(set(search_results) - set(self.searchdb(without, False, deep)))
+        if not without:
+            return search_results
+        return filter_from(search_results, self.searchdb(without, deep=deep, markers=markers), exclude=True)
 
     def compactdb(self, index: int, delay_commit: bool = False):
         """When an entry at index is deleted, move the
@@ -2029,7 +2083,7 @@ class BukuDb:
         return False
 
     def print_rec(self, index: Optional[int | Sequence[int] | Set[int] | range] = 0,  # Optional[IntOrInts]
-                  low: int = 0, high: int = 0, is_range: bool = False) -> bool:
+                  low: int = 0, high: int = 0, is_range: bool = False, order: List[str] = []) -> bool:
         """Print bookmark details at index or all bookmarks if index is 0.
 
         A negative index behaves like tail, if title is blank show "Untitled".
@@ -2086,7 +2140,7 @@ class BukuDb:
         False
         """
         if isinstance(index, range) and index.step == 1:
-            return self.print_rec(None, is_range=True, low=index.start, high=index.stop)
+            return self.print_rec(None, is_range=True, low=index.start, high=index.stop-1, order=order)
 
         if not is_range and isinstance(index, int) and index < 0:
             # Show the last n records
@@ -2096,8 +2150,9 @@ class BukuDb:
                 return False
 
             low = (1 if _id <= -index else _id + index + 1)
-            return self.print_rec(None, is_range=True, low=low, high=_id)
+            return self.print_rec(None, is_range=True, low=low, high=_id, order=order)
 
+        _order = self._order(order)
         if is_range:
             if low < 0 or high < 0:
                 LOGERR('Negative range boundary')
@@ -2110,10 +2165,10 @@ class BukuDb:
                 # If range starts from 0 print all records
                 with self.lock:
                     if low == 0:
-                        query = 'SELECT * from bookmarks'
+                        query = f'SELECT * from bookmarks ORDER BY {_order}'
                         resultset = self.cur.execute(query)
                     else:
-                        query = 'SELECT * from bookmarks where id BETWEEN ? AND ?'
+                        query = f'SELECT * from bookmarks where id BETWEEN ? AND ? ORDER BY {_order}'
                         resultset = self.cur.execute(query, (low, high))
             except IndexError:
                 LOGERR('Index out of range')
@@ -2124,7 +2179,7 @@ class BukuDb:
                     results = self._fetch('SELECT * FROM bookmarks WHERE id = ? LIMIT 1', index)
                 else:
                     placeholder = ', '.join(['?'] * len(index))
-                    results = self._fetch(f'SELECT * FROM bookmarks WHERE id IN ({placeholder}) ORDER BY id', *index)
+                    results = self._fetch(f'SELECT * FROM bookmarks WHERE id IN ({placeholder}) ORDER BY {_order}', *index)
             except IndexError:
                 results = None
             if not results:
@@ -2141,7 +2196,7 @@ class BukuDb:
             return True
         else:  # Show all entries
             with self.lock:
-                self.cur.execute('SELECT * FROM bookmarks ORDER BY id')
+                self.cur.execute(f'SELECT * FROM bookmarks ORDER BY {_order}')
                 resultset = self.cur.fetchall()
 
         if not resultset:
@@ -2498,7 +2553,7 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath: str, resultset: Optional[List[BookmarkVar]] = None) -> bool:
+    def exportdb(self, filepath: str, resultset: Optional[List[BookmarkVar]] = None, order: List[str] = ['id']) -> bool:
         """Export DB bookmarks to file.
         Exports full DB, if resultset is None.
         Additionally, if run after a (batch) update with export_on, only export those records.
@@ -2532,7 +2587,7 @@ class BukuDb:
         count = 0
 
         if not resultset:
-            resultset = self.get_rec_all()
+            resultset = self.get_rec_all(order=order)
             if not resultset:
                 print('No records found')
                 return False
@@ -3304,6 +3359,15 @@ PROMPT KEYS:
     s keyword [...]        search for records with ANY keyword
     S keyword [...]        search for records with ALL keywords
     d                      match substrings ('pen' matches 'opened')
+    m                      search with markers - search string is split
+                           into keywords by prefix markers, which determine
+                           what field the keywords is searched in:
+                           '.', '>' or ':' - title, description or URL
+                           '#'/'#,' - tags (comma-separated, partial/full match)
+                           '*' - all fields (can be omitted in the 1st keyword)
+                           note: tag marker is not affected by 'd' (deep search)
+    v fields               change sorting order (default is '+index')
+                           multiple comma/space separated fields can be specified
     r expression           run a regex search
     t [tag, ...]           search by tags; show taglist, if no args
     g taglist id|range [...] [>>|>|<<] [record id|range ...]
@@ -3401,17 +3465,18 @@ def convert_bookmark_set(
     resultset = bookmark_vars(bookmark_set)
     old = old or {}
 
-    def title(row, fallback=''):
+    def title(row):
         _old = old.get(row.url)
         _add = (f' (OLD URL = {_old})' if isinstance(_old, str) and _old != row.url else
                 ' (DELETED)' if _old == row else '')
-        return (row.title or fallback) + _add
+        return (row.title or '') + _add
 
     count = 0
     out = ''
     if export_type == 'markdown':
         for row in resultset:
-            out += '- [' + title(row, 'Untitled') + '](' + row.url + ')'
+            _title = title(row)
+            out += (f'- <{row.url}>' if not _title else f'- [{_title}]({row.url})')
 
             if row.tags:
                 out += ' <!-- TAGS: {} -->\n'.format(row.tags)
@@ -3421,7 +3486,8 @@ def convert_bookmark_set(
             count += 1
     elif export_type == 'org':
         for row in resultset:
-            out += '* [[{}][{}]]'.format(row.url, title(row, 'Untitled'))
+            _title = title(row)
+            out += (f'* [[{row.url}]]' if not _title else f'* [[{row.url}][{_title}]]')
             out += convert_tags_to_org_mode_tags(row.tags_raw)
             count += 1
     elif export_type == 'xbel':
@@ -3430,14 +3496,14 @@ def convert_bookmark_set(
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             '<!DOCTYPE xbel PUBLIC \
 "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" \
-"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">\n'
+"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">\n\n'
             '<xbel version="1.0">\n')
 
         for row in resultset:
-            out += '<bookmark href="%s"' % (html.escape(row.url)).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
+            out += '    <bookmark href="%s"' % (html.escape(row.url)).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
             if row.tags:
                 out += ' TAGS="' + html.escape(row.tags).encode('ascii', 'xmlcharrefreplace').decode('utf-8') + '"'
-            out += '>\n<title>{}</title>\n</bookmark>\n'\
+            out += '>\n        <title>{}</title>\n    </bookmark>\n'\
                 .format(html.escape(title(row)).encode('ascii', 'xmlcharrefreplace').decode('utf-8'))
             count += 1
 
@@ -4541,7 +4607,7 @@ def show_taglist(obj):
         print()
 
 
-def prompt(obj, results, noninteractive=False, deep=False, listtags=False, suggest=False, num=10):
+def prompt(obj, results, noninteractive=False, deep=False, listtags=False, suggest=False, num=10, markers=False, order=['+id']):
     """Show each matching result from a search and prompt.
 
     Parameters
@@ -4554,10 +4620,14 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         If True, does not seek user input. Shows all results. Default is False.
     deep : bool
         Use deep search. Default is False.
+    markers : bool
+        Use search-with-markers. Default is False.
     listtags : bool
         If True, list all tags.
     suggest : bool
         If True, suggest similar tags on edit and add bookmark.
+    order : list of str
+        Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
     num : int
         Number of results to show per page. Default is 10.
     """
@@ -4565,6 +4635,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
     if not isinstance(obj, BukuDb):
         LOGERR('Not a BukuDb instance')
         return
+    bdb = obj
 
     new_results = bool(results)
     nav = ''
@@ -4623,28 +4694,31 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
         # search ANY match with new keywords
         if nav.startswith('s '):
-            results = obj.searchdb(nav[2:].split(), False, deep)
+            keywords = (nav[2:].split() if not markers else split_by_marker(nav[2:]))
+            results = bdb.searchdb(keywords, deep=deep, markers=markers, order=order)
             new_results = True
             cur_index = next_index = 0
             continue
 
         # search ALL match with new keywords
         if nav.startswith('S '):
-            results = obj.searchdb(nav[2:].split(), True, deep)
+            keywords = (nav[2:].split() if not markers else split_by_marker(nav[2:]))
+            results = bdb.searchdb(keywords, all_keywords=True, deep=deep, markers=markers, order=order)
             new_results = True
             cur_index = next_index = 0
             continue
 
         # regular expressions search with new keywords
         if nav.startswith('r '):
-            results = obj.searchdb(nav[2:].split(), True, regex=True)
+            keywords = (nav[2:].split() if not markers else split_by_marker(nav[2:]))
+            results = bdb.searchdb(keywords, all_keywords=True, regex=True, markers=markers, order=order)
             new_results = True
             cur_index = next_index = 0
             continue
 
         # tag search with new keywords
         if nav.startswith('t '):
-            results = obj.search_by_tag(nav[2:])
+            results = bdb.search_by_tag(nav[2:], order=order)
             new_results = True
             cur_index = next_index = 0
             continue
@@ -4656,14 +4730,21 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         # No new results fetched beyond this point
         new_results = False
 
-        # toggle deep search with 'd'
+        # toggle deep search with 'd', search-with-markers with 'm'
         if nav == 'd':
             deep = not deep
-            if deep:
-                print('deep search on')
-            else:
-                print('deep search off')
+            print('deep search', ('on' if deep else 'off'))
+            continue
+        if nav == 'm':
+            markers = not markers
+            print('search-with-markers', ('on' if markers else 'off'))
+            continue
 
+        if nav.startswith('v '):  # letters 's' and 'o' are taken already
+            _fields = {'metadata': 'title', **JSON_FIELDS}
+            _order = bdb._ordering(filter(None, re.split(r'[,\s]+', nav[2:].strip())))
+            order = [('+' if asc else '-') + _fields.get(s, s) for s, asc in _order]
+            print('order', ', '.join(order))
             continue
 
         # Toggle GUI browser with 'O'
@@ -4679,21 +4760,21 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
         # Edit and add or update
         if nav == 'w' or nav.startswith('w '):
-            edit_at_prompt(obj, nav, suggest)
+            edit_at_prompt(bdb, nav, suggest)
             continue
 
         # Append or overwrite tags
         if nav.startswith('g '):
             unique_tags, dic = obj.get_tag_all()
-            _count = obj.set_tag(nav[2:], unique_tags)
+            _count = bdb.set_tag(nav[2:], unique_tags)
             if _count == -1:
                 print('Invalid input')
             elif _count == -2:
                 try:
                     tagid_list = nav[2:].split()
-                    tagstr = obj.get_tagstr_from_taglist(tagid_list, unique_tags)
+                    tagstr = bdb.get_tagstr_from_taglist(tagid_list, unique_tags)
                     tagstr = tagstr.strip(DELIM)
-                    results = obj.search_by_tag(tagstr)
+                    results = bdb.search_by_tag(tagstr)
                     new_results = True
                     cur_index = next_index = 0
                 except Exception:
@@ -4706,14 +4787,16 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         if nav.startswith('p '):
             id_list = nav[2:].split()
             try:
-                for id in id_list:
-                    if is_int(id):
-                        obj.print_rec(int(id))
-                    elif '-' in id:
-                        vals = [int(x) for x in id.split('-')]
-                        obj.print_rec(0, vals[0], vals[-1], True)
+                ids = set()
+                for s in id_list:
+                    if is_int(s):
+                        ids |= {int(s)}
+                    elif '-' in s:
+                        vals = [int(x) for x in s.split('-')]
+                        ids |= set(range(vals[0], vals[-1] + 1))
                     else:
                         print('Invalid input')
+                ids and bdb.print_rec(ids, order=order)
             except ValueError:
                 print('Invalid input')
             continue
@@ -4724,10 +4807,10 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             try:
                 for id in id_list:
                     if is_int(id):
-                        obj.browse_by_index(int(id))
+                        bdb.browse_by_index(int(id))
                     elif '-' in id:
                         vals = [int(x) for x in id.split('-')]
-                        obj.browse_by_index(0, vals[0], vals[-1], True)
+                        bdb.browse_by_index(0, vals[0], vals[-1], True)
                     else:
                         print('Invalid input')
             except ValueError:
@@ -4751,7 +4834,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
         # list tags with 't'
         if nav == 't':
-            show_taglist(obj)
+            show_taglist(bdb)
             continue
 
         toggled = False
@@ -5800,6 +5883,12 @@ POSITIONAL ARGUMENTS:
                          "blank": entries with empty title/tag
                          "immutable": entries with locked title
     --deep               match substrings ('pen' matches 'opens')
+    --markers            search for keywords in specific fields
+                         based on (optional) prefix markers:
+                         '.' - title, '>' - description, ':' - URL,
+                         '#' - tags (comma-separated, PARTIAL matches)
+                         '#,' - tags (comma-separated, EXACT matches)
+                         '*' - any field (same as no prefix)
     -r, --sreg expr      run a regex search
     -t, --stag [tag [,|+] ...] [- tag, ...]
                          search bookmarks by tags
@@ -5807,14 +5896,18 @@ POSITIONAL ARGUMENTS:
                          use '+' to find entries matching ALL tags
                          excludes entries with tags after ' - '
                          list all tags, if no search keywords
-    -x, --exclude [...]  omit records matching specified keywords''')
+    -x, --exclude [...]  omit records matching specified keywords
+    --order fields [...] comma-separated list of fields to order the output by
+                         (prepend with '+'/'-' to choose sort direction)''')
     addarg = search_grp.add_argument
     addarg('-s', '--sany', nargs='*', help=hide)
     addarg('-S', '--sall', nargs='*', help=hide)
     addarg('-r', '--sreg', nargs='*', help=hide)
     addarg('--deep', action='store_true', help=hide)
+    addarg('--markers', action='store_true', help=hide)
     addarg('-t', '--stag', nargs='*', help=hide)
     addarg('-x', '--exclude', nargs='*', help=hide)
+    addarg('--order', nargs='+', help=hide)
 
     # ------------------------
     # ENCRYPTION OPTIONS GROUP
@@ -6010,6 +6103,8 @@ POSITIONAL ARGUMENTS:
     elif args.unlock is not None:
         BukuCrypt.decrypt_file(args.unlock)
 
+    order = [s for ss in (args.order or []) for s in re.split(r'\s*,\s*', ss.strip()) if s]
+
     # Set up title
     if args.title is not None:
         title_in = ' '.join(args.title)
@@ -6132,115 +6227,46 @@ POSITIONAL ARGUMENTS:
                         tag_redirect=tag_redirect, tag_error=tag_error, del_error=del_error)
 
     # Search record
-    search_results = None
-    search_opted = True
-    tags_search = bool(args.stag is not None and len(args.stag))
-    exclude_results = bool(args.exclude is not None and len(args.exclude))
+    search_results, search_opted = None, True
 
     if args.sany is not None:
-        if len(args.sany):
+        if not args.sany:
+            LOGERR('no keyword')
+        else:
             LOGDBG('args.sany')
             # Apply tag filtering, if opted
-            if tags_search:
-                search_results = bdb.search_keywords_and_filter_by_tags(
-                    args.sany, False, args.deep, False, args.stag)
-            else:
-                # Search URLs, titles, tags for any keyword
-                search_results = bdb.searchdb(args.sany, False, args.deep)
-
-            if exclude_results:
-                search_results = bdb.exclude_results_from_search(
-                    search_results,
-                    args.exclude,
-                    args.deep
-                )
-        else:
-            LOGERR('no keyword')
-    elif args.sall is not None:
-        if len(args.sall):
-            LOGDBG('args.sall')
-            # Apply tag filtering, if opted
-            if tags_search:
-                search_results = bdb.search_keywords_and_filter_by_tags(
-                    args.sall,
-                    True,
-                    args.deep,
-                    False,
-                    args.stag
-                )
-            else:
-                # Search URLs, titles, tags with all keywords
-                search_results = bdb.searchdb(args.sall, True, args.deep)
-
-            if exclude_results:
-                search_results = bdb.exclude_results_from_search(
-                    search_results,
-                    args.exclude,
-                    args.deep
-                )
-        else:
-            LOGERR('no keyword')
-    elif args.sreg is not None:
-        if len(args.sreg):
-            LOGDBG('args.sreg')
-            # Apply tag filtering, if opted
-            if tags_search:
-                search_results = bdb.search_keywords_and_filter_by_tags(
-                    args.sreg,
-                    False,
-                    False,
-                    True,
-                    args.stag
-                )
-            else:
-                # Run a regular expression search
-                search_results = bdb.searchdb(args.sreg, regex=True)
-
-            if exclude_results:
-                search_results = bdb.exclude_results_from_search(
-                    search_results,
-                    args.exclude,
-                    args.deep
-                )
-        else:
-            LOGERR('no expression')
-    elif len(args.keywords):
-        LOGDBG('args.keywords')
-        # Apply tag filtering, if opted
-        if tags_search:
             search_results = bdb.search_keywords_and_filter_by_tags(
-                args.keywords,
-                False,
-                args.deep,
-                False,
-                args.stag
-            )
+                args.sany, deep=args.deep, stag=args.stag, markers=args.markers, without=args.exclude, order=order)
+    elif args.sall is not None:
+        if not args.sall:
+            LOGERR('no keyword')
         else:
-            # Search URLs, titles, tags for any keyword
-            search_results = bdb.searchdb(args.keywords, False, args.deep)
-
-        if exclude_results:
-            search_results = bdb.exclude_results_from_search(
-                search_results,
-                args.exclude,
-                args.deep
-            )
+            LOGDBG('args.sall')
+            search_results = bdb.search_keywords_and_filter_by_tags(
+                args.sall, all_keywords=True, deep=args.deep, stag=args.stag,
+                markers=args.markers, without=args.exclude, order=order)
+    elif args.sreg is not None:
+        if not args.sreg:
+            LOGERR('no expression')
+        else:
+            LOGDBG('args.sreg')
+            search_results = bdb.search_keywords_and_filter_by_tags(
+                args.sreg, regex=True, stag=args.stag, markers=args.markers, without=args.exclude, order=order)
+    elif args.keywords:
+        LOGDBG('args.keywords')
+        search_results = bdb.search_keywords_and_filter_by_tags(
+            args.keywords, deep=args.deep, stag=args.stag, markers=args.markers, without=args.exclude, order=order)
     elif args.stag is not None:
-        if len(args.stag):
-            LOGDBG('args.stag')
-            # Search bookmarks by tag
-            search_results = bdb.search_by_tag(' '.join(args.stag))
-            if exclude_results:
-                search_results = bdb.exclude_results_from_search(
-                    search_results,
-                    args.exclude,
-                    args.deep
-                )
+        if not args.stag:  # use sub-prompt to list all tags
+            prompt(bdb, None, noninteractive=args.np, listtags=True, suggest=args.suggest, order=order)
         else:
-            # Use sub prompt to list all tags
-            prompt(bdb, None, args.np, listtags=True, suggest=args.suggest)
+            LOGDBG('args.stag')
+            search_results = bdb.exclude_results_from_search(
+                bdb.search_by_tag(' '.join(args.stag), order=order), args.exclude, deep=args.deep, markers=args.markers)
     elif args.exclude is not None:
         LOGERR('No search criteria to exclude results from')
+    elif args.markers:
+        LOGERR('No search criteria to apply markers to')
     else:
         search_opted = False
 
@@ -6273,7 +6299,7 @@ POSITIONAL ARGUMENTS:
 
         if args.json is None and not args.format:
             num = 10 if not args.count else args.count
-            prompt(bdb, search_results, oneshot, args.deep, num=num)
+            prompt(bdb, search_results, noninteractive=oneshot, deep=args.deep, markers=args.markers, order=order, num=num)
         elif args.json is None:
             print_rec_with_filter(search_results, field_filter=args.format)
         elif args.json:
@@ -6326,7 +6352,7 @@ POSITIONAL ARGUMENTS:
                            url_redirect=args.url_redirect, tag_redirect=tag_redirect,
                            tag_error=tag_error, del_error=del_error, export_on=export_on)
             if args.export and bdb._to_export is not None:
-                bdb.exportdb(args.export[0], None)
+                bdb.exportdb(args.export[0], order=order)
 
     # Delete record
     if args.delete is not None:
@@ -6362,26 +6388,27 @@ POSITIONAL ARGUMENTS:
     if args.print is not None:
         if not args.print:
             if args.count:
-                search_results = bdb.list_using_id()
-                prompt(bdb, search_results, args.np, False, num=args.count)
+                search_results = bdb.list_using_id(order=order)
+                prompt(bdb, search_results, noninteractive=args.np, num=args.count, order=order)
             else:
-                bdb.print_rec(0)
+                bdb.print_rec(None, order=order)
         else:
             if args.count:
-                search_results = bdb.list_using_id(args.print)
-                prompt(bdb, search_results, args.np, False, num=args.count)
+                search_results = bdb.list_using_id(args.print, order=order)
+                prompt(bdb, search_results, noninteractive=args.np, num=args.count, order=order)
             else:
                 try:
+                    ids = set()
                     for idx in args.print:
                         if is_int(idx):
-                            bdb.print_rec(int(idx))
+                            ids |= {int(idx)}
                         elif '-' in idx:
                             vals = [int(x) for x in idx.split('-')]
-                            bdb.print_rec(0, vals[0], vals[-1], True)
-
+                            ids |= set(range(vals[0], vals[-1] + 1))
                 except ValueError:
                     LOGERR('Invalid index or range to print')
                     bdb.close_quit(1)
+                bdb.print_rec(ids, order=order)
 
     # Replace a tag in DB
     if args.replace is not None:
@@ -6396,7 +6423,7 @@ POSITIONAL ARGUMENTS:
 
     # Export bookmarks
     if args.export and not search_opted and not export_on:
-        bdb.exportdb(args.export[0])
+        bdb.exportdb(args.export[0], order=order)
 
     # Import bookmarks
     if args.importfile is not None:
