@@ -18,8 +18,10 @@ _buku () {
         --colors
         -d --delete
         --deep
+        --del-error
         -e --export
         --expand
+        --export-on
         -f --format
         -h --help
         -i --import
@@ -27,31 +29,31 @@ _buku () {
         -j --json
         -k --unlock
         -l --lock
+        --markers
         -n --count
         --nc
         --np
         -o --open
         --oa
+        --offline
+        --order
         -p --print
         -r --sreg
         --replace
         -s --sany
         -S --sall
-        --url-redirect
-        --tag-redirect
-        --tag-error
-        --del-error
-        --export-on
         --shorten
-        --offline
         --suggest
         -t --stag
         --tacit
         --tag
+        --tag-error
+        --tag-redirect
         --threads
         --title
         -u --update
         --url
+        --url-redirect
         -V
         -v --version
         -w --write
@@ -68,6 +70,7 @@ _buku () {
         -i --import
         --immutable
         -n --count
+        --order
         -r --sreg
         --replace
         -s --sany

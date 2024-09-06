@@ -183,7 +183,7 @@ class BookmarkModelView(BaseModelView):
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
     extra_css = ['/static/bukuserver/css/' + it for it in ('bookmark.css', 'modal.css', 'list.css')]
-    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
+    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js', 'filters_fix.js')]
     last_page = expose('/last-page')(last_page)
 
     def __init__(self, bukudb: buku.BukuDb, *args, **kwargs):
@@ -438,7 +438,7 @@ class TagModelView(BaseModelView):
     list_template = 'bukuserver/tags_list.html'
     edit_template = "bukuserver/tag_edit.html"
     extra_css = ['/static/bukuserver/css/list.css']
-    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
+    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js', 'filters_fix.js')]
     last_page = expose('/last-page')(last_page)
 
     def __init__(self, bukudb, *args, **kwargs):
@@ -626,6 +626,8 @@ def page_of(items, size, idx):
         return []
 
 def filter_key(flt, idx=''):
+    if isinstance(idx, int) and idx > 9:
+        idx = (chr(ord('A') + idx-10) if idx < 36 else chr(ord('a') + idx-36))
     return 'flt' + str(idx) + '_' + BookmarkModelView._filter_arg(flt)
 
 def format_value(field, bookmark, spacing=''):
