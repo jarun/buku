@@ -138,3 +138,64 @@ def _test_add(bdb, prompt, *, add_tags=[], tag=[], tags_fetch=True, tags_in=None
     bdb.searchdb.assert_not_called()
     prompt.assert_not_called()
     bdb.close_quit.assert_called_with(0)
+
+
+@pytest.mark.parametrize('np', [{}, {'np': []}])
+@pytest.mark.parametrize('count', [{}, {'count': ['10']}])
+@pytest.mark.parametrize('order, indices, command', [
+    (['tags', '-url'], None, {'order': ['tags,-url'], 'print': []}),
+    (['-description', '+uri'], {5, 8, 9, 10, 11, 12},
+     {'order': [',-description', '+uri'], 'print': ['5', '8-12']}),
+])
+def test_order_print(bdb, stdin, prompt, order, indices, command, count, np):
+    command = dict(command, **count, **np)
+    argv = [s for k, v in command.items() for s in ([f'--{k}'] + v)]
+    print(argv)
+    result = [None] * 20
+    bdb.list_using_id.return_value = result
+    with pytest.raises(SystemExit):
+        buku.main(argv)
+    if not (_count := command.get('count')):
+        bdb.print_rec.assert_called_with(indices, order=order)
+    else:
+        if not command['print']:
+            bdb.list_using_id.assert_called_with(order=order)
+        else:
+            bdb.list_using_id.assert_called_with(command['print'], order=order)
+        prompt.assert_called_with(bdb, result, noninteractive=('np' in command), num=int(_count[0]), order=order)
+
+@pytest.mark.parametrize('search', ['', 'sany', 'sall', 'sreg', 'stag'])
+@pytest.mark.parametrize('exclude', [None, ['xyzzy', 'grue']])
+@pytest.mark.parametrize('keywords, rest', [
+    ([], {}),
+    (['foo', 'bar'], {'markers': []}),
+    (['foo', 'bar'], {'deep': []}),
+    (['foo', 'bar'], {'stag': ['baz', 'qux']})
+])
+def test_order_search(bdb, stdin, prompt, search, exclude, keywords, rest):
+    if (search == '' and not keywords) or (search == 'stag' and 'stag' in rest):
+        pytest.skip('Invalid combination')
+    order, stag, deep, markers = ['title', '-index'], rest.get('stag'), 'deep' in rest, 'markers' in rest
+    argv = ([] if search == '' else [f'--{search}']) + keywords + ['--order', ','.join(order)]
+    argv += [s for k, v in rest.items() for s in ([f'--{k}'] + v)] + ([] if not exclude else ['--exclude'] + exclude)
+    bdb.search_by_tag.return_value = ['tag search results']
+    with pytest.raises(SystemExit):
+        buku.main(argv)
+    if search == 'stag':
+        if not keywords:
+            prompt.assert_called_with(bdb, None, noninteractive=False, listtags=True, suggest=False, order=order)
+        else:
+            bdb.search_by_tag.assert_called_with(' '.join(keywords), order=order)
+            bdb.exclude_results_from_search.assert_called_with(
+                bdb.search_by_tag.return_value, exclude, deep=deep, markers=markers)
+    if search == 'stag' or not keywords:
+        bdb.search_keywords_and_filter_by_tags.assert_not_called()
+    elif search in ('', 'sany'):
+        bdb.search_keywords_and_filter_by_tags.assert_called_with(
+            keywords, deep=deep, stag=stag, markers=markers, without=exclude, order=order)
+    elif search == 'sall':
+        bdb.search_keywords_and_filter_by_tags.assert_called_with(
+            keywords, all_keywords=True, deep=deep, stag=stag, markers=markers, without=exclude, order=order)
+    elif search == 'sreg':
+        bdb.search_keywords_and_filter_by_tags.assert_called_with(
+            keywords, regex=True, stag=stag, markers=markers, without=exclude, order=order)

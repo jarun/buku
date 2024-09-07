@@ -1,0 +1,14 @@
+.filters .filter-op  {width: 130px !important}
+.filters .filter-val {width: 220px !important}
+@media (min-width: 768px) {
+  .filters .filter-op  {width: 160px !important}
+  .filters .filter-val {width: 295px !important}
+}
+@media (min-width: 992px) {
+  .filters .filter-op  {width: 280px !important}
+  .filters .filter-val {width: 395px !important}
+}
+@media (min-width: 1200px) {
+  .filters .filter-op  {width: 280px !important}
+  .filters .filter-val {width: 595px !important}
+}

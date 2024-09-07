@@ -123,19 +123,40 @@ class TagBaseFilter(BaseFilter):
         return value
 
 
+class BookmarkOrderFilter(BaseFilter):
+    DIR_LIST = [('asc', 'natural'), ('desc', 'reversed')]
+    FIELDS = ['index', 'url', 'title', 'description', 'tags']
+
+    def __init__(self, field, *args, **kwargs):
+        self.field = field
+        super().__init__('order', *args, options=self.DIR_LIST, **kwargs)
+
+    def operation(self):
+        return 'by ' + self.field
+
+    def apply(self, query, value):
+        return query
+
+    @staticmethod
+    def value(filters, values):
+        return [('-' if value == 'desc' else '+') + filters[idx].field
+                for idx, key, value in values if key == 'order']
+
+
 class BookmarkBukuFilter(BaseFilter):
-    keys = {
+    KEYS = {
+        'markers': 'markers',
         'all_keywords': 'match all',
         'deep': 'deep',
-        'regex': 'regex'
+        'regex': 'regex',
     }
 
     def __init__(self, *args, **kwargs):
-        self.params = {key: kwargs.pop(key, False) for key in self.keys}
+        self.params = {key: kwargs.pop(key, False) for key in self.KEYS}
         super().__init__('buku', *args, **kwargs)
 
     def operation(self):
-        parts = ', '.join(v for k, v in self.keys.items() if self.params[k])
+        parts = ', '.join(v for k, v in self.KEYS.items() if self.params[k])
         return 'search' + (parts and ' ' + parts)
 
     def apply(self, query, value):

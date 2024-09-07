@@ -46,8 +46,11 @@ class CustomAdminIndexView(AdminIndexView):
     def search(self):
         "redirect to bookmark search"
         form = forms.HomeForm()
-        buku_filter = bs_filters.BookmarkBukuFilter(deep=form.deep.data, regex=form.regex.data)
-        url = url_for('bookmark.index_view', **{filter_key(buku_filter): form.keyword.data})
+        regex, markers = form.regex.data, form.markers.data
+        deep, all_keywords = (x and not regex for x in [form.deep.data, form.all_keywords.data])
+        flt = bs_filters.BookmarkBukuFilter(deep=deep, regex=regex, markers=markers, all_keywords=all_keywords)
+        vals = ([('', form.keyword.data)] if not markers else enumerate(buku.split_by_marker(form.keyword.data)))
+        url = url_for('bookmark.index_view', **{filter_key(flt, idx): val for idx, val in vals})
         return redirect(url)
 
 
@@ -163,7 +166,7 @@ class BookmarkModelView(BaseModelView):
 
     can_set_page_size = True
     can_view_details = True
-    column_filters = ["buku", "id", "url", "title", "tags"]
+    column_filters = ['buku', 'id', 'url', 'title', 'tags', 'order']
     column_formatters = {
         "Entry": _list_entry,
     }
@@ -179,7 +182,7 @@ class BookmarkModelView(BaseModelView):
     edit_modal_template = "bukuserver/bookmark_edit_modal.html"
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
-    extra_css = ['/static/bukuserver/css/' + it for it in ('bookmark.css', 'modal.css')]
+    extra_css = ['/static/bukuserver/css/' + it for it in ('bookmark.css', 'modal.css', 'list.css')]
     extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
     last_page = expose('/last-page')(last_page)
 
@@ -251,6 +254,7 @@ class BookmarkModelView(BaseModelView):
 
     def get_list(self, page, sort_field, sort_desc, _, filters, page_size=None):
         bukudb = self.bukudb
+        order = bs_filters.BookmarkOrderFilter.value(self._filters, filters)
         buku_filters = [x for x in filters if x[1] == 'buku']
         if buku_filters:
             keywords = [x[2] for x in buku_filters]
@@ -262,9 +266,9 @@ class BookmarkModelView(BaseModelView):
                 kwargs = self._filters[mode_id.pop()].params
             except IndexError:
                 kwargs = {}
-            bookmarks = bukudb.searchdb(keywords, **kwargs)
+            bookmarks = bukudb.searchdb(keywords, order=order, **kwargs)
         else:
-            bookmarks = bukudb.get_rec_all()
+            bookmarks = bukudb.get_rec_all(order=order)
         bookmarks = self._apply_filters(bookmarks or [], filters)
         count = len(bookmarks)
         bookmarks = page_of(bookmarks, page_size, page)
@@ -305,14 +309,15 @@ class BookmarkModelView(BaseModelView):
 
     def scaffold_filters(self, name):
         res = []
-        if name == "buku":
-            values_combi = sorted(itertools.product([True, False], repeat=3))
-            for all_keywords, deep, regex in values_combi:
-                res.append(
-                    bs_filters.BookmarkBukuFilter(
-                        all_keywords=all_keywords, deep=deep, regex=regex
-                    )
-                )
+        if name == 'buku':
+            values_combi = sorted(itertools.product([True, False], repeat=4))
+            for markers, all_keywords, deep, regex in values_combi:
+                kwargs = {'markers': markers, 'all_keywords': all_keywords, 'deep': deep, 'regex': regex}
+                if not (regex and (deep or all_keywords)):
+                    res += [bs_filters.BookmarkBukuFilter(**kwargs)]
+        elif name == 'order':
+            res += [bs_filters.BookmarkOrderFilter(field)
+                    for field in bs_filters.BookmarkOrderFilter.FIELDS]
         elif name == BookmarkField.ID.name.lower():
             res += [
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
@@ -432,6 +437,7 @@ class TagModelView(BaseModelView):
     }
     list_template = 'bukuserver/tags_list.html'
     edit_template = "bukuserver/tag_edit.html"
+    extra_css = ['/static/bukuserver/css/list.css']
     extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js')]
     last_page = expose('/last-page')(last_page)
 

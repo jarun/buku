@@ -9,6 +9,7 @@ import sqlite3
 import sys
 import unittest
 from tempfile import NamedTemporaryFile, TemporaryDirectory
+from random import shuffle
 from unittest import mock
 
 import pytest
@@ -1026,16 +1027,19 @@ def test_update_rec_fetch(bukuDb, caplog, url_in, title_in, tags_in, url_redirec
              '* [[https://www.wikipedia.org][Wikipedia (OLD URL = http://wikipedia.net)]] :http_301:',
              '* [[https://python.org/notfound][Welcome to Python.org]] :http_404:']),
     ('xbel', ['<?xml version="1.0" encoding="UTF-8"?>',
-              '<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" '
-                                    '"http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">',
+              '<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML"'
+                                   ' "http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">',
+              '',
               '<xbel version="1.0">',
-                  '<bookmark href="http://custom.url">', '<title>Fetched Title (DELETED)</title>', '</bookmark>',
-                  '<bookmark href="https://www.wikipedia.org" TAGS="http:301">',
-                      '<title>Wikipedia (OLD URL = http://wikipedia.net)</title>',
-                  '</bookmark>',
-                  '<bookmark href="https://python.org/notfound" TAGS="http:404">',
-                      '<title>Welcome to Python.org</title>',
-                  '</bookmark>',
+              '    <bookmark href="http://custom.url">',
+              '        <title>Fetched Title (DELETED)</title>',
+              '    </bookmark>',
+              '    <bookmark href="https://www.wikipedia.org" TAGS="http:301">',
+              '        <title>Wikipedia (OLD URL = http://wikipedia.net)</title>',
+              '    </bookmark>',
+              '    <bookmark href="https://python.org/notfound" TAGS="http:404">',
+              '        <title>Welcome to Python.org</title>',
+              '    </bookmark>',
               '</xbel>',]),
     ('html', ['<!DOCTYPE NETSCAPE-Bookmark-file-1>', '',
               '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">',
@@ -1628,48 +1632,161 @@ def test_load_firefox_database(firefox_db, add_pt):
         print("call args list dict dumped to:{}".format(res_yaml_file))
 
 
-@pytest.mark.parametrize(
-    "keyword_results, stag_results, exp_res",
-    [
-        ([], [], []),
-        (["item1"], ["item1", "item2"], ["item1"]),
-        (["item2"], ["item1"], []),
-    ],
-)
-def test_search_keywords_and_filter_by_tags(keyword_results, stag_results, exp_res):
-    """test method."""
-    # init
-    import buku
+@pytest.mark.parametrize('ignore_case, fields, expected', [
+    (True, ['+id'],
+     ['http://slashdot.org', 'http://www.zażółćgęśląjaźń.pl/', 'http://example.com/', 'javascript:void(0)', 'javascript:void(1)']),
+    (True, [],
+     ['http://slashdot.org', 'http://www.zażółćgęśląjaźń.pl/', 'http://example.com/', 'javascript:void(0)', 'javascript:void(1)']),
+    (True, ['-metadata', '+url', 'id'],
+     ['http://www.zażółćgęśląjaźń.pl/', 'http://example.com/', 'http://slashdot.org', 'javascript:void(0)', 'javascript:void(1)']),
+    (False, ['-metadata', '+url', 'id'],
+     ['http://example.com/', 'javascript:void(0)', 'javascript:void(1)', 'http://www.zażółćgęśląjaźń.pl/', 'http://slashdot.org']),
+    (True, ['+title', '-tags', 'description', 'index', 'uri'],
+     ['javascript:void(1)', 'javascript:void(0)', 'http://slashdot.org', 'http://example.com/', 'http://www.zażółćgęśląjaźń.pl/']),
+])
+def test_sort(bukuDb, fields, ignore_case, expected):
+    _bookmarks = TEST_BOOKMARKS + [(f'javascript:void({i})', 'foo', parse_tags([f'tag{i}']), 'stuff') for i in range(2)]
+    bookmarks = [(i,) + tuple(x) for i, x in enumerate(_bookmarks, start=1)]
+    shuffle(bookmarks)  # making sure sorting by index works as well
+    assert [x.url for x in bukuDb()._sort(bookmarks, fields, ignore_case=ignore_case)] == expected
 
-    bdb = buku.BukuDb()
-    bdb.searchdb = mock.Mock(return_value=keyword_results)
-    bdb.search_by_tag = mock.Mock(return_value=stag_results)
-    # test
-    res = bdb.search_keywords_and_filter_by_tags(
-        mock.Mock(), mock.Mock(), mock.Mock(), mock.Mock(), []
-    )
-    assert exp_res == res
+@pytest.mark.parametrize('ignore_case, fields, expected', [
+    (True, ['+id'], 'id ASC'),
+    (True, [], 'id ASC'),
+    (False, ['-metadata', '+url', 'id'], 'metadata DESC, url ASC, id ASC'),
+    (True, ['-metadata', '+url', 'id'], 'LOWER(metadata) DESC, LOWER(url) ASC, id ASC'),
+    (False, ['+title', '-tags', 'description', 'index', 'uri'], 'metadata ASC, tags DESC, desc ASC, id ASC, url ASC'),
+    (True, ['+title', '-tags', 'description', 'index', 'uri'],
+     'LOWER(metadata) ASC, LOWER(tags) DESC, LOWER(desc) ASC, id ASC, LOWER(url) ASC'),
+])
+def test_order(bukuDb, fields, ignore_case, expected):
+    assert bukuDb()._order(fields, ignore_case=ignore_case) == expected
+
+@pytest.mark.parametrize('keyword, params, expected', [
+    ('', {}, []),
+    ('', {'markers': True}, []),
+    ('*', {'markers': True}, []),
+    (':', {'markers': True}, []),
+    ('>', {'markers': True}, []),
+    ('#', {'markers': True}, []),
+    ('#,', {'markers': True}, []),
+    ('# ,, ,', {'markers': True}, []),
+    ('#, ,, ,', {'markers': True}, []),
+    ('foo, bar?, , baz', {'regex': True}, [
+        ('metadata', False, 'foo, bar?, , baz'), ('url', False, 'foo, bar?, , baz'),
+        ('desc', False, 'foo, bar?, , baz'), ('tags', False, 'foo, bar?, , baz'),
+    ]),
+    ('foo, bar?, , baz', {}, [
+        ('metadata', False, 'foo, bar?, , baz'), ('url', False, 'foo, bar?, , baz'),
+        ('desc', False, 'foo, bar?, , baz'), ('tags', False, 'bar?', 'baz', 'foo'),
+    ]),
+    ('foo, bar?, , baz', {'deep': True}, [
+        ('metadata', True, 'foo, bar?, , baz'), ('url', True, 'foo, bar?, , baz'),
+        ('desc', True, 'foo, bar?, , baz'), ('tags', True, 'bar?', 'baz', 'foo'),
+    ]),
+    ('foo, bar?, , baz', {'markers': True}, [
+        ('metadata', False, 'foo, bar?, , baz'), ('url', False, 'foo, bar?, , baz'),
+        ('desc', False, 'foo, bar?, , baz'), ('tags', False, 'bar?', 'baz', 'foo'),
+    ]),
+    ('foo, bar?, , baz', {'deep': True, 'markers': True}, [
+        ('metadata', True, 'foo, bar?, , baz'), ('url', True, 'foo, bar?, , baz'),
+        ('desc', True, 'foo, bar?, , baz'), ('tags', True, 'bar?', 'baz', 'foo'),
+    ]),
+    ('*foo, bar?, , baz', {'markers': True}, [
+        ('metadata', False, 'foo, bar?, , baz'), ('url', False, 'foo, bar?, , baz'),
+        ('desc', False, 'foo, bar?, , baz'), ('tags', False, 'bar?', 'baz', 'foo'),
+    ]),
+    ('*foo, bar?, , baz', {'deep': True, 'markers': True}, [
+        ('metadata', True, 'foo, bar?, , baz'), ('url', True, 'foo, bar?, , baz'),
+        ('desc', True, 'foo, bar?, , baz'), ('tags', True, 'bar?', 'baz', 'foo'),
+    ]),
+    ('.foo, bar?, , baz', {'markers': True}, [('metadata', False, 'foo, bar?, , baz')]),
+    ('.foo, bar?, , baz', {'deep': True, 'markers': True}, [('metadata', True, 'foo, bar?, , baz')]),
+    (':foo, bar?, , baz', {'markers': True}, [('url', False, 'foo, bar?, , baz')]),
+    (':foo, bar?, , baz', {'deep': True, 'markers': True}, [('url', True, 'foo, bar?, , baz')]),
+    ('>foo, bar?, , baz', {'markers': True}, [('desc', False, 'foo, bar?, , baz')]),
+    ('>foo, bar?, , baz', {'deep': True, 'markers': True}, [('desc', True, 'foo, bar?, , baz')]),
+    ('#foo, bar?, , baz', {'markers': True}, [('tags', True, 'bar?', 'baz', 'foo')]),
+    ('#foo, bar?, , baz', {'deep': True, 'markers': True}, [('tags', True, 'bar?', 'baz', 'foo')]),
+    ('#foo, bar?, , baz', {'regex': True, 'markers': True}, [('tags', True, 'foo, bar?, , baz')]),
+    ('#,foo, bar?, , baz', {'markers': True}, [('tags', False, 'bar?', 'baz', 'foo')]),
+    ('#,foo, bar?, , baz', {'deep': True, 'markers': True}, [('tags', False, 'bar?', 'baz', 'foo')]),
+    ('#,foo, bar?, , baz', {'regex': True, 'markers': True}, [('tags', False, 'foo, bar?, , baz')]),
+])
+def test_search_tokens(bukuDb, keyword, params, expected):
+    assert bukuDb()._search_tokens(keyword, **params) == expected
+
+@pytest.mark.parametrize('regex, tokens, args, clauses', [
+    (True, [], [], ''),
+    (True, [('metadata', False, 'foo, bar?, , baz')], [r'foo, bar?, , baz'], 'metadata REGEXP ?'),   # escape manually
+    (True, [('tags', False, 'foo, bar?, , baz')], [r'foo, bar?, , baz'], 'tags REGEXP ?'),  # specify borders manually
+    (True, [('metadata', False, 'foo, bar?, , baz'), ('url', False, 'foo, bar?, , baz'),
+            ('desc', False, 'foo, bar?, , baz'), ('tags', False, 'foo, bar?, , baz')],
+     [r'foo, bar?, , baz']*4, 'metadata REGEXP ? OR url REGEXP ? OR desc REGEXP ? OR tags REGEXP ?'),
+    (False, [], [], ''),
+    (False, [('desc', False, 'foo, bar?, , baz')], [r'\bfoo,\ bar\?,\ ,\ baz\b'], 'desc REGEXP ?'),
+    (False, [('desc', True, 'foo, bar?, , baz')], ['foo, bar?, , baz'], "desc LIKE ('%' || ? || '%')"),
+    (False, [('tags', False, 'bar?', 'baz', 'foo')], [r',bar\?,', r',baz,', r',foo,'],
+     '(tags REGEXP ? AND tags REGEXP ? AND tags REGEXP ?)'),
+    (False, [('tags', True, 'bar?', 'baz', 'foo')], ['bar?', 'baz', 'foo'],
+     "(tags LIKE ('%' || ? || '%') AND tags LIKE ('%' || ? || '%') AND tags LIKE ('%' || ? || '%'))"),
+    (False, [('metadata', False, 'foo, bar?, , baz'), ('url', False, 'foo, bar?, , baz'),
+             ('desc', False, 'foo, bar?, , baz'), ('tags', False, 'bar?', 'baz', 'foo')],
+     [r'\bfoo,\ bar\?,\ ,\ baz\b']*3 + [r',bar\?,', r',baz,', r',foo,'],
+     'metadata REGEXP ? OR url REGEXP ? OR desc REGEXP ? OR (tags REGEXP ? AND tags REGEXP ? AND tags REGEXP ?)'),
+    (False, [('metadata', True, 'foo, bar?, , baz'), ('url', True, 'foo, bar?, , baz'),
+             ('desc', True, 'foo, bar?, , baz'), ('tags', True, 'bar?', 'baz', 'foo')],
+     ['foo, bar?, , baz']*3 + ['bar?', 'baz', 'foo'],
+     "metadata LIKE ('%' || ? || '%') OR url LIKE ('%' || ? || '%') OR desc LIKE ('%' || ? || '%')"
+     " OR (tags LIKE ('%' || ? || '%') AND tags LIKE ('%' || ? || '%') AND tags LIKE ('%' || ? || '%'))"),
+])
+def test_search_clause(bukuDb, regex, tokens, args, clauses):
+    assert bukuDb()._search_clause(tokens, regex=regex) == (clauses, args)
+
+@pytest.mark.parametrize('keywords, params, expected', [
+    (['slashdot'], {}, ['http://slashdot.org']),
+    (['slashdot|example'], {'regex': True}, ['http://slashdot.org', 'http://example.com/']),
+    (['slashdot|example'], {'regex': True, 'order': ['-title']}, ['http://example.com/', 'http://slashdot.org']),
+    (['old,news,old'], {}, ['http://slashdot.org']),  # tags matching
+    (['bold,news,old'], {}, []),  # ALL tags within a token must match
+    (['#test'], {'markers': True}, ['http://example.com/']),
+    (['#es,test'], {'markers': True}, ['http://example.com/']),
+    (['#te'], {'markers': True}, ['http://example.com/']),
+    (['#,te'], {'markers': True}, []),
+    (['#,es'], {'markers': True}, ['http://example.com/']),
+    (['#,es,te'], {'markers': True}, []),  # ALL tags within a token must match
+    (['>for', ':com'], {'markers': True, 'all_keywords': True}, ['http://example.com/']),
+    (['>for', ':com'], {'markers': True, 'all_keywords': False}, ['http://example.com/', 'http://slashdot.org']),
+    (['>test'], {'markers': True, 'deep': False}, ['http://example.com/']),
+    (['>test'], {'markers': True, 'deep': True, 'order': ['title']}, ['http://example.com/', 'http://www.zażółćgęśląjaźń.pl/']),
+])
+def test_searchdb(bukuDb, keywords, params, expected):
+    bdb = bukuDb()
+    for bookmark in TEST_BOOKMARKS:
+        _add_rec(bdb, *bookmark)
+    assert [x.url for x in bdb.searchdb(keywords, **params)] == expected
 
 
-@pytest.mark.parametrize(
-    "search_results, exclude_results, exp_res",
-    [
-        ([], [], []),
-        (["item1", "item2"], ["item2"], ["item1"]),
-        (["item2"], ["item1"], ["item2"]),
-        (["item1", "item2"], ["item1", "item2"], []),
-    ],
-)
-def test_exclude_results_from_search(search_results, exclude_results, exp_res):
-    """test method."""
-    # init
-    import buku
+@pytest.mark.parametrize('keyword_results, stag_results, exp_res', [
+    ([], [], []),
+    (["item1"], ["item1", "item2"], ["item1"]),
+    (["item2"], ["item1"], []),
+])
+def test_search_keywords_and_filter_by_tags(bukuDb, keyword_results, stag_results, exp_res):
+    with mock.patch('buku.BukuDb.searchdb', return_value=keyword_results):
+        with mock.patch('buku.BukuDb.search_by_tag', return_value=stag_results):
+            assert exp_res == bukuDb().search_keywords_and_filter_by_tags(['keywords'], stag=['stag'])
 
-    bdb = buku.BukuDb()
-    bdb.searchdb = mock.Mock(return_value=exclude_results)
-    # test
-    res = bdb.exclude_results_from_search(search_results, [], True)
-    assert exp_res == res
+
+@pytest.mark.parametrize('search_results, exclude_results, exp_res', [
+    ([], [], []),
+    (["item1", "item2"], ["item2"], ["item1"]),
+    (["item2"], ["item1"], ["item2"]),
+    (["item1", "item2"], ["item1", "item2"], []),
+])
+def test_exclude_results_from_search(bukuDb, search_results, exclude_results, exp_res):
+    with mock.patch('buku.BukuDb.searchdb', return_value=exclude_results):
+        assert exp_res == bukuDb().exclude_results_from_search(search_results, ['without'])
 
 
 def test_exportdb_empty_db():
