@@ -3,6 +3,7 @@
 resources: https://flask.palletsprojects.com/en/2.2.x/testing/
 """
 from argparse import Namespace
+from unittest import mock
 
 import pytest
 from flask import request
@@ -11,7 +12,7 @@ from werkzeug.datastructures import MultiDict
 
 from buku import BukuDb
 from bukuserver import server
-from bukuserver.views import BookmarkModelView, TagModelView
+from bukuserver.views import BookmarkModelView, TagModelView, filter_key
 from tests.util import mock_fetch, _add_rec
 
 
@@ -59,6 +60,12 @@ def tmv_instance(bukudb):
 def bmv_instance(bukudb):
     """define tag model view instance"""
     return BookmarkModelView(bukudb)
+
+
+@pytest.mark.parametrize('idx, char', [('', ''), (0, '0'), (9, '9'), (10, 'A'), (35, 'Z'), (36, 'a'), (61, 'z')])
+def test_filter_key(idx, char):
+    with mock.patch('bukuserver.views.BookmarkModelView._filter_arg', return_value='filter_name'):
+        assert filter_key(None, idx) == f'flt{char}_filter_name'
 
 
 @pytest.mark.parametrize('disable_favicon', [False, True])
