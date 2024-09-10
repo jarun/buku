@@ -1822,6 +1822,37 @@ def test_exportdb_to_db():
     assert db.get_rec_all() == db2.get_rec_all()
 
 
+@pytest.mark.parametrize('pick', [None, 0, 3, 7, 10])
+@mock.patch('builtins.print')
+@mock.patch('builtins.open')
+@mock.patch('random.sample')
+@mock.patch('buku.convert_bookmark_set')
+@mock.patch('buku.BukuDb._sort')
+def test_exportdb_pick(_bukudb_sort, _convert_bookmark_set, _sample, _open, _print, bukuDb, pick):
+    wrap = mock.Mock()
+    wrap.attach_mock(_print, 'print')
+    wrap.attach_mock(_open, 'open')
+    wrap.attach_mock(_sample, 'sample')
+    wrap.attach_mock(_convert_bookmark_set, 'convert_bookmark_set')
+    wrap.attach_mock(_bukudb_sort, 'BukuDb_sort')
+    _sample.return_value = _sampled = object()
+    _bukudb_sort.return_value = _selection = object()
+    _convert_bookmark_set.return_value = _converted = {'data': object(), 'count': 42}
+    filepath, order, records, picked = 'output.md', object(), range(7), pick and pick < 7
+
+    bdb = bukuDb()
+    assert bdb.exportdb(filepath, records, order=order, pick=pick)
+    pick_expected = [mock.call.sample(records, pick),
+                     mock.call.BukuDb_sort(_sampled, order)]
+    expected_calls = [mock.call.open(filepath, mode='w', encoding='utf-8'),
+                      mock.call.open().__enter__(),                            # pylint: disable=unnecessary-dunder-call
+                      mock.call.convert_bookmark_set((_selection if picked else records), 'markdown', {}),
+                      mock.call.open().__enter__().write(_converted['data']),  # pylint: disable=unnecessary-dunder-call
+                      mock.call.print('42 exported'),
+                      mock.call.open().__exit__(None, None, None)]
+    assert wrap.mock_calls == ([] if not picked else pick_expected) + expected_calls
+
+
 @pytest.mark.parametrize(
     "urls, exp_res",
     [

@@ -2,6 +2,8 @@
 import functools
 import itertools
 import logging
+import random
+import re
 import types
 from argparse import Namespace
 from collections import Counter, namedtuple
@@ -24,10 +26,12 @@ try:
     from . import filters as bs_filters
     from . import forms
     from .filters import BookmarkField, FilterType
+    from .util import chunks, sorted_counter
 except ImportError:
     from bukuserver import filters as bs_filters  # type: ignore
     from bukuserver import forms
     from bukuserver.filters import BookmarkField, FilterType  # type: ignore
+    from bukuserver.util import chunks, sorted_counter
 
 
 COLORS = ['#F7464A', '#46BFBD', '#FDB45C', '#FEDCBA', '#ABCDEF', '#DDDDDD',
@@ -86,8 +90,16 @@ def readonly_check(self):
         self.can_edit = False
         self.can_delete = False
 
+class ApplyFiltersMixin:  # pylint: disable=too-few-public-methods
+    def _apply_filters(self, models, filters):
+        for idx, name, value in filters:
+            if self._filters:
+                flt = self._filters[idx]
+                models = list(flt.apply(models, flt.clean(value)))
+        return models
 
-class BookmarkModelView(BaseModelView):
+
+class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     @staticmethod
     def _filter_arg(flt):
         """Exposes filter slugify logic; works because BookmarkModelView.named_filter_urls = True"""
@@ -99,14 +111,6 @@ class BookmarkModelView(BaseModelView):
         else:
             raise ValueError('Duplicate URL' if self.model.bukudb.get_rec_id(url) not in [id, None] else
                              'Rejected by the database')
-
-    def _apply_filters(self, models, filters):
-        for idx, _, value in filters:
-            if self._filters:
-                flt = self._filters[idx]
-                clean_value = flt.clean(value)
-                models = list(flt.apply(models, clean_value))
-        return models
 
     def _create_ajax_loader(self, name, options):
         pass
@@ -252,7 +256,7 @@ class BookmarkModelView(BaseModelView):
         self.after_model_delete(model)
         return res
 
-    def get_list(self, page, sort_field, sort_desc, _, filters, page_size=None):
+    def _from_filters(self, filters):
         bukudb = self.bukudb
         order = bs_filters.BookmarkOrderFilter.value(self._filters, filters)
         buku_filters = [x for x in filters if x[1] == 'buku']
@@ -269,7 +273,10 @@ class BookmarkModelView(BaseModelView):
             bookmarks = bukudb.searchdb(keywords, order=order, **kwargs)
         else:
             bookmarks = bukudb.get_rec_all(order=order)
-        bookmarks = self._apply_filters(bookmarks or [], filters)
+        return self._apply_filters(bookmarks or [], filters)
+
+    def get_list(self, page, sort_field, sort_desc, _, filters, page_size=None):
+        bookmarks = self._from_filters(filters)
         count = len(bookmarks)
         bookmarks = page_of(bookmarks, page_size, page)
         data = []
@@ -281,8 +288,12 @@ class BookmarkModelView(BaseModelView):
         return count, data
 
     def get_one(self, id):
-        bookmark = self.model.bukudb.get_rec_by_id(id)
-        if bookmark is None:
+        if id == 'random':
+            bookmarks = self._from_filters(self._get_list_filter_args())
+            bookmark = bookmarks and random.choice(bookmarks)
+        else:
+            bookmark = self.model.bukudb.get_rec_by_id(id)
+        if not bookmark:
             return None
         bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
         for field in list(BookmarkField):
@@ -382,8 +393,7 @@ class BookmarkModelView(BaseModelView):
         return res
 
     def scaffold_form(self):
-        cls = forms.BookmarkForm
-        return cls
+        return forms.BookmarkForm
 
     def update_model(self, form: forms.BookmarkForm, model: Namespace):
         res = False
@@ -411,17 +421,9 @@ class BookmarkModelView(BaseModelView):
         return res
 
 
-class TagModelView(BaseModelView):
+class TagModelView(BaseModelView, ApplyFiltersMixin):
     def _create_ajax_loader(self, name, options):
         pass
-
-    def _apply_filters(self, models, filters):
-        for idx, _, value in filters:
-            if self._filters:
-                flt = self._filters[idx]
-                clean_value = flt.clean(value)
-                models = list(flt.apply(models, clean_value))
-        return models
 
     def _name_formatter(self, _, model, name):
         data = getattr(model, name)
@@ -506,7 +508,7 @@ class TagModelView(BaseModelView):
 
     def get_one(self, id):
         tags = self.all_tags[1]
-        tag_sns = types.SimpleNamespace(name=id, usage_count=tags[id])
+        tag_sns = types.SimpleNamespace(name=id, usage_count=tags.get(id, 0))
         return tag_sns
 
     def scaffold_filters(self, name):
@@ -563,7 +565,9 @@ class TagModelView(BaseModelView):
             original_name = model.name
             form.populate_obj(model)
             self._on_model_change(form, model, False)
-            self.bukudb.replace_tag(original_name, [model.name])
+            names = {s for s in re.split(r'\s*,\s*', model.name.lower().strip()) if s}
+            assert names, 'Tag name cannot be blank.'  # deleting a tag should be done via a Delete button
+            self.bukudb.replace_tag(original_name, names)
             self.all_tags = self.bukudb.get_tag_all()
         except Exception as ex:
             if not self.handle_view_exception(ex):
@@ -615,10 +619,6 @@ class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
         )
 
 
-def chunks(arr, n):
-    n = max(1, n)
-    return [arr[i : i + n] for i in range(0, len(arr), n)]
-
 def page_of(items, size, idx):
     try:
         return chunks(items, size)[idx] if size and items else items
@@ -638,10 +638,6 @@ def link(text, url, new_tab=False, html=False, badge=''):
     target = ('' if not new_tab else ' target="_blank"')
     cls = ('' if not badge else f' class="btn label label-{badge}"')
     return f'<a{cls} href="{escape(url)}"{target}>{text if html else escape(text)}</a>'
-
-def sorted_counter(keys, *, min_count=0):
-    data = Counter(keys)
-    return Counter({k: v for k, v in sorted(data.items()) if v > min_count})
 
 
 ColoredData = namedtuple('ColoredData', 'name amount color')

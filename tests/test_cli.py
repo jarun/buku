@@ -144,7 +144,7 @@ def _test_add(bdb, prompt, *, add_tags=[], tag=[], tags_fetch=True, tags_in=None
 @pytest.mark.parametrize('count', [{}, {'count': ['10']}])
 @pytest.mark.parametrize('order, indices, command', [
     (['tags', '-url'], None, {'order': ['tags,-url'], 'print': []}),
-    (['-description', '+uri'], {5, 8, 9, 10, 11, 12},
+    (['-description', '+uri'], [5, 8, 9, 10, 11, 12],
      {'order': [',-description', '+uri'], 'print': ['5', '8-12']}),
 ])
 def test_order_print(bdb, stdin, prompt, order, indices, command, count, np):
@@ -199,3 +199,93 @@ def test_order_search(bdb, stdin, prompt, search, exclude, keywords, rest):
     elif search == 'sreg':
         bdb.search_keywords_and_filter_by_tags.assert_called_with(
             keywords, regex=True, stag=stag, markers=markers, without=exclude, order=order)
+
+@pytest.mark.parametrize('json', [None, '', 'output.json'])
+@pytest.mark.parametrize('indices', [None, '', '1-10'])  # None = search
+@pytest.mark.parametrize('random', [None, 1, 3])
+@mock.patch('random.sample', return_value='sampled')
+@mock.patch('buku.print_rec_with_filter')
+@mock.patch('buku.write_string_to_file')
+@mock.patch('buku.format_json', return_value='formatted')
+@mock.patch('buku.print_json_safe')
+def test_random(_print_json_safe, _format_json, _write_string_to_file, _print_rec_with_filter, _sample,
+                bdb, stdin, prompt, random, indices, json):
+    wrap = mock.Mock()
+    wrap.attach_mock(_sample, 'random_sample')
+    wrap.attach_mock(_print_rec_with_filter, 'print_rec_with_filter')
+    wrap.attach_mock(_write_string_to_file, 'write_string_to_file')
+    wrap.attach_mock(_format_json, 'format_json')
+    wrap.attach_mock(_print_json_safe, 'print_json_safe')
+    wrap.attach_mock(prompt, 'prompt')
+    wrap.attach_mock(bdb, 'bdb')
+    bdb.get_max_id.return_value = 42
+    bdb._sort.return_value = 'sorted'
+    bdb.search_keywords_and_filter_by_tags.return_value = 'found'
+    argv = (['--sall', 'foo'] if indices is None else ['--print'] + ([] if not indices else [indices]))
+    argv += ([] if json is None else ['--json'] + ([] if not json else [json]))
+    argv += ([] if not random else ['--random'] + ([] if random == 1 else [str(random)]))
+    with pytest.raises(SystemExit):
+        buku.main(argv)
+    calls = []
+    if indices:                # --print 1-10
+        calls += ([mock.call.bdb.print_rec(list(range(1, 11)), order=[])] if not random else
+                  [mock.call.random_sample(list(range(1, 11)), random),
+                   mock.call.bdb.print_rec('sampled', order=[])])
+    elif indices is not None:  # --print
+        calls += [mock.call.bdb.get_max_id()]
+        calls += ([mock.call.bdb.print_rec(None, order=[])] if not random else
+                  [mock.call.random_sample(range(1, 43), random),
+                   mock.call.bdb.print_rec('sampled', order=[])])
+    else:                      # --sall foo
+        calls += [mock.call.bdb.search_keywords_and_filter_by_tags(
+                      ['foo'], all_keywords=True, deep=False, stag=None, markers=False, without=None, order=[])]
+        if random:
+            calls += [mock.call.random_sample('found', random),
+                      mock.call.bdb._sort('sampled', [])]
+        res = ('sorted' if random else 'found')
+        if json:
+            calls += [mock.call.format_json(res, (random == 1), field_filter=0),
+                      mock.call.write_string_to_file('formatted', json)]
+        elif json is not None:
+            calls += [mock.call.print_json_safe(res, (random == 1), field_filter=0)]
+        elif random:
+            calls += [mock.call.print_rec_with_filter(res, field_filter=0)]
+        else:
+            calls += [mock.call.prompt(bdb, res, noninteractive=False, deep=False, markers=False, order=[], num=10)]
+    calls += [mock.call.bdb.close_quit(0)]
+    assert wrap.mock_calls == calls
+
+@pytest.mark.parametrize('search', [True, False])
+@pytest.mark.parametrize('random', [None, 1, 3])
+@mock.patch('random.sample', return_value='sampled')
+@mock.patch('buku.print_rec_with_filter')
+def test_random_export(_print_rec_with_filter, _sample, bdb, stdin, prompt, random, search):
+    wrap = mock.Mock()
+    wrap.attach_mock(_sample, 'random_sample')
+    wrap.attach_mock(_print_rec_with_filter, 'print_rec_with_filter')
+    wrap.attach_mock(prompt, 'prompt')
+    wrap.attach_mock(bdb, 'bdb')
+    bdb.get_max_id.return_value = 42
+    bdb._sort.return_value = 'sorted'
+    bdb.search_keywords_and_filter_by_tags.return_value = 'found'
+    argv = ['--export', 'export.md'] + ([] if not search else ['--sall', 'foo'])
+    argv += ([] if not random else ['--random'] + ([] if random == 1 else [str(random)]))
+    with pytest.raises(SystemExit):
+        buku.main(argv)
+    calls = []
+    if not search:
+        calls += [mock.call.bdb.exportdb('export.md', order=[], pick=random)]
+    else:
+        calls += [mock.call.bdb.search_keywords_and_filter_by_tags(
+                      ['foo'], all_keywords=True, deep=False, stag=None, markers=False, without=None, order=[])]
+        if random:
+            calls += [mock.call.random_sample('found', random),
+                      mock.call.bdb._sort('sampled', [])]
+        res = ('sorted' if random else 'found')
+        if random:
+            calls += [mock.call.print_rec_with_filter(res, field_filter=0)]
+        else:
+            calls += [mock.call.prompt(bdb, res, noninteractive=True, deep=False, markers=False, order=[], num=10)]
+        calls += [mock.call.bdb.exportdb('export.md', res)]
+    calls += [mock.call.bdb.close_quit(0)]
+    assert wrap.mock_calls == calls

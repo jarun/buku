@@ -4,7 +4,6 @@
 import os
 import sys
 from typing import Union  # NOQA; type: ignore
-from urllib.parse import urlparse
 
 from flask.cli import FlaskGroup
 from flask_admin import Admin
@@ -23,10 +22,10 @@ from flask import __version__ as flask_version  # type: ignore
 from flask import current_app, redirect, request, url_for
 
 try:
-    from . import api, views
+    from . import api, views, util
     from response import Response
 except ImportError:
-    from bukuserver import api, views
+    from bukuserver import api, views, util
     from bukuserver.response import Response
 
 
@@ -117,7 +116,7 @@ def create_app(db_file=None):
         """Shell context definition."""
         return {'app': app, 'bukudb': bukudb}
 
-    app.jinja_env.filters['netloc'] = lambda x: urlparse(x).netloc  # pylint: disable=no-member
+    app.jinja_env.filters.update(util.JINJA_FILTERS)
 
     admin = Admin(
         app, name='buku server', template_mode='bootstrap3',

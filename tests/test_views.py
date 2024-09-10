@@ -379,19 +379,19 @@ def test_env_theme(theme, client):
 
 _DICT = {
     'en': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Home', 'Bookmarks', 'Tags', 'Statistic'],
-           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['List (1)', 'Create', 'Add Filter', '10 items'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['List (1)', 'Create', 'Random', 'Add Filter', '10 items'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['View Record', 'Edit Record'],
            f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
     'de': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Start', 'Bookmarks', 'Tags', 'Statistic'],
-           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Erstellen', 'Filter hinzufügen', '10 Elemente'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Erstellen', 'Random', 'Filter hinzufügen', '10 Elemente'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Eintrag ansehen', 'Eintrag bearbeiten'],
            f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
     'fr': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Accueil', 'Bookmarks', 'Tags', 'Statistic'],
-           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Créer', 'Ajouter un filtre', '10 items'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Créer', 'Random', 'Ajouter un filtre', '10 items'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Afficher L\'enregistrement', 'Modifier enregistrement'],
            f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
     'ru': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Главная', 'Bookmarks', 'Tags', 'Statistic'],
-           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Список (1)', 'Создать', 'Добавить Фильтр', '10 элементы'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Список (1)', 'Создать', 'Random', 'Добавить Фильтр', '10 элементы'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Просмотр записи', 'Редактировать запись'],
            f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
 }

@@ -214,6 +214,7 @@ SEARCH OPTIONS:
                            excludes entries with tags after ' - '
                            list all tags, if no search keywords
       -x, --exclude [...]  omit records matching specified keywords
+      --random [N]         output random bookmarks out of the selection (default 1)
       --order fields [...] comma-separated list of fields to order the output by
                            (prepend with '+'/'-' to choose sort direction)
 
@@ -534,7 +535,20 @@ PROMPT KEYS:
 42. Update all bookmarks matching the search by updating the URL if the server responds with a permanent redirect, deleting the bookmark if the server responds with HTTP error 400, 401, 402, 403, 404 or 500, or adding a tag shaped like `http:{}` in case of any other HTTP error; then export those affected by such changes into an HTML file, marking deleted records as well as old URLs for those replaced by redirect.
 
         $ buku -S ://wikipedia.net -u --url-redirect --tag-error --del-error 400-404,500 --export-on --export backup.html
-43. More **help**:
+
+43. Print out a single **random** bookmark:
+
+        $ buku --random --print
+
+44. Print out 3 **random** bookmarks **ordered** by title (reversed) and url:
+
+        $ buku --random 3 --order ,-title,+url --print
+
+45. Print out a single **random** bookmark matching **search** criteria, and **export** into a Markdown file (in DB order):
+
+        $ buku --random -S kernel debugging --export random.md
+
+46. More **help**:
 
         $ buku -h
         $ man buku
