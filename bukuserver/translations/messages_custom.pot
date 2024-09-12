@@ -1,0 +1,53 @@
+msgid "Original and replacement tags are the same."
+msgstr ""
+
+msgid "Tag name cannot be blank."
+msgstr ""
+
+msgid "by index"
+msgstr ""
+
+msgid "by url"
+msgstr ""
+
+msgid "by title"
+msgstr ""
+
+msgid "by description"
+msgstr ""
+
+msgid "by tags"
+msgstr ""
+
+msgid "search"
+msgstr ""
+
+msgid "search regex"
+msgstr ""
+
+msgid "search deep"
+msgstr ""
+
+msgid "search match all"
+msgstr ""
+
+msgid "search match all, deep"
+msgstr ""
+
+msgid "search markers"
+msgstr ""
+
+msgid "search markers, regex"
+msgstr ""
+
+msgid "search markers, deep"
+msgstr ""
+
+msgid "search markers, deep"
+msgstr ""
+
+msgid "search markers, match all"
+msgstr ""
+
+msgid "search markers, match all, deep"
+msgstr ""

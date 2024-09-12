@@ -4,7 +4,7 @@
 {% block header_text %}
   <h3>
     {% if request.args.get('id') == 'random' %}
-    <button id="modal-random" class="btn btn-default" title="Pick another">
+    <button id="modal-random" class="btn btn-default" title="{{ _('Pick another') }}">
       <span class="fa fa-eye glyphicon glyphicon-repeat"></span>
     </button>
     {% endif %}

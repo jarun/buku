@@ -1,14 +1,20 @@
-.filters .filter-op  {width: 130px !important}
-.filters .filter-val {width: 220px !important}
+.filters .filter-op  {width: var(--filter-op) !important}
+.filters .filter-val {width: calc(var(--filters) - var(--filter-op) - var(--filter-buttons) - var(--filter-type)) !important}
+#filter_form[action^='/tag/'] {--filter-type: var(--filter-type-tags)}
+
+:root {--filters: 645px;  --filter-op: 9em;  --filter-buttons: 12.5em;  --filter-type: 5.5em;  --filter-type-tags: 9em}
+/* due to how flask-admin filters are set up, each language requires manual adjustments for full-width sizes */
+html[lang=de] {--filter-buttons: 19em}
+html[lang=fr] {--filter-buttons: 17em}
+html[lang=ru] {--filter-buttons: 16.5em;  --filter-type: 8.5em;  --filter-type-tags: 11em}
+
 @media (min-width: 768px) {
-  .filters .filter-op  {width: 160px !important}
-  .filters .filter-val {width: 295px !important}
+  :root {--filters: 710px;  --filter-op: 11.5em}
 }
 @media (min-width: 992px) {
-  .filters .filter-op  {width: 280px !important}
-  .filters .filter-val {width: 395px !important}
+  :root {--filters: 930px;  --filter-op: 20em}
 }
 @media (min-width: 1200px) {
-  .filters .filter-op  {width: 280px !important}
-  .filters .filter-val {width: 595px !important}
+  :root {--filters: 1130px;  --filter-op: 20em}
+  html[lang=ru] #filter_form[action^='/bookmark/'] {--filter-op: 25em} /* the last 'buku' filter has a rather long name */
 }

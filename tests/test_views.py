@@ -28,7 +28,7 @@ def app(dbfile):
     yield app
     # clean up / reset resources here
 
-def env_fixture(name, **kwargs):
+def env_fixture(name, **kwargs):  # place this fixture BEFORE app or its dependencies
     """Produces a fixture that mocks a test parameter directly in an env var (before app init)"""
     def _env_fixture(dbfile, monkeypatch, request):
         if request.param is not None:  # default value placeholder
@@ -287,7 +287,7 @@ def test_env_per_page(bukudb, app, client, total, per_page, pages, last_page):
 
     response = client.get('/bookmark/last-page', follow_redirects=True)
     dom = assert_response(response, '/bookmark/', args={'page': str(pages - 1)})
-    cells = dom.xpath(f'//td{xpath_cls("col-Entry")}')
+    cells = dom.xpath(f'//td{xpath_cls("col-entry")}')
     assert len(cells) == last_page
     for i, cell in enumerate(cells, start=1):
         url = f'http://example.com/{total - last_page + i}'
@@ -311,10 +311,10 @@ def test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab):
         app.config.update({'BUKUSERVER_OPEN_IN_NEW_TAB': new_tab})
 
     dom = assert_response(client.get('/bookmark/'), '/bookmark/')
-    cell = ' '.join(etree.tostring(dom.xpath(f'//td{xpath_cls("col-Entry")}')[0], encoding='unicode').strip().split())
+    cell = ' '.join(etree.tostring(dom.xpath(f'//td{xpath_cls("col-entry")}')[0], encoding='unicode').strip().split())
     target = '' if not new_tab else ' target="_blank"'
     icon = '' if not favicons else f'<img class="favicon" src="http://www.google.com/s2/favicons?domain={netloc}"/> '
-    prefix = f'<td class="col-Entry"> {icon}<span class="title"><a href="{url}"{target}>{title}</a></span>'
+    prefix = f'<td class="col-entry"> {icon}<span class="title"><a href="{url}"{target}>{title}</a></span>'
     tags = [f'<a class="btn label label-default" href="/bookmark/?flt0_tags_contain={s}">{s}</a>' for s in _tags]
     netloc_tag = ('' if mode == 'netloc' else
                   f'<a class="btn label label-success" href="/bookmark/?flt0_url_netloc_match={netloc}">netloc:{netloc}</a>')
@@ -382,28 +382,26 @@ _DICT = {
            f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['List (1)', 'Create', 'Random', 'Add Filter', '10 items'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['View Record', 'Edit Record'],
            f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
-    'de': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Start', 'Bookmarks', 'Tags', 'Statistic'],
-           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Erstellen', 'Random', 'Filter hinzufügen', '10 Elemente'],
+    'de': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Start', 'Lesezeichen', 'Schilder', 'Statistik'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Erstellen', 'Zufälliger', 'Filter hinzufügen', '10 Elemente'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Eintrag ansehen', 'Eintrag bearbeiten'],
-           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
-    'fr': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Accueil', 'Bookmarks', 'Tags', 'Statistic'],
-           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Créer', 'Random', 'Ajouter un filtre', '10 items'],
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},  # ['Datensatz löschen']},
+    'fr': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Accueil', 'Signets', 'Étiquettes', 'Statistique'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Liste (1)', 'Créer', 'Aléatoire', 'Ajouter un filtre', '10 items'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Afficher L\'enregistrement', 'Modifier enregistrement'],
-           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
-    'ru': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Главная', 'Bookmarks', 'Tags', 'Statistic'],
-           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Список (1)', 'Создать', 'Random', 'Добавить Фильтр', '10 элементы'],
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},  # ['Supprimer l\'enregistrement']},
+    'ru': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Главная', 'Закладки', 'Теги', 'Статистика'],
+           f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['Список (1)', 'Создать', 'Случайная', 'Добавить Фильтр', '10 элементы'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Просмотр записи', 'Редактировать запись'],
-           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},  # ['Удалить запись']},
 }
+locale = env_fixture('BUKUSERVER_LOCALE', params=['en', 'de', 'fr', 'ru', None])
 
 @pytest.mark.gui
 @pytest.mark.slow
-@pytest.mark.parametrize('locale', ['en', 'de', 'fr', 'ru', None])
-def test_env_locale(bukudb, app, client, locale):
+def test_env_locale(bukudb, locale, client):
     strings = _DICT[locale or 'en']
     _add_rec(bukudb, 'http://example.com')
-    if locale:
-        app.config.update({'BUKUSERVER_LOCALE': locale})
 
     dom = assert_response(client.get('/bookmark/'), '/bookmark/')
     for k, v in strings.items():

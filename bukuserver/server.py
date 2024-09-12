@@ -22,10 +22,10 @@ from flask import __version__ as flask_version  # type: ignore
 from flask import current_app, redirect, request, url_for
 
 try:
-    from . import api, views, util
+    from . import api, views, util, _p, _l, gettext, ngettext
     from response import Response
 except ImportError:
-    from bukuserver import api, views, util
+    from bukuserver import api, views, util, _p, _l, gettext, ngettext
     from bukuserver.response import Response
 
 
@@ -61,12 +61,12 @@ def get_tiny_url(rec_id):
 
 
 _BOOL_VALUES = {'true': True, '1': True, 'false': False, '0': False}
-def get_bool_from_env_var(key: str, default_value: bool) -> bool:
+def get_bool_from_env_var(key: str, default_value: bool = False) -> bool:
     """Get bool value from env var."""
     return _BOOL_VALUES.get(os.getenv(key, '').lower(), default_value)
 
 
-def init_locale(app):
+def init_locale(app, context_processor=lambda: {}):
     try:  # as per Flask-Admin-1.6.1
         try:
             from flask_babelex import Babel
@@ -74,13 +74,18 @@ def init_locale(app):
         except ImportError:
             from flask_babel import Babel
             Babel().init_app(app, locale_selector=lambda: app.config['BUKUSERVER_LOCALE'])
+        app.context_processor(lambda: {'lang': app.config['BUKUSERVER_LOCALE'] or 'en', **context_processor()})
     except Exception as e:
+        app.jinja_env.add_extension('jinja2.ext.i18n')
+        app.jinja_env.install_gettext_callables(gettext, ngettext, newstyle=True)
         app.logger.warning(f'failed to init locale ({e})')
+        app.context_processor(lambda: {'lang': '', **context_processor()})
 
 
 def create_app(db_file=None):
     """create app."""
     app = FlaskAPI(__name__)
+    os.environ.setdefault('FLASK_DEBUG', ('1' if get_bool_from_env_var('BUKUSERVER_DEBUG') else '0'))
     per_page = int(os.getenv('BUKUSERVER_PER_PAGE', str(views.DEFAULT_PER_PAGE)))
     per_page = per_page if per_page > 0 else views.DEFAULT_PER_PAGE
     app.config['BUKUSERVER_PER_PAGE'] = per_page
@@ -90,11 +95,11 @@ def create_app(db_file=None):
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
     app.config['BUKUSERVER_READONLY'] = \
-        get_bool_from_env_var('BUKUSERVER_READONLY', False)
+        get_bool_from_env_var('BUKUSERVER_READONLY')
     app.config['BUKUSERVER_DISABLE_FAVICON'] = \
         get_bool_from_env_var('BUKUSERVER_DISABLE_FAVICON', True)
     app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \
-        get_bool_from_env_var('BUKUSERVER_OPEN_IN_NEW_TAB', False)
+        get_bool_from_env_var('BUKUSERVER_OPEN_IN_NEW_TAB')
     app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE') or db_file
     reverse_proxy_path = os.getenv('BUKUSERVER_REVERSE_PROXY_PATH')
     if reverse_proxy_path:
@@ -117,6 +122,7 @@ def create_app(db_file=None):
         return {'app': app, 'bukudb': bukudb}
 
     app.jinja_env.filters.update(util.JINJA_FILTERS)
+    app.jinja_env.globals.update(_p=_p)
 
     admin = Admin(
         app, name='buku server', template_mode='bootstrap3',
@@ -151,9 +157,9 @@ def create_app(db_file=None):
     def favicon():
         return redirect(url_for('static', filename='bukuserver/favicon.svg'), code=301)  # permanent redirect
 
-    admin.add_view(views.BookmarkModelView(bukudb, 'Bookmarks'))
-    admin.add_view(views.TagModelView(bukudb, 'Tags'))
-    admin.add_view(views.StatisticView(bukudb, 'Statistic', endpoint='statistic'))
+    admin.add_view(views.BookmarkModelView(bukudb, _l('Bookmarks')))
+    admin.add_view(views.TagModelView(bukudb, _l('Tags')))
+    admin.add_view(views.StatisticView(bukudb, _l('Statistic'), endpoint='statistic'))
     return app
 
 

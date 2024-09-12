@@ -1,0 +1,552 @@
+# German translations for bukuserver.
+# Copyright (C) 2024 buku
+# This file is distributed under the same license as the buku project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version:  4.9\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2024-09-12 00:00+0000\n"
+"PO-Revision-Date: 2024-09-08 19:42+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: de\n"
+"Language-Team: de <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.16.0\n"
+
+#: /home/lex/Work/buku/bukuserver/filters.py:61
+msgid "equals"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:62
+msgid "not equals"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:63
+msgid "contains"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:64
+msgid "not contains"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:65
+msgid "greater than"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:66
+msgid "smaller than"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:67
+msgid "in list"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:68
+msgid "not in list"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:69
+msgid "top X"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:70
+msgid "bottom X"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:124
+msgid "natural"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/filters.py:124
+msgid "reversed"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:13
+msgid "Tag must be a string."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:15
+#, python-format
+msgid "Tag must not contain delimiter \"%(delim)s\"."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:19
+msgid "Keywords"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:20
+msgid "Match all keywords"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:20
+msgid "Exclude partial matches (with multiple keywords)"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:21
+msgid "With markers"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:22
+msgid "The search string will be split into multiple keywords, each will be applied to a field based on prefix:"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:23
+msgid " - keywords starting with '.', '>' or ':' will be searched for in title, description and URL respectively"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:24
+msgid " - '#' will be searched for in tags (comma-separated, partial matches; not affected by Deep Search)"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:25
+msgid " - '#,' is the same but will match FULL tags only"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:26
+msgid " - '*' will be searched for in all fields (this prefix can be omitted in the 1st keyword)"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:27
+msgid "Keywords need to be separated by placing spaces before the prefix."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:29
+msgid "Deep search"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:29
+msgid "When unset, only FULL words will be matched."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:30
+msgid "Regex"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:30
+msgid "The keyword(s) are regular expressions (overrides other options)."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:34
+msgid "Keyword"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:38
+#: /home/lex/Work/buku/bukuserver/views.py:174
+msgid "URL"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:39
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:190
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:225
+#: /home/lex/Work/buku/bukuserver/views.py:175
+msgid "Title"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:40
+#: /home/lex/Work/buku/bukuserver/server.py:161
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:30
+#: /home/lex/Work/buku/bukuserver/views.py:175
+msgid "Tags"
+msgstr "Schilder"
+
+#: /home/lex/Work/buku/bukuserver/forms.py:41
+#: /home/lex/Work/buku/bukuserver/views.py:175
+msgid "Description"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:57
+msgid "List of tags expected."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/forms.py:84
+msgid "Delete tags list from existing tags"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/server.py:160
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:29
+msgid "Bookmarks"
+msgstr "Lesezeichen"
+
+#: /home/lex/Work/buku/bukuserver/server.py:162
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:31
+msgid "Statistic"
+msgstr "Statistik"
+
+#: /home/lex/Work/buku/bukuserver/views.py:111
+msgid "Duplicate URL"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:112
+msgid "Rejected by the database"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:125
+msgid "<EMPTY TITLE>"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:174
+msgid "Entry"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:174
+msgid "Index"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:221
+#, python-format
+msgid "url invalid: %(url)s"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:232
+msgid "Failed to create record."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:245
+#: /home/lex/Work/buku/bukuserver/views.py:546
+msgid "Failed to delete record."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:260
+msgid "Invalid search mode combination"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:342
+msgid "netloc match"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:375
+msgid "contain"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:376
+msgid "not contain"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:377
+msgid "number equal"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:378
+msgid "number not equal"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:379
+msgid "number greater than"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:380
+msgid "number smaller than"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:406
+#: /home/lex/Work/buku/bukuserver/views.py:564
+msgid "Failed to update record."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:421
+msgid "<UNTAGGED>"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:427
+#: /home/lex/Work/buku/bukuserver/views.py:464
+msgctxt "tag"
+msgid "Name"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:427
+msgctxt "tag"
+msgid "Usage Count"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/views.py:527
+msgid "top most common"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmark_details_modal.html:7
+msgid "Pick another"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:13
+msgid "Random"
+msgstr "Zufälliger"
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:14
+msgid "Search bookmark"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:27
+msgid "Bookmark manager like a text-based mini-web"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:48
+msgid "Bookmarklet"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:50
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:66
+msgid "Add to Buku"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:52
+msgid "Note: if you select text on the page before activating the bookmarklet, it'll be used as description instead of page metadata."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:57
+msgid "Location Bar (keyboard-only) shortcut"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:59
+msgid "in Firefox:"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:60
+#, python-format
+msgid "Open the bookmarks editor and set %(buku)s in the Keyword field of the bookmarklet."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:62
+msgid "in Chrome:"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:64
+#, python-format
+msgid "In %(path)s, add a new row by placing %(add_to_buku)s, %(buku)s, and the copied bookmarklet URL in respective fields)."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:65
+msgid "Settings > Search engine > Manage… > Site Search"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:69
+msgid "usage:"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:71
+#, python-format
+msgid "By hitting %(hotkey)s (thus switching to Location Bar), then typing %(buku)s and hitting %(enter)s, you'll be able to open the bookmarklet dialog via keyboard only."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:74
+#, python-format
+msgid "Note: in Firefox this changes displayed URL, but you can reset it by switching back to Location Bar and hitting %(escape)s twice."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:88
+msgid "FULL"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:38
+msgid "Fetch"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:68
+msgctxt "tags"
+msgid "name"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:68
+msgctxt "tags"
+msgid "usage count"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:69
+msgctxt "bookmarks"
+msgid "index"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:69
+msgctxt "bookmarks"
+msgid "url"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:69
+msgctxt "bookmarks"
+msgid "title"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:70
+msgctxt "bookmarks"
+msgid "tags"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:70
+msgctxt "bookmarks"
+msgid "order"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:72
+msgid "Delete record"
+msgstr "Datenzatz löschen"
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:101
+msgid "custom"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:102
+msgid "Set custom page size (empty for default)"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:108
+msgid "Invalid page size"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:9
+msgid "{} days ago"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:9
+msgid "{} hours ago"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:9
+msgid "{} minutes ago"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:9
+msgid "{} seconds ago"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:13
+msgid "just now"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:22
+msgid "Data created"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:24
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/tags_list.html:12
+msgid "Refresh"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:26
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:44
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:77
+msgid "Netloc"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:37
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:110
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:183
+msgid "View all"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:43
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:76
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:116
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:151
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:189
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:224
+msgid "Rank"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:45
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:78
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:118
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:153
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:191
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:226
+msgid "Number"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:52
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:86
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:258
+msgid "(no netloc)"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:61
+msgid "No bookmarks found."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:70
+msgid "Netloc ranking"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:99
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:117
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:152
+msgid "Tag"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:136
+msgid "No tags found."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:145
+msgid "Tag ranking"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:172
+msgid "Title (common)"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:199
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:234
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:327
+msgid "(no title)"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:209
+msgid "No common titles found."
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:218
+msgid "Common titles ranking"
+msgstr ""
+
+msgid "Original and replacement tags are the same."
+msgstr ""
+
+msgid "Tag name cannot be blank."
+msgstr ""
+
+msgid "by index"
+msgstr ""
+
+msgid "by url"
+msgstr ""
+
+msgid "by title"
+msgstr ""
+
+msgid "by description"
+msgstr ""
+
+msgid "by tags"
+msgstr ""
+
+msgid "search"
+msgstr ""
+
+msgid "search regex"
+msgstr ""
+
+msgid "search deep"
+msgstr ""
+
+msgid "search match all"
+msgstr ""
+
+msgid "search match all, deep"
+msgstr ""
+
+msgid "search markers"
+msgstr ""
+
+msgid "search markers, regex"
+msgstr ""
+
+msgid "search markers, deep"
+msgstr ""
+
+msgid "search markers, match all"
+msgstr ""
+
+msgid "search markers, match all, deep"
+msgstr ""
+

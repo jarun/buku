@@ -10,12 +10,14 @@
   {{ super() }}
   {% if data %}
     {% set _random = url_for('bookmark.details_view', modal=True, id='random', url=return_url, **(request.args|flt)) %}
-    <li><a id="random" data-target="#fa_modal_window" data-toggle="modal" href="{{ _random }}">Random</a></li>
+    <li><a id="random" data-target="#fa_modal_window" data-toggle="modal" href="{{ _random }}">{{ _('Random') }}</a></li>
   {% endif %}
 {% endblock %}
 
 {% block tail %}
+  {{ buku.fix_translations('bookmarks') }}
   {{ super() }}
+  {{ buku.page_size_custom() }}
   {{ buku.script('buku_filter.js') }}
   {{ buku.focus(None) }}
   {{ buku.link_saved() }}

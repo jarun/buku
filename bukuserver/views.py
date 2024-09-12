@@ -13,8 +13,7 @@ from urllib.parse import urlparse
 import arrow
 import wtforms
 from jinja2 import pass_context
-from flask import current_app, flash, redirect, request, session, url_for
-from flask_admin.babel import gettext
+from flask import current_app as app, flash, redirect, request, session, url_for
 from flask_admin.base import AdminIndexView, BaseView, expose
 from flask_admin.model import BaseModelView
 from flask_wtf import FlaskForm
@@ -24,12 +23,12 @@ import buku
 
 try:
     from . import filters as bs_filters
-    from . import forms
+    from . import forms, _, _l, _lp
     from .filters import BookmarkField, FilterType
     from .util import chunks, sorted_counter
 except ImportError:
     from bukuserver import filters as bs_filters  # type: ignore
-    from bukuserver import forms
+    from bukuserver import forms, _, _l, _lp
     from bukuserver.filters import BookmarkField, FilterType  # type: ignore
     from bukuserver.util import chunks, sorted_counter
 
@@ -82,7 +81,7 @@ def last_page(self):
 
 
 def app_param(key, default=None):
-    return current_app.config.get(f'BUKUSERVER_{key}', default)
+    return app.config.get(f'BUKUSERVER_{key}', default)
 
 def readonly_check(self):
     if app_param('READONLY'):
@@ -109,8 +108,8 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         if id and ok:
             session['saved'] = id
         else:
-            raise ValueError('Duplicate URL' if self.model.bukudb.get_rec_id(url) not in [id, None] else
-                             'Rejected by the database')
+            raise ValueError(_('Duplicate URL') if self.model.bukudb.get_rec_id(url) not in [id, None] else
+                             _('Rejected by the database'))
 
     def _create_ajax_loader(self, name, options):
         pass
@@ -123,7 +122,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         res = []
         if netloc and not app_param('DISABLE_FAVICON'):
             res += [f'<img class="favicon" src="http://www.google.com/s2/favicons?domain={netloc}"/> ']
-        title = model.title or '<EMPTY TITLE>'
+        title = model.title or _('<EMPTY TITLE>')
         new_tab = app_param('OPEN_IN_NEW_TAB')
         url_for_index_view_netloc = None
         if netloc:
@@ -171,10 +170,10 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     can_set_page_size = True
     can_view_details = True
     column_filters = ['buku', 'id', 'url', 'title', 'tags', 'order']
-    column_formatters = {
-        "Entry": _list_entry,
-    }
-    column_list = ["Entry"]
+    column_list = ['entry']
+    column_labels = {'entry': _l('Entry'), 'id': _l('Index'), 'url': _l('URL'),
+                     'title': _l('Title'), 'tags': _l('Tags'), 'description': _l('Description')}
+    column_formatters = {'entry': _list_entry}
     list_template = 'bukuserver/bookmarks_list.html'
     create_modal = True
     create_modal_template = "bukuserver/bookmark_create_modal.html"
@@ -187,7 +186,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     edit_template = "bukuserver/bookmark_edit.html"
     named_filter_urls = True
     extra_css = ['/static/bukuserver/css/' + it for it in ('bookmark.css', 'modal.css', 'list.css')]
-    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js', 'filters_fix.js')]
+    extra_js = ['/static/bukuserver/js/' + it for it in ('last_page.js', 'filters_fix.js')]
     last_page = expose('/last-page')(last_page)
 
     def __init__(self, bukudb: buku.BukuDb, *args, **kwargs):
@@ -219,7 +218,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             vars(model).pop("id")
             self._on_model_change(form, model, True)
             if not model.url:
-                raise ValueError(f"url invalid: {model.url}")
+                raise ValueError(_('url invalid: %(url)s', url=model.url))
             kwargs = {'url': model.url, 'fetch': model.fetch}
             if model.tags.strip():
                 kwargs["tags_in"] = buku.parse_tags([model.tags])
@@ -230,11 +229,8 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             self._saved(model.id, model.url)
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                msg = "Failed to create record."
-                flash(
-                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
-                    "error",
-                )
+                msg = _('Failed to create record.')
+                flash('%(msg)s %(error)s' % {'msg': msg, 'error': _(str(ex))}, 'error')
                 LOG.exception(msg)
             return False
         self.after_model_change(form, model, True)
@@ -246,11 +242,8 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             res = self.bukudb.delete_rec(model.id)
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                msg = "Failed to delete record."
-                flash(
-                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
-                    "error",
-                )
+                msg = _('Failed to delete record.')
+                flash('%(msg)s %(error)s' % {'msg': msg, 'error': _(str(ex))}, 'error')
                 LOG.exception(msg)
             return False
         self.after_model_delete(model)
@@ -264,7 +257,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             keywords = [x[2] for x in buku_filters]
             mode_id = {x[0] for x in buku_filters}
             if len(mode_id) > 1:
-                flash(gettext("Invalid search mode combination"), "error")
+                flash(_('Invalid search mode combination'), 'error')
                 return 0, []
             try:
                 kwargs = self._filters[mode_id.pop()].params
@@ -346,7 +339,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
                 return filter(lambda x: urlparse(x[index]).netloc == value, query)
 
             res += [
-                bs_filters.BookmarkBaseFilter(name, "netloc match", netloc_match_func),
+                bs_filters.BookmarkBaseFilter(name, _l('netloc match'), netloc_match_func),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.EQUAL),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
                 bs_filters.BookmarkBaseFilter(name, filter_type=FilterType.IN_LIST),
@@ -379,12 +372,12 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
                         yield item
 
             res += [
-                bs_filters.BookmarkBaseFilter(name, "contain", tags_contain_func),
-                bs_filters.BookmarkBaseFilter(name, "not contain", tags_not_contain_func),
-                bs_filters.BookmarkTagNumberEqualFilter(name, "number equal"),
-                bs_filters.BookmarkTagNumberNotEqualFilter(name, "number not equal"),
-                bs_filters.BookmarkTagNumberGreaterFilter(name, "number greater than"),
-                bs_filters.BookmarkTagNumberSmallerFilter(name, "number smaller than"),
+                bs_filters.BookmarkBaseFilter(name, _l('contain'), tags_contain_func),
+                bs_filters.BookmarkBaseFilter(name, _l('not contain'), tags_not_contain_func),
+                bs_filters.BookmarkTagNumberEqualFilter(name, _l('number equal')),
+                bs_filters.BookmarkTagNumberNotEqualFilter(name, _l('number not equal')),
+                bs_filters.BookmarkTagNumberGreaterFilter(name, _l('number greater than')),
+                bs_filters.BookmarkTagNumberSmallerFilter(name, _l('number smaller than')),
             ]
         elif name in self.scaffold_list_columns():
             pass
@@ -410,11 +403,8 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             self._saved(model.id, model.url, res)
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                msg = "Failed to update record."
-                flash(
-                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
-                    "error",
-                )
+                msg = _('Failed to update record.')
+                flash('%(msg)s %(error)s' % {'msg': msg, 'error': _(str(ex))}, 'error')
                 LOG.exception(msg)
             return False
         self.after_model_change(form, model, False)
@@ -425,28 +415,32 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
     def _create_ajax_loader(self, name, options):
         pass
 
-    def _name_formatter(self, _, model, name):
+    def _name_formatter(self, context, model, name):
         data = getattr(model, name)
         query, title = (({'flt0_tags_contain': data}, data) if data else
-                        ({'flt0_tags_number_equal': 0}, '<UNTAGGED>'))
-        return Markup(link(title, url_for("bookmark.index_view", **query)))
+                        ({'flt0_tags_number_equal': 0}, _('<UNTAGGED>')))
+        return Markup(link(title, url_for('bookmark.index_view', **query)))
 
     can_create = False
     can_set_page_size = True
-    column_filters = ["name", "usage_count"]
-    column_formatters = {
-        "name": _name_formatter,
-    }
+    column_filters = ['name', 'usage_count']
+    column_labels = {'name': _lp('tag', 'Name'), 'usage_count': _lp('tag', 'Usage Count')}
+    column_formatters = {'name': _name_formatter}
     list_template = 'bukuserver/tags_list.html'
     edit_template = "bukuserver/tag_edit.html"
+    named_filter_urls = True
     extra_css = ['/static/bukuserver/css/list.css']
-    extra_js = ['/static/bukuserver/js/' + it for it in ('page_size.js', 'last_page.js', 'filters_fix.js')]
+    extra_js = ['/static/bukuserver/js/' + it for it in ('last_page.js', 'filters_fix.js')]
     last_page = expose('/last-page')(last_page)
+
+    def _refresh(self):
+        app.logger.info('Refreshing tags cache')
+        self.refreshed, self.all_tags = arrow.now(), self.bukudb.get_tag_all()
 
     def __init__(self, bukudb, *args, **kwargs):
         readonly_check(self)
         self.bukudb = bukudb
-        self.all_tags = self.bukudb.get_tag_all()
+        self._refresh()
         custom_model = types.SimpleNamespace(bukudb=bukudb, __name__='tag')
         super().__init__(custom_model, *args, **kwargs)
 
@@ -456,7 +450,7 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
 
     @expose('/refresh', methods=['POST'])
     def refresh(self):
-        self.all_tags = self.bukudb.get_tag_all()
+        self._refresh()
         return redirect(request.referrer or url_for('.index_view'))
 
     def scaffold_list_columns(self):
@@ -467,7 +461,7 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
 
     def scaffold_form(self):
         class CustomForm(FlaskForm):  # pylint: disable=too-few-public-methods
-            name = wtforms.StringField(validators=[wtforms.validators.DataRequired()])
+            name = wtforms.StringField(_lp('tag', 'Name'), validators=[wtforms.validators.DataRequired()])
 
         return CustomForm
 
@@ -483,17 +477,15 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
         filters: List[Tuple[int, str, str]],
         page_size: int = None,
     ) -> Tuple[int, List[types.SimpleNamespace]]:
-        logging.debug("search: %s", search)
+        app.logger.debug('search: %s', search)
+        if (arrow.now() - self.refreshed).seconds > 60:  # automatic refresh if more than a minute passed since last one
+            self._refresh()
+        else:
+            app.logger.debug('Tags cache refreshed %ss ago', (arrow.now() - self.refreshed).seconds)
         tags = self._apply_filters(sorted(self.all_tags[1].items()), filters)
         sort_field_dict = {"usage_count": 1, "name": 0}
         if sort_field in sort_field_dict:
-            tags = list(
-                sorted(
-                    tags,
-                    key=lambda x: x[sort_field_dict[sort_field]],
-                    reverse=sort_desc,
-                )
-            )
+            tags = sorted(tags, reverse=sort_desc, key=lambda x: x[sort_field_dict[sort_field]])
         count = len(tags)
         tags = page_of(tags, page_size, page)
         data = []
@@ -525,8 +517,6 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
             bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_EQUAL),
             bs_filters.TagBaseFilter(name, filter_type=FilterType.IN_LIST),
             bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_IN_LIST),
-            bs_filters.TagBaseFilter(name, filter_type=FilterType.CONTAINS),
-            bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_CONTAINS),
         ]
         if name == "usage_count":
             res += [
@@ -534,10 +524,13 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
                 bs_filters.TagBaseFilter(name, filter_type=FilterType.SMALLER),
                 bs_filters.TagBaseFilter(name, filter_type=FilterType.TOP_X),
                 bs_filters.TagBaseFilter(name, filter_type=FilterType.BOTTOM_X),
-                bs_filters.TagBaseFilter(name, "top most common", top_most_common_func),
+                bs_filters.TagBaseFilter(name, _l('top most common'), top_most_common_func),
             ]
         elif name == "name":
-            pass
+            res += [
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.CONTAINS),
+                bs_filters.TagBaseFilter(name, filter_type=FilterType.NOT_CONTAINS),
+            ]
         else:
             return super().scaffold_filters(name)
         return res
@@ -547,14 +540,11 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
         try:
             self.on_model_delete(model)
             res = self.bukudb.delete_tag_at_index(0, model.name, chatty=False)
-            self.all_tags = self.bukudb.get_tag_all()
+            self._refresh()
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                msg = "Failed to delete record."
-                flash(
-                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
-                    "error",
-                )
+                msg = _('Failed to delete record.')
+                flash('%(msg)s %(error)s' % {'msg': msg, 'error': _(str(ex))}, 'error')
                 LOG.exception(msg)
             return False
         self.after_model_delete(model)
@@ -568,14 +558,11 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
             names = {s for s in re.split(r'\s*,\s*', model.name.lower().strip()) if s}
             assert names, 'Tag name cannot be blank.'  # deleting a tag should be done via a Delete button
             self.bukudb.replace_tag(original_name, names)
-            self.all_tags = self.bukudb.get_tag_all()
+            self._refresh()
         except Exception as ex:
             if not self.handle_view_exception(ex):
-                msg = "Failed to update record."
-                flash(
-                    gettext("%(msg)s %(error)s", msg=msg, error=str(ex)),
-                    "error",
-                )
+                msg = _('Failed to update record.')
+                flash('%(msg)s %(error)s' % {'msg': msg, 'error': _(str(ex))}, 'error')
                 LOG.exception(msg)
             return False
         self.after_model_change(form, model, False)

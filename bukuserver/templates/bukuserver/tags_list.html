@@ -9,11 +9,13 @@
 {% block model_menu_bar_before_filters %}
   {{ super() }}
   <form id="refresh" class="hidden" method="POST" action="refresh"></form>
-  <li><a href="#" onclick="refresh.submit()">{{ _gettext('Refresh') }}</a></li>
+  <li><a href="#" onclick="refresh.submit()">{{ _('Refresh') }}</a></li>
 {% endblock %}
 
 {% block tail %}
+  {{ buku.fix_translations('tags') }}
   {{ super() }}
+  {{ buku.page_size_custom() }}
   {{ buku.focus(None) }}
   <script>$('tr:has(a[href$="/bookmark/?flt0_tags_number_equal=0"]) .list-buttons-column').html('')</script>
 {% endblock %}

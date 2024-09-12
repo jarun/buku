@@ -120,6 +120,7 @@ The following are os env config variables available for bukuserver.
 | REVERSE_PROXY_PATH | reverse proxy path | string |
 | THEME | [GUI theme](https://bootswatch.com/3) | string [default: `default`] (`slate` is a good pick for dark mode) |
 | LOCALE | GUI language (partial support) | string [default: `en`] |
+| DEBUG | debug mode (verbose logging etc.) | boolean [default: `false`] |
 
 Note: `BUKUSERVER_` is the common prefix (_every variable starts with it_).
 
