@@ -192,6 +192,9 @@ List all tags alphabetically, if no arguments. The usage count (number of bookma
 .BI \-x " " \--exclude " keyword [...]"
 Exclude bookmarks matching the specified keywords. Works with --sany, --sall, --sreg and --stag.
 .TP
+.BI \--random " [N]"
+Output random bookmarks out of the selection (1 unless amount is specified).
+.TP
 .BI \--order " fields [...]"
 Order printed/exported records by the given fields (from DB or JSON). You can specify sort direction for each by prepending '+'/'-' (default is '+').
 .SH ENCRYPTION OPTIONS
@@ -930,6 +933,31 @@ Update all bookmarks matching the search by updating the URL if the server respo
 .B buku -S ://wikipedia.net -u --url-redirect --tag-error --del-error 400-404,500 --export-on --export backup.html
 .EE
 .PP
+.IP 43. 4
+Print out a single \fBrandom\fR bookmark:
+.PP
+.EX
+.IP
+.B buku --random
+.EE
+.PP
+.IP 44. 4
+Print out 3 \fBrandom\fR bookmarks \fBordered\fR by title (reversed) and url:
+.PP
+.EX
+.IP
+.B buku --random 3 --order ,-title,+url
+.EE
+.PP
+.IP 45. 4
+Print out a single \fBrandom\fR bookmark matching \fBsearch\fR criteria, and \fBexport\fR into a Markdown file (in DB order):
+.PP
+.EX
+.IP
+.B buku --random -S kernel debugging --export random.md
+.EE
+.PP
+
 
 .SH AUTHOR
 Arun Prakash Jana <engineerarun@gmail.com>

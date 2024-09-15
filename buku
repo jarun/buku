@@ -29,6 +29,7 @@ import locale
 import logging
 import os
 import platform
+import random
 import re
 import shutil
 import signal
@@ -461,7 +462,7 @@ class BookmarkVar(NamedTuple):
     def taglist(self) -> List[str]:
         return [x for x in self.tags_raw.split(',') if x]
 
-bookmark_vars = lambda xs: (BookmarkVar(*x) for x in xs)
+bookmark_vars = lambda xs: ((x if isinstance(x, BookmarkVar) else BookmarkVar(*x)) for x in xs)
 
 
 class BukuDb:
@@ -2102,6 +2103,8 @@ class BukuDb:
         is_range : bool
             A range is passed using low and high arguments.
             An index is ignored if is_range is True.
+        order : list of str
+            Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
 
         Returns
         -------
@@ -2186,12 +2189,13 @@ class BukuDb:
                 LOGERR('No matching index %s', index)
                 return False
 
+            single_record = len(results) == 1
             if self.json is None:
                 print_rec_with_filter(results, self.field_filter)
             elif self.json:
-                write_string_to_file(format_json(results, True, self.field_filter), self.json)
+                write_string_to_file(format_json(results, single_record, field_filter=self.field_filter), self.json)
             else:
-                print_json_safe(results, True, self.field_filter)
+                print_json_safe(results, single_record, field_filter=self.field_filter)
 
             return True
         else:  # Show all entries
@@ -2327,14 +2331,14 @@ class BukuDb:
             raise ValueError("Original tag cannot contain delimiter ({}).".format(DELIM))
 
         orig = delim_wrap(orig)
-        newtags = parse_tags([DELIM.join(new)])
+        newtags = taglist_str(DELIM.join(new))
 
         if orig == newtags:
             raise ValueError("Original and replacement tags are the same.")
 
         # Remove original tag from DB if new tagset reduces to delimiter
         if newtags == DELIM:
-            if not self.delete_tag_at_index(0, orig):
+            if not self.delete_tag_at_index(0, orig, chatty=self.chatty):
                 raise RuntimeError("Tag deletion failed.")
 
         # Update bookmarks with original tag
@@ -2528,17 +2532,12 @@ class BukuDb:
             return False
 
         if index == 0:
-            with self.lock:
-                qry = 'SELECT id from bookmarks ORDER BY RANDOM() LIMIT 1'
-                self.cur.execute(qry)
-                result = self.cur.fetchone()
-
-            # Return if no entries in DB
-            if result is None:
+            max_id = self.get_max_id()
+            if not max_id:
                 print('No bookmarks added yet ...')
                 return False
 
-            index = result[0]
+            index = random.randint(1, max_id)
             LOGDBG('Opening random index %d', index)
 
         qry = 'SELECT URL FROM bookmarks WHERE id = ? LIMIT 1'
@@ -2553,7 +2552,8 @@ class BukuDb:
 
         return False
 
-    def exportdb(self, filepath: str, resultset: Optional[List[BookmarkVar]] = None, order: List[str] = ['id']) -> bool:
+    def exportdb(self, filepath: str, resultset: Optional[List[BookmarkVar]] = None,
+                 order: List[str] = ['id'], pick: Optional[int] = None) -> bool:
         """Export DB bookmarks to file.
         Exports full DB, if resultset is None.
         Additionally, if run after a (batch) update with export_on, only export those records.
@@ -2576,6 +2576,10 @@ class BukuDb:
         resultset : list of tuples
             List of results to export. Use `None` to get current DB.
             Ignored if run after a (batch) update with export_on.
+        order : list of str
+            Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
+        pick : int, optional
+            Reduce the export to a random subset of up to given (positive) size. Default is None.
 
 
         Returns
@@ -2596,11 +2600,14 @@ class BukuDb:
         if self._to_export is not None:
             _resultset = dict(old)
             _resultset.update({x.url: x for x in resultset if x.url in old})
-            resultset = list(_resultset.values())
+            resultset = self._sort(_resultset.values(), order)
             self._to_export = None
             if not resultset:
                 print('No records to export')
                 return False
+
+        if pick and pick < len(resultset):
+            resultset = self._sort(random.sample(resultset, pick), order)
 
         if os.path.exists(filepath):
             resp = read_in(filepath + ' exists. Overwrite? (y/n): ')
@@ -3353,6 +3360,8 @@ Webpage: https://github.com/jarun/buku
         file.write('''
 PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
+    R [N]                  print out N random search results
+                           (or random bookmarks if negative or N/A)
     O [id|range [...]]     open search results/indices in GUI browser
                            toggle try GUI browser if no arguments
     a                      open all results in browser
@@ -4658,9 +4667,10 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             pass
         return
 
+    skip_print = False
     while True:
-        if new_results or nav == 'n':
-            count = 0
+        if (new_results or nav == 'n') and not skip_print:
+            count = next_index
 
             if results:
                 total_results = len(results)
@@ -4674,8 +4684,11 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                     print('%d-%d/%d' % (cur_index + 1, next_index, total_results))
                 else:
                     print('No more results')
+                    new_results = False
             else:
                 print('0 results')
+                new_results = False
+        skip_print = False
 
         try:
             nav = read_in(PROMPTMSG)
@@ -4690,6 +4703,17 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
         # show the next set of results from previous search
         if nav == 'n':
+            continue
+
+        if (m := re.match(r'^R(?: (-)?([0-9]+))?$', nav)) and (n := int(m[2] or 1)) > 0:
+            skip_print = True
+            if results and not m[1]:  # from search results
+                picked = random.sample(results, min(n, len(results)))
+            else:                     # from all bookmarks
+                ids = range(1, 1 + (bdb.get_max_id() or 0))
+                picked = bdb.get_rec_all_by_ids(random.sample(ids, min(n, len(ids))))
+            for row in bdb._sort(picked, order):
+                print_single_rec(row, columns=columns)
             continue
 
         # search ANY match with new keywords
@@ -4852,7 +4876,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                 if index < 0 or index >= count:
                     print('No matching index %s' % nav)
                     continue
-                browse(results[index + cur_index][1])
+                browse(results[index][1])
             elif '-' in nav:
                 try:
                     vals = [int(x) for x in nav.split('-')]
@@ -4861,7 +4885,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
                     for _id in range(vals[0]-1, vals[-1]):
                         if 0 <= _id < count:
-                            browse(results[_id + cur_index][1])
+                            browse(results[_id][1])
                         else:
                             print('No matching index %d' % (_id + 1))
                 except ValueError:
@@ -5897,6 +5921,7 @@ POSITIONAL ARGUMENTS:
                          excludes entries with tags after ' - '
                          list all tags, if no search keywords
     -x, --exclude [...]  omit records matching specified keywords
+    --random [N]         output random bookmarks out of the selection (default 1)
     --order fields [...] comma-separated list of fields to order the output by
                          (prepend with '+'/'-' to choose sort direction)''')
     addarg = search_grp.add_argument
@@ -5907,6 +5932,7 @@ POSITIONAL ARGUMENTS:
     addarg('--markers', action='store_true', help=hide)
     addarg('-t', '--stag', nargs='*', help=hide)
     addarg('-x', '--exclude', nargs='*', help=hide)
+    addarg('--random', nargs='?', type=int, const=1, help=hide)
     addarg('--order', nargs='+', help=hide)
 
     # ------------------------
@@ -6282,6 +6308,10 @@ POSITIONAL ARGUMENTS:
 
     update_search_results = False
     if search_results:
+        if args.random and args.random < len(search_results):
+            search_results = bdb._sort(random.sample(search_results, args.random), order)
+        single_record = args.random == 1  # matching print_rec() behaviour
+
         oneshot = args.np
 
         # Open all results in browser right away if args.oa
@@ -6297,16 +6327,16 @@ POSITIONAL ARGUMENTS:
                 (args.update is not None and not args.update)):
             oneshot = True
 
-        if args.json is None and not args.format:
+        if args.json is None and not args.format and not args.random:
             num = 10 if not args.count else args.count
             prompt(bdb, search_results, noninteractive=oneshot, deep=args.deep, markers=args.markers, order=order, num=num)
         elif args.json is None:
             print_rec_with_filter(search_results, field_filter=args.format)
         elif args.json:
-            write_string_to_file(format_json(search_results, field_filter=args.format), args.json)
+            write_string_to_file(format_json(search_results, single_record, field_filter=args.format), args.json)
         else:
             # Printing in JSON format is non-interactive
-            print_json_safe(search_results, field_filter=args.format)
+            print_json_safe(search_results, single_record, field_filter=args.format)
 
         # Export the results, if opted
         if args.export and not (args.update is not None and export_on):
@@ -6386,7 +6416,14 @@ POSITIONAL ARGUMENTS:
 
     # Print record
     if args.print is not None:
-        if not args.print:
+        try:
+            id_range = list(parse_range(args.print) or []) or range(1, 1 + (bdb.get_max_id() or 0))
+        except ValueError:
+            LOGERR('Invalid index or range to print')
+            bdb.close_quit(1)
+        if args.random and args.random < len(id_range):
+            bdb.print_rec(random.sample(id_range, args.random), order=order)
+        elif not args.print:
             if args.count:
                 search_results = bdb.list_using_id(order=order)
                 prompt(bdb, search_results, noninteractive=args.np, num=args.count, order=order)
@@ -6397,18 +6434,7 @@ POSITIONAL ARGUMENTS:
                 search_results = bdb.list_using_id(args.print, order=order)
                 prompt(bdb, search_results, noninteractive=args.np, num=args.count, order=order)
             else:
-                try:
-                    ids = set()
-                    for idx in args.print:
-                        if is_int(idx):
-                            ids |= {int(idx)}
-                        elif '-' in idx:
-                            vals = [int(x) for x in idx.split('-')]
-                            ids |= set(range(vals[0], vals[-1] + 1))
-                except ValueError:
-                    LOGERR('Invalid index or range to print')
-                    bdb.close_quit(1)
-                bdb.print_rec(ids, order=order)
+                bdb.print_rec(id_range, order=order)
 
     # Replace a tag in DB
     if args.replace is not None:
@@ -6423,7 +6449,7 @@ POSITIONAL ARGUMENTS:
 
     # Export bookmarks
     if args.export and not search_opted and not export_on:
-        bdb.exportdb(args.export[0], order=order)
+        bdb.exportdb(args.export[0], order=order, pick=args.random)
 
     # Import bookmarks
     if args.importfile is not None:

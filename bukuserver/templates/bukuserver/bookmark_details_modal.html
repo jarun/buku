@@ -1,6 +1,17 @@
 {% extends 'admin/model/modals/details.html' %}
 {% import 'bukuserver/lib.html' as buku with context %}
 
+{% block header_text %}
+  <h3>
+    {% if request.args.get('id') == 'random' %}
+    <button id="modal-random" class="btn btn-default" title="Pick another">
+      <span class="fa fa-eye glyphicon glyphicon-repeat"></span>
+    </button>
+    {% endif %}
+    <a href="{{ url_for('bookmark.details_view', id=model.id, url=request.args.url) }}">{{_gettext('View Record')}} #{{model.id}}</a>
+  </h3>
+{% endblock %}
+
 {% block tail %}
   {{ super() }}
   {{ buku.details_formatting('.modal') }}
