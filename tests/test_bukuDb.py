@@ -1501,14 +1501,10 @@ def test_update_rec_update_all_bookmark(
         ["nano", -2, False],
     ],
 )
-def test_edit_update_rec_with_invalid_input(get_system_editor_retval, index, exp_res):
+def test_edit_update_rec_with_invalid_input(bukuDb, get_system_editor_retval, index, exp_res):
     """test method."""
     with mock.patch("buku.get_system_editor", return_value=get_system_editor_retval):
-        import buku
-
-        bdb = buku.BukuDb()
-        res = bdb.edit_update_rec(index=index)
-        assert res == exp_res
+        assert bukuDb().edit_update_rec(index=index) == exp_res
 
 
 @pytest.mark.vcr("tests/vcr_cassettes/test_browse_by_index.yaml")
@@ -1527,30 +1523,32 @@ def test_browse_by_index(low, high, index, is_range, empty_database):
     with mock.patch("buku.browse"):
         import buku
 
-        bdb = buku.BukuDb()
-        bdb.delete_rec_all()
-        db_len = 0
-        if not empty_database:
-            bdb.add_rec("https://www.google.com/ncr", "?")
-            db_len += 1
-        res = bdb.browse_by_index(index=index, low=low, high=high, is_range=is_range)
-        if is_range and (low < 0 or high < 0):
-            assert not res
-        elif is_range and n_low > 0 and n_high > 0:
-            assert res
-        elif is_range:
-            assert not res
-        elif not is_range and index < 0:
-            assert not res
-        elif not is_range and index > db_len:
-            assert not res
-        elif not is_range and index >= 0 and empty_database:
-            assert not res
-        elif not is_range and 0 <= index <= db_len and not empty_database:
-            assert res
-        else:
-            raise ValueError
-        bdb.delete_rec_all()
+        bdb = buku.BukuDb(TEST_TEMP_DBFILE_PATH)
+        try:
+            bdb.delete_rec_all()
+            db_len = 0
+            if not empty_database:
+                bdb.add_rec("https://www.google.com/ncr", "?")
+                db_len += 1
+            res = bdb.browse_by_index(index=index, low=low, high=high, is_range=is_range)
+            if is_range and (low < 0 or high < 0):
+                assert not res
+            elif is_range and n_low > 0 and n_high > 0:
+                assert res
+            elif is_range:
+                assert not res
+            elif not is_range and index < 0:
+                assert not res
+            elif not is_range and index > db_len:
+                assert not res
+            elif not is_range and index >= 0 and empty_database:
+                assert not res
+            elif not is_range and 0 <= index <= db_len and not empty_database:
+                assert res
+            else:
+                raise ValueError
+        finally:
+            rmdb(bdb)
 
 
 @pytest.fixture()
@@ -1564,7 +1562,7 @@ def chrome_db():
 
 
 @pytest.mark.parametrize("add_pt", [True, False])
-def test_load_chrome_database(chrome_db, add_pt):
+def test_load_chrome_database(bukuDb, chrome_db, add_pt):
     """test method."""
     # compatibility
     json_file = chrome_db[0]
@@ -1577,9 +1575,7 @@ def test_load_chrome_database(chrome_db, add_pt):
             except RuntimeError:
                 res_yaml = yaml.load(f, Loader=PrettySafeLoader)
     # init
-    import buku
-
-    bdb = buku.BukuDb()
+    bdb = bukuDb()
     bdb.add_rec = mock.Mock()
     bdb.load_chrome_database(json_file, None, add_pt)
     call_args_list_dict = dict(bdb.add_rec.call_args_list)
@@ -1608,7 +1604,7 @@ def firefox_db(tmpdir):
 
 
 @pytest.mark.parametrize("add_pt", [True, False])
-def test_load_firefox_database(firefox_db, add_pt):
+def test_load_firefox_database(bukuDb, firefox_db, add_pt):
     # compatibility
     ff_db_path = firefox_db[0]
     dump_data = False  # NOTE: change this value to dump data
@@ -1617,9 +1613,7 @@ def test_load_firefox_database(firefox_db, add_pt):
         with open(res_yaml_file, "r", encoding="utf8", errors="surrogateescape") as f:
             res_yaml = yaml.load(f, Loader=PrettySafeLoader)
     # init
-    import buku
-
-    bdb = buku.BukuDb()
+    bdb = bukuDb()
     bdb.add_rec = mock.Mock()
     bdb.load_firefox_database(ff_db_path, None, add_pt)
     call_args_list_dict = dict(bdb.add_rec.call_args_list)

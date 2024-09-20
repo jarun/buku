@@ -4,25 +4,26 @@
 {% block head %}
   {{ super() }}
   {{ buku.close_if_popup() }}
-  <script>// realtime redrawing "Data created" datetime
+  <script>{// realtime redrawing "Data created" datetime
     const UNITS = {day: 60*60*24, hour: 60*60, minute: 60, second: 1};
+    const AGO = {{ {'day': _('{} days ago'), 'hour': _('{} hours ago'), 'minute': _('{} minutes ago'), 'second': _('{} seconds ago')}|tojson }};
     addEventListener('load', function recalcReltime() {
       let diff = Date.now()/1000 - created.getAttribute('data-timestamp');
       let unit = (diff < 5 ? "" : Object.keys(UNITS).find(k => diff >= UNITS[k]));
-      created.innerText = (!unit ? "just now" : `${parseInt(diff/UNITS[unit])} ${unit}s ago`);
+      created.innerText = (!unit ? {{ _('just now')|tojson }} : AGO[unit].replace('{}', parseInt(diff/UNITS[unit])));
       setTimeout(recalcReltime, 1000 * {second: 1, minute: 15, hour: 60, day: 15*60}[unit||'second']);
     });
-  </script>
+  }</script>
 {% endblock %}
 
 {% block body %}
 <div class="container">
   <form class="form-inline" action="{{ url_for('statistic.index') }}" method="POST">
-    Data created
+    {{ _('Data created') }}
     <span id="created" rel="tooltip" title="{{ datetime }}" data-timestamp={{ datetime.timestamp() }}>{{ datetime_text }}</span>
-    <button type="submit" class="btn btn-default btn-sm">refresh</button>
+    <button type="submit" class="btn btn-default btn-sm">{{ _('Refresh')|lower }}</button>
   </form>
-  <h3>Netloc</h3>
+  <h3>{{ _('Netloc') }}</h3>
 
   {% if netlocs %}
   <div>
@@ -33,22 +34,22 @@
     <div class="col-md-6">
       {% if netlocs.cropped %}
       <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#netlocModal">
-        View all
+        {{ _('View all') }}
       </button>
       {% endif %}
       <table class="table">
         <thead>
           <tr>
-            <th>Rank</th>
-            <th>Netloc</th>
-            <th class="text-right">Number</th>
+            <th>{{ _('Rank') }}</th>
+            <th>{{ _('Netloc') }}</th>
+            <th class="text-right">{{ _('Number') }}</th>
           </tr>
         </thead>
         <tbody>
           {% for item in netlocs %}
           <tr>
             <td>{{ loop.index }}</td>
-            <td> <a href="{{ buku.filter('url_netloc_match', item.name) }}">{{ item.name or '(no netloc)' }}</a> </td>
+            <td> <a href="{{ buku.filter('url_netloc_match', item.name) }}">{{ item.name or _('(no netloc)') }}</a> </td>
             <td class="text-right">{{ item.amount }}</td>
           </tr>
           {% endfor %}
@@ -57,7 +58,7 @@
     </div>
   </div>
   {% else %}
-  <span> No bookmarks found.</span>
+  <span>{{ _('No bookmarks found.') }}</span>
   {% endif %}
 
   {% if netlocs.cropped %}
@@ -66,15 +67,15 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="myModalLabel">Netloc ranking</h4>
+          <h4 class="modal-title" id="myModalLabel">{{ _('Netloc ranking') }}</h4>
         </div>
         <div class="modal-body">
           <table class="table table-condensed">
             <thead class="bg-primary">
               <tr>
-                <th>Rank</th>
-                <th>Netloc</th>
-                <th class="text-right">Number</th>
+                <th>{{ _('Rank') }}</th>
+                <th>{{ _('Netloc') }}</th>
+                <th class="text-right">{{ _('Number') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -82,7 +83,7 @@
               <tr>
                 <td>{{ loop.index }}</td>
                 <td>
-                  <a href="{{ buku.filter('url_netloc_match', name) }}">{{ name or '(no netloc)' }}</a>
+                  <a href="{{ buku.filter('url_netloc_match', name) }}">{{ name or _('(no netloc)') }}</a>
                 </td>
                 <td class="text-right">{{ amount }}</td>
               </tr>
@@ -95,7 +96,7 @@
   </div>
   {% endif %}
 
-  <h3 class="col-md-12">Tag</h3>
+  <h3 class="col-md-12">{{ _('Tag') }}</h3>
 
   {% if tags %}
   <div>
@@ -106,15 +107,15 @@
     <div class="col-md-6">
       {% if tags.cropped %}
       <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#tagRankModal">
-        View all
+        {{ _('View all') }}
       </button>
       {% endif %}
       <table class="table">
         <thead>
           <tr>
-            <th>Rank</th>
-            <th>Tag</th>
-            <th class="text-right">Number</th>
+            <th>{{ _('Rank') }}</th>
+            <th>{{ _('Tag') }}</th>
+            <th class="text-right">{{ _('Number') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -132,7 +133,7 @@
     </div>
   </div>
   {% else %}
-  <span> No tags found.</span>
+  <span>{{ _('No tags found.') }}</span>
   {% endif %}
 
   {% if tags.cropped %}
@@ -141,15 +142,15 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="myModalLabel">Tag ranking</h4>
+          <h4 class="modal-title" id="myModalLabel">{{ _('Tag ranking') }}</h4>
         </div>
         <div class="modal-body">
           <table class="table table-condensed">
             <thead class="bg-primary">
               <tr>
-                <th>Rank</th>
-                <th>Tag</th>
-                <th class="text-right">Number</th>
+                <th>{{ _('Rank') }}</th>
+                <th>{{ _('Tag') }}</th>
+                <th class="text-right">{{ _('Number') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -168,7 +169,7 @@
   </div>
   {% endif %}
 
-  <h3 class="col-md-12">Title (common)</h3>
+  <h3 class="col-md-12">{{ _('Title (common)') }}</h3>
 
   {% if titles %}
   <div>
@@ -179,15 +180,15 @@
     <div class="col-md-6">
       {% if titles.cropped %}
       <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#titleModal">
-        View all
+        {{ _('View all') }}
       </button>
       {% endif %}
       <table class="table">
         <thead>
           <tr>
-            <th>Rank</th>
-            <th>Title</th>
-            <th class="text-right">Number</th>
+            <th>{{ _('Rank') }}</th>
+            <th>{{ _('Title') }}</th>
+            <th class="text-right">{{ _('Number') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -195,7 +196,7 @@
           <tr>
             <td>{{ loop.index }}</td>
             <td>
-              <a href="{{ buku.filter('title_equals', item.name) }}">{{ item.name or '(no title)'}}</a>
+              <a href="{{ buku.filter('title_equals', item.name) }}">{{ item.name or _('(no title)')}}</a>
             </td>
             <td class="text-right">{{ item.amount }}</td>
           </tr>
@@ -205,7 +206,7 @@
     </div>
   </div>
   {% else %}
-  <span> No common titles found.</span>
+  <span>{{ _('No common titles found.') }}</span>
   {% endif %}
 
   {% if titles.cropped %}
@@ -214,15 +215,15 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="myModalLabel">Common titles ranking</h4>
+          <h4 class="modal-title" id="myModalLabel">{{ _('Common titles ranking') }}</h4>
         </div>
         <div class="modal-body">
           <table class="table table-condensed">
             <thead class="bg-primary">
               <tr>
-                <th>Rank</th>
-                <th>Title</th>
-                <th class="text-right">Number</th>
+                <th>{{ _('Rank') }}</th>
+                <th>{{ _('Title') }}</th>
+                <th class="text-right">{{ _('Number') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -230,7 +231,7 @@
               <tr>
                 <td>{{ loop.index }}</td>
                 <td style="word-break:break-all;">
-                  <a href="{{ buku.filter('title_equals', name) }}">{{ name or '(no title)' }}</a>
+                  <a href="{{ buku.filter('title_equals', name) }}">{{ name or _('(no title)') }}</a>
                 </td>
                 <td class="text-right">{{ amount }}</td>
               </tr>
@@ -246,14 +247,15 @@
 
 {% block tail %}
   {{ super() }}
+  {{ buku.set_lang() }}
   <script>// sticky table headers in modals
     $('.modal-body').each(function () {
       $('thead', this).css({top: '-' + $.css(this, 'padding-top')});
     });
   </script>
   {{ buku.script('Chart.js') }}
-  {% set NO_NETLOC = '\u200B(no netloc)\u200B' %}
   <script>
+  {% set NO_NETLOC = '\u200B' + _('(no netloc)') + '\u200B' -%}
   var netlocCtx = document.getElementById("mostCommonChart")?.getContext('2d');
   var netlocChart = netlocCtx && new Chart(netlocCtx, {
     type: 'pie',
@@ -322,7 +324,7 @@
     }
   });
 
-  {% set NO_TITLE = '\u200B(no title)\u200B' -%}
+  {% set NO_TITLE = '\u200B' + _('(no title)') + '\u200B' -%}
   var titleCtx = document.getElementById("mostCommonTitleChart")?.getContext('2d');
   var titleChart = titleCtx && new Chart(titleCtx, {
     type: 'pie',

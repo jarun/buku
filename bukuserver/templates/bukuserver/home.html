@@ -11,11 +11,11 @@
 {{ super() }}
 <form class="navbar-form navbar-right" action="{{ url_for('admin.search') }}" method="POST">
   <div class="form-group">
-    <input class="form-control" id="inputKeywords" placeholder="Search bookmark" name="keyword">
+    <input class="form-control" id="inputKeywords" placeholder="{{ _('Search bookmark') }}" name="keyword">
     <input type="hidden" name="markers" value="true"/>
     <input type="hidden" name="all_keywords" value="true"/>
   </div>
-  <button type="submit" class="btn btn-default">Search</button>
+  <button type="submit" class="btn btn-default">{{ _gettext('Search') }}</button>
 </form>
 {% endblock %}
 
@@ -24,11 +24,11 @@
 <main class="container text-center">
   <div style="padding: 40px 15px">
     <h1>BUKU</h1>
-    <p class="lead">Bookmark manager like a text-based mini-web</p>
+    <p class="lead">{{ _('Bookmark manager like a text-based mini-web') }}</p>
     <p>
-      <a class="btn btn-lg btn-success" href="{{ url_for('bookmark.index_view') }}" role="button">Bookmarks</a>
-      <a class="btn btn-lg btn-success" href="{{ url_for('tag.index_view') }}" role="button">Tags</a>
-      <a class="btn btn-lg btn-success" href="{{ url_for('statistic.index') }}" role="button">Statistics</a>
+      <a class="btn btn-lg btn-success" href="{{ url_for('bookmark.index_view') }}" role="button">{{ _('Bookmarks') }}</a>
+      <a class="btn btn-lg btn-success" href="{{ url_for('tag.index_view') }}" role="button">{{ _('Tags') }}</a>
+      <a class="btn btn-lg btn-success" href="{{ url_for('statistic.index') }}" role="button">{{ _('Statistic') }}</a>
     </p>
     <div class="col-md-4 col-md-offset-4">
       <form action="{{ url_for('admin.search') }}" method="POST">
@@ -41,35 +41,38 @@
           <div class="checkbox" title="{{ field.description }}" data-toggle="tooltip" data-placement="bottom"> {{field()}} {{field.label}} </div>
           {%- endfor %}
         </div>
-        <button type="submit" class="btn btn-default">Search</button>
+        <button type="submit" class="btn btn-default">{{ _gettext('Search') }}</button>
       </form>
     </div>
     <div class="col-md-4 col-md-offset-4">
-      <p style="padding-top: 2em"> Bookmarklet:
+      <p style="padding-top: 2em"> {{_('Bookmarklet')}}:
         <a title="Drag this link to your bookmarks toolbar" href="{{ buku.bookmarklet() }}">
-          <b>✚ Add to Buku</b>
+          <b>✚ {{ _('Add to Buku') }}</b>
         </a><br/>
-        <em style="font-size: smaller">Note: if you select text on the page before activating the bookmarklet, it'll be used as description instead of page metadata.</em>
+        <em style="font-size: smaller">{{ _("Note: if you select text on the page before activating the bookmarklet, it'll be used as description instead of page metadata.") }}</em>
       </p>
     </div>
 
     <details class="col-md-6 col-md-offset-3">
-      <summary style="display: list-item;  cursor: pointer"> <em><strong>Location Bar (keyboard-only) shortcut</strong></em> </summary>
+      <summary style="display: list-item;  cursor: pointer"> <em><strong>{{ _('Location Bar (keyboard-only) shortcut') }}</strong></em> </summary>
       <dl>
-        <dt>in Firefox:</dt>
-        <dd>Open the bookmarks editor and set <code>@buku</code> in the Keyword field of the bookmarklet.</dd>
+        <dt>{{ _('in Firefox:') }}</dt>
+        <dd>{{ _('Open the bookmarks editor and set %(buku)s in the Keyword field of the bookmarklet.', buku='<code>@buku</code>'|safe) }}</dd>
 
-        <dt>in Chrome:</dt>
+        <dt>{{ _('in Chrome:') }}</dt>
         <dd>
-          In <em>Settings &gt; Search engine &gt; Manage… &gt; Site Search</em>, add a new row
-          (by placing <code>✚ Add to Buku</code>, <code>@buku</code>, and the copied bookmarklet URL in respective fields).
+          {{ _('In %(path)s, add a new row by placing %(add_to_buku)s, %(buku)s, and the copied bookmarklet URL in respective fields).',
+               path='<em>'|safe + _('Settings > Search engine > Manage… > Site Search')|escape + '</em>'|safe,
+               add_to_buku='<code>✚ '|safe + _('Add to Buku') + '</code>'|safe, buku='<code>@buku</code>'|safe) }}
         </dd>
 
-        <dt>usage:</dt>
+        <dt>{{ _('usage:') }}</dt>
         <dd>
-          By hitting <code>Ctrl+L</code> (thus switching to Location Bar), then typing <code>@buku</code>
-          and hitting <code>Enter</code>, you'll be able to open the bookmarklet dialog via keyboard only.<br/>
-          <em style="font-size: smaller">Note: in Firefox this changes displayed URL, but you can reset it by switching back to Location Bar and hitting <code>Esc</code> twice.</em>
+          {{ _("By hitting %(hotkey)s (thus switching to Location Bar), then typing %(buku)s and hitting %(enter)s, you'll be able to open the bookmarklet dialog via keyboard only.",
+               hotkey='<code>Ctrl+L</code>'|safe, buku='<code>@buku</code>'|safe, enter='<code>Enter</code>'|safe) }}
+          <br/><em style="font-size: smaller">{{
+            _('Note: in Firefox this changes displayed URL, but you can reset it by switching back to Location Bar and hitting %(escape)s twice.', escape='<code>Esc</code>'|safe)
+          }}</em>
         </dd>
       </dl>
     </details>
@@ -78,9 +81,11 @@
 {% endblock %}
 
 {% block tail %}
+  {{ buku.set_lang() }}
   <script>
     $(`[data-toggle="tooltip"]`).attr('data-html', 'true').each(function () {
-      this.title = this.title.replace(/'(.*?)'/g, `'<strong><tt>$1</tt></strong>'`).replace(/\bFULL\b/g, `<strong><em>full</em></strong>`);
+      this.title = this.title.replace(/'(.*?)'/g, `'<strong><tt>$1</tt></strong>'`)
+        .replace(/(?<=^|[^\p{L}]){{ _('FULL') }}(?=$|[^\p{L}])/g, `<strong><em>{{ _('FULL')|lower }}</em></strong>`);
     }).attr('data-container', 'body').attr('data-trigger', 'hover').tooltip();
   </script>
   <style>.tooltip-inner {text-align: left;  white-space: pre;  max-width: 600px}</style>

@@ -35,7 +35,7 @@
   <script>
     $('.admin-form [name=fetch]').remove();
     $('.admin-form').append(
-      $(`<div class="form-group"><label style="display: block"><span class="col-md-2 text-right">{{ _gettext('Fetch') }} &nbsp; </span>`
+      $(`<div class="form-group"><label style="display: block"><span class="col-md-2 text-right">{{ _('Fetch') }} &nbsp; </span>`
         +`<span class="col-md-10"><input type="checkbox" name="fetch"{% if checked %} checked{% endif %}></span></label></div>`));
   </script>
 {% endmacro %}
@@ -57,4 +57,59 @@
       s.replace(/(<\/button>)([^]*)$/, `$1<a href="{{ url_for('.details_view', id=saved, url=backlink) }}">$2</a>`));
   }</script>
   {% endif %}
+{% endmacro %}
+
+{% macro set_lang() %}
+  <script>document.documentElement.lang = {{ lang|tojson }}</script>
+{% endmacro %}
+
+{% macro fix_translations(list) %}  {# invoke in *_list.html BEFORE tail.super()! #}
+  {{ set_lang() }}
+  {% set LISTS = {'tags': {'name': _p('tags', 'name'), 'usage_count': _p('tags', 'usage count')},
+                  'bookmarks': {'id': _p('bookmarks', 'index'), 'url': _p('bookmarks', 'url'), 'title': _p('bookmarks', 'title'),
+                                'tags': _p('bookmarks', 'tags'), 'order': _p('bookmarks', 'order')}} %}
+  <script>{
+    $(`button[title="Delete record"]`).attr('title', {{ _('Delete record')|tojson }});  // see flask-admin issue #1974
+    const FILTERS = {{ LISTS.get(list, {})|tojson }};
+    let watcher = new MutationObserver(xs => xs.forEach(x => x.addedNodes.forEach(e => {
+      if (!['filter-groups-data', 'active-filters-data'].includes(e.id)) return;
+      let data = JSON.parse(e.innerHTML);
+      let converted = (e.id == 'active-filters-data' ? data.map(([id, name, value]) => [id, FILTERS[name]||name, value]) :
+                       Object.fromEntries( Object.entries(data).map(([k, v]) => [FILTERS[k]||k, v]) ));
+      e.innerHTML = JSON.stringify(converted);
+    })));
+    watcher.observe(document.body, {childList: true, subtree: true});
+    setTimeout(() => watcher.disconnect());  // will stop observing once <body> is rendered
+    $(document).ready(() => {
+      $(`.field-filters .filter`).each(function () {
+        let text = $(this).text();
+        $(this).text(FILTERS[text] || text);
+      });
+    })
+  }</script>
+{% endmacro %}
+
+{% macro page_size_custom() %}
+  <script>
+    $(document).ready(function() {
+      const SIZES = [20, 50, 100];  // hardcoded list; see page_size_form() in admin/model/layout.html
+      let pageSize = url => new URL(url || location.host).searchParams.get('page_size');
+      $(`.actions-nav .dropdown-menu`).each(function () {
+        let _sizes = $(`li a`, this).map(function () {return pageSize(this.href)}).get();
+        if (SIZES.every((x, i) => x == _sizes[i]))
+          $(`li`, this).last().clone().each(function () {
+            $('a', this).text({{ _('custom')|tojson }}).attr('href', `#`).on('click', () => {
+              let page = prompt({{ _('Set custom page size (empty for default)')|tojson }}, pageSize(location) || '');
+              if ((page == "") || (Number(page) >= 1)) {
+                let search = new URL(location).searchParams;
+                (page ? search.set('page_size', parseInt(page)) : search.delete('page_size'));
+                location.search = search;
+              } else if (page != null)
+                alert({{ _('Invalid page size')|tojson }} + `: "${page}"`);
+              return false;
+            });
+          }).appendTo(this);
+      })
+    });
+  </script>
 {% endmacro %}

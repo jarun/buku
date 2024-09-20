@@ -1,6 +1,7 @@
 from enum import Enum
 
 from flask_admin.model import filters
+from bukuserver import _l, _key
 
 
 class BookmarkField(Enum):
@@ -57,16 +58,16 @@ def bottom_x_func(query, value, index):
 
 class FilterType(Enum):
 
-    EQUAL = {'func': equal_func, 'text':'equals'}
-    NOT_EQUAL = {'func': not_equal_func, 'text':'not equal'}
-    CONTAINS = {'func': contains_func, 'text':'contains'}
-    NOT_CONTAINS = {'func': not_contains_func, 'text':'not contains'}
-    GREATER = {'func': greater_func, 'text':'greater than'}
-    SMALLER = {'func': smaller_func, 'text':'smaller than'}
-    IN_LIST = {'func': in_list_func, 'text':'in list'}
-    NOT_IN_LIST = {'func': not_in_list_func, 'text':'not in list'}
-    TOP_X = {'func': top_x_func, 'text': 'top x'}
-    BOTTOM_X = {'func': bottom_x_func, 'text': 'bottom x'}
+    EQUAL = {'func': equal_func, 'text': _l('equals')}
+    NOT_EQUAL = {'func': not_equal_func, 'text': _l('not equals')}
+    CONTAINS = {'func': contains_func, 'text': _l('contains')}
+    NOT_CONTAINS = {'func': not_contains_func, 'text': _l('not contains')}
+    GREATER = {'func': greater_func, 'text': _l('greater than')}
+    SMALLER = {'func': smaller_func, 'text': _l('smaller than')}
+    IN_LIST = {'func': in_list_func, 'text': _l('in list')}
+    NOT_IN_LIST = {'func': not_in_list_func, 'text': _l('not in list')}
+    TOP_X = {'func': top_x_func, 'text': _l('top X')}
+    BOTTOM_X = {'func': bottom_x_func, 'text': _l('bottom X')}
 
 
 class BaseFilter(filters.BaseFilter):
@@ -88,31 +89,27 @@ class TagBaseFilter(BaseFilter):
             filter_type=None,
             options=None,
             data_type=None):
-        if operation_text in ('in list', 'not in list'):
-            super().__init__(name, options, data_type='select2-tags')
-        else:
-            super().__init__(name, options, data_type)
-        if name == 'name':
-            self.index = 0
-        elif name == 'usage_count':
-            self.index = 1
-        else:
-            raise ValueError('name: {}'.format(name))
-        self.filter_type = None
+        try:
+            self.index = ['name', 'usage_count'].index(name)
+        except ValueError as e:
+            raise ValueError(f'name: {name}') from e
+        self.filter_type = filter_type
         if filter_type:
             self.apply_func = filter_type.value['func']
             self.operation_text = filter_type.value['text']
-            self.filter_type = filter_type
         else:
             self.apply_func = apply_func
             self.operation_text = operation_text
+        if _key(self.operation_text) in ('in list', 'not in list'):
+            super().__init__(name, options, data_type='select2-tags')
+        else:
+            super().__init__(name, options, data_type)
 
     def clean(self, value):
-        if (
-                self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST) and
-                self.name == 'usage_count'):
+        on_list = self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST)
+        if on_list and self.name == 'usage_count':
             value = [int(v.strip()) for v in value.split(',') if v.strip()]
-        elif self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST):
+        elif on_list:
             value = [v.strip() for v in value.split(',') if v.strip()]
         elif self.name == 'usage_count':
             value = int(value)
@@ -124,7 +121,7 @@ class TagBaseFilter(BaseFilter):
 
 
 class BookmarkOrderFilter(BaseFilter):
-    DIR_LIST = [('asc', 'natural'), ('desc', 'reversed')]
+    DIR_LIST = [('asc', _l('natural')), ('desc', _l('reversed'))]
     FIELDS = ['index', 'url', 'title', 'description', 'tags']
 
     def __init__(self, field, *args, **kwargs):
@@ -132,7 +129,7 @@ class BookmarkOrderFilter(BaseFilter):
         super().__init__('order', *args, options=self.DIR_LIST, **kwargs)
 
     def operation(self):
-        return 'by ' + self.field
+        return _l(f'by {self.field}')
 
     def apply(self, query, value):
         return query
@@ -157,7 +154,7 @@ class BookmarkBukuFilter(BaseFilter):
 
     def operation(self):
         parts = ', '.join(v for k, v in self.KEYS.items() if self.params[k])
-        return 'search' + (parts and ' ' + parts)
+        return _l(f'search{parts and " " + parts}')
 
     def apply(self, query, value):
         return query
@@ -173,15 +170,11 @@ class BookmarkBaseFilter(BaseFilter):
             filter_type=None,
             options=None,
             data_type=None):
-        if operation_text in ('in list', 'not in list'):
-            super().__init__(name, options, data_type='select2-tags')
-        else:
-            super().__init__(name, options, data_type)
         bm_fields_dict = {x.name.lower(): x.value for x in BookmarkField}
         if name in bm_fields_dict:
             self.index = bm_fields_dict[name]
         else:
-            raise ValueError('name: {}'.format(name))
+            raise ValueError(f'name: {name}')
         self.filter_type = None
         if filter_type:
             self.apply_func = filter_type.value['func']
@@ -189,13 +182,16 @@ class BookmarkBaseFilter(BaseFilter):
         else:
             self.apply_func = apply_func
             self.operation_text = operation_text
+        if _key(self.operation_text) in ('in list', 'not in list'):
+            super().__init__(name, options, data_type='select2-tags')
+        else:
+            super().__init__(name, options, data_type)
 
     def clean(self, value):
-        if (
-                self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST) and
-                self.name == BookmarkField.ID.name.lower()):
+        on_list = self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST)
+        if on_list and self.name == BookmarkField.ID.name.lower():
             value = [int(v.strip()) for v in value.split(',') if v.strip()]
-        elif self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST):
+        elif on_list:
             value = [v.strip() for v in value.split(',') if v.strip()]
         elif self.name == BookmarkField.ID.name.lower():
             value = int(value)
@@ -251,7 +247,7 @@ class BookmarkTagNumberNotEqualFilter(BookmarkTagNumberEqualFilter):
                 if len(tags) != value:
                     yield item
 
-        self. apply_func = apply_func
+        self.apply_func = apply_func
 
 
 class BookmarkTagNumberSmallerFilter(BookmarkBaseFilter):

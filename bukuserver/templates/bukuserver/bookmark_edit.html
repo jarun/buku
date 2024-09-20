@@ -21,6 +21,7 @@
 
 {% block tail %}
   {{ super() }}
+  {{ buku.set_lang() }}
   {{ buku.limit_navigation_if_popup() }}
   {{ buku.script('bookmark.js') }}
   {{ buku.focus() }}
