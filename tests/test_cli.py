@@ -144,8 +144,8 @@ def _test_add(bdb, prompt, *, add_tags=[], tag=[], tags_fetch=True, tags_in=None
 @pytest.mark.parametrize('count', [{}, {'count': ['10']}])
 @pytest.mark.parametrize('order, indices, command', [
     (['tags', '-url'], None, {'order': ['tags,-url'], 'print': []}),
-    (['-description', '+uri'], [5, 8, 9, 10, 11, 12],
-     {'order': [',-description', '+uri'], 'print': ['5', '8-12']}),
+    (['-description', '+uri'], [5, 8, 9, 10, 11, 12, 40, 41, 42],
+     {'order': [',-description', '+uri'], 'print': ['5', '8-12', '-3']}),
 ])
 def test_order_print(bdb, stdin, prompt, order, indices, command, count, np):
     command = dict(command, **count, **np)
@@ -153,8 +153,10 @@ def test_order_print(bdb, stdin, prompt, order, indices, command, count, np):
     print(argv)
     result = [None] * 20
     bdb.list_using_id.return_value = result
+    bdb.get_max_id.return_value = 42
     with pytest.raises(SystemExit):
         buku.main(argv)
+    bdb.get_max_id.assert_called_with()
     if not (_count := command.get('count')):
         bdb.print_rec.assert_called_with(indices, order=order)
     else:
@@ -201,7 +203,7 @@ def test_order_search(bdb, stdin, prompt, search, exclude, keywords, rest):
             keywords, regex=True, stag=stag, markers=markers, without=exclude, order=order)
 
 @pytest.mark.parametrize('json', [None, '', 'output.json'])
-@pytest.mark.parametrize('indices', [None, '', '1-10'])  # None = search
+@pytest.mark.parametrize('indices', [None, '', '1-10', '-10'])  # None = search
 @pytest.mark.parametrize('random', [None, 1, 3])
 @mock.patch('random.sample', return_value='sampled')
 @mock.patch('buku.print_rec_with_filter')
@@ -226,13 +228,13 @@ def test_random(_print_json_safe, _format_json, _write_string_to_file, _print_re
     argv += ([] if not random else ['--random'] + ([] if random == 1 else [str(random)]))
     with pytest.raises(SystemExit):
         buku.main(argv)
-    calls = []
+    calls = ([] if indices is None else [mock.call.bdb.get_max_id()])
     if indices:                # --print 1-10
-        calls += ([mock.call.bdb.print_rec(list(range(1, 11)), order=[])] if not random else
-                  [mock.call.random_sample(list(range(1, 11)), random),
+        idxs = list(range(33, 43) if indices == '-10' else range(1, 11))
+        calls += ([mock.call.bdb.print_rec(idxs, order=[])] if not random else
+                  [mock.call.random_sample(idxs, random),
                    mock.call.bdb.print_rec('sampled', order=[])])
     elif indices is not None:  # --print
-        calls += [mock.call.bdb.get_max_id()]
         calls += ([mock.call.bdb.print_rec(None, order=[])] if not random else
                   [mock.call.random_sample(range(1, 43), random),
                    mock.call.bdb.print_rec('sampled', order=[])])

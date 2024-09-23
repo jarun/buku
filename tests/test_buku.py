@@ -984,21 +984,25 @@ def test_get_data_from_page(charset, mode):
     assert (parsed_title, tags) == (title, "foo,bar baz,quux")
 
 
-@pytest.mark.parametrize('tokens, valid, expected', [
-    (None, None, None),
-    ('404', None, {404}),
-    ('403,404', None, {403, 404}),
-    ({'400', '500'}, None, {400, 500}),
-    (('400-404', '500'), None, {400, 401, 402, 403, 404, 500}),
-    (['400-404', '500'], lambda x: x in range(400, 600), {400, 401, 402, 403, 404, 500}),
-    (['400-404', '300'], lambda x: x in range(400, 600), ValueError('Not a valid range')),
+@pytest.mark.parametrize('tokens, kwargs, expected', [
+    (None, {}, None),
+    ('404', {}, {404}),
+    ('403,404', {}, {403, 404}),
+    ({'400', '500'}, {}, {400, 500}),
+    (('400-404', '500'), {}, {400, 401, 402, 403, 404, 500}),
+    (['400-404', '500'], {'valid': lambda x: x in range(400, 600)}, {400, 401, 402, 403, 404, 500}),
+    (['400-404', '300'], {'valid': lambda x: x in range(400, 600)}, ValueError('Not a valid range')),
+    ('-3', {}, {-3}),
+    ('-3', {'maxidx': 10}, {8, 9, 10}),
+    ('-30', {'maxidx': 3}, {1, 2, 3}),
+    ('10-3', {'maxidx': 5}, {3, 4, 5}),
 ])
-def test_parse_range(tokens, valid, expected):
+def test_parse_range(tokens, kwargs, expected):
     if not isinstance(expected, Exception):
-        assert parse_range(tokens, valid) == expected
+        assert parse_range(tokens, **kwargs) == expected
     else:
         try:
-            parse_range(tokens, valid)
+            parse_range(tokens, **kwargs)
             assert False, 'error expected'
         except Exception as e:
             assert type(e) is type(expected)

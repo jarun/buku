@@ -1527,22 +1527,22 @@ class BukuDb:
         if ids:
             q0 += ' WHERE id in ('
             for idx in ids:
-                if '-' in idx:
+                if '-' not in idx:
+                    q0 += idx + ','
+                else:
                     val = idx.split('-')
                     if val[0]:
-                        part_ids = list(map(int, val))
-                        part_ids[1] += 1
-                        part_ids = list(range(*part_ids))
+                        _range = list(map(int, val))
+                        _range[1] += 1
+                        part_ids = range(*_range)
                     else:
                         end = int(val[1])
-                        qtemp = 'SELECT id FROM bookmarks ORDER BY id DESC limit {0}'.format(end)
+                        qtemp = 'SELECT id FROM bookmarks ORDER BY id DESC LIMIT {0}'.format(end)
                         with self.lock:
                             self.cur.execute(qtemp, [])
-                            part_ids = list(chain.from_iterable(self.cur.fetchall()))
-                    q0 += ','.join(list(map(str, part_ids)))
-                else:
-                    q0 += idx + ','
-            q0 = q0.rstrip(',')
+                            part_ids = chain.from_iterable(self.cur.fetchall())
+                    q0 += ','.join(map(str, part_ids))
+            q0 = q0.strip(',')
             q0 += ')'
 
         try:
@@ -2142,7 +2142,7 @@ class BukuDb:
         >>> edb.print_rec(low=-1, high=-1, is_range=True)
         False
         """
-        if isinstance(index, range) and index.step == 1:
+        if isinstance(index, range) and index.step == 1 and index.start != 0:  # low=0 triggers custom behaviour
             return self.print_rec(None, is_range=True, low=index.start, high=index.stop-1, order=order)
 
         if not is_range and isinstance(index, int) and index < 0:
@@ -4809,17 +4809,8 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
         # Print bookmarks by DB index
         if nav.startswith('p '):
-            id_list = nav[2:].split()
             try:
-                ids = set()
-                for s in id_list:
-                    if is_int(s):
-                        ids |= {int(s)}
-                    elif '-' in s:
-                        vals = [int(x) for x in s.split('-')]
-                        ids |= set(range(vals[0], vals[-1] + 1))
-                    else:
-                        print('Invalid input')
+                ids = parse_range(nav[2:].split(), maxidx=bdb.get_max_id() or 0)
                 ids and bdb.print_rec(ids, order=order)
             except ValueError:
                 print('Invalid input')
@@ -5755,7 +5746,8 @@ def monkeypatch_textwrap_for_cjk():
 
 
 def parse_range(tokens: Optional[str | Sequence[str] | Set[str]],  # Optional[str | Values[str]]
-                valid: Optional[Callable[[int], bool]] = None) -> Optional[Set[int]]:
+                valid: Optional[Callable[[int], bool]] = None,
+                maxidx: int = None) -> Optional[Set[int]]:
     """Convert a token or sequence/set of token into a set of indices.
 
     Raises a ValueError on invalid token. Returns None if passed None as tokens.
@@ -5766,6 +5758,8 @@ def parse_range(tokens: Optional[str | Sequence[str] | Set[str]],  # Optional[st
         String(s) containing an index (#), or a range (#-#), or a comma-separated list thereof.
     valid : (int) -> bool, optional
         Additional check for invalid indices (default is None).
+    maxidx : int, optional
+        When specified, negative indices are valid and parsed as tail-ranges.
 
     Returns
     -------
@@ -5778,11 +5772,14 @@ def parse_range(tokens: Optional[str | Sequence[str] | Set[str]],  # Optional[st
     for token in ([tokens] if isinstance(tokens, str) else tokens):
         for idx in token.split(','):
             if is_int(idx):
-                result |= {int(idx)}
+                result |= ({int(idx)} if not idx.startswith('-') or maxidx is None else
+                           set(range(maxidx, max(0, maxidx + int(idx)), -1)))
             elif '-' in idx:
                 l, r = map(int, idx.split('-'))
                 if l > r:
                     l, r = r, l
+                if maxidx is not None:
+                    r = min(r, maxidx)
                 result |= set(range(l, r + 1))
             elif idx:
                 raise ValueError(f'Invalid token: {idx}')
@@ -6417,7 +6414,8 @@ POSITIONAL ARGUMENTS:
     # Print record
     if args.print is not None:
         try:
-            id_range = list(parse_range(args.print) or []) or range(1, 1 + (bdb.get_max_id() or 0))
+            max_id = bdb.get_max_id() or 0
+            id_range = list(parse_range(args.print, maxidx=max_id) or []) or range(1, 1 + max_id)
         except ValueError:
             LOGERR('Invalid index or range to print')
             bdb.close_quit(1)
