@@ -1,0 +1,9 @@
+# This file can be used as a windowed startup/restart shortcut on Linux desktop/menu (after editing the Exec= command line)
+[Desktop Entry]
+Icon=bookmark-add
+Name=Bukuserver
+GenericName=Bookmaks manager
+Comment=WebUI for the buku bookmarks manager
+Categories=Utility;Network;
+Exec={TERMINAL} -e '{BUKU_SERVER} --stop-if-running'
+#Exec=xfce4-terminal -e '/usr/local/bin/buku-server --stop-if-running'

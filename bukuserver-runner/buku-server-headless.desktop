@@ -1,0 +1,9 @@
+# This file can be used as a windowless startup/restart shortcut on Linux desktop/menu (after editing the Exec= command line)
+[Desktop Entry]
+Icon=bookmark-add
+Name=Bukuserver (headless)
+GenericName=Bookmaks manager
+Comment=WebUI for the buku bookmarks manager
+Categories=Utility;Network;
+Exec={BUKU_SERVER} --stop-if-running
+#Exec=/usr/local/bin/buku-server --stop-if-running
