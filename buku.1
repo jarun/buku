@@ -56,6 +56,7 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
   - If --url is passed (and --title is omitted), update the title from web using the URL. Description is updated (if --comment is omitted). Tags remain untouched.
   - If indices are passed without any other options (--url, --title, --tag, --comment and --immutable), read the URLs from DB and update titles, description and append tags from web. Bookmarks marked immutable are skipped.
   - Can update bookmarks matching a search, when combined with any of the search options and no arguments to update are passed.
+  - Additionally, --swap allows to modify records order (standalone operation).
 .PP
 .IP 7. 4
 \fBDelete\fR operation:
@@ -143,6 +144,9 @@ Add notes or description of the bookmark, works with --add, --update. Clears the
 .TP
 .BI \--immutable " N"
 Set the title, description and tags of a bookmark immutable during autorefresh. Works with --add, --update. N=1 sets the immutable flag, N=0 removes it. If omitted, bookmarks are added with N=0.
+.TP
+.BI \--swap " N M"
+Swap two records at specified indices. This is a standalone operation (cannot be invoked along with any other).
 .SH SEARCH OPTIONS
 .TP
 .BI \-s " " \--sany " keyword [...]"
@@ -955,6 +959,14 @@ Print out a single \fBrandom\fR bookmark matching \fBsearch\fR criteria, and \fB
 .EX
 .IP
 .B buku --random -S kernel debugging --export random.md
+.EE
+.PP
+.IP 46. 4
+Swap positions of records #4 and #5:
+.PP
+.EX
+.IP
+.B buku --swap 4 5
 .EE
 .PP
 

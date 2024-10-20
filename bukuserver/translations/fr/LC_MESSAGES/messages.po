@@ -158,11 +158,11 @@ msgstr "Étiquettes"
 msgid "Description"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:57
+#: /home/lex/Work/buku/bukuserver/forms.py:62
 msgid "List of tags expected."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:84
+#: /home/lex/Work/buku/bukuserver/forms.py:89
 msgid "Delete tags list from existing tags"
 msgstr ""
 
@@ -206,7 +206,7 @@ msgid "Failed to create record."
 msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/views.py:245
-#: /home/lex/Work/buku/bukuserver/views.py:546
+#: /home/lex/Work/buku/bukuserver/views.py:552
 msgid "Failed to delete record."
 msgstr ""
 
@@ -214,55 +214,55 @@ msgstr ""
 msgid "Invalid search mode combination"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:342
+#: /home/lex/Work/buku/bukuserver/views.py:348
 msgid "netloc match"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:375
+#: /home/lex/Work/buku/bukuserver/views.py:381
 msgid "contain"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:376
+#: /home/lex/Work/buku/bukuserver/views.py:382
 msgid "not contain"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:377
+#: /home/lex/Work/buku/bukuserver/views.py:383
 msgid "number equal"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:378
+#: /home/lex/Work/buku/bukuserver/views.py:384
 msgid "number not equal"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:379
+#: /home/lex/Work/buku/bukuserver/views.py:385
 msgid "number greater than"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:380
+#: /home/lex/Work/buku/bukuserver/views.py:386
 msgid "number smaller than"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:406
-#: /home/lex/Work/buku/bukuserver/views.py:564
+#: /home/lex/Work/buku/bukuserver/views.py:412
+#: /home/lex/Work/buku/bukuserver/views.py:570
 msgid "Failed to update record."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:421
+#: /home/lex/Work/buku/bukuserver/views.py:427
 msgid "<UNTAGGED>"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:427
-#: /home/lex/Work/buku/bukuserver/views.py:464
+#: /home/lex/Work/buku/bukuserver/views.py:433
+#: /home/lex/Work/buku/bukuserver/views.py:470
 msgctxt "tag"
 msgid "Name"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:427
+#: /home/lex/Work/buku/bukuserver/views.py:433
 msgctxt "tag"
 msgid "Usage Count"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:527
+#: /home/lex/Work/buku/bukuserver/views.py:533
 msgid "top most common"
 msgstr ""
 
@@ -270,9 +270,37 @@ msgstr ""
 msgid "Pick another"
 msgstr ""
 
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:9
+msgid "Swap record #{} with record #"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:11
+msgid "Not a valid record index: '{}'"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:12
+msgid "There are only {} records in total!"
+msgstr ""
+
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:13
+msgid "Swapping a record with itself has no effect!"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:24
 msgid "Random"
 msgstr "Aléatoire"
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:37
+msgid "Swap with…"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:37
+msgid "Move down"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:37
+msgid "Move up"
+msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:14
 msgid "Search bookmark"

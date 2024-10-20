@@ -39,11 +39,13 @@ _buku () {
         --order
         -p --print
         -r --sreg
+        --random
         --replace
         -s --sany
         -S --sall
         --shorten
         --suggest
+        --swap
         -t --stag
         --tacit
         --tag
@@ -76,6 +78,7 @@ _buku () {
         -s --sany
         -S --sall
         --shorten
+        --swap
         --threads
         --url
         -x --exclude

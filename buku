@@ -1791,6 +1791,40 @@ class BukuDb:
             return search_results
         return filter_from(search_results, self.searchdb(without, deep=deep, markers=markers), exclude=True)
 
+    def swap_recs(self, index1: int, index2: int, *, lock: bool = True, delay_commit: bool = False):
+        """Swaps two records with given indices
+
+        Parameters
+        ----------
+        index1 : int
+            Index of the 1st record to be exchanged.
+        index2 : int
+            Index of the 2nd record to be exchanged.
+        lock : bool
+            Whether to restrict concurrent access (True by default).
+        delay_commit : bool
+            True if record should not be committed to the DB,
+            leaving commit responsibility to caller. Default is False.
+
+        Returns
+        -------
+        bool
+            True on success, False on failure.
+        """
+        if lock:
+            with self.lock:
+                return self.swap_recs(index1, index2, lock=False, delay_commit=delay_commit)
+
+        max_id = self.get_max_id()
+        if not max_id or index1 == index2 or not all(0 < x <= max_id for x in [index1, index2]):
+            return False
+
+        self.cur.executemany('UPDATE bookmarks SET id = ? WHERE id = ?',
+                             [(max_id+1, index1), (index1, index2), (index2, max_id+1)])
+        if not delay_commit:
+            self.conn.commit()
+        return True
+
     def compactdb(self, index: int, delay_commit: bool = False):
         """When an entry at index is deleted, move the
         last entry in DB to index, if index is lesser.
@@ -3362,6 +3396,7 @@ PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
     R [N]                  print out N random search results
                            (or random bookmarks if negative or N/A)
+    ^ id1 id2              swap two records at specified indices
     O [id|range [...]]     open search results/indices in GUI browser
                            toggle try GUI browser if no arguments
     a                      open all results in browser
@@ -4705,7 +4740,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         if nav == 'n':
             continue
 
-        if (m := re.match(r'^R(?: (-)?([0-9]+))?$', nav)) and (n := int(m[2] or 1)) > 0:
+        if (m := re.match(r'^R(?: (-)?([0-9]+))?$', nav.rstrip())) and (n := int(m[2] or 1)) > 0:
             skip_print = True
             if results and not m[1]:  # from search results
                 picked = random.sample(results, min(n, len(results)))
@@ -4714,6 +4749,14 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                 picked = bdb.get_rec_all_by_ids(random.sample(ids, min(n, len(ids))))
             for row in bdb._sort(picked, order):
                 print_single_rec(row, columns=columns)
+            continue
+
+        if (m := re.match(r'^\^ ([1-9][0-9]*) ([1-9][0-9]*)$', nav.rstrip())):
+            index1, index2 = map(int, m.group(1, 2))
+            if bdb.swap_recs(index1, index2):
+                bdb.print_rec({index1, index2})
+            else:
+                print('Failed to swap records #%d and #%d' % (index1, index2))
             continue
 
         # search ANY match with new keywords
@@ -5881,13 +5924,15 @@ POSITIONAL ARGUMENTS:
     -c, --comment [...]  notes or description of the bookmark
                          clears description, if no arguments
     --immutable N        disable web-fetch during auto-refresh
-                         N=0: mutable (default), N=1: immutable''')
+                         N=0: mutable (default), N=1: immutable
+    --swap N M           swap two records at specified indices''')
     addarg = edit_grp.add_argument
     addarg('--url', nargs=1, help=hide)
     addarg('--tag', nargs='*', help=hide)
     addarg('--title', nargs='*', help=hide)
     addarg('-c', '--comment', nargs='*', help=hide)
     addarg('--immutable', type=int, choices={0, 1}, help=hide)
+    addarg('--swap', nargs=2, type=int, help=hide)
     _bool = lambda x: x if x is None else bool(x)
     _immutable = lambda args: _bool(args.immutable)
 
@@ -6180,6 +6225,14 @@ POSITIONAL ARGUMENTS:
         dbfile=args.db[0] if args.db is not None else None,
         colorize=not args.nc
     )
+
+    if args.swap:
+        index1, index2 = args.swap
+        if bdb.swap_recs(index1, index2):
+            bdb.print_rec({index1, index2})
+        else:
+            LOGERR('Failed to swap records #%d and #%d', index1, index2)
+        bdb.close_quit(0)
 
     # Editor mode
     if args.write is not None:

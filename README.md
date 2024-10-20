@@ -191,6 +191,7 @@ EDIT OPTIONS:
                            clears description, if no arguments
       --immutable N        disable web-fetch during auto-refresh
                            N=0: mutable (default), N=1: immutable
+      --swap N M           swap two records at specified indices
 
 SEARCH OPTIONS:
       -s, --sany [...]     find records with ANY matching keyword
@@ -290,12 +291,24 @@ SYMBOLS:
 
 PROMPT KEYS:
     1-N                    browse search result indices and/or ranges
+    R [N]                  print out N random search results
+                           (or random bookmarks if negative or N/A)
+    ^ id1 id2              swap two records at specified indices
     O [id|range [...]]     open search results/indices in GUI browser
                            toggle try GUI browser if no arguments
     a                      open all results in browser
     s keyword [...]        search for records with ANY keyword
     S keyword [...]        search for records with ALL keywords
     d                      match substrings ('pen' matches 'opened')
+    m                      search with markers - search string is split
+                           into keywords by prefix markers, which determine
+                           what field the keywords is searched in:
+                           '.', '>' or ':' - title, description or URL
+                           '#'/'#,' - tags (comma-separated, partial/full match)
+                           '*' - all fields (can be omitted in the 1st keyword)
+                           note: tag marker is not affected by 'd' (deep search)
+    v fields               change sorting order (default is '+index')
+                           multiple comma/space separated fields can be specified
     r expression           run a regex search
     t [tag, ...]           search by tags; show taglist, if no args
     g taglist id|range [...] [>>|>|<<] [record id|range ...]
@@ -548,7 +561,11 @@ PROMPT KEYS:
 
         $ buku --random -S kernel debugging --export random.md
 
-46. More **help**:
+46. Swap positions of records #4 and #5:
+
+        $ buku --swap 4 5
+
+47. More **help**:
 
         $ buku -h
         $ man buku

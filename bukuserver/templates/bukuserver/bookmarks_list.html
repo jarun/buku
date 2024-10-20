@@ -4,13 +4,59 @@
 {% block head %}
   {{ super() }}
   {{ buku.close_if_popup() }}
+  <script>
+    function promptSwap(input, rowId, maxId={{count|tojson}}) {
+      let _id = input.value = prompt({{ _('Swap record #{} with record #')|tojson }}.replace('{}', rowId), rowId) || "";
+      let error = (!_id                       ? "" :
+                   !/^[1-9][0-9]*$/.test(_id) ? {{ _("Not a valid record index: '{}'")|tojson }}.replace('{}', _id) :
+                   _id > maxId                ? {{ _('There are only {} records in total!')|tojson }}.replace('{}', maxId) :
+                   _id == `${rowId}`          ? {{ _('Swapping a record with itself has no effect!')|tojson }} : null);
+      error && alert(error);
+      return (error == null);
+    }
+  </script>
 {% endblock %}
 
 {% block model_menu_bar_before_filters %}
   {{ super() }}
   {% if data %}
-    {% set _random = url_for('bookmark.details_view', modal=True, id='random', url=return_url, **(request.args|flt)) %}
+    {% set _random = url_for('.details_view', modal=True, id='random', url=return_url, **(request.args|flt)) %}
     <li><a id="random" data-target="#fa_modal_window" data-toggle="modal" href="{{ _random }}">{{ _('Random') }}</a></li>
+  {% endif %}
+{% endblock %}
+
+{% macro swap_rows_action(icon, row_id, step=None) %}  {# based on admin/model/row_actions.delete_row() #}
+<form class="icon" method="POST" action="{{ get_url('.swap') }}">
+  {% if csrf_token %}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  {% endif %}
+  {% set _input = 'swap' + row_id|string %}
+  <input type="hidden" name="url" value="{{ return_url }}"/>
+  <input type="hidden" name="id1" value="{{ row_id }}"/>
+  <input type="hidden" name="id2"{% if step %} value="{{ row_id + step }}"{% else %} id="{{ _input }}"{% endif %}/>
+  <button title="{{ _('Swap with…') if not step else _('Move down') if step > 0 else _('Move up') }}"
+          {%- if not step %} onclick="return promptSwap({{_input}}, {{row_id}})"{% endif %}>
+    <span class="fa fa-{{icon}} glyphicon glyphicon-{{icon}}"></span>
+  </button>
+</form>
+{% endmacro %}
+
+{% block list_row_actions scoped %}
+  {% for action in list_row_actions %}
+    {{ action.render_ctx(get_pk_value(row), row) }}
+  {% endfor %}
+  {% if request.args|flt|length == 0 %}  {# only shown when filters/ordering are disabled #}
+    <div class="swap-toolbar" style="margin-left: 10px">
+      {% if row.id < 2 %}
+        <div style="display: inline-block;  width: 14px"><!-- placeholder for the 1st row button --></div>
+      {% else %}
+        {{ swap_rows_action('arrow-up', row.id, -1) }}
+      {% endif %}
+      {{ swap_rows_action('transfer', row.id) }}
+      {% if row.id < count %}
+        {{ swap_rows_action('arrow-down', row.id, +1) }}
+      {% endif %}
+    </div>
   {% endif %}
 {% endblock %}
 

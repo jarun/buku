@@ -42,6 +42,11 @@ class BookmarkForm(FlaskForm):
     fetch = HiddenField(filters=[bool])
 
 
+class SwapForm(FlaskForm):
+    id1 = HiddenField(filters=[int])
+    id2 = HiddenField(filters=[int])
+
+
 class ApiTagForm(FlaskForm):
     class Meta:
         csrf = False

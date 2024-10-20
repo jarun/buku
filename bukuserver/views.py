@@ -297,6 +297,12 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     def get_pk_value(self, model):
         return model.id
 
+    @expose('/swap', methods=['POST'])
+    def swap(self):
+        form = forms.SwapForm()
+        self.bukudb.swap_recs(form.id1.data, form.id2.data)
+        return redirect(request.form.get('url', url_for('bookmark.index_view')))
+
     def scaffold_list_columns(self):
         return [x.name.lower() for x in BookmarkField]
 
