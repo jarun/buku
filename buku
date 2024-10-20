@@ -135,7 +135,7 @@ TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
 IGNORE_FF_BOOKMARK_FOLDERS = frozenset(["placesRoot", "bookmarksMenuFolder"])
 PERMANENT_REDIRECTS = {301, 308}
 
-# IntSet: TypeAlias = Set[int] | range      # TODO: use after dropping 3.8 & 3.9
+# IntSet: TypeAlias = Set[int] | range      # TODO: use after dropping 3.9
 # Ints: TypeAlias = Sequence[int] | IntSet
 # IntOrInts: TypeAlias = int | Ints
 # T = TypeVar('T')
