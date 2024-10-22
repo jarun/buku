@@ -208,8 +208,15 @@ class TestBukuDb(unittest.TestCase):
             for pair in zip(from_db[1:], bookmark):
                 self.assertEqual(*pair)
 
-        # TODO: tags should be passed to the api as a sequence...
+    def test_swap_recs(self):
+        for bookmark in self.bookmarks:
+            _add_rec(self.bdb, *bookmark)
+        for id1, id2 in [(0, 1), (1, 4), (1, 1)]:
+            self.assertFalse(self.bdb.swap_recs(id1, id2), 'Not a valid index pair: (%d, %d)' % (id1, id2))
+        self.assertTrue(self.bdb.swap_recs(1, 3), 'This one should be valid')  # 3, 2, 1
+        self.assertEqual([x[0] for x in reversed(self.bookmarks)], [x.url for x in self.bdb.get_rec_all()])
 
+    # TODO: tags should be passed to the api as a sequence...
     def test_suggest_tags(self):
         for bookmark in self.bookmarks:
             _add_rec(self.bdb, *bookmark)
