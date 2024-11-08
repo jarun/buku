@@ -168,12 +168,14 @@ def test_bookmarklet_view(bukudb, client, exists, uri, tab, args):
     (True, '', 'Some description'),
     (False, 'Some title', ''),
     (False, '', 'Some description'),
+    (None, 'Some title', ''),
+    (None, '', 'Some description'),
 ])
 def test_create_and_fetch(bukudb, monkeypatch, client, fetch, title, desc):
     query = {'link': 'http://example.com', 'title': title, 'description': desc, 'tags': 'foo, bar, baz'}
-    _title, _desc = 'Sample site', 'Foo bar baz'
-    if fetch:
-        query['fetch'] = 'on'
+    _title, _desc = 'Fetched title', 'Fetched description'
+    if fetch is not None:
+        query['fetch'] = 'on' if fetch else ''
 
     with mock_fetch(title=_title, desc=_desc):
         response = client.post('/bookmark/new/', data=query, follow_redirects=True)
@@ -182,8 +184,8 @@ def test_create_and_fetch(bukudb, monkeypatch, client, fetch, title, desc):
     [bookmark] = bukudb.get_rec_all()
     assert_bookmark(bookmark, {
         'link': query['link'], 'tags': ',bar,baz,foo,',
-        'title': (title or _title) if fetch else title,
-        'description': (desc or _desc) if fetch else desc,
+        'title': (title or _title) if fetch or fetch is None else title,  # defaults to True
+        'description': (desc or _desc) if fetch or fetch is None else desc,
     })
 
 

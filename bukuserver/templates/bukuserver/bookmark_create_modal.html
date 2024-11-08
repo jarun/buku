@@ -10,6 +10,6 @@
 {% block tail %}
   {{ super() }}
   {{ buku.script('bookmark.js') }}
-  {{ buku.fetch_checkbox() }}
+  {{ buku.fetch_checkbox(form.fetch.data) }}
   {{ buku.focus('.modal-body') }}
 {% endblock %}

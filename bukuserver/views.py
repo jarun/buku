@@ -209,11 +209,13 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             form.url.data = request.args.get('link', form.url.data)
             form.title.data = request.args.get('title', form.title.data)
             form.description.data = request.args.get('description', form.description.data)
+            form.tags.data = request.args.get('tags', form.tags.data)
+            form.fetch.data = request.args.get('fetch', request.data.get('fetch', True))
         return form
 
     def create_model(self, form):
         try:
-            model = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None, fetch=True)
+            model = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None, fetch=None)
             form.populate_obj(model)
             vars(model).pop("id")
             self._on_model_change(form, model, True)
