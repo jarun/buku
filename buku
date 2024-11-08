@@ -2865,49 +2865,30 @@ class BukuDb:
             True on success, False on failure.
         """
 
-        ff_bm_db_paths = {}
-        firefox_profile = firefox_profile and [firefox_profile]
-
         if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
             gc_bm_db_path = '~/.config/google-chrome/Default/Bookmarks'
             cb_bm_db_path = '~/.config/chromium/Default/Bookmarks'
             vi_bm_db_path = '~/.config/vivaldi/Default/Bookmarks'
-
-            default_ff_folder = os.path.expanduser('~/.mozilla/firefox')
-            profiles = firefox_profile or get_firefox_profile_names(default_ff_folder)
-            if profiles:
-                ff_bm_db_paths = {s: '~/.mozilla/firefox/{}/places.sqlite'.format(s)
-                                  for s in profiles}
-
             me_bm_db_path = '~/.config/microsoft-edge/Default/Bookmarks'
+            default_ff_folder = '~/.mozilla/firefox'
         elif sys.platform == 'darwin':
             gc_bm_db_path = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             cb_bm_db_path = '~/Library/Application Support/Chromium/Default/Bookmarks'
             vi_bm_db_path = '~/Library/Application Support/Vivaldi/Default/Bookmarks'
-
-            default_ff_folder = os.path.expanduser('~/Library/Application Support/Firefox')
-            profiles = firefox_profile or get_firefox_profile_names(default_ff_folder)
-            if profiles:
-                ff_bm_db_paths = {s: '~/Library/Application Support/Firefox/{}/places.sqlite'.format(s)
-                                  for s in profiles}
-
             me_bm_db_path = '~/Library/Application Support/Microsoft Edge/Default/Bookmarks'
+            default_ff_folder = '~/Library/Application Support/Firefox'
         elif sys.platform == 'win32':
             gc_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Google/Chrome/User Data/Default/Bookmarks')
             cb_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Chromium/User Data/Default/Bookmarks')
             vi_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Vivaldi/User Data/Default/Bookmarks')
-
-            default_ff_folder = os.path.expandvars('%APPDATA%/Mozilla/Firefox/')
-            profiles = firefox_profile or get_firefox_profile_names(default_ff_folder)
-            if profiles:
-                ff_bm_db_paths = {s: os.path.join(default_ff_folder, '{}/places.sqlite'.format(s))
-                                  for s in profiles}
-
             me_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Microsoft/Edge/User Data/Default/Bookmarks')
+            default_ff_folder = os.path.expandvars('%APPDATA%/Mozilla/Firefox/')
         else:
             LOGERR('buku does not support {} yet'.format(sys.platform))
             self.close_quit(1)
             return  # clarifying execution interrupt for the linter
+
+        ff_bm_db_paths = get_firefox_db_paths(default_ff_folder, firefox_profile)
 
         if self.chatty:
             resp = input('Generate auto-tag (YYYYMonDD)? (y/n): ')
@@ -2924,44 +2905,20 @@ class BukuDb:
         with self.lock:
             resp = 'y'
 
-            try:
-                if os.path.isfile(os.path.expanduser(gc_bm_db_path)):
-                    if self.chatty:
-                        resp = input('Import bookmarks from google chrome? (y/n): ')
-                    if resp == 'y':
-                        bookmarks_database = os.path.expanduser(gc_bm_db_path)
-                        if not os.path.exists(bookmarks_database):
-                            raise FileNotFoundError
-                        self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
-            except Exception as e:
-                LOGERR(e)
-                print('Could not import bookmarks from google-chrome')
-
-            try:
-                if os.path.isfile(os.path.expanduser(cb_bm_db_path)):
-                    if self.chatty:
-                        resp = input('Import bookmarks from chromium? (y/n): ')
-                    if resp == 'y':
-                        bookmarks_database = os.path.expanduser(cb_bm_db_path)
-                        if not os.path.exists(bookmarks_database):
-                            raise FileNotFoundError
-                        self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
-            except Exception as e:
-                LOGERR(e)
-                print('Could not import bookmarks from chromium')
-
-            try:
-                if os.path.isfile(os.path.expanduser(vi_bm_db_path)):
-                    if self.chatty:
-                        resp = input('Import bookmarks from Vivaldi? (y/n): ')
-                    if resp == 'y':
-                        bookmarks_database = os.path.expanduser(vi_bm_db_path)
-                        if not os.path.exists(bookmarks_database):
-                            raise FileNotFoundError
-                        self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
-            except Exception as e:
-                LOGERR(e)
-                print('Could not import bookmarks from Vivaldi')
+            chrome_based = {'Google Chrome': gc_bm_db_path, 'Chromium': cb_bm_db_path, 'Vivaldi': vi_bm_db_path}
+            for name, path in chrome_based.items():
+                try:
+                    if os.path.isfile(os.path.expanduser(path)):
+                        if self.chatty:
+                            resp = input(f'Import bookmarks from {name}? (y/n): ')
+                        if resp == 'y':
+                            bookmarks_database = os.path.expanduser(path)
+                            if not os.path.exists(bookmarks_database):
+                                raise FileNotFoundError
+                            self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+                except Exception as e:
+                    LOGERR(e)
+                    print(f'Could not import bookmarks from {name}')
 
             try:
                 ff_bm_db_paths = {k: s for k, s in ff_bm_db_paths.items() if os.path.isfile(os.path.expanduser(s))}
@@ -3612,7 +3569,7 @@ def get_firefox_profile_names(path):
     from configparser import ConfigParser, NoOptionError
 
     profiles = []
-    profile_path = os.path.join(path, 'profiles.ini')
+    profile_path = os.path.expanduser(os.path.join(path, 'profiles.ini'))
     if os.path.exists(profile_path):
         config = ConfigParser()
         config.read(profile_path)
@@ -3647,6 +3604,11 @@ def get_firefox_profile_names(path):
     # There are no default profiles
     LOGDBG('get_firefox_profile_names(): {} does not exist'.format(path))
     return profiles
+
+def get_firefox_db_paths(default_ff_folder, specified=None):
+    profiles = ([specified] if specified else get_firefox_profile_names(default_ff_folder))
+    _profile_path = lambda s: (s if os.path.isabs(s) else os.path.join(default_ff_folder, s))
+    return {s: os.path.join(_profile_path(s), 'places.sqlite') for s in profiles}
 
 
 def walk(root):

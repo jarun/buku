@@ -5,6 +5,8 @@ import os
 import signal
 import unittest
 from itertools import product
+from textwrap import dedent
+from configparser import ConfigParser
 from unittest import mock
 from urllib.parse import urlparse
 
@@ -810,6 +812,80 @@ def test_import_html_and_new_tag():
     html_soup = BeautifulSoup(html_text, "html.parser")
     res = list(import_html(html_soup, False, "tag3"))
     assert res[0] == exp_res
+
+
+@pytest.mark.parametrize('profiles, expected', [
+    (dedent('''
+    [Profile3]
+    Name=ABCD
+    IsRelative=0
+    Path=/path/to/removable/drive/ABCD
+    Default=1
+
+    [Install4F96D1932A9F858E]
+    Default=/path/to/custom/path/my-main-profile
+    Locked=1
+
+    [Profile1]
+    Name=Main
+    IsRelative=0
+    Path=/path/to/custom/path/main-profile
+
+    [Profile0]
+    Name=default
+    IsRelative=1
+    Path=zsq8tck1.default-release
+
+    [InstallD087BC9767A4CB84]
+    Default=1koqf71l.default-nightly
+    Locked=1
+
+    [General]
+    StartWithLastProfile=1
+    Version=2
+    '''), ['/path/to/custom/path/my-main-profile', '1koqf71l.default-nightly']),
+    (dedent('''
+    [Profile3]
+    Name=ABCD
+    IsRelative=0
+    Path=/path/to/removable/drive/ABCD
+    Default=1
+
+    [Profile1]
+    Name=Main
+    IsRelative=0
+    Path=/path/to/custom/path/my-main-profile
+
+    [Profile0]
+    Name=default
+    IsRelative=1
+    Path=zsq8tck1.default-release
+
+    [General]
+    StartWithLastProfile=1
+    Version=2
+    '''), ['/path/to/removable/drive/ABCD', 'zsq8tck1.default-release']),
+    ('', []), (None, []),
+])
+@mock.patch('os.path.exists')
+def test_get_firefox_profile_names(_os_path_exists, profiles, expected):
+    _os_path_exists.return_value = profiles is not None
+    with mock.patch.object(ConfigParser, 'read', lambda self, _: self.read_string(profiles)):
+        import buku
+        assert buku.get_firefox_profile_names('') == expected
+
+@pytest.mark.parametrize('profiles, specified, expected', [
+    (['foo', '/bar/baz'], None, {
+        'foo': os.path.join('~/profiles', 'foo', 'places.sqlite'),
+        '/bar/baz': os.path.join('/bar/baz', 'places.sqlite'),
+    }),
+    (['foo', '/bar/baz'], 'qux', {'qux': os.path.join('~/profiles', 'qux', 'places.sqlite')}),
+    ([], '/grue/xyzzy', {'/grue/xyzzy': os.path.join('/grue/xyzzy', 'places.sqlite')}),
+])
+def test_get_firefox_db_paths(profiles, specified, expected):
+    with mock.patch('buku.get_firefox_profile_names', return_value=profiles):
+        import buku
+        assert buku.get_firefox_db_paths('~/profiles', specified) == expected
 
 
 @pytest.mark.parametrize(
