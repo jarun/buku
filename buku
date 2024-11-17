@@ -6051,7 +6051,7 @@ POSITIONAL ARGUMENTS:
     # Fix uppercase tags allowed in releases before v2.7
     addarg('--fixtags', action='store_true', help=hide)
     # App-use only, not for manual usage
-    addarg('--db', nargs=1, help=hide)
+    addarg('--db', nargs=1, default=[None], help=hide)
 
     # Parse the arguments
     args = argparser.parse_args(argv)
@@ -6129,9 +6129,9 @@ POSITIONAL ARGUMENTS:
 
     # Handle encrypt/decrypt options at top priority
     if args.lock is not None:
-        BukuCrypt.encrypt_file(args.lock)
+        BukuCrypt.encrypt_file(args.lock, dbfile=args.db[0])
     elif args.unlock is not None:
-        BukuCrypt.decrypt_file(args.unlock)
+        BukuCrypt.decrypt_file(args.unlock, dbfile=args.db[0])
 
     order = [s for ss in (args.order or []) for s in re.split(r'\s*,\s*', ss.strip()) if s]
 
@@ -6184,7 +6184,7 @@ POSITIONAL ARGUMENTS:
         args.json,
         args.format,
         not args.tacit,
-        dbfile=args.db[0] if args.db is not None else None,
+        dbfile=args.db[0],
         colorize=not args.nc
     )
 

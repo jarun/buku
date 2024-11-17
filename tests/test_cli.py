@@ -291,3 +291,28 @@ def test_random_export(_print_rec_with_filter, _sample, bdb, stdin, prompt, rand
         calls += [mock.call.bdb.exportdb('export.md', res)]
     calls += [mock.call.bdb.close_quit(0)]
     assert wrap.mock_calls == calls
+
+
+@pytest.mark.parametrize('db', [None, './foo.db'])
+@pytest.mark.parametrize('action', ['print', 'lock', 'unlock'])
+@mock.patch('buku.BukuCrypt')
+def test_custom_db(_BukuCrypt, BukuDb, stdin, db, action):
+    wrap = mock.Mock()
+    wrap.attach_mock(BukuDb, 'BukuDb')
+    wrap.attach_mock(BukuDb.return_value, 'bdb')
+    wrap.attach_mock(_BukuCrypt, 'BukuCrypt')
+    BukuDb.return_value.get_max_id.return_value = None
+    argv = ['--nostdin'] + ([] if not db else ['--db', db]) + [f'--{action}']
+    with pytest.raises(SystemExit):
+        buku.main(argv)
+    calls = []
+    if action == 'lock':
+        calls += [mock.call.BukuCrypt.encrypt_file(8, dbfile=db)]
+    elif action == 'unlock':
+        calls += [mock.call.BukuCrypt.decrypt_file(8, dbfile=db)]
+    calls += [mock.call.BukuDb(None, 0, True, dbfile=db, colorize=True)]
+    if action == 'print':
+        calls += [mock.call.bdb.get_max_id(),
+                  mock.call.bdb.print_rec(None, order=[])]
+    calls += [mock.call.bdb.close_quit(0)]
+    assert wrap.mock_calls == calls
