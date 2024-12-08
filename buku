@@ -51,12 +51,12 @@ from typing import Any, Dict, List, Optional, Tuple, NamedTuple
 from collections.abc import Sequence, Set, Callable
 from warnings import warn
 import xml.etree.ElementTree as ET
+from urllib.parse import urlparse  # urllib3.util.parse_url() encodes netloc
 
 import urllib3
 from bs4 import BeautifulSoup
 from bs4.dammit import EncodingDetector
-from urllib3.exceptions import LocationParseError
-from urllib3.util import Retry, make_headers, parse_url
+from urllib3.util import Retry, make_headers
 
 try:
     from mypy_extensions import TypedDict
@@ -4053,6 +4053,20 @@ def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
         )
 
 
+def get_netloc(url):
+    """Get the netloc token, or None."""
+
+    try:
+        netloc = urlparse(url).netloc
+        if not netloc and not urlparse(url).scheme:
+            # Try to prepend '//' and get netloc
+            netloc = urlparse('//' + url).netloc
+        return netloc or None
+    except Exception as e:
+        LOGERR('%s, URL: %s', e, url)
+        return None
+
+
 def is_bad_url(url):
     """Check if URL is malformed.
 
@@ -4069,16 +4083,8 @@ def is_bad_url(url):
         True if URL is malformed, False otherwise.
     """
 
-    # Get the netloc token
-    try:
-        netloc = parse_url(url).netloc
-        if not netloc:
-            # Try of prepend '//' and get netloc
-            netloc = parse_url('//' + url).netloc
-            if not netloc:
-                return True
-    except LocationParseError as e:
-        LOGERR('%s, URL: %s', e, url)
+    netloc = get_netloc(url)
+    if not netloc:
         return True
 
     LOGDBG('netloc: %s', netloc)
@@ -4088,10 +4094,7 @@ def is_bad_url(url):
         return True
 
     # netloc should have at least one '.'
-    if netloc.rfind('.') < 0:
-        return True
-
-    return False
+    return '.' not in netloc
 
 
 def is_nongeneric_url(url):
@@ -4277,6 +4280,14 @@ def get_data_from_page(resp):
         return (None, None, None)
 
 
+def extract_auth(url):
+    """Convert an url into an (auth, url) tuple [the returned URL will contain no auth part]."""
+    _url = urlparse(url)
+    if _url.username is None:  # no '@' in netloc
+        return None, url
+    auth = _url.username + ('' if _url.password is None else f':{_url.password}')
+    return auth, url.replace(auth + '@', '')
+
 def gen_headers():
     """Generate headers for network connection."""
 
@@ -4293,15 +4304,14 @@ def gen_headers():
     MYPROXY = os.environ.get('https_proxy')
     if MYPROXY:
         try:
-            url = parse_url(MYPROXY)
+            auth, MYPROXY = extract_auth(MYPROXY)
         except Exception as e:
             LOGERR(e)
             return
 
         # Strip username and password (if present) and update headers
-        if url.auth:
-            MYPROXY = MYPROXY.replace(url.auth + '@', '')
-            auth_headers = make_headers(basic_auth=url.auth)
+        if auth:
+            auth_headers = make_headers(basic_auth=auth)
             MYHEADERS.update(auth_headers)
 
         LOGDBG('proxy: [%s]', MYPROXY)
@@ -5179,7 +5189,7 @@ def browse(url):
         If True, tries to open links in a GUI based browser.
     """
 
-    if not parse_url(url).scheme:
+    if not urlparse(url).scheme:
         # Prefix with 'http://' if no scheme
         # Otherwise, opening in browser fails anyway
         # We expect http to https redirection
