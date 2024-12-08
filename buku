@@ -462,6 +462,10 @@ class BookmarkVar(NamedTuple):
     def taglist(self) -> List[str]:
         return [x for x in self.tags_raw.split(',') if x]
 
+    @property
+    def netloc(self) -> str:
+        return get_netloc(self.url) or ''
+
 bookmark_vars = lambda xs: ((x if isinstance(x, BookmarkVar) else BookmarkVar(*x)) for x in xs)
 
 
@@ -593,6 +597,7 @@ class BukuDb:
             # Create a connection
             conn = sqlite3.connect(dbfile, check_same_thread=False)
             conn.create_function('REGEXP', 2, regexp)
+            conn.create_function('NETLOC', 1, get_netloc)
             cur = conn.cursor()
 
             # Create table if it doesn't exist
@@ -629,13 +634,13 @@ class BukuDb:
         Fields are listed in priority order, with '+'/'-' prefix signifying ASC/DESC; assuming ASC if not specified.
         Other than names from DB, you can pass those from JSON export."""
         names = {'index': 'id', 'uri': 'url', 'description': 'desc', **({'title': 'metadata'} if for_db else {'metadata': 'title'})}
-        valid = list(names) + list(names.values()) + ['tags']
+        valid = list(names) + list(names.values()) + ['tags', 'netloc']
         _fields = [(re.sub(r'^[+-]', '', s), not s.startswith('-')) for s in (fields or [])]
         _fields = [(names.get(field, field), direction) for field, direction in _fields if field in valid]
         return _fields or [('id', True)]
 
     def _sort(self, records: List[BookmarkVar], fields=['+id'], ignore_case=True) -> List[BookmarkVar]:
-        text_fields = (set() if not ignore_case else {'url', 'desc', 'title', 'tags'})
+        text_fields = (set() if not ignore_case else {'url', 'desc', 'title', 'tags', 'netloc'})
         get = lambda x, k: (getattr(x, k) if k not in text_fields else str(getattr(x, k) or '').lower())
         order = self._ordering(fields, for_db=False)
         return sorted(bookmark_vars(records), key=lambda x: [SortKey(get(x, k), ascending=asc) for k, asc in order])
@@ -643,8 +648,8 @@ class BukuDb:
     def _order(self, fields=['+id'], ignore_case=True) -> str:
         """Converts field list to SQL 'ORDER BY' parameters. (See also BukuDb._ordering().)"""
         text_fields = (set() if not ignore_case else {'url', 'desc', 'metadata', 'tags'})
-        return ', '.join(f'{field if field not in text_fields else "LOWER("+field+")"} {"ASC" if direction else "DESC"}'
-                         for field, direction in self._ordering(fields))
+        get = lambda field: ('LOWER(NETLOC(url))' if field == 'netloc' else field if field not in text_fields else f'LOWER({field})')
+        return ', '.join(f'{get(field)} {"ASC" if direction else "DESC"}' for field, direction in self._ordering(fields))
 
     def get_rec_all(self, *, lock: bool = True, order: List[str] = ['id']):
         """Get all the bookmarks in the database.

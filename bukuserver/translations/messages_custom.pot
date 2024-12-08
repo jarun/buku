@@ -10,6 +10,9 @@ msgstr ""
 msgid "by url"
 msgstr ""
 
+msgid "by netloc"
+msgstr ""
+
 msgid "by title"
 msgstr ""
 

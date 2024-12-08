@@ -200,7 +200,7 @@ Exclude bookmarks matching the specified keywords. Works with --sany, --sall, --
 Output random bookmarks out of the selection (1 unless amount is specified).
 .TP
 .BI \--order " fields [...]"
-Order printed/exported records by the given fields (from DB or JSON). You can specify sort direction for each by prepending '+'/'-' (default is '+').
+Order printed/exported records by the given fields (from DB or JSON) and/or netloc. You can specify sort direction for each by prepending '+'/'-' (default is '+').
 .SH ENCRYPTION OPTIONS
 .TP
 .BI \-l " " \--lock " [N]"
@@ -946,11 +946,11 @@ Print out a single \fBrandom\fR bookmark:
 .EE
 .PP
 .IP 44. 4
-Print out 3 \fBrandom\fR bookmarks \fBordered\fR by title (reversed) and url:
+Print out 3 \fBrandom\fR bookmarks \fBordered\fR by netloc (reversed), title and url:
 .PP
 .EX
 .IP
-.B buku --random 3 --order ,-title,+url
+.B buku --random 3 --order ,-netloc,title,+url
 .EE
 .PP
 .IP 45. 4

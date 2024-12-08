@@ -143,7 +143,7 @@ def _test_add(bdb, prompt, *, add_tags=[], tag=[], tags_fetch=True, tags_in=None
 @pytest.mark.parametrize('np', [{}, {'np': []}])
 @pytest.mark.parametrize('count', [{}, {'count': ['10']}])
 @pytest.mark.parametrize('order, indices, command', [
-    (['tags', '-url'], None, {'order': ['tags,-url'], 'print': []}),
+    (['tags', '-netloc', '+url'], None, {'order': ['tags,-netloc,+url'], 'print': []}),
     (['-description', '+uri'], [5, 8, 9, 10, 11, 12, 40, 41, 42],
      {'order': [',-description', '+uri'], 'print': ['5', '8-12', '-3']}),
 ])
