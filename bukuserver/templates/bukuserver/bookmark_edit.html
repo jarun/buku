@@ -7,7 +7,7 @@
 
 {% block edit_form %}
   {{ super() }}
-  <form method="POST" action="{{ get_url('.delete_view') }}" class="delete-form" style="display: inline-block;  float: right">
+  <form method="POST" action="{{ get_url('.delete_view') }}" class="delete-form d-inline-block float-right">
     <input type="hidden" name="id" value="{{ request.args.get('id') }}"/>
     <input type="hidden" name="url" value="{{ return_url }}"/>
     {% if csrf_token %}
@@ -24,7 +24,8 @@
   {{ buku.set_lang() }}
   {{ buku.limit_navigation_if_popup() }}
   {{ buku.script('bookmark.js') }}
+  <script>$('.submit-row').append($('.delete-form'))</script>
+  {{ buku.horizontal_form(excluding_popups=True) }}
   {{ buku.focus() }}
   {{ buku.link_saved() }}
-  <script>$('.submit-row').append($('.delete-form'))</script>
 {% endblock %}
