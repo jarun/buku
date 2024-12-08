@@ -553,9 +553,9 @@ PROMPT KEYS:
 
         $ buku --random --print
 
-44. Print out 3 **random** bookmarks **ordered** by title (reversed) and url:
+44. Print out 3 **random** bookmarks **ordered** by netloc (reversed), title and url:
 
-        $ buku --random 3 --order ,-title,+url --print
+        $ buku --random 3 --order ,-netloc,title,+url --print
 
 45. Print out a single **random** bookmark matching **search** criteria, and **export** into a Markdown file (in DB order):
 

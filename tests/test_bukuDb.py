@@ -1635,18 +1635,24 @@ def test_load_firefox_database(bukuDb, firefox_db, add_pt):
 
 @pytest.mark.parametrize('ignore_case, fields, expected', [
     (True, ['+id'],
-     ['http://slashdot.org', 'http://www.zażółćgęśląjaźń.pl/', 'http://example.com/', 'javascript:void(0)', 'javascript:void(1)']),
+     ['http://slashdot.org', 'http://www.zażółćgęśląjaźń.pl/', 'http://example.com/',
+      'javascript:void(0)', 'javascript:void(1)', 'example.com/#']),
     (True, [],
-     ['http://slashdot.org', 'http://www.zażółćgęśląjaźń.pl/', 'http://example.com/', 'javascript:void(0)', 'javascript:void(1)']),
-    (True, ['-metadata', '+url', 'id'],
-     ['http://www.zażółćgęśląjaźń.pl/', 'http://example.com/', 'http://slashdot.org', 'javascript:void(0)', 'javascript:void(1)']),
-    (False, ['-metadata', '+url', 'id'],
-     ['http://example.com/', 'javascript:void(0)', 'javascript:void(1)', 'http://www.zażółćgęśląjaźń.pl/', 'http://slashdot.org']),
+     ['http://slashdot.org', 'http://www.zażółćgęśląjaźń.pl/', 'http://example.com/',
+      'javascript:void(0)', 'javascript:void(1)', 'example.com/#']),
+    (True, ['-metadata', '+netloc', '-url', 'id'],
+     ['http://www.zażółćgęśląjaźń.pl/', 'http://example.com/', 'example.com/#',
+      'http://slashdot.org', 'javascript:void(1)', 'javascript:void(0)']),
+    (False, ['-metadata', '+netloc', 'url', 'id'],
+     ['example.com/#', 'http://example.com/', 'javascript:void(0)',
+      'javascript:void(1)', 'http://www.zażółćgęśląjaźń.pl/', 'http://slashdot.org']),
     (True, ['+title', '-tags', 'description', 'index', 'uri'],
-     ['javascript:void(1)', 'javascript:void(0)', 'http://slashdot.org', 'http://example.com/', 'http://www.zażółćgęśląjaźń.pl/']),
+     ['javascript:void(1)', 'javascript:void(0)', 'http://slashdot.org',
+      'http://example.com/', 'example.com/#', 'http://www.zażółćgęśląjaźń.pl/']),
 ])
 def test_sort(bukuDb, fields, ignore_case, expected):
-    _bookmarks = TEST_BOOKMARKS + [(f'javascript:void({i})', 'foo', parse_tags([f'tag{i}']), 'stuff') for i in range(2)]
+    _bookmarks = (TEST_BOOKMARKS + [(f'javascript:void({i})', 'foo', parse_tags([f'tag{i}']), 'stuff') for i in range(2)] +
+                  [('example.com/#', 'test', parse_tags(['test,tes,est,es']), 'a case for replace_tag test')])
     bookmarks = [(i,) + tuple(x) for i, x in enumerate(_bookmarks, start=1)]
     shuffle(bookmarks)  # making sure sorting by index works as well
     assert [x.url for x in bukuDb()._sort(bookmarks, fields, ignore_case=ignore_case)] == expected
@@ -1654,14 +1660,31 @@ def test_sort(bukuDb, fields, ignore_case, expected):
 @pytest.mark.parametrize('ignore_case, fields, expected', [
     (True, ['+id'], 'id ASC'),
     (True, [], 'id ASC'),
-    (False, ['-metadata', '+url', 'id'], 'metadata DESC, url ASC, id ASC'),
-    (True, ['-metadata', '+url', 'id'], 'LOWER(metadata) DESC, LOWER(url) ASC, id ASC'),
+    (False, ['-metadata', '+netloc', 'url', 'id'], 'metadata DESC, LOWER(NETLOC(url)) ASC, url ASC, id ASC'),
+    (True, ['-metadata', '+netloc', '-url', 'id'], 'LOWER(metadata) DESC, LOWER(NETLOC(url)) ASC, LOWER(url) DESC, id ASC'),
     (False, ['+title', '-tags', 'description', 'index', 'uri'], 'metadata ASC, tags DESC, desc ASC, id ASC, url ASC'),
     (True, ['+title', '-tags', 'description', 'index', 'uri'],
      'LOWER(metadata) ASC, LOWER(tags) DESC, LOWER(desc) ASC, id ASC, LOWER(url) ASC'),
 ])
 def test_order(bukuDb, fields, ignore_case, expected):
     assert bukuDb()._order(fields, ignore_case=ignore_case) == expected
+
+@pytest.mark.parametrize('order, expected', [
+    (['netloc'], ['http://example.com/', 'https://example.com', '//example.com#',
+                  'example.com?', 'http://slashdot.org', 'http://www.zażółćgęśląjaźń.pl/']),
+    (['-netloc'], ['http://www.zażółćgęśląjaźń.pl/', 'http://slashdot.org', 'http://example.com/',
+                   'https://example.com', '//example.com#', 'example.com?']),
+    (['netloc', 'url'], ['//example.com#', 'example.com?', 'http://example.com/',
+                         'https://example.com', 'http://slashdot.org', 'http://www.zażółćgęśląjaźń.pl/']),
+    (['netloc', '-url'], ['https://example.com', 'http://example.com/', 'example.com?',
+                          '//example.com#', 'http://slashdot.org', 'http://www.zażółćgęśląjaźń.pl/']),
+])
+def test_order_by_netloc(bukuDb, order, expected):
+    bdb = bukuDb()
+    _EXTRA = ['https://example.com', '//example.com#', 'example.com?']
+    for bookmark in (TEST_BOOKMARKS + [(url, 'test', parse_tags(['test,tes,est,es']), 'a case for replace_tag test') for url in _EXTRA]):
+        _add_rec(bdb, *bookmark)
+    assert [x.url for x in bdb.get_rec_all(order=order)] == expected
 
 @pytest.mark.parametrize('keyword, params, expected', [
     ('', {}, []),

@@ -51,12 +51,12 @@ from typing import Any, Dict, List, Optional, Tuple, NamedTuple
 from collections.abc import Sequence, Set, Callable
 from warnings import warn
 import xml.etree.ElementTree as ET
+from urllib.parse import urlparse  # urllib3.util.parse_url() encodes netloc
 
 import urllib3
 from bs4 import BeautifulSoup
 from bs4.dammit import EncodingDetector
-from urllib3.exceptions import LocationParseError
-from urllib3.util import Retry, make_headers, parse_url
+from urllib3.util import Retry, make_headers
 
 try:
     from mypy_extensions import TypedDict
@@ -462,6 +462,10 @@ class BookmarkVar(NamedTuple):
     def taglist(self) -> List[str]:
         return [x for x in self.tags_raw.split(',') if x]
 
+    @property
+    def netloc(self) -> str:
+        return get_netloc(self.url) or ''
+
 bookmark_vars = lambda xs: ((x if isinstance(x, BookmarkVar) else BookmarkVar(*x)) for x in xs)
 
 
@@ -593,6 +597,7 @@ class BukuDb:
             # Create a connection
             conn = sqlite3.connect(dbfile, check_same_thread=False)
             conn.create_function('REGEXP', 2, regexp)
+            conn.create_function('NETLOC', 1, get_netloc)
             cur = conn.cursor()
 
             # Create table if it doesn't exist
@@ -629,13 +634,13 @@ class BukuDb:
         Fields are listed in priority order, with '+'/'-' prefix signifying ASC/DESC; assuming ASC if not specified.
         Other than names from DB, you can pass those from JSON export."""
         names = {'index': 'id', 'uri': 'url', 'description': 'desc', **({'title': 'metadata'} if for_db else {'metadata': 'title'})}
-        valid = list(names) + list(names.values()) + ['tags']
+        valid = list(names) + list(names.values()) + ['tags', 'netloc']
         _fields = [(re.sub(r'^[+-]', '', s), not s.startswith('-')) for s in (fields or [])]
         _fields = [(names.get(field, field), direction) for field, direction in _fields if field in valid]
         return _fields or [('id', True)]
 
     def _sort(self, records: List[BookmarkVar], fields=['+id'], ignore_case=True) -> List[BookmarkVar]:
-        text_fields = (set() if not ignore_case else {'url', 'desc', 'title', 'tags'})
+        text_fields = (set() if not ignore_case else {'url', 'desc', 'title', 'tags', 'netloc'})
         get = lambda x, k: (getattr(x, k) if k not in text_fields else str(getattr(x, k) or '').lower())
         order = self._ordering(fields, for_db=False)
         return sorted(bookmark_vars(records), key=lambda x: [SortKey(get(x, k), ascending=asc) for k, asc in order])
@@ -643,8 +648,8 @@ class BukuDb:
     def _order(self, fields=['+id'], ignore_case=True) -> str:
         """Converts field list to SQL 'ORDER BY' parameters. (See also BukuDb._ordering().)"""
         text_fields = (set() if not ignore_case else {'url', 'desc', 'metadata', 'tags'})
-        return ', '.join(f'{field if field not in text_fields else "LOWER("+field+")"} {"ASC" if direction else "DESC"}'
-                         for field, direction in self._ordering(fields))
+        get = lambda field: ('LOWER(NETLOC(url))' if field == 'netloc' else field if field not in text_fields else f'LOWER({field})')
+        return ', '.join(f'{get(field)} {"ASC" if direction else "DESC"}' for field, direction in self._ordering(fields))
 
     def get_rec_all(self, *, lock: bool = True, order: List[str] = ['id']):
         """Get all the bookmarks in the database.
@@ -4053,6 +4058,20 @@ def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
         )
 
 
+def get_netloc(url):
+    """Get the netloc token, or None."""
+
+    try:
+        netloc = urlparse(url).netloc
+        if not netloc and not urlparse(url).scheme:
+            # Try to prepend '//' and get netloc
+            netloc = urlparse('//' + url).netloc
+        return netloc or None
+    except Exception as e:
+        LOGERR('%s, URL: %s', e, url)
+        return None
+
+
 def is_bad_url(url):
     """Check if URL is malformed.
 
@@ -4069,16 +4088,8 @@ def is_bad_url(url):
         True if URL is malformed, False otherwise.
     """
 
-    # Get the netloc token
-    try:
-        netloc = parse_url(url).netloc
-        if not netloc:
-            # Try of prepend '//' and get netloc
-            netloc = parse_url('//' + url).netloc
-            if not netloc:
-                return True
-    except LocationParseError as e:
-        LOGERR('%s, URL: %s', e, url)
+    netloc = get_netloc(url)
+    if not netloc:
         return True
 
     LOGDBG('netloc: %s', netloc)
@@ -4088,10 +4099,7 @@ def is_bad_url(url):
         return True
 
     # netloc should have at least one '.'
-    if netloc.rfind('.') < 0:
-        return True
-
-    return False
+    return '.' not in netloc
 
 
 def is_nongeneric_url(url):
@@ -4277,6 +4285,14 @@ def get_data_from_page(resp):
         return (None, None, None)
 
 
+def extract_auth(url):
+    """Convert an url into an (auth, url) tuple [the returned URL will contain no auth part]."""
+    _url = urlparse(url)
+    if _url.username is None:  # no '@' in netloc
+        return None, url
+    auth = _url.username + ('' if _url.password is None else f':{_url.password}')
+    return auth, url.replace(auth + '@', '')
+
 def gen_headers():
     """Generate headers for network connection."""
 
@@ -4293,15 +4309,14 @@ def gen_headers():
     MYPROXY = os.environ.get('https_proxy')
     if MYPROXY:
         try:
-            url = parse_url(MYPROXY)
+            auth, MYPROXY = extract_auth(MYPROXY)
         except Exception as e:
             LOGERR(e)
             return
 
         # Strip username and password (if present) and update headers
-        if url.auth:
-            MYPROXY = MYPROXY.replace(url.auth + '@', '')
-            auth_headers = make_headers(basic_auth=url.auth)
+        if auth:
+            auth_headers = make_headers(basic_auth=auth)
             MYHEADERS.update(auth_headers)
 
         LOGDBG('proxy: [%s]', MYPROXY)
@@ -5179,7 +5194,7 @@ def browse(url):
         If True, tries to open links in a GUI based browser.
     """
 
-    if not parse_url(url).scheme:
+    if not urlparse(url).scheme:
         # Prefix with 'http://' if no scheme
         # Otherwise, opening in browser fails anyway
         # We expect http to https redirection

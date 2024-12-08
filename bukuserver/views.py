@@ -117,7 +117,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     def _list_entry(self, context: Any, model: Namespace, name: str) -> Markup:
         LOG.debug("context: %s, name: %s", context, name)
         parsed_url = urlparse(model.url)
-        netloc = parsed_url.netloc
+        netloc = buku.get_netloc(model.url) or ''
         get_index_view_url = functools.partial(url_for, "bookmark.index_view")
         res = []
         if netloc and not app_param('DISABLE_FAVICON'):
@@ -156,7 +156,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
                     for s in (value or '').split(',') if s.strip())
             return Markup(f'<div class="tag-list">{"".join(tags)}</div>')
         if name == 'url':
-            res, netloc, scheme = [], (parsed := urlparse(value)).netloc, parsed.scheme
+            res, netloc, scheme = [], buku.get_netloc(value), urlparse(value).scheme
             if netloc and not app_param('DISABLE_FAVICON', False):
                 icon = f'<img class="favicon" title="netloc:{netloc}" src="http://www.google.com/s2/favicons?domain={netloc}"/>'
                 res += [link(icon, url_for('bookmark.index_view', flt0_url_netloc_match=netloc), html=True)]
@@ -293,7 +293,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
         for field in list(BookmarkField):
             setattr(bm_sns, field.name.lower(), format_value(field, bookmark, spacing=' '))
-        session['netloc'] = urlparse(bookmark.url).netloc
+        session['netloc'] = buku.get_netloc(bookmark.url) or ''
         return bm_sns
 
     def get_pk_value(self, model):
@@ -344,7 +344,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         elif name == BookmarkField.URL.name.lower():
 
             def netloc_match_func(query, value, index):
-                return filter(lambda x: urlparse(x[index]).netloc == value, query)
+                return filter(lambda x: (buku.get_netloc(x[index]) or '') == value, query)
 
             res += [
                 bs_filters.BookmarkBaseFilter(name, _l('netloc match'), netloc_match_func),
@@ -593,7 +593,7 @@ class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
         data = StatisticView._data
         if not data or request.method == 'POST':
             all_bookmarks = self.bukudb.get_rec_all()
-            netlocs = [urlparse(x.url).netloc for x in all_bookmarks]
+            netlocs = [buku.get_netloc(x.url) or '' for x in all_bookmarks]
             tags = [s for x in all_bookmarks for s in x.taglist]
             titles = [x.title for x in all_bookmarks]
             data = StatisticView._data = {

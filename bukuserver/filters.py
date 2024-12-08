@@ -122,7 +122,7 @@ class TagBaseFilter(BaseFilter):
 
 class BookmarkOrderFilter(BaseFilter):
     DIR_LIST = [('asc', _l('natural')), ('desc', _l('reversed'))]
-    FIELDS = ['index', 'url', 'title', 'description', 'tags']
+    FIELDS = ['index', 'url', 'netloc', 'title', 'description', 'tags']
 
     def __init__(self, field, *args, **kwargs):
         self.field = field

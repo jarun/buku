@@ -196,73 +196,73 @@ msgstr ""
 msgid "Index"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:221
+#: /home/lex/Work/buku/bukuserver/views.py:223
 #, python-format
 msgid "url invalid: %(url)s"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:232
+#: /home/lex/Work/buku/bukuserver/views.py:234
 msgid "Failed to create record."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:245
-#: /home/lex/Work/buku/bukuserver/views.py:552
+#: /home/lex/Work/buku/bukuserver/views.py:247
+#: /home/lex/Work/buku/bukuserver/views.py:554
 msgid "Failed to delete record."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:260
+#: /home/lex/Work/buku/bukuserver/views.py:262
 msgid "Invalid search mode combination"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:348
+#: /home/lex/Work/buku/bukuserver/views.py:350
 msgid "netloc match"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:381
+#: /home/lex/Work/buku/bukuserver/views.py:383
 msgid "contain"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:382
+#: /home/lex/Work/buku/bukuserver/views.py:384
 msgid "not contain"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:383
+#: /home/lex/Work/buku/bukuserver/views.py:385
 msgid "number equal"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:384
+#: /home/lex/Work/buku/bukuserver/views.py:386
 msgid "number not equal"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:385
+#: /home/lex/Work/buku/bukuserver/views.py:387
 msgid "number greater than"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:386
+#: /home/lex/Work/buku/bukuserver/views.py:388
 msgid "number smaller than"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:412
-#: /home/lex/Work/buku/bukuserver/views.py:570
+#: /home/lex/Work/buku/bukuserver/views.py:414
+#: /home/lex/Work/buku/bukuserver/views.py:572
 msgid "Failed to update record."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:427
+#: /home/lex/Work/buku/bukuserver/views.py:429
 msgid "<UNTAGGED>"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:433
-#: /home/lex/Work/buku/bukuserver/views.py:470
+#: /home/lex/Work/buku/bukuserver/views.py:435
+#: /home/lex/Work/buku/bukuserver/views.py:472
 msgctxt "tag"
 msgid "Name"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:433
+#: /home/lex/Work/buku/bukuserver/views.py:435
 msgctxt "tag"
 msgid "Usage Count"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:533
+#: /home/lex/Work/buku/bukuserver/views.py:535
 msgid "top most common"
 msgstr ""
 
@@ -537,6 +537,9 @@ msgid "by index"
 msgstr ""
 
 msgid "by url"
+msgstr ""
+
+msgid "by netloc"
 msgstr ""
 
 msgid "by title"

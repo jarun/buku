@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 import pytest
 
 from buku import DELIM, FIELD_FILTER, ALL_FIELDS, SortKey, FetchResult, is_int, prep_tag_search, \
-                 print_rec_with_filter, parse_range, split_by_marker
+                 print_rec_with_filter, get_netloc, extract_auth, parse_range, split_by_marker
 
 
 def check_import_html_results_contains(result, expected_result):
@@ -26,20 +26,58 @@ def check_import_html_results_contains(result, expected_result):
     return count == n * (n + 1) / 2
 
 
-@pytest.mark.parametrize(
-    "url, exp_res",
-    [
-        ["http://example.com", False],
-        ["ftp://ftp.somedomain.org", False],
-        ["http://examplecom.", True],
-        ["http://.example.com", True],
-        ["http://example.com.", True],
-        ["about:newtab", True],
-        ["chrome://version/", True],
-    ],
-)
+@pytest.mark.parametrize('url, result', [
+    ('http://user:password@hostname:1234/path?query#hash', 'user:password'),
+    ('http://:password@hostname:1234/path?query#hash', ':password'),
+    ('http://user:@hostname:1234/path?query#hash', 'user:'),
+    ('http://user@hostname:1234/path?query#hash', 'user'),
+    ('http://@hostname:1234/path?query#hash', ''),
+    ('http://hostname:1234/path?query#hash', None),
+    ('//[', ValueError('Invalid IPv6 URL')),
+    ('//⁈', ValueError("netloc '⁈' contains invalid characters under NFKC normalization")),
+])
+def test_extract_auth(url, result):
+    if not isinstance(result, Exception):
+        assert extract_auth(url) == (result, 'http://hostname:1234/path?query#hash')
+    else:
+        try:
+            extract_auth(url)
+        except Exception as e:
+            assert repr(e) == repr(result)
+        else:
+            assert False, f'expected {repr(result)} to be raised'
+
+
+@pytest.mark.parametrize('url, netloc', [
+    ['http://example.com', 'example.com'],
+    ['example.com/#foo/bar', 'example.com'],
+    ['ftp://ftp.somedomain.org', 'ftp.somedomain.org'],
+    ['about:newtab', None],
+    ['chrome://version/', 'version'],
+    ['javascript:void(0.0)', None],
+    ['data:,text.with.dots', None],
+    ['http://[', None],  # parsing error
+    ['http://⁈', None],  # parsing error
+])
+def test_get_netloc(url, netloc):
+    assert get_netloc(url) == netloc
+
+
+@pytest.mark.parametrize('url, exp_res', [
+    ['http://example.com', False],
+    ['example.com/#foo/bar', False],
+    ['ftp://ftp.somedomain.org', False],
+    ['http://examplecom.', True],   # ends with a '.'
+    ['http://.example.com', True],  # starts with a '.'
+    ['http://example.com.', True],  # ends with a '.'
+    ['about:newtab', True],
+    ['chrome://version/', True],    # contains no '.'
+    ['javascript:void(0.0)', True],
+    ['data:,text.with.dots', True],
+    ['http://[', True],             # parsing error
+    ['http://⁈', True],             # parsing error
+])
 def test_is_bad_url(url, exp_res):
-    """test func."""
     import buku
 
     res = buku.is_bad_url(url)
