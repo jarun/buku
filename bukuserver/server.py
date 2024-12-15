@@ -90,7 +90,7 @@ def create_app(db_file=None):
     per_page = per_page if per_page > 0 else views.DEFAULT_PER_PAGE
     app.config['BUKUSERVER_PER_PAGE'] = per_page
     url_render_mode = os.getenv('BUKUSERVER_URL_RENDER_MODE', views.DEFAULT_URL_RENDER_MODE)
-    if url_render_mode not in ('full', 'netloc'):
+    if url_render_mode not in ('full', 'netloc', 'netloc-tag'):
         url_render_mode = views.DEFAULT_URL_RENDER_MODE
     app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)

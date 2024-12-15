@@ -112,7 +112,7 @@ The following are os env config variables available for bukuserver.
 | --- | --- | --- |
 | PER_PAGE | bookmarks per page | positive integer [default: 10] |
 | SECRET_KEY | [flask secret key](https://flask.palletsprojects.com/config/#SECRET_KEY) | string [default: os.urandom(24)] |
-| URL_RENDER_MODE | url render mode | `full` or `netloc` [default: `full`] |
+| URL_RENDER_MODE | url render mode | `full`, `netloc` or `netloc-tag` [default: `full`] |
 | DB_FILE | full path to db file | path string [default: standard path for buku] |
 | READONLY | read-only mode | boolean [default: `false`] |
 | DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean [default: `true`] ([here's why](#why-favicons-are-disabled-by-default))|

@@ -300,7 +300,7 @@ def test_env_per_page(bukudb, app, client, total, per_page, pages, last_page):
 @pytest.mark.slow
 @pytest.mark.parametrize('new_tab', [False, True, None])
 @pytest.mark.parametrize('favicons', [False, True, None])
-@pytest.mark.parametrize('mode', ['full', 'netloc', None])
+@pytest.mark.parametrize('mode', ['full', 'netloc', 'netloc-tag', None])
 def test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab):
     url, netloc, title, desc, tags = 'http://example.com', 'example.com', 'Sample site', 'Foo bar baz', ',bar,baz,foo,'
     _add_rec(bukudb, url, title, tags, desc)
@@ -323,6 +323,8 @@ def test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab):
     suffix = f'<div class="tag-list">{netloc_tag}{"".join(tags)}</div><div class="description">{desc}</div> </td>'
     if mode == 'netloc':
         assert cell == f'{prefix}<span class="netloc"> (<a href="/bookmark/?flt0_url_netloc_match={netloc}">{netloc}</a>)</span>{suffix}'
+    elif mode == 'netloc-tag':
+        assert cell == prefix + suffix
     else:
         assert cell == f'{prefix}<span class="link"><a href="{url}"{target}>{url}</a></span>{suffix}'
 
