@@ -135,7 +135,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             res += [f'<span class="netloc"> ({link(netloc, url_for_index_view_netloc)})</span>']
         if not parsed_url.scheme:
             res += [f'<span class="link">{escape(model.url)}</span>']
-        elif self.url_render_mode is None or self.url_render_mode == 'full':
+        elif self.url_render_mode == 'full':
             res += [f'<span class="link">{link(model.url, model.url, new_tab=new_tab)}</span>']
         tag_links = []
         if netloc and self.url_render_mode != 'netloc' and url_for_index_view_netloc:
