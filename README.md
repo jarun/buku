@@ -1,4 +1,4 @@
-<h1 align="center">buku</h1>
+ <h1 align="center">buku</h1>
 
 <p align="center">
 <a href="https://github.com/jarun/buku/releases/latest"><img src="https://img.shields.io/github/release/jarun/buku.svg?maxAge=600" alt="Latest release" /></a>
