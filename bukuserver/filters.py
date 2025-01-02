@@ -188,7 +188,7 @@ class BookmarkBaseFilter(BaseFilter):
             super().__init__(name, options, data_type)
 
     def clean(self, value):
-        on_list = self.filter_type in (FilterType.IN_LIST, FilterType.NOT_IN_LIST)
+        on_list = _key(self.operation_text) in ('in list', 'not in list')
         if on_list and self.name == BookmarkField.ID.name.lower():
             value = [int(v.strip()) for v in value.split(',') if v.strip()]
         elif on_list:
