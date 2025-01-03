@@ -16,4 +16,4 @@ url = "{{url}}" +
     "?url=" + encodeURIComponent(url) +
     "&title=" + encodeURIComponent(title) +
     "&description=" + encodeURIComponent(desc);
-window.open(url, '_blank', 'menubar=no, height=600, width=800, toolbar=no, scrollbars=yes, status=no, dialog=1');
+window.open(url, '_blank', 'menubar=no, height=700, width=800, toolbar=no, scrollbars=yes, status=no, dialog=1');

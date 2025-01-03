@@ -141,7 +141,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         if netloc and self.url_render_mode != 'netloc' and url_for_index_view_netloc:
             tag_links += [link(f'netloc:{netloc}', url_for_index_view_netloc, badge='success')]
         for tag in filter(None, model.tags.split(',')):
-            tag_links += [link(tag, get_index_view_url(flt0_tags_contain=tag.strip()), badge='default')]
+            tag_links += [link(tag, get_index_view_url(flt0_tags_contain=tag.strip()), badge='secondary')]
         res += [f'<div class="tag-list">{"".join(tag_links)}</div>']
         description = model.description and f'<div class="description">{escape(model.description)}</div>'
         if description:
@@ -152,7 +152,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     def get_detail_value(self, context, model, name):
         value = super().get_detail_value(context, model, name)
         if name == 'tags':
-            tags = (link(s.strip(), url_for('bookmark.index_view', flt0_tags_contain=s.strip()), badge='default')
+            tags = (link(s.strip(), url_for('bookmark.index_view', flt0_tags_contain=s.strip()), badge='secondary')
                     for s in (value or '').split(',') if s.strip())
             return Markup(f'<div class="tag-list">{"".join(tags)}</div>')
         if name == 'url':
@@ -631,7 +631,7 @@ def format_value(field, bookmark, spacing=''):
 
 def link(text, url, new_tab=False, html=False, badge=''):
     target = ('' if not new_tab else ' target="_blank"')
-    cls = ('' if not badge else f' class="btn label label-{badge}"')
+    cls = ('' if not badge else f' class="btn badge badge-{badge}"')
     return f'<a{cls} href="{escape(url)}"{target}>{text if html else escape(text)}</a>'
 
 
