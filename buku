@@ -4681,14 +4681,24 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
     skip_print = False
     while True:
-        if (new_results or nav == 'n') and not skip_print:
-            count = next_index
-
+        if (new_results or nav in ['n', 'N']) and not skip_print:
             if results:
                 total_results = len(results)
                 cur_index = next_index
-                if cur_index < total_results:
-                    next_index = min(cur_index + num, total_results)
+                if new_results and cur_index < total_results:
+                    if nav == 'N':
+                        if cur_index <= num:
+                            cur_index = count = 0
+                            next_index = num
+                        elif cur_index % num != 0:
+                            next_index = cur_index - (cur_index % num)
+                            count = cur_index = next_index - num
+                        else:
+                            cur_index = count = cur_index - num * 2
+                            next_index -= num
+                    elif cur_index < total_results:
+                        count = next_index
+                        next_index = min(cur_index + num, total_results)
                     print()
                     for row in results[cur_index:next_index]:
                         count += 1
@@ -4714,7 +4724,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             return
 
         # show the next set of results from previous search
-        if nav == 'n':
+        if nav == 'n' or nav =='N':
             continue
 
         if (m := re.match(r'^R(?: (-)?([0-9]+))?$', nav.rstrip())) and (n := int(m[2] or 1)) > 0:
