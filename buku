@@ -3509,8 +3509,11 @@ def convert_bookmark_set(
             out += '    <bookmark href="%s"' % (html.escape(row.url)).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
             if row.tags:
                 out += ' TAGS="' + html.escape(row.tags).encode('ascii', 'xmlcharrefreplace').decode('utf-8') + '"'
-            out += '>\n        <title>{}</title>\n    </bookmark>\n'\
+            out += '>\n        <title>{}</title>'\
                 .format(html.escape(title(row)).encode('ascii', 'xmlcharrefreplace').decode('utf-8'))
+            if row.desc:
+                out += '\n        <desc>{}</desc>'.format(html.escape(row.desc).encode('ascii', 'xmlcharrefreplace').decode('utf-8'))
+            out += '\n    </bookmark>\n'
             count += 1
 
         out += '</xbel>'
