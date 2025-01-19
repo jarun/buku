@@ -791,7 +791,7 @@ def test_import_html_and_add_parent():
             [
                 ("http://example11.com", None, ",folder11,", None, 0, True, False),
                 ("http://example121.com", None, ",folder121,", None, 0, True, False),
-                ("http://example12.com", None, None, None, 0, True, False),
+                ("http://example12.com", None, ",folder12,", None, 0, True, False),
                 ("http://example13.com", None, ",folder13 (blah blah),tag3,tag4,", None, 0, True, False),
             ],
         ),
