@@ -12,9 +12,9 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 from random import shuffle
 from unittest import mock
 
+from genericpath import exists
 import pytest
 import yaml
-from genericpath import exists
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
