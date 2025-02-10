@@ -4014,35 +4014,21 @@ def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
             desc = comment_tag.find(string=True, recursive=False)
 
         if add_parent_folder_as_tag:
-            # add parent folder as tag
-            if use_nested_folder_structure:
-                # New method that would generalize for else case to
-                # structure of folders
-                # dt
-                #   h3 (folder name)
-                #   dl
-                #       dt
-                #           a (could be h3, and continue recursively)
-                parents = tag.find_parents('dl')
-                for parent in parents:
-                    header = parent.find_previous_sibling('h3')
-                    if header:
-                        if tag.has_attr('tags'):
-                            tag['tags'] += (DELIM + strip_delim(header.text))
-                        else:
-                            tag['tags'] = strip_delim(header.text)
-            else:
-                # could be its folder or not
-                possible_folder = tag.find_previous('h3')
-                # get list of tags within that folder
-                tag_list = tag.parent.parent.find_parent('dl')
-
-                if ((possible_folder) and possible_folder.parent in list(tag_list.parents)):
-                    # then it's the folder of this bookmark
+            # New method that would generalize for else case to
+            # structure of folders
+            # dt
+            #   h3 (folder name)
+            #   dl
+            #       dt
+            #           a (could be h3, and continue recursively)
+            parents = tag.find_parents('dl')
+            for parent in (parents if use_nested_folder_structure else parents[:1]):
+                header = parent.find_previous_sibling('h3')
+                if header:
                     if tag.has_attr('tags'):
-                        tag['tags'] += (DELIM + strip_delim(possible_folder.text))
+                        tag['tags'] += (DELIM + strip_delim(header.text))
                     else:
-                        tag['tags'] = strip_delim(possible_folder.text)
+                        tag['tags'] = strip_delim(header.text)
 
         # add unique tag if opted
         if newtag:
