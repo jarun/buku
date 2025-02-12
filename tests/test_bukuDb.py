@@ -8,6 +8,7 @@ import re
 import sqlite3
 import sys
 import unittest
+from genericpath import exists
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from random import shuffle
 from unittest import mock
