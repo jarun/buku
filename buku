@@ -3380,6 +3380,7 @@ PROMPT KEYS:
                            append, set, remove (all or specific) tags
                            search by taglist id(s) if records are omitted
     n                      show next page of search results
+    N                      show previous page of search results
     o id|range [...]       browse bookmarks by indices and/or ranges
     p id|range [...]       print bookmarks by indices and/or ranges
     w [editor|id]          edit and add or update a bookmark
@@ -4660,7 +4661,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
     new_results = bool(results)
     nav = ''
-    cur_index = next_index = count = 0
+    cur_index = next_index = prev_index = 0
 
     if listtags:
         show_taglist(obj)
@@ -4672,44 +4673,32 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
     if noninteractive:
         try:
-            for row in results:
-                count += 1
-                print_single_rec(row, count, columns)
-        except Exception:
-            pass
+            for i, row in enumerate(results):
+                print_single_rec(row, i + 1, columns)
+        except Exception as e:
+            LOGERR(e)
         return
 
     skip_print = False
     while True:
         if (new_results or nav in ['n', 'N']) and not skip_print:
-            if results:
-                total_results = len(results)
-                cur_index = next_index
-                if new_results and cur_index < total_results:
-                    if nav == 'N':
-                        if cur_index <= num:
-                            cur_index = count = 0
-                            next_index = num
-                        elif cur_index % num != 0:
-                            next_index = cur_index - (cur_index % num)
-                            count = cur_index = next_index - num
-                        else:
-                            cur_index = count = cur_index - num * 2
-                            next_index -= num
-                    elif cur_index < total_results:
-                        count = next_index
-                        next_index = min(cur_index + num, total_results)
-                    print()
-                    for row in results[cur_index:next_index]:
-                        count += 1
-                        print_single_rec(row, count, columns)
-                    print('%d-%d/%d' % (cur_index + 1, next_index, total_results))
-                else:
-                    print('No more results')
-                    new_results = False
-            else:
+            _total_results = len(results or [])
+            cur_index = next_index              # used elsewhere as "most recent page start index"
+            if not results:
                 print('0 results')
                 new_results = False
+            elif cur_index >= _total_results and nav != 'N':
+                print('No more results')
+                new_results = False
+            else:
+                if nav == 'N':
+                    cur_index = min(cur_index, prev_index)
+                prev_index = max(0, cur_index - num)
+                next_index = min(cur_index + num, _total_results)
+                print()
+                for i in range(cur_index, next_index):
+                    print_single_rec(results[i], i + 1, columns)
+                print('%d-%d/%d' % (cur_index + 1, next_index, _total_results))
         skip_print = False
 
         try:
@@ -4724,7 +4713,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             return
 
         # show the next set of results from previous search
-        if nav == 'n' or nav =='N':
+        if nav in ('n', 'N'):
             continue
 
         if (m := re.match(r'^R(?: (-)?([0-9]+))?$', nav.rstrip())) and (n := int(m[2] or 1)) > 0:
@@ -4865,7 +4854,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         # Copy URL to clipboard
         if nav.startswith('c ') and nav[2:].isdigit():
             index = int(nav[2:]) - 1
-            if index < 0 or index >= count:
+            if index < 0 or index >= next_index:
                 print('No matching index')
                 continue
             copy_to_clipboard(content=results[index + cur_index][1].encode('utf-8'))
@@ -4894,7 +4883,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         for nav in nav.split():
             if is_int(nav):
                 index = int(nav) - 1
-                if index < 0 or index >= count:
+                if index < 0 or index >= next_index:
                     print('No matching index %s' % nav)
                     continue
                 browse(results[index][1])
@@ -4905,7 +4894,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                         vals[0], vals[-1] = vals[-1], vals[0]
 
                     for _id in range(vals[0]-1, vals[-1]):
-                        if 0 <= _id < count:
+                        if 0 <= _id < next_index:
                             browse(results[_id][1])
                         else:
                             print('No matching index %d' % (_id + 1))

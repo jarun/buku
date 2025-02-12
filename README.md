@@ -315,6 +315,7 @@ PROMPT KEYS:
                            append, set, remove (all or specific) tags
                            search by taglist id(s) if records are omitted
     n                      show next page of search results
+    N                      show previous page of search results
     o id|range [...]       browse bookmarks by indices and/or ranges
     p id|range [...]       print bookmarks by indices and/or ranges
     w [editor|id]          edit and add or update a bookmark
