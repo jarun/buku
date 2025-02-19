@@ -13,14 +13,13 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 from random import shuffle
 from unittest import mock
 
-from genericpath import exists
 import pytest
 import yaml
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from buku import PERMANENT_REDIRECTS, BukuDb, FetchResult, BookmarkVar, bookmark_vars, parse_tags, prompt
-from tests.util import mock_http, mock_fetch, _add_rec, _tagset
+from tests.util import mock_fetch, _add_rec, _tagset
 
 
 def get_temp_dir_path():
@@ -770,18 +769,6 @@ class TestBukuDb(unittest.TestCase):
                 self.assertEqual(from_db[3], parse_tags(["__02,__03,jaźń"]))
             elif title == "test":
                 self.assertEqual(from_db[3], parse_tags(["test,tes,est,__04"]))
-
-    def test_tnyfy_url(self):
-        tny, full = 'http://tny.im/yt', 'https://www.google.com'
-        # shorten a well-known url
-        with mock_http(tny, status=200):
-            shorturl = self.bdb.tnyfy_url(url=full, shorten=True)
-        self.assertEqual(shorturl, tny)
-
-        # expand a well-known short url
-        with mock_http(full, status=200):
-            url = self.bdb.tnyfy_url(url=tny, shorten=False)
-        self.assertEqual(url, full)
 
     # def test_browse_by_index(self):
     # self.fail()

@@ -55,9 +55,7 @@ def refresh_bookmark(rec_id: Union[int, None]):
     return Response.from_flag(result_flag)
 
 
-def get_tiny_url(rec_id):
-    url = getattr(flask.g, 'bukudb', api.get_bukudb()).tnyfy_url(rec_id)
-    return Response.SUCCESS(data={'url': url}) if url else Response.FAILURE()
+get_tiny_url = lambda rec_id: Response.REMOVED()
 
 
 _BOOL_VALUES = {'true': True, '1': True, 'false': False, '0': False}

@@ -196,7 +196,7 @@ def test_create_and_fetch(bukudb, monkeypatch, client, fetch, title, desc):
     ('_continue_editing', '/bookmark/edit/', {'id': '1', 'url': '/bookmark/'}),
 ])
 def test_create_redirect(client, redirect, uri, args):
-    query = {'link': 'http://example.com', 'title': '', 'description': '', 'tags': '', redirect: 'on'}
+    query = {'link': 'http://example.com', 'title': '', 'description': '', 'tags': '', 'fetch': '', redirect: 'on'}
 
     response = client.post('/bookmark/new/', data=query, follow_redirects=True)
     dom = assert_response(response, uri, args=args)

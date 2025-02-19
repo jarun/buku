@@ -1,7 +1,7 @@
 from typing import Any, Dict
 from enum import Enum
 from flask import jsonify
-from flask_api.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from flask_api.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_410_GONE
 
 OK, FAIL = 0, 1
 
@@ -9,6 +9,7 @@ OK, FAIL = 0, 1
 class Response(Enum):
     SUCCESS = (HTTP_200_OK, "Success.")
     FAILURE = (HTTP_400_BAD_REQUEST, "Failure.")
+    REMOVED = (HTTP_410_GONE, "Functionality no longer available.")
     INPUT_NOT_VALID = (HTTP_400_BAD_REQUEST, "Input data not valid.")
     BOOKMARK_NOT_FOUND = (HTTP_404_NOT_FOUND, "Bookmark not found.")
     TAG_NOT_FOUND = (HTTP_404_NOT_FOUND, "Tag not found.")
