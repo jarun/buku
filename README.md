@@ -62,7 +62,6 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 - Store bookmarks with auto-fetched title, tags and description
 - Auto-import from Firefox, Google Chrome, Chromium and MS Edge
 - Open bookmarks and search results in browser
-- Shorten, expand URLs
 - Browse cached page from the Wayback Machine
 - Text editor integration
 - Lightweight, clean interface, custom colors
@@ -272,8 +271,6 @@ POWER TOYS:
                            options, including removed info
                            (requires --update and --export; specific
                            HTTP response filter can be provided)
-      --shorten index|URL  fetch shortened url from tny.im service
-      --expand index|URL   expand a tny.im shortened url
       --cached index|URL   browse a cached page from Wayback Machine
       --offline            add a bookmark without connecting to web
       --suggest            show similar tags when adding bookmarks
@@ -516,11 +513,7 @@ PROMPT KEYS:
 36. List bookmarks with **immutable title**:
 
         $ buku -S immutable
-37. **Shorten URL** www.google.com and the URL at index 20:
-
-        $ buku --shorten www.google.com
-        $ buku --shorten 20
-38. **Append, remove tags at prompt** (taglist index to the left, bookmark index to the right):
+37. **Append, remove tags at prompt** (taglist index to the left, bookmark index to the right):
 
         // append tags at taglist indices 4 and 6-9 to existing tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 >> 5 3-2
@@ -530,43 +523,43 @@ PROMPT KEYS:
         buku (? for help) g > 5 3-2
         // remove tags at taglist indices 4 and 6-9 from tags in bookmarks at indices 5 and 2-3
         buku (? for help) g 4 9-6 << 5 3-2
-39. List bookmarks with **colored output**:
+38. List bookmarks with **colored output**:
 
         $ buku --colors oKlxm -p
-40. Add a bookmark after following all permanent redirects, but only if the server doesn't respond with an error (and there's no network failure)
+39. Add a bookmark after following all permanent redirects, but only if the server doesn't respond with an error (and there's no network failure)
 
         $ buku --add http://wikipedia.net --url-redirect --del-error
         2. Wikipedia
            > https://www.wikipedia.org/
            + Wikipedia is a free online encyclopedia, created and edited by volunteers around the world and hosted by the Wikimedia Foundation.
-41. Add a bookmark with tag `http redirect` if the server responds with a permanent redirect, or tag shaped like `http 404` on an error response:
+40. Add a bookmark with tag `http redirect` if the server responds with a permanent redirect, or tag shaped like `http 404` on an error response:
 
         $ buku --add http://wikipedia.net/notfound --tag-redirect 'http redirect' --tag-error 'http {}'
         [ERROR] [404] Not Found
         3. Not Found
            > http://wikipedia.net/notfound
            # http 404,http redirect
-42. Update all bookmarks matching the search by updating the URL if the server responds with a permanent redirect, deleting the bookmark if the server responds with HTTP error 400, 401, 402, 403, 404 or 500, or adding a tag shaped like `http:{}` in case of any other HTTP error; then export those affected by such changes into an HTML file, marking deleted records as well as old URLs for those replaced by redirect.
+41. Update all bookmarks matching the search by updating the URL if the server responds with a permanent redirect, deleting the bookmark if the server responds with HTTP error 400, 401, 402, 403, 404 or 500, or adding a tag shaped like `http:{}` in case of any other HTTP error; then export those affected by such changes into an HTML file, marking deleted records as well as old URLs for those replaced by redirect.
 
         $ buku -S ://wikipedia.net -u --url-redirect --tag-error --del-error 400-404,500 --export-on --export backup.html
 
-43. Print out a single **random** bookmark:
+42. Print out a single **random** bookmark:
 
         $ buku --random --print
 
-44. Print out 3 **random** bookmarks **ordered** by netloc (reversed), title and url:
+43. Print out 3 **random** bookmarks **ordered** by netloc (reversed), title and url:
 
         $ buku --random 3 --order ,-netloc,title,+url --print
 
-45. Print out a single **random** bookmark matching **search** criteria, and **export** into a Markdown file (in DB order):
+44. Print out a single **random** bookmark matching **search** criteria, and **export** into a Markdown file (in DB order):
 
         $ buku --random -S kernel debugging --export random.md
 
-46. Swap positions of records #4 and #5:
+45. Swap positions of records #4 and #5:
 
         $ buku --swap 4 5
 
-47. More **help**:
+46. More **help**:
 
         $ buku -h
         $ man buku

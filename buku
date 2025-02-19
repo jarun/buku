@@ -3134,84 +3134,11 @@ n: don't add parent folder as tag
             index: Optional[int] = None,
             url: Optional[str] = None,
             shorten: bool = True) -> Optional[str]:
-        """Shorten a URL using Google URL shortener.
+        """Shorten/expand a URL using the tny.im service.
 
-        Parameters
-        ----------
-        index : int, optional (if URL is provided)
-            DB index of the bookmark with the URL to shorten. Default is None.
-        url : str, optional (if index is provided)
-            URL to shorten.
-        shorten : bool
-            True to shorten, False to expand. Default is False.
-
-        Returns
-        -------
-        str
-            Shortened url on success, None on failure.
+        Tny.im is no longer available; don't use this method.
         """
-
-        global MYPROXY
-
-        if not index and not url:
-            LOGERR('Either a valid DB index or URL required')
-            return None
-
-        if index:
-            with self.lock:
-                self.cur.execute('SELECT url FROM bookmarks WHERE id = ? LIMIT 1', (index,))
-                results = self.cur.fetchall()
-            if not results:
-                return None
-
-            url = results[0][0]
-
-        from urllib.parse import quote_plus as qp
-
-        url = url or ''
-        urlbase = 'https://tny.im/yourls-api.php?action='
-        if shorten:
-            _u = urlbase + 'shorturl&format=simple&url=' + qp(url)
-        else:
-            _u = urlbase + 'expand&format=simple&shorturl=' + qp(url)
-
-        if MYPROXY is None:
-            gen_headers()
-
-        ca_certs = os.getenv('BUKU_CA_CERTS', default=CA_CERTS)
-        if MYPROXY:
-            manager = urllib3.ProxyManager(
-                MYPROXY,
-                num_pools=1,
-                headers=MYHEADERS,
-                cert_reqs='CERT_REQUIRED',
-                ca_certs=ca_certs)
-        else:
-            manager = urllib3.PoolManager(num_pools=1,
-                                          headers={'User-Agent': USER_AGENT},
-                                          cert_reqs='CERT_REQUIRED',
-                                          ca_certs=ca_certs)
-
-        try:
-            r = manager.request(
-                'POST',
-                _u,
-                headers={
-                    'content-type': 'application/json',
-                    'User-Agent': USER_AGENT}
-            )
-        except Exception as e:
-            LOGERR(e)
-            manager.clear()
-            return None
-
-        if r.status != 200:
-            LOGERR('[%s] %s', r.status, r.reason)
-            return None
-
-        manager.clear()
-
-        return r.data.decode(errors='replace')
+        warn('\'BukuDb.tnyfy_url()\' no longer works due to the takedown of tny.im service.', DeprecationWarning)
 
     def browse_cached_url(self, arg):
         """Open URL at index or URL.
@@ -6010,8 +5937,6 @@ POSITIONAL ARGUMENTS:
                          options, including removed info
                          (requires --update and --export; specific
                          HTTP response filter can be provided)
-    --shorten index|URL  fetch shortened url from tny.im service
-    --expand index|URL   expand a tny.im shortened url
     --cached index|URL   browse a cached page from Wayback Machine
     --offline            add a bookmark without connecting to web
     --suggest            show similar tags when adding bookmarks
@@ -6040,8 +5965,6 @@ POSITIONAL ARGUMENTS:
     addarg('--tag-error', nargs='?', const=True, default=False, help=hide)
     addarg('--del-error', nargs='*', help=hide)
     addarg('--export-on', nargs='*', help=hide)
-    addarg('--shorten', nargs=1, help=hide)
-    addarg('--expand', nargs=1, help=hide)
     addarg('--cached', nargs=1, help=hide)
     addarg('--offline', action='store_true', help=hide)
     addarg('--suggest', action='store_true', help=hide)
@@ -6490,26 +6413,6 @@ POSITIONAL ARGUMENTS:
             except ValueError:
                 LOGERR('Invalid index or range to open')
                 bdb.close_quit(1)
-
-    # Shorten URL
-    if args.shorten:
-        if is_int(args.shorten[0]):
-            shorturl = bdb.tnyfy_url(index=int(args.shorten[0]))
-        else:
-            shorturl = bdb.tnyfy_url(url=args.shorten[0])
-
-        if shorturl:
-            print(shorturl)
-
-    # Expand URL
-    if args.expand:
-        if is_int(args.expand[0]):
-            url = bdb.tnyfy_url(index=int(args.expand[0]), shorten=False)
-        else:
-            url = bdb.tnyfy_url(url=args.expand[0], shorten=False)
-
-        if url:
-            print(url)
 
     # Try to fetch URL from Wayback Machine
     if args.cached:

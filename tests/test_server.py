@@ -7,7 +7,7 @@ from buku import FetchResult
 from bukuserver import server
 from bukuserver.response import Response
 from bukuserver.server import get_bool_from_env_var
-from tests.util import mock_http, mock_fetch
+from tests.util import mock_fetch
 
 
 def assert_response(response, exp_res: Response, data: Dict[str, Any] = None):
@@ -75,7 +75,6 @@ def test_api_empty_db(client, method, url, exp_res, data):
         ['/api/bookmarks/1', ['post']],
         ['/api/bookmarks/refresh', ['get', 'put', 'delete']],
         ['api/bookmarks/1/refresh', ['get', 'put', 'delete']],
-        ['api/bookmarks/1/tiny', ['post', 'put', 'delete']],
         ['/api/bookmarks/1/2', ['post']],
     ]
 )
@@ -94,7 +93,6 @@ def test_not_allowed(client, url, methods):
         ['put', '/api/bookmarks/1', {'title': 'none'}, Response.FAILURE],
         ['delete', '/api/bookmarks/1', None, Response.FAILURE],
         ['post', '/api/bookmarks/1/refresh', None, Response.FAILURE],
-        ['get', '/api/bookmarks/1/tiny', None, Response.FAILURE],
         ['get', '/api/bookmarks/1/2', None, Response.RANGE_NOT_VALID],
         ['put', '/api/bookmarks/1/2', {1: {'title': 'one'}, 2: {'title': 'two'}}, Response.RANGE_NOT_VALID],
         ['delete', '/api/bookmarks/1/2', None, Response.RANGE_NOT_VALID],
@@ -191,20 +189,6 @@ def test_refresh_bookmark(client, api_url):
         assert_response(rd, Response.SUCCESS)
     rd = client.get('/api/bookmarks/1')
     assert_response(rd, Response.SUCCESS, {'description': '', 'tags': [], 'title': 'Google', 'url': url})
-
-
-@pytest.mark.parametrize(
-    'url, title, exp_res, tiny', [
-        ['http://google.com', 'Google', Response.SUCCESS, 'http://tny.im/2'],
-        ['chrome://bookmarks/', '', Response.FAILURE, None],
-    ])
-def test_get_tiny_url(client, url, title, exp_res, tiny):
-    with mock_fetch(title=title):
-        rd = client.post('/api/bookmarks', json={'url': url})
-    assert_response(rd, Response.SUCCESS)
-    with mock_http(body=tiny, status=(200 if tiny else 400)):
-        rd = client.get('/api/bookmarks/1/tiny')
-    assert_response(rd, exp_res, tiny and {'url': tiny})
 
 
 @pytest.mark.parametrize('kwargs, kwmock, exp_res, data', [
