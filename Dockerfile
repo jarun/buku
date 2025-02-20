@@ -22,7 +22,7 @@ RUN set -ex \
   && rm -rf /buku
 
 HEALTHCHECK --interval=1m --timeout=10s \
-  CMD nc -z localhost ${BUKUSERVER_PORT} || exit 1
+  CMD nc -z 127.0.0.1 ${BUKUSERVER_PORT} || exit 1
 
 ENTRYPOINT gunicorn --bind 0.0.0.0:${BUKUSERVER_PORT} "bukuserver.server:create_app()"
 EXPOSE ${BUKUSERVER_PORT}
