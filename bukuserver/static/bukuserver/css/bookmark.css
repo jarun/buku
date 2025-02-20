@@ -10,6 +10,9 @@ table tr td:not(:first-child) {
     }
 }
 
+/* fixing details filter width */
+#fa_filter {flex-grow: 1}
+
 .link {
     display: block;
 }

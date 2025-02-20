@@ -17,8 +17,9 @@
 {% macro limit_navigation_if_popup() %}
   <style>
     .popup .navbar-brand {pointer-events: none}
-    .popup :is(#admin-navbar-collapse, .navbar-toggle) {display: none !important}
-    .popup .nav-tabs :is(:first-child, :nth-child(2):not(.active)) > * {display: none}
+    .popup #admin-navbar-collapse {display: block}
+    .popup :is(.navbar-nav, .navbar-toggler) {display: none}
+    .popup .nav-tabs :is(:first-child, :nth-child(2)) > .nav-link:not(.active) {display: none}
   </style>
   <script>opener && (opener !== window) && document.body.classList.add('popup')</script>
 {% endmacro %}
@@ -31,17 +32,37 @@
   {% endif %}
 {% endmacro %}
 
-{% macro fetch_checkbox(checked=True) %}
+{% macro fetch_checkbox(checked=True, modal=False) %}
   <script>
     $('.admin-form [name=fetch]').remove();
-    $('.admin-form').append(
-      $(`<div class="form-group"><label style="display: block"><span class="col-md-2 text-right">{{ _('Fetch') }} &nbsp; </span>`
-        +`<span class="col-md-10"><input type="checkbox" name="fetch"{% if checked %} checked{% endif %}></span></label></div>`));
+    $('.admin-form fieldset{% if modal %} .modal-footer{% endif %}').{% if modal %}prepend{% else %}append{% endif %}(
+      $(`<div class="form-group {{ 'mb-0' if modal else '' }}"{% if modal %} style="flex-grow: 1"{% endif %}>`
+        +`<label class="control-label {{ 'mb-0' if modal else '' }}">{{ _('Fetch') }} &nbsp; </label>`
+        +`<input type="checkbox" name="fetch"{% if checked %} checked{% endif %}></div>`));
+  </script>
+{% endmacro %}
+
+{% macro horizontal_form(excluding_popups=False) %}
+  <script>
+    $('.admin-form .form-group').each(function () {
+      if ($('.submit-row', this).length > 0{% if excluding_popups %} || document.body.matches('.popup'){% endif %}) {
+        $('.submit-row', this).addClass(document.body.matches('.popup') ? 'col-md-12' : 'offset-md-2');
+      } else if ($('input[type=checkbox], input[type=radio]', this).length > 0) {
+        $('label', this).addClass('form-row').css({cursor: 'pointer'}).html(`<span>${ $('label', this).html() }</span>`);
+        $('label span', this).addClass('col-md-2 col-form-label text-right d-inline-block');
+        $('input', this).appendTo($('label', this));
+      } else {
+        $(this).addClass('form-row');
+        $('input, textarea, select', this).addClass('col-md-10');
+        $('label', this).addClass('col-md-2 col-form-label text-right');
+      }
+    });
   </script>
 {% endmacro %}
 
 {% macro details_formatting(prefix='') %}
   <script>
+    $(`.modal-header h3`).wrapInner('<h5 class="modal-title">').children(0).unwrap();  // flask-admin #2505
     $(`body.popup {{prefix}} a`).attr('target', '_blank');
   </script>
 {% endmacro %}
@@ -94,20 +115,18 @@
     $(document).ready(function() {
       const SIZES = [20, 50, 100];  // hardcoded list; see page_size_form() in admin/model/layout.html
       let pageSize = url => new URL(url || location.host).searchParams.get('page_size');
-      $(`.actions-nav .dropdown-menu`).each(function () {
-        let _sizes = $(`li a`, this).map(function () {return pageSize(this.href)}).get();
+      $(`.nav.nav-tabs .dropdown-menu`).each(function () {
+        let _sizes = $(`a.dropdown-item`, this).map(function () {return pageSize(this.href)}).get();
         if (SIZES.every((x, i) => x == _sizes[i]))
-          $(`li`, this).last().clone().each(function () {
-            $('a', this).text({{ _('custom')|tojson }}).attr('href', `#`).on('click', () => {
-              let page = prompt({{ _('Set custom page size (empty for default)')|tojson }}, pageSize(location) || '');
-              if ((page == "") || (Number(page) >= 1)) {
-                let search = new URL(location).searchParams;
-                (page ? search.set('page_size', parseInt(page)) : search.delete('page_size'));
-                location.search = search;
-              } else if (page != null)
-                alert({{ _('Invalid page size')|tojson }} + `: "${page}"`);
-              return false;
-            });
+          $('a', this).last().clone().text({{ _('custom')|tojson }}).attr('href', `#`).on('click', () => {
+            let page = prompt({{ _('Set custom page size (empty for default)')|tojson }}, pageSize(location) || '');
+            if (Number(page) || (page == "")) {
+              let search = new URL(location).searchParams;
+              (page ? search.set('page_size', page) : search.delete('page_size'));
+              location.search = search;
+            } else if (page != null)
+              alert({{ _('Invalid page size')|tojson }} + `: "${page}"`);
+            return false;
           }).appendTo(this);
       })
     });
