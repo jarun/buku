@@ -4962,23 +4962,23 @@ def print_single_rec(row: BookmarkVar, idx: int=0, columns: int=0):  # NOQA
             return
 
         INDENT = 5
-        ln_num = 1
         fillwidth = columns - INDENT
+        desc_lines = [s for line in row.desc.splitlines()
+                        for s in textwrap.wrap(line, width=fillwidth) or ['']]
+        TR = str.maketrans(',-', '-,')  # we want breaks after commas rather than hyphens
+        tag_lines = textwrap.wrap(row.tags.translate(TR), width=fillwidth)
 
-        for line in textwrap.wrap(row.desc.replace('\n', ''), width=fillwidth):
-            if ln_num == 1:
+        for idx, line in enumerate(desc_lines):
+            if idx == 0:
                 print(DESC_STR % line, end='')
-                ln_num += 1
             else:
                 print(DESC_WRAP % (' ' * INDENT, line))
 
-        ln_num = 1
-        for line in textwrap.wrap(row.tags.replace('\n', ''), width=fillwidth):
-            if ln_num == 1:
-                print(TAG_STR % line, end='')
-                ln_num += 1
+        for idx, line in enumerate(tag_lines):
+            if idx == 0:
+                print(TAG_STR % line.translate(TR), end='')
             else:
-                print(TAG_WRAP % (' ' * INDENT, line))
+                print(TAG_WRAP % (' ' * INDENT, line.translate(TR)))
         print()
     except UnicodeEncodeError:
         str_list = []
