@@ -1028,7 +1028,8 @@ class BukuDb:
             tag_redirect: bool | str = False,
             tag_error: bool | str = False,
             del_error: Optional[Set[int] | range] = None,             # Optional[IntSet]
-            export_on: Optional[Set[int] | range] = None) -> bool:    # Optional[IntSet]
+            export_on: Optional[Set[int] | range] = None,             # Optional[IntSet]
+            retain_order: bool = False) -> bool:
         """Update an existing record at (each) index.
 
         Update all records if index is 0 or empty, and url is not specified.
@@ -1066,6 +1067,9 @@ class BukuDb:
             Does NOT cause deletion of the bookmark on a network error.
         export_on : int{} | range, optional
             Limit the export to URLs returning one of given HTTP codes; store old URLs.
+        retain_order : bool
+            If True, bookmark deletion will not result in their order being changed
+            (multiple indices will be updated instead).
 
         Returns
         -------
@@ -1156,7 +1160,7 @@ class BukuDb:
             if result.fetch_status in export_on:  # storing the old record
                 self._to_export[url] = self.get_rec_by_id(index)
             LOGERR('HTTP error %s', result.fetch_status)
-            return self.delete_rec(index)
+            return self.delete_rec(index, retain_order=retain_order)
 
         if not indices and (arguments or tags_in):
             resp = read_in('Update ALL bookmarks? (y/n): ')
@@ -1194,7 +1198,7 @@ class BukuDb:
         if not arguments:  # no arguments => nothing to update
             if (tag_modified or network_test) and self.chatty:
                 self.print_rec(indices)
-            self.commit_delete()
+            self.commit_delete(retain_order=retain_order)
             return ret
 
         query = query[:-1]
@@ -1223,7 +1227,7 @@ class BukuDb:
                 LOGERR(e)
                 return False
             finally:
-                self.commit_delete()
+                self.commit_delete(retain_order=retain_order)
 
         return True
 
@@ -1239,7 +1243,8 @@ class BukuDb:
             update_title: bool = True,
             custom_url: Optional[str] = None,
             custom_tags: Optional[str] = None,
-            delay_delete: bool = False) -> bool:
+            delay_delete: bool = False,
+            retain_order: bool = False) -> bool:
         """Refresh ALL (or specified) records in the database.
 
         Fetch title for each bookmark from the web and update the records.
@@ -1278,6 +1283,9 @@ class BukuDb:
             Overwrite all tags. (Use to combine network testing with tags overwriting.)
         delay_delete : bool
             Delay scheduled deletions by del_error. (Use for network testing during update.)
+        retain_order : bool
+            If True, bookmark deletion will not result in their order being changed
+            (multiple indices will be updated instead).
 
         Returns
         -------
@@ -1456,17 +1464,18 @@ class BukuDb:
             if delay_delete:
                 self.conn.commit()
             else:
-                self.commit_delete()
+                self.commit_delete(retain_order=retain_order)
 
         return True
 
-    def commit_delete(self, apply: bool = True):
+    def commit_delete(self, apply: bool = True, retain_order: bool = False):
         """Commit delayed delete commands."""
         if apply and self._to_delete is not None:
             with self.lock:
                 for id in sorted(set(self._to_delete), reverse=True):
-                    self.delete_rec(id, delay_commit=True, chatty=False)
+                    self.delete_rec(id, delay_commit=True, chatty=False, retain_order=retain_order)
                 self.conn.commit()
+                self.cur.execute('VACUUM')
         self._to_delete = None
 
     def edit_update_rec(self, index, immutable=None):
@@ -1830,7 +1839,7 @@ class BukuDb:
             self.conn.commit()
         return True
 
-    def compactdb(self, index: int, delay_commit: bool = False):
+    def compactdb(self, index: int, delay_commit: bool = False, upto: Optional[int] = None, retain_order: bool = False):
         """When an entry at index is deleted, move the
         last entry in DB to index, if index is lesser.
 
@@ -1841,28 +1850,34 @@ class BukuDb:
         delay_commit : bool
             True if record should not be committed to the DB,
             leaving commit responsibility to caller. Default is False.
+        upto : int, optional
+            If specified, multiple indices are moved at once.
+        retain_order: bool
+            Shift indices of multiple records by 1 instead of replacing
+            the deleted record with the last one. Default is False.
         """
 
         # Return if the last index left in DB was just deleted
         max_id = self.get_max_id()
-        if not max_id:
+        if not max_id or (upto and upto < index):
             return
-
-        query1 = 'SELECT id, URL, metadata, tags, desc, flags FROM bookmarks WHERE id = ? LIMIT 1'
-        query2 = 'DELETE FROM bookmarks WHERE id = ?'
-        query3 = 'INSERT INTO bookmarks(id, URL, metadata, tags, desc, flags) VALUES (?, ?, ?, ?, ?, ?)'
 
         # NOOP if the just deleted index was the last one
         if max_id > index:
-            results = self._fetch(query1, max_id)
-            for row in results:
-                with self.lock:
-                    self.cur.execute(query2, (row.id,))
-                    self.cur.execute(query3, (index, row.url, row.title, row.tags_raw, row.desc, row.flags))
-                    if not delay_commit:
-                        self.conn.commit()
-                if self.chatty:
-                    print('Index %d moved to %d' % (row.id, index))
+            with self.lock:
+                if retain_order or (upto or 0) > index:
+                    step = (max(max_id - upto, upto + 1 - index) if not retain_order else
+                            1 if not upto else upto + 1 - index)
+                    self.cur.execute('UPDATE bookmarks SET id = id-? WHERE id >= ?', (step, index+step))
+                    msg = f'Indices {index+step}-{max_id} moved to {index}-{max_id-step}'
+                else:
+                    self.cur.execute('UPDATE bookmarks SET id = ? WHERE id = ?', (index, max_id))
+                    msg = f'Index {max_id} moved to {index}'
+                if not delay_commit:
+                    self.conn.commit()
+                    self.cur.execute('VACUUM')
+            if self.chatty:
+                print(msg)
 
     def delete_rec(
             self,
@@ -1872,6 +1887,7 @@ class BukuDb:
             is_range: bool = False,
             delay_commit: bool = False,
             chatty: Optional[bool] = None,
+            retain_order: bool = False,
     ) -> bool:
         """Delete a single record or remove the table if index is 0.
 
@@ -1891,6 +1907,9 @@ class BukuDb:
             leaving commit responsibility to caller. Default is False.
         chatty : Optional[bool]
             Override for self.chatty
+        retain_order: bool
+            Shift indices of multiple records instead of replacing
+            the deleted record with the last one. Default is False.
 
         Raises
         ------
@@ -1989,15 +2008,13 @@ class BukuDb:
                     if not self.cur.rowcount:
                         return False
 
-                # Compact DB by ascending order of index to ensure
-                # the existing higher indices move only once
+                # Compact DB in a single operation for the range
                 # Delayed commit is forced
                 with self.lock:
-                    for index in range(low, high + 1):
-                        self.compactdb(index, delay_commit=True)
-
+                    self.compactdb(low, upto=high, delay_commit=True, retain_order=retain_order)
                     if not delay_commit:
                         self.conn.commit()
+                        self.cur.execute('VACUUM')
             except IndexError:
                 LOGERR('No matching index')
                 return False
@@ -2024,9 +2041,10 @@ class BukuDb:
                     self.cur.execute(query, (index,))
                     if self.cur.rowcount == 1:
                         print('Index %d deleted' % index)
-                        self.compactdb(index, delay_commit=True)
+                        self.compactdb(index, delay_commit=True, retain_order=retain_order)
                         if not delay_commit:
                             self.conn.commit()
+                            self.cur.execute('VACUUM')
                     else:
                         LOGERR('No matching index %d', index)
                         return False
@@ -2039,7 +2057,7 @@ class BukuDb:
 
         return True
 
-    def delete_resultset(self, results):
+    def delete_resultset(self, results, retain_order=False):
         """Delete search results in descending order of DB index.
 
         Indices are expected to be unique and in ascending order.
@@ -2052,6 +2070,9 @@ class BukuDb:
         ----------
         results : list of tuples
             List of results to delete from DB.
+        retain_order: bool
+            Shift indices of multiple records instead of replacing
+            the deleted record with the last one. Default is False.
 
         Returns
         -------
@@ -2064,13 +2085,15 @@ class BukuDb:
                 return False
 
         # delete records in reverse order
+        ids = sorted(set(x[0] for x in results))
         with self.lock:
-            for pos, row in reversed(list(enumerate(results))):
-                self.delete_rec(row[0], delay_commit=True)
+            for pos, id in reversed(list(enumerate(ids))):
+                self.delete_rec(id, delay_commit=True, retain_order=retain_order)
 
                 # Commit at every 200th removal, counting from the end
                 if pos % 200 == 0:
                     self.conn.commit()
+                    self.cur.execute('VACUUM')
 
         return True
 
@@ -2094,6 +2117,7 @@ class BukuDb:
                 self.cur.execute('DELETE FROM bookmarks')
                 if not delay_commit:
                     self.conn.commit()
+                    self.cur.execute('VACUUM')
             return True
         except Exception as e:
             LOGERR('delete_rec_all(): %s', e)
@@ -2114,9 +2138,6 @@ class BukuDb:
             return False
 
         if self.delete_rec_all():
-            with self.lock:
-                self.cur.execute('VACUUM')
-                self.conn.commit()
             print('All bookmarks deleted')
             return True
 
@@ -5791,6 +5812,7 @@ POSITIONAL ARGUMENTS:
                          if no arguments:
                          - delete results when used with search
                          - otherwise delete all bookmarks
+    --retain-order       prevents reordering after deleting a bookmark
     -h, --help           show this information and exit
     -v, --version        show the program version and exit''')
     addarg = general_grp.add_argument
@@ -5798,6 +5820,7 @@ POSITIONAL ARGUMENTS:
     addarg('-u', '--update', nargs='*', help=hide)
     addarg('-w', '--write', nargs='?', const=get_system_editor(), help=hide)
     addarg('-d', '--delete', nargs='*', help=hide)
+    addarg('--retain-order', action='store_true', default=False, help=hide)
     addarg('-h', '--help', action='store_true', help=hide)
     addarg('-v', '--version', action='version', version=__version__, help=hide)
 
@@ -6284,7 +6307,7 @@ POSITIONAL ARGUMENTS:
         # prompt should be non-interactive
         # delete gets priority over update
         if args.delete is not None and not args.delete:
-            bdb.delete_resultset(search_results)
+            bdb.delete_resultset(search_results, retain_order=args.retain_order)
         elif args.update is not None and not args.update:
             update_search_results = True
 
@@ -6317,8 +6340,8 @@ POSITIONAL ARGUMENTS:
             _indices = ([] if 0 in _indices else _indices)
         if _indices is not None:
             bdb.update_rec(_indices, url_in, title_in, tags, desc_in, _immutable(args), threads=args.threads,
-                           url_redirect=args.url_redirect, tag_redirect=tag_redirect,
-                           tag_error=tag_error, del_error=del_error, export_on=export_on)
+                           url_redirect=args.url_redirect, tag_redirect=tag_redirect, tag_error=tag_error,
+                           del_error=del_error, export_on=export_on, retain_order=args.retain_order)
             if args.export and bdb._to_export is not None:
                 bdb.exportdb(args.export[0], order=order)
 
@@ -6332,22 +6355,17 @@ POSITIONAL ARGUMENTS:
             try:
                 vals = [int(x) for x in args.delete[0].split('-')]
                 if len(vals) == 2:
-                    bdb.delete_rec(0, vals[0], vals[1], True)
+                    bdb.delete_rec(0, vals[0], vals[1], is_range=True, retain_order=args.retain_order)
             except ValueError:
                 LOGERR('Invalid index or range to delete')
                 bdb.close_quit(1)
         else:
-            ids = []
-            # Select the unique indices
-            for idx in args.delete:
-                if idx not in ids:
-                    ids += (idx,)
-
+            ids = set(args.delete)
             try:
                 # Index delete order - highest to lowest
-                ids.sort(key=lambda x: int(x), reverse=True)
+                ids = sorted(map(int, ids), reverse=True)
                 for idx in ids:
-                    bdb.delete_rec(int(idx))
+                    bdb.delete_rec(idx, retain_order=args.retain_order)
             except ValueError:
                 LOGERR('Invalid index or range or combination')
                 bdb.close_quit(1)
