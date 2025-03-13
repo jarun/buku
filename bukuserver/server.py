@@ -120,7 +120,7 @@ def create_app(db_file=None):
         return {'app': app, 'bukudb': bukudb}
 
     app.jinja_env.filters.update(util.JINJA_FILTERS)
-    app.jinja_env.globals.update(_p=_p)
+    app.jinja_env.globals.update(_p=_p, dbfile=bukudb.dbfile, dbname=bukudb.dbname)
 
     admin = Admin(
         app, name='buku server', template_mode='bootstrap3',

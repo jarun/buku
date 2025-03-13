@@ -4,6 +4,7 @@
 {% block head %}
   {{ super() }}
   {{ buku.close_if_popup() }}
+  {{ buku.brand_dbname() }}
 {% endblock %}
 
 {% block model_menu_bar_before_filters %}

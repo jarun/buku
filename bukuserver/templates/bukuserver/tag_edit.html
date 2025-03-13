@@ -4,5 +4,6 @@
 {% block tail %}
   {{ super() }}
   {{ buku.set_lang() }}
+  {{ buku.brand_dbname() }}
   {{ buku.focus() }}
 {% endblock %}
