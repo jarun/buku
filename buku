@@ -618,6 +618,14 @@ class BukuDb:
 
         return (conn, cur)
 
+    @property
+    def dbfile(self) -> str:
+        return next(path for _, name, path in self.conn.execute('PRAGMA database_list') if name == 'main')
+
+    @property
+    def dbname(self) -> str:
+        return os.path.splitext(os.path.basename(self.dbfile))[0]
+
     def _fetch(self, query: str, *args, lock: bool = True) -> List[BookmarkVar]:
         if not lock:
             self.cur.execute(query, args)

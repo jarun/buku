@@ -23,6 +23,27 @@
   <script>opener && (opener !== window) && document.body.classList.add('popup')</script>
 {% endmacro %}
 
+{% macro brand_dbname(nohover=False) %}
+  <style>
+    .dbname {font-weight: bold;  font-family: monospace;  cursor: help}
+    .navbar-brand .dbname {font-size: smaller}
+    body:not(.popup) .navbar-brand {text-align: center}
+    body.popup .navbar-brand .dbname, body:not(.popup) .popup.dbname {display: none}
+    .popup.dbname {float: right;  padding: 15px 20px}
+    {% if nohover %}
+    body:not(.popup) .navbar-brand {padding: 5px 15px}
+    {% else %}
+    body:not(.popup) .navbar-brand:hover {padding: 5px 15px}
+    body:not(.popup) .navbar-brand:not(:hover) .dbname {display: none}
+    {% endif %}
+  </style>
+  <script>{
+    let _dbname = (cls='') => `<div class="dbname ${cls}" title="${ {{dbfile|tojson}} }">${ {{dbname|tojson}} }</div>`;
+    addEventListener('load', () => {$('.navbar-brand').html((_, s) => s + _dbname());
+                                    $('nav.navbar').html((_, s) => s + _dbname('popup'))});
+  }</script>
+{% endmacro %}
+
 {% macro focus(location='body') %}
   {% if location %}
   <script>setTimeout(() => $('{{location|safe}} input:not([type=hidden])')[0]?.focus(), 500)</script>

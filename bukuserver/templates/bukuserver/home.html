@@ -4,6 +4,7 @@
 {% block head %}
   {{ super() }}
   {{ buku.close_if_popup() }}
+  {{ buku.brand_dbname() }}
   {{ buku.focus('main form[action="/"]') }}
 {% endblock %}
 

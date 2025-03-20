@@ -4,6 +4,7 @@
 {% block head %}
   {{ super() }}
   {{ buku.close_if_popup() }}
+  {{ buku.brand_dbname() }}
   <script>
     function promptSwap(input, rowId, maxId={{count|tojson}}) {
       let _id = input.value = prompt({{ _('Swap record #{} with record #')|tojson }}.replace('{}', rowId), rowId) || "";
