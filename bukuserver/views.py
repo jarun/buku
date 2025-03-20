@@ -241,7 +241,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     def delete_model(self, model):
         try:
             self.on_model_delete(model)
-            res = self.bukudb.delete_rec(model.id)
+            res = self.bukudb.delete_rec(model.id, retain_order=True)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = _('Failed to delete record.')

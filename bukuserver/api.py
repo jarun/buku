@@ -170,7 +170,7 @@ class ApiBookmarkView(MethodView):
                 result_flag = bukudb.cleardb()
         else:
             bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-            result_flag = bukudb.delete_rec(rec_id)
+            result_flag = bukudb.delete_rec(rec_id, retain_order=True)
         return Response.from_flag(result_flag)
 
 
@@ -220,7 +220,7 @@ class ApiBookmarkRangeView(MethodView):
         if starting_id > ending_id or ending_id > max_id:
             return Response.RANGE_NOT_VALID()
         idx = min([starting_id, ending_id])
-        result_flag = bukudb.delete_rec(idx, starting_id, ending_id, is_range=True)
+        result_flag = bukudb.delete_rec(idx, starting_id, ending_id, is_range=True, retain_order=True)
         return Response.from_flag(result_flag)
 
 
@@ -267,7 +267,7 @@ class ApiBookmarkSearchView(MethodView):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
         res = None
         for bookmark in bukudb.searchdb(keywords, all_keywords, deep, regex):
-            if not bukudb.delete_rec(bookmark.id):
+            if not bukudb.delete_rec(bookmark.id, retain_order=True):
                 res = Response.FAILURE()
         return res or Response.SUCCESS()
 

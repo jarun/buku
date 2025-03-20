@@ -122,6 +122,9 @@ should be passed. In this case the environment variable EDITOR must be set. The 
 .BI \-d " " \--delete " [...]"
 Delete bookmarks. Accepts space-separated list of indices (e.g. 5 6 23 4 110 45) or a single hyphenated range (e.g. 100-200). Note that range and list don't work together. Deletes search results when combined with search options, if no arguments.
 .TP
+.BI \--retain-order
+When deleting bookmarks, shift indices of multiple records instead of replacing the deleted record with the last one.
+.TP
 .BI \-v " " \--version
 Show program version and exit.
 .TP
