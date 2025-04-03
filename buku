@@ -5194,8 +5194,6 @@ def browse(url):
 def check_upstream_release():
     """Check and report the latest upstream release version."""
 
-    global MYPROXY
-
     if MYPROXY is None:
         gen_headers()
 
