@@ -318,6 +318,9 @@ PROMPT KEYS:
     p id|range [...]       print bookmarks by indices and/or ranges
     w [editor|id]          edit and add or update a bookmark
     c id                   copy URL at search result index to clipboard
+    DB [name]              check existing DB list or switch to another DB
+                           (use full/dir path to switch folders)
+                           '~.' can be used as shortcut for default DB
     ?                      show this help
     q, ^D, double Enter    exit buku
 ```
