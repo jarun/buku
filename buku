@@ -530,11 +530,11 @@ class BukuDb:
         """
 
         data_home = os.environ.get('XDG_DATA_HOME')
-        if data_home is None:
-            if os.environ.get('HOME') is None:
+        if not data_home:
+            if not os.environ.get('HOME'):
                 if sys.platform == 'win32':
                     data_home = os.environ.get('APPDATA')
-                    if data_home is None:
+                    if not data_home:
                         return os.path.abspath('.')
                 else:
                     return os.path.abspath('.')
@@ -5193,8 +5193,6 @@ def browse(url):
 
 def check_upstream_release():
     """Check and report the latest upstream release version."""
-
-    global MYPROXY
 
     if MYPROXY is None:
         gen_headers()
