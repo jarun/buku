@@ -397,6 +397,11 @@ Edit and add or update a bookmark.
 .BI "c id"
 Copy url at search result index to clipboard.
 .TP
+.BI "DB" " [name]"
+If used without \fBname\fR, display list of available DBs (files with '.db' extension in the folder of the current DB). If used with \fBname\fR, switch to the specified DB.
+You can omit file extension ('.db' will be used), and you can specify a path instead in order to switch a folder (if selected path is a folder, default filename is assumed).
+If the specified DB file doesn't exist, it will be created. Note: you can use '~.' as a shortcut for default DB.
+.TP
 .BI "?"
 Show help on prompt keys.
 .TP

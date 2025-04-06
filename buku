@@ -614,7 +614,7 @@ class BukuDb:
             conn.commit()
         except Exception as e:
             LOGERR('initdb(): %s', e)
-            sys.exit(1)
+            raise e
 
         return (conn, cur)
 
@@ -624,7 +624,7 @@ class BukuDb:
 
     @property
     def dbname(self) -> str:
-        return os.path.splitext(os.path.basename(self.dbfile))[0]
+        return os.path.basename(self.dbfile).removesuffix('.db')
 
     def _fetch(self, query: str, *args, lock: bool = True) -> List[BookmarkVar]:
         if not lock:
@@ -3341,6 +3341,9 @@ PROMPT KEYS:
     p id|range [...]       print bookmarks by indices and/or ranges
     w [editor|id]          edit and add or update a bookmark
     c id                   copy url at search result index to clipboard
+    DB [name]              check existing DB list or switch to another DB
+                           (use full/dir path to switch folders)
+                           '~.' can be used as shortcut for default DB
     ?                      show this help
     q, ^D, double Enter    exit buku
 
@@ -4647,9 +4650,13 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         skip_print = False
 
         try:
-            nav = read_in(PROMPTMSG)
+            prompt_suffix = ''
+            if bdb.dbfile != os.path.realpath(os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')):
+                prompt_suffix = (f'[{bdb.dbname}] ' if not bdb.colorize else
+                                 f'\001\x1b[7\002m[{bdb.dbname}]\001\x1b[0m\002 ')
+            nav = read_in(PROMPTMSG + prompt_suffix)
             if not nav:
-                nav = read_in(PROMPTMSG)
+                nav = read_in(PROMPTMSG + prompt_suffix)
                 if not nav:
                     # Quit on double enter
                     break
@@ -4814,6 +4821,33 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         # list tags with 't'
         if nav == 't':
             show_taglist(bdb)
+            continue
+
+        if (nav+' ').startswith('DB '):
+            dbpath, dbfile = os.path.split(bdb.dbfile)
+            if nav == 'DB':
+                print(f'Available DB files (in {dbpath}):')
+                for s in sorted(s for s in os.listdir(dbpath) if s.endswith('.db')):
+                    print(('*' if s == dbfile else ' '), s.removesuffix('.db'))
+            else:
+                s = os.path.expanduser(re.sub(r'^DB\s+', '', nav))
+                path = os.path.join(dbpath, (s if s != '~.' else BukuDb.get_default_dbdir()))  # relative to current dir
+                newpath, newfile = os.path.split(path+'/' if os.path.isdir(path) else path)
+                newfile, (_, ext) = newfile or 'bookmarks', os.path.splitext(newfile)
+                if not ext or os.path.isfile(os.path.join(newpath, newfile+'.db')):
+                    newfile += '.db'
+                newdb = os.path.join(newpath, newfile)
+                try:
+                    if not os.path.exists(newdb):
+                        print(f'DB file is being created at {newdb}')
+                    _bdb = bdb
+                    bdb = BukuDb(json=bdb.json, field_filter=bdb.field_filter, colorize=bdb.colorize, dbfile=newdb)
+                    _bdb.close()
+                    results, new_results = [], False
+                    cur_index = next_index = prev_index = 0
+                    print(f'Loaded DB file at {bdb.dbfile}')
+                except Exception:
+                    print(f'Failed to open DB file at {newdb}')
             continue
 
         toggled = False
@@ -6069,7 +6103,10 @@ POSITIONAL ARGUMENTS:
 
     # Fallback to prompt if no arguments
     if argv in ([], ['--nostdin']):
-        bdb = BukuDb()
+        try:
+            bdb = BukuDb()
+        except Exception:
+            sys.exit(1)
         prompt(bdb, None)
         bdb.close_quit(0)
 
@@ -6135,13 +6172,10 @@ POSITIONAL ARGUMENTS:
         sys.exit(1)
 
     # Initialize the database and get handles, set verbose by default
-    bdb = BukuDb(
-        args.json,
-        args.format,
-        not args.tacit,
-        dbfile=args.db[0],
-        colorize=not args.nc
-    )
+    try:
+        bdb = BukuDb(args.json, args.format, not args.tacit, dbfile=args.db[0], colorize=not args.nc)
+    except Exception:
+        sys.exit(1)
 
     if args.swap:
         index1, index2 = args.swap
