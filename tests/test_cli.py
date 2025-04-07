@@ -1,5 +1,6 @@
 from unittest import mock
 from io import StringIO
+import os
 import pytest
 
 import buku
@@ -60,12 +61,18 @@ def test_help(BukuDb, exit, piped_input, argv):
     print_help.assert_called_with()
     exit.assert_called_with(0)
 
-@pytest.mark.parametrize('argv', [[], ['--nostdin']])
-def test_prompt(BukuDb, bdb, piped_input, prompt, argv):
+@pytest.mark.parametrize('nostdin', [True, False])
+@pytest.mark.parametrize('db', [None, './foo.db'])
+def test_prompt(BukuDb, bdb, piped_input, prompt, nostdin, db):
+    argv = (['--nostdin'] if nostdin else []) + (['--db', db] if db else [])
+    BukuDb.get_default_dbdir.return_value = '/default/db/dir'
     with pytest.raises(SystemExit):
         buku.main(argv)
-    piped_input.assert_not_called()
-    BukuDb.assert_called_with()
+    if argv and argv[0] != '--nostdin':
+        piped_input.assert_called_with(argv, [])
+    else:
+        piped_input.assert_not_called()
+    BukuDb.assert_called_with(dbfile=db or os.path.join('/default/db/dir', 'bookmarks.db'))
     prompt.assert_called_with(bdb, None)
     bdb.close_quit.assert_called_with(0)
 
@@ -127,6 +134,7 @@ def _test_add(bdb, prompt, *, add_tags=[], tag=[], tags_fetch=True, tags_in=None
         argv += ['--tag-error'] + ([] if isinstance(tag_error, bool) else [tag_error])
     if del_error:
         argv += ['--del-error'] + del_range
+    print(argv)
     with pytest.raises(SystemExit):
         buku.main(argv)
     network_test = url_redirect or tag_redirect or tag_error or del_error
@@ -293,7 +301,7 @@ def test_random_export(_print_rec_with_filter, _sample, bdb, stdin, prompt, rand
     assert wrap.mock_calls == calls
 
 
-@pytest.mark.parametrize('db', [None, './foo.db'])
+@pytest.mark.parametrize('db', [None, './foo.db', 'bar.sqlite', 'name'])
 @pytest.mark.parametrize('action', ['print', 'lock', 'unlock'])
 @mock.patch('buku.BukuCrypt')
 def test_custom_db(_BukuCrypt, BukuDb, stdin, db, action):
@@ -302,15 +310,19 @@ def test_custom_db(_BukuCrypt, BukuDb, stdin, db, action):
     wrap.attach_mock(BukuDb.return_value, 'bdb')
     wrap.attach_mock(_BukuCrypt, 'BukuCrypt')
     BukuDb.return_value.get_max_id.return_value = None
+    BukuDb.get_default_dbdir.return_value = '/default/db/dir'
+    _db = (db if db != 'name' else '/default/db/dir/name.db')
     argv = ['--nostdin'] + ([] if not db else ['--db', db]) + [f'--{action}']
     with pytest.raises(SystemExit):
         buku.main(argv)
     calls = []
+    if db == 'name':
+        calls += [mock.call.BukuDb.get_default_dbdir()]
     if action == 'lock':
-        calls += [mock.call.BukuCrypt.encrypt_file(8, dbfile=db)]
+        calls += [mock.call.BukuCrypt.encrypt_file(8, dbfile=_db)]
     elif action == 'unlock':
-        calls += [mock.call.BukuCrypt.decrypt_file(8, dbfile=db)]
-    calls += [mock.call.BukuDb(None, 0, True, dbfile=db, colorize=True)]
+        calls += [mock.call.BukuCrypt.decrypt_file(8, dbfile=_db)]
+    calls += [mock.call.BukuDb(None, 0, True, dbfile=_db, colorize=True)]
     if action == 'print':
         calls += [mock.call.bdb.get_max_id(),
                   mock.call.bdb.print_rec(None, order=[])]

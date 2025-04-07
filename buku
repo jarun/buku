@@ -518,9 +518,10 @@ class BukuDb:
     def get_default_dbdir():
         """Determine the directory path where dbfile will be stored.
 
-        If the platform is Windows, use %APPDATA%
-        else if $XDG_DATA_HOME is defined, use it
-        else if $HOME exists, use it
+        If $BUKU_DEFAULT_DBDIR is specified, use it
+        else if $XDG_DATA_HOME is defined, use $XDG_DATA_HOME/buku
+        else if $HOME exists, use $HOME/.local/share/buku
+        else if the platform is Windows and %APPDATA% exists, use %APPDATA%\\buku
         else use the current directory.
 
         Returns
@@ -529,19 +530,16 @@ class BukuDb:
             Path to database file.
         """
 
-        data_home = os.environ.get('XDG_DATA_HOME')
-        if not data_home:
-            if not os.environ.get('HOME'):
-                if sys.platform == 'win32':
-                    data_home = os.environ.get('APPDATA')
-                    if not data_home:
-                        return os.path.abspath('.')
-                else:
-                    return os.path.abspath('.')
-            else:
-                data_home = os.path.join(os.environ.get('HOME'), '.local', 'share')
-
-        return os.path.join(data_home, 'buku')
+        _get = os.environ.get
+        if _get('BUKU_DEFAULT_DBDIR'):
+            return os.path.abspath(_get('BUKU_DEFAULT_DBDIR'))
+        home_locations = [
+            _get('XDG_DATA_HOME'),
+            _get('HOME') and os.path.join(_get('HOME'), '.local', 'share'),
+            sys.platform == 'win32' and _get('APPDATA'),
+        ]
+        data_home = next((s for s in home_locations if s), None)
+        return (os.path.join(data_home, 'buku') if data_home else os.getcwd())
 
     @staticmethod
     def initdb(dbfile: Optional[str] = None, chatty: bool = False) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
@@ -3276,6 +3274,36 @@ n: don't add parent folder as tag
 class ExtendedArgumentParser(argparse.ArgumentParser):
     """Extend classic argument parser."""
 
+    def __init__(self, *args, **kwargs):
+        self._nodefaults, self._unset = None, object()
+        super().__init__(*args, **kwargs)
+        self._nodefaults = argparse.ArgumentParser(*args, **kwargs)
+
+    def _add_argument(self, old_add_arg, nodefaults, *args, **kwargs):
+        old_add_arg(*args, **kwargs)
+        kwargs = dict(kwargs)
+        kwargs.pop('type', None)
+        kwargs.pop('choices', None)
+        kwargs['default'] = self._unset
+        nodefaults and nodefaults.add_argument(*args, **kwargs)
+
+    def add_argument(self, *args, **kwargs):
+        self._add_argument(super().add_argument, self._nodefaults, *args, **kwargs)
+
+    def add_argument_group(self, *args, **kwargs):
+        group = super().add_argument_group(*args, **kwargs)
+        nodefaults = self._nodefaults and self._nodefaults.add_argument_group(*args, **kwargs)
+        old_add_arg = group.add_argument
+        group.add_argument = lambda *a, **kw: self._add_argument(old_add_arg, nodefaults, *a, **kw)
+        return group
+
+    def parse_args(self, *args, **kwargs):
+        result = super().parse_args(*args, **kwargs)
+        nodefaults = self._nodefaults.parse_args(*args, **kwargs)
+        params = {k for k in dir(nodefaults) if not k.startswith('_')}
+        setattr(result, '_passed', {k for k in params if getattr(nodefaults, k) != self._unset})
+        return result
+
     @staticmethod
     def program_info(file=sys.stdout):
         """Print program info.
@@ -5803,6 +5831,11 @@ def main(argv=sys.argv[1:], *, program_name=os.path.basename(sys.argv[0])):
     pipeargs = []
     colorstr_env = os.getenv('BUKU_COLORS')
 
+    if argv == ['--db']:
+        for s in sorted(s for s in os.listdir(BukuDb.get_default_dbdir()) if s.endswith('.db')):
+            print(s.removesuffix('.db'))
+        return
+
     if argv and argv[0] != '--nostdin':
         try:
             piped_input(argv, pipeargs)
@@ -6101,10 +6134,18 @@ POSITIONAL ARGUMENTS:
     # Overriding text browsers is disabled by default
     browse.override_text_browser = False
 
+    # Handle DB name (--db value without extension and path separators)
+    _db = args.db[0]
+    if _db and not os.path.dirname(_db) and not os.path.splitext(_db)[1]:
+        _db = os.path.join(BukuDb.get_default_dbdir(), _db + '.db')
+
     # Fallback to prompt if no arguments
-    if argv in ([], ['--nostdin']):
+    if args._passed <= {'nostdin', 'db'}:
         try:
-            bdb = BukuDb()
+            _db = _db or os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
+            if not os.path.exists(_db):
+                print(f'DB file is being created at {_db}')  # not printed without chatty param
+            bdb = BukuDb(dbfile=_db)
         except Exception:
             sys.exit(1)
         prompt(bdb, None)
@@ -6121,9 +6162,9 @@ POSITIONAL ARGUMENTS:
 
     # Handle encrypt/decrypt options at top priority
     if args.lock is not None:
-        BukuCrypt.encrypt_file(args.lock, dbfile=args.db[0])
+        BukuCrypt.encrypt_file(args.lock, dbfile=_db)
     elif args.unlock is not None:
-        BukuCrypt.decrypt_file(args.unlock, dbfile=args.db[0])
+        BukuCrypt.decrypt_file(args.unlock, dbfile=_db)
 
     order = [s for ss in (args.order or []) for s in re.split(r'\s*,\s*', ss.strip()) if s]
 
@@ -6173,7 +6214,7 @@ POSITIONAL ARGUMENTS:
 
     # Initialize the database and get handles, set verbose by default
     try:
-        bdb = BukuDb(args.json, args.format, not args.tacit, dbfile=args.db[0], colorize=not args.nc)
+        bdb = BukuDb(args.json, args.format, not args.tacit, dbfile=_db, colorize=not args.nc)
     except Exception:
         sys.exit(1)
 
