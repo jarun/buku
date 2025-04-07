@@ -18,6 +18,7 @@ IS_WINDOWS = sys.platform == 'win32'
 is_path = lambda s: ('/' in s or os.sep in s or s in ('.', '..'))
 in_venv = lambda virtualenv, name: os.path.join(virtualenv, ('Scripts' if IS_WINDOWS else 'bin'), name)
 set_title = lambda s: (print(f'\033]2;{s}\007', end='') if not IS_WINDOWS else run(f'title {s}', shell=True))
+unexpand_user = lambda s: re.sub(r'^' + re.escape(os.path.expanduser('~')), '~', s)
 
 try:
     from tkinter.messagebox import showerror, askyesno
@@ -130,7 +131,7 @@ def kill_process(pid):
 def get_buku_config_dir():
     path = (env.get('APPDATA') if IS_WINDOWS else
             env.get('XDG_DATA_HOME') or os.path.join(os.path.expanduser('~'), '.local', 'share'))
-    return os.path.join(path, 'buku')
+    return os.path.abspath(os.path.join(path, 'buku'))
 
 def read_env_file(path):
     regex = re.compile('([_A-Z]+)=(?:"(.*)"|\'(.*)\'|(.*))')
@@ -144,31 +145,36 @@ def read_env_file(path):
         pass
 
 
-def selectdb(confdir, old=None, gui=GUI, title=TITLE):
-    old = old and re.sub(r'^' + re.escape(confdir+os.path.sep), '', re.sub(r'\.db$', '', old))
+def selectdb(dbdir, old=None, gui=GUI, title=TITLE):
+    default = dbdir == get_buku_config_dir()
+    old = old and old.removeprefix(dbdir+os.path.sep).removesuffix('.db')
     if old and any(c in old for c in ['/', os.path.sep]):
         old = None
-    dbs = sorted(s[:-3] for s in os.listdir(confdir) if s.lower().endswith('.db'))
+    if os.path.isdir(dbdir):
+        dbs = sorted(s[:-3] for s in os.listdir(dbdir) if s.lower().endswith('.db'))
+    else:
+        dbs = []
     if gui:
+        _title = title + ('' if default else f' [{unexpand_user(dbdir)}]')
         db = (None if not dbs else
-              asklist(title, 'Choose DB (or click Cancel to create new DB)', dbs, initial=old or 'bookmarks'))
+              asklist(_title, f'{"Choose DB (or click Cancel to create new DB)":80}', dbs, initial=old or 'bookmarks'))
         while not db:
-            db = askstring(title, f'{"Create new DB?":65}', initialvalue=old or 'bookmarks')
+            db = askstring(_title, f'{"Create new DB?":90}', initialvalue=old or 'bookmarks')
             if db is None:
                 print('No name given, qutting', file=sys.stderr)
                 return None
-            dbfile = os.path.join(confdir, db+'.db')
+            dbfile = os.path.join(dbdir, db+'.db')
             if not db or any(c in db for c in ['/', os.path.sep]) or not is_valid_filepath(dbfile):
-                showerror(title, f'Invalid DB name: "{db}"')
+                showerror(_title, f'Invalid DB name: "{db}"')
                 db = None
             elif os.path.exists(dbfile):
-                if not askyesno(title, f'"{db}" exists already. Open anyway?'):
+                if not askyesno(_title, f'"{db}" exists already. Open anyway?'):
                     db = None
     else:
-        db = None
+        db, _title = None, ('' if default else f' [{unexpand_user(dbdir)}]')
         while not db:
             try:
-                print('\nType DB name or index (0 to quit):')
+                print(f'\nType DB name or index (0 to quit){_title}:')
                 for idx, name in enumerate(dbs, start=1):
                     print(f'{idx}. {name}')
                 try:
@@ -194,14 +200,14 @@ def selectdb(confdir, old=None, gui=GUI, title=TITLE):
                 continue
             except ValueError:
                 pass  # not an index
-            dbfile = os.path.join(confdir, db+'.db')
+            dbfile = os.path.join(dbdir, db+'.db')
             if not db or any(c in db for c in ['/', os.path.sep]) or not is_valid_filepath(dbfile):
                 print(f'Invalid DB name: "{db}"', file=sys.stderr)
                 db = None
             elif not os.path.exists(dbfile):
                 if input(f'"{db}" does not exist yet. Create? [Y/n] ').upper().strip() == 'N':
                     db = None
-    return db and os.path.join(confdir, db+'.db')
+    return db and os.path.join(dbdir, db+'.db')
 
 def load_virtualenv(virtualenv, devmode=False, reinstall=False):
     print(f'Using {os.path.abspath(virtualenv)}')
@@ -224,7 +230,7 @@ def prepare_vars():
     if exec and os.path.isdir(os.path.expanduser(exec)):
         workdir, exec = exec, os.path.join('bukuserver', 'server.py')
     return {
-        'confdir': confdir,
+        'dbdir': os.path.abspath(os.path.expanduser(env.get('BUKU_DEFAULT_DBDIR') or confdir)),
         'devmode': devmode,
         'gui': GUI and not env.get('BUKU_NOGUI'),
         'exec': exec or 'bukuserver',
@@ -232,13 +238,13 @@ def prepare_vars():
         'virtualenv': env.get('BUKU_VENV') or (workdir and os.path.join(('.' if devmode else confdir), 'venv')),
     }
 
-def run_repeatedly(confdir, devmode=False, gui=GUI, exec=None, workdir=None, virtualenv=None):
+def run_repeatedly(dbdir, devmode=False, gui=GUI, exec=None, workdir=None, virtualenv=None):
     if workdir:
         os.chdir(os.path.expanduser(workdir))
     elif virtualenv:
         os.chdir(os.path.expanduser(virtualenv))
         virtualenv = '.'
-    set_title(TITLE)
+    set_title(TITLE + ('' if dbdir == get_buku_config_dir() else f' [{dbdir}]'))
     virtualenv and load_virtualenv(virtualenv, devmode=devmode, reinstall=bool(workdir))
     command = [os.path.expanduser(exec), 'run']
     if exec.endswith('.py'):
@@ -248,10 +254,10 @@ def run_repeatedly(confdir, devmode=False, gui=GUI, exec=None, workdir=None, vir
     if virtualenv:
         command[0] = in_venv(virtualenv, command[0])
     set_title(f'{TITLE} [{shlex.join(command)}]')
-    db = env.get('BUKUSERVER_DB_FILE') or os.path.join(confdir, 'bookmarks.db')
+    db = env.get('BUKUSERVER_DB_FILE') or os.path.join(dbdir, 'bookmarks.db')
     while True:
         print('Running Bukuserver…')
-        if not (db := selectdb(confdir, gui=gui, old=db)):
+        if not (db := selectdb(dbdir, gui=gui, old=db)):
             break
         env['BUKUSERVER_DB_FILE'] = db
         print(f'BUKUSERVER_DB_FILE={db}')

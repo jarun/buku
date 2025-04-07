@@ -27,9 +27,10 @@ is a command-line utility to store, tag, search and organize bookmarks.
 .PP
 .IP 1. 4
 The database file is stored in:
-  - \fI$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined (first preference), or
-  - \fI$HOME/.local/share/buku/bookmarks.db\fR, if HOME is defined (second preference), or
-  - \fI%APPDATA%\\buku\\bookmarks.db\fR, if you are on Windows, or
+  - \fI$BUKU_DEFAULT_DBDIR/bookmarks.db\fR, if BUKU_DEFAULT_DBDIR is defined (first preference), or
+  - \fI$XDG_DATA_HOME/buku/bookmarks.db\fR, if XDG_DATA_HOME is defined (second preference), or
+  - \fI$HOME/.local/share/buku/bookmarks.db\fR, if HOME is defined (third preference), or
+  - \fI%APPDATA%\\buku\\bookmarks.db\fR, if you are on Windows and APPDATA is defined (fourth preference), or
   - the current directory.
 .PP
 .IP 2. 4
@@ -100,8 +101,12 @@ Bookmarks with immutable titles are listed with '(L)' after the title.
 .PP
 .IP 13. 4
 \fBAlternative DB file\fR:
-  - The option --db (to specify an alternative database file location) is app-only. Manual usage is prone to issues arising from human error.
+  - The option \fB--db\fR (to specify an alternative database file location) is app-only. Manual usage is prone to issues arising from human error.
   - Note that this option is useful if you want to store the db file in cloud synced location. Another mechanism could be to have the db file synced and create a symlink to it at the default location.
+  - When a the argument to \fB--db\fR contains neither `.` nor directory separator, it's considered a \fIname\fR and is resolved as the matching file with `.db` extension within the default DB directory.
+  - When invoked specifically as \fBbuku --db\fR, the program prints out the list of DB names in the default DB directory.
+  - When running Bukuserver (webUI), alternative DB file can be specified via \fBBUKUSERVER_DB_FILE\fR environment variable. Additionally, the Bukuserver runner script supports switching between DB files within the default Buku DB folder.
+  - In the interactive shell mode, the \fBDB\fR command can be used to similarly switch between DB files by name. (You can use non-standard extensions by specifying them, and switch directories by specifying a path – absolute or relative to the current DB. \fB~.\fR stands for the default database.)
 .SH GENERAL OPTIONS
 .TP
 .BI \-a " " \--add " URL [+|-] [tag, ...]"

@@ -25,6 +25,7 @@ The script behaviour can be configured by setting the following environment vari
   - when devmode is off, the virtualenv location defaults to a `venv/` folder in your Buku settings directory;
   - when devmode is on, the virtualenv location defaults to a `venv/` folder in the source directory.
 * `BUKU_NOGUI` – if not empty, fallback shell prompt will be used (also happens if Tkinter is not present in your Python installation).
+* `BUKU_DEFAULT_DBDIR` – specify directory for DB selection (same as Buku itself).
 
 Default values for all of these (as well as for `BUKUSERVER_` options) can be specified in a `bukuserver.env` file in your Buku settings folder:
 ```sh
