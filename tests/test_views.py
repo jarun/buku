@@ -146,8 +146,8 @@ def assert_bookmark(bookmark, query, tags=None):
 @pytest.mark.gui
 @pytest.mark.slow
 @pytest.mark.parametrize('exists, uri, tab, args', [
-    (False, '/bookmark/new/', 'Create', ['link', 'title', 'description']),
-    (True, '/bookmark/edit/', 'Edit', ['id']),
+    (False, '/bookmark/new/', 'Create', ['link', 'title', 'description', 'popup']),
+    (True, '/bookmark/edit/', 'Edit', ['id', 'popup']),
 ])
 def test_bookmarklet_view(bukudb, client, exists, uri, tab, args):
     query = {'url': 'http://example.com', 'title': 'Sample site', 'description': 'Foo bar baz'}

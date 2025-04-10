@@ -3,6 +3,7 @@
 """Server module."""
 import os
 import sys
+from urllib.parse import urlsplit, urlunsplit, parse_qs
 from typing import Union  # NOQA; type: ignore
 
 from flask.cli import FlaskGroup
@@ -80,6 +81,22 @@ def init_locale(app, context_processor=lambda: {}):
         app.context_processor(lambda: {'lang': '', **context_processor()})
 
 
+# handling popup= URL argument
+def before_request():
+    _post_popup = request.headers.get('Content-Type') != 'application/json' and request.data.get('popup')
+    flask.g.popup = request.args.get('popup') or _post_popup
+
+# applying popup= to the redirect URL
+def after_request(response):
+    if flask.g.popup and 'Location' in response.headers:
+        _scheme, _netloc, _path, _query, _fragment = urlsplit(response.headers['Location'])
+        _params = parse_qs(_query)
+        if not _params.get('popup'):
+            _query = '&'.join(s for s in [_query, 'popup=True'] if s)
+            response.headers['Location'] = urlunsplit((_scheme, _netloc, _path, _query, _fragment))
+    return response
+
+
 def create_app(db_file=None):
     """create app."""
     app = FlaskAPI(__name__)
@@ -113,6 +130,8 @@ def create_app(db_file=None):
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
     init_locale(app)
+    app.before_request(before_request)
+    app.after_request(after_request)
 
     @app.shell_context_processor
     def shell_context():

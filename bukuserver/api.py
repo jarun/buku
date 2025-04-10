@@ -282,6 +282,6 @@ class BookmarkletView(MethodView):  # pylint: disable=too-few-public-methods
 
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
         rec_id = bukudb.get_rec_id(url)
-        if rec_id:
-            return redirect(url_for('bookmark.edit_view', id=rec_id))
-        return redirect(url_for('bookmark.create_view', link=url, title=title, description=description, tags=tags, fetch=fetch))
+        goto = (url_for('bookmark.edit_view', id=rec_id, popup=True) if rec_id else
+                url_for('bookmark.create_view', link=url, title=title, description=description, tags=tags, fetch=fetch, popup=True))
+        return redirect(goto)
