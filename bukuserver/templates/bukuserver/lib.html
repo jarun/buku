@@ -11,7 +11,7 @@
 {% endmacro %}
 
 {% macro close_if_popup() %}
-  <script>opener && (opener !== window) && close()</script>
+  <script>({{ g.popup|default|tojson }} || (opener && (opener !== window))) && close()</script>
 {% endmacro %}
 
 {% macro limit_navigation_if_popup() %}
@@ -20,7 +20,14 @@
     .popup :is(#admin-navbar-collapse, .navbar-toggle) {display: none !important}
     .popup .nav-tabs :is(:first-child, :nth-child(2):not(.active)) > * {display: none}
   </style>
-  <script>opener && (opener !== window) && document.body.classList.add('popup')</script>
+  <script>
+    const POPUP = {{ g.popup|default|tojson }} || (opener && (opener !== window)) || '';
+    POPUP && (document.body.classList.add('popup'), setTimeout(() => {
+      $(`.nav-tabs a:not([href^='javascript:'])`).each((_, e) => e.href += `&popup=${POPUP}`);
+      $(`.submit-row .btn-danger`).on('click', () => close());
+      $(`.delete-form`).prepend(`<input type="hidden" name="popup" value="${POPUP}">`);
+    }));
+  </script>
 {% endmacro %}
 
 {% macro brand_dbname(nohover=False) %}
@@ -75,7 +82,7 @@
     const SUCCESS = [{{ _gettext('Record was successfully created.') | tojson }},
                      {{ _gettext('Record was successfully saved.') | tojson }}];
     $(`.alert-success`).filter((idx, e) => SUCCESS.some(s => e.innerText.includes(s))).html((_, s) =>
-      s.replace(/(<\/button>)([^]*)$/, `$1<a href="{{ url_for('.details_view', id=saved, url=backlink) }}">$2</a>`));
+      s.replace(/(<\/button>)([^]*)$/, `$1<a href="{{ url_for('.details_view', id=saved, url=backlink, popup=g.popup) }}">$2</a>`));
   }</script>
   {% endif %}
 {% endmacro %}
