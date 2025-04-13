@@ -329,8 +329,8 @@ def _test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab, 
     target = '' if not new_tab else ' target="_blank"'
     icon = '' if not favicons else (netloc and f'<img class="favicon" src="http://www.google.com/s2/favicons?domain={netloc}"/> ')
     urltext = title or '&lt;EMPTY TITLE&gt;'
-    _title = (urltext if not netloc else f'<a href="{url}"{target}>{urltext}</a>')
-    prefix = f'<td class="col-entry"> {icon}<span class="title">{_title}</span>'
+    _title = (urltext if not netloc and mode in ('full', None) else f'<a href="{url}"{target}>{urltext}</a>')
+    prefix = f'<td class="col-entry"> {icon}<span class="title" title="{url}">{_title}</span>'
     tags = [f'<a class="btn label label-default" href="/bookmark/?flt0_tags_contain={s}">{s}</a>' for s in _tags]
     netloc_tag = ('' if mode == 'netloc' or not netloc else
                   f'<a class="btn label label-success" href="/bookmark/?flt0_url_netloc_match={netloc}">netloc:{netloc}</a>')
