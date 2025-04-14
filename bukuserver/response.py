@@ -1,20 +1,20 @@
 from typing import Any, Dict
 from enum import Enum
+from http import HTTPStatus
 from flask import jsonify
-from flask_api.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_410_GONE
 
 OK, FAIL = 0, 1
 
 
 class Response(Enum):
-    SUCCESS = (HTTP_200_OK, "Success.")
-    FAILURE = (HTTP_400_BAD_REQUEST, "Failure.")
-    REMOVED = (HTTP_410_GONE, "Functionality no longer available.")
-    INPUT_NOT_VALID = (HTTP_400_BAD_REQUEST, "Input data not valid.")
-    BOOKMARK_NOT_FOUND = (HTTP_404_NOT_FOUND, "Bookmark not found.")
-    TAG_NOT_FOUND = (HTTP_404_NOT_FOUND, "Tag not found.")
-    RANGE_NOT_VALID = (HTTP_400_BAD_REQUEST, "Range not valid.")
-    TAG_NOT_VALID = (HTTP_400_BAD_REQUEST, "Invalid tag.")
+    SUCCESS = (HTTPStatus.OK, "Success.")                                # 200
+    FAILURE = (HTTPStatus.BAD_REQUEST, "Failure.")                       # 400
+    REMOVED = (HTTPStatus.GONE, "Functionality no longer available.")    # 410
+    INPUT_NOT_VALID = (HTTPStatus.BAD_REQUEST, "Input data not valid.")  # 400
+    BOOKMARK_NOT_FOUND = (HTTPStatus.NOT_FOUND, "Bookmark not found.")   # 404
+    TAG_NOT_FOUND = (HTTPStatus.NOT_FOUND, "Tag not found.")             # 404
+    RANGE_NOT_VALID = (HTTPStatus.BAD_REQUEST, "Range not valid.")       # 400
+    TAG_NOT_VALID = (HTTPStatus.BAD_REQUEST, "Invalid tag.")             # 400
 
     @staticmethod
     def bad_request(message: str):
@@ -27,7 +27,7 @@ class Response(Enum):
 
     @property
     def status_code(self) -> int:
-        return self.value[0]
+        return self.value[0].value
 
     @property
     def message(self) -> str:
@@ -35,7 +35,7 @@ class Response(Enum):
 
     @property
     def status(self) -> int:
-        return OK if self.status_code == HTTP_200_OK else FAIL
+        return OK if self.status_code == HTTPStatus.OK.value else FAIL
 
     def json(self, data: Dict[str, Any] = None) -> Dict[str, Any]:
         return dict(status=self.status, message=self.message, **data or {})  # pylint: disable=R1735

@@ -39,19 +39,17 @@ tests_require = [
 server_require = [
     "arrow>=1.2.2",
     "Flask-Admin>=1.6.1,<2",
-    "Flask-API>=3.0.post1",
     "flask-paginate>=2022.1.8",
     "Flask-WTF>=1.0.1",
-    "Flask>=2.2.2,<2.3",
+    "Flask>=2.2.2",
     "Jinja2>=3",
-    "werkzeug<2.4",
 ]
 install_requires = [
     'beautifulsoup4>=4.4.1',
     'certifi',
     'cryptography>=1.2.3',
     'html5lib>=1.0.1',
-    'urllib3>=1.23,<2',
+    'urllib3>=1.23,<3',
     'pyreadline3; sys_platform == \'win32\'',
     'colorama>=0.4.6; sys_platform == \'win32\'',
 ]

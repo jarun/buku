@@ -1,7 +1,7 @@
 from typing import Any, Dict
+from http import HTTPStatus
 import pytest
 import flask
-from flask_api.status import HTTP_405_METHOD_NOT_ALLOWED
 from click.testing import CliRunner
 from buku import FetchResult
 from bukuserver import server
@@ -81,7 +81,7 @@ def test_api_empty_db(client, method, url, exp_res, data):
 def test_not_allowed(client, url, methods):
     for method in methods:
         rd = getattr(client, method)(url)
-        assert rd.status_code == HTTP_405_METHOD_NOT_ALLOWED
+        assert rd.status_code == HTTPStatus.METHOD_NOT_ALLOWED.value
 
 
 @pytest.mark.parametrize(

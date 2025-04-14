@@ -3906,7 +3906,7 @@ def import_xbel(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
     # compatibility
     soup = html_soup
 
-    for tag in soup.findAll('bookmark'):
+    for tag in soup.find_all('bookmark'):
         # Extract comment from <desc> tag
         try:
             if is_nongeneric_url(tag['href']):
@@ -3917,7 +3917,7 @@ def import_xbel(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
         title_tag = tag.title.string
 
         desc = None
-        comment_tag = tag.findNextSibling('desc')
+        comment_tag = tag.find_next_sibling('desc')
 
         if comment_tag:
             desc = comment_tag.find(text=True, recursive=False)
@@ -3990,7 +3990,7 @@ def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
     # compatibility
     soup = html_soup
 
-    for tag in soup.findAll('a'):
+    for tag in soup.find_all('a'):
         # Extract comment from <dd> tag
         try:
             if is_nongeneric_url(tag['href']):
@@ -3999,7 +3999,7 @@ def import_html(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
             continue
 
         desc = None
-        comment_tag = tag.findNextSibling('dd')
+        comment_tag = tag.find_next_sibling('dd')
 
         if comment_tag:
             desc = comment_tag.find(string=True, recursive=False)
