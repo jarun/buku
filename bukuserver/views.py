@@ -209,7 +209,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             form.title.data = request.args.get('title', form.title.data)
             form.description.data = request.args.get('description', form.description.data)
             form.tags.data = request.args.get('tags', form.tags.data)
-            form.fetch.data = request.args.get('fetch', request.data.get('fetch', True))
+            form.fetch.data = request.args.get('fetch', request.form.get('fetch', True))
         return form
 
     def create_model(self, form):

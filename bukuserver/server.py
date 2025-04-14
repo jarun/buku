@@ -3,12 +3,13 @@
 """Server module."""
 import os
 import sys
+import importlib.metadata
 from urllib.parse import urlsplit, urlunsplit, parse_qs
 from typing import Union  # NOQA; type: ignore
 
+from flask import Flask
 from flask.cli import FlaskGroup
 from flask_admin import Admin
-from flask_api import FlaskAPI
 
 import buku
 from buku import BukuDb, __version__
@@ -19,8 +20,9 @@ except ImportError:
     from bukuserver.middleware import ReverseProxyPrefixFix
 import click
 import flask
-from flask import __version__ as flask_version  # type: ignore
 from flask import current_app, redirect, request, url_for
+
+flask_version = importlib.metadata.version('flask')
 
 try:
     from . import api, views, util, _p, _l, gettext, ngettext
@@ -33,7 +35,7 @@ except ImportError:
 STATISTIC_DATA = None
 
 def _fetch_data():
-    url = request.data.get('url')
+    url = request.form.get('url')
     try:
         return (None if not url else buku.fetch_data(url))
     except Exception as e:
@@ -83,7 +85,7 @@ def init_locale(app, context_processor=lambda: {}):
 
 # handling popup= URL argument
 def before_request():
-    _post_popup = request.headers.get('Content-Type') != 'application/json' and request.data.get('popup')
+    _post_popup = request.headers.get('Content-Type') != 'application/json' and request.form.get('popup')
     flask.g.popup = request.args.get('popup') or _post_popup
 
 # applying popup= to the redirect URL
@@ -99,7 +101,7 @@ def after_request(response):
 
 def create_app(db_file=None):
     """create app."""
-    app = FlaskAPI(__name__)
+    app = Flask(__name__)
     os.environ.setdefault('FLASK_DEBUG', ('1' if get_bool_from_env_var('BUKUSERVER_DEBUG') else '0'))
     per_page = int(os.getenv('BUKUSERVER_PER_PAGE', str(views.DEFAULT_PER_PAGE)))
     per_page = per_page if per_page > 0 else views.DEFAULT_PER_PAGE
