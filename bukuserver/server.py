@@ -102,6 +102,9 @@ def after_request(response):
 def create_app(db_file=None):
     """create app."""
     app = Flask(__name__)
+    db_file = os.getenv('BUKUSERVER_DB_FILE') or db_file
+    if db_file and not os.path.dirname(db_file) and not os.path.splitext(db_file)[1]:
+        db_file = os.path.join(BukuDb.get_default_dbdir(), db_file + '.db')
     os.environ.setdefault('FLASK_DEBUG', ('1' if get_bool_from_env_var('BUKUSERVER_DEBUG') else '0'))
     per_page = int(os.getenv('BUKUSERVER_PER_PAGE', str(views.DEFAULT_PER_PAGE)))
     per_page = per_page if per_page > 0 else views.DEFAULT_PER_PAGE
@@ -117,7 +120,7 @@ def create_app(db_file=None):
         get_bool_from_env_var('BUKUSERVER_DISABLE_FAVICON', True)
     app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \
         get_bool_from_env_var('BUKUSERVER_OPEN_IN_NEW_TAB')
-    app.config['BUKUSERVER_DB_FILE'] = os.getenv('BUKUSERVER_DB_FILE') or db_file
+    app.config['BUKUSERVER_DB_FILE'] = db_file
     reverse_proxy_path = os.getenv('BUKUSERVER_REVERSE_PROXY_PATH')
     if reverse_proxy_path:
         if not reverse_proxy_path.startswith('/'):
@@ -126,7 +129,7 @@ def create_app(db_file=None):
             print('Warning: reverse proxy path should not include trailing slash')
         app.config['REVERSE_PROXY_PATH'] = reverse_proxy_path
         ReverseProxyPrefixFix(app)
-    bukudb = BukuDb(dbfile=app.config['BUKUSERVER_DB_FILE'])
+    bukudb = BukuDb(dbfile=db_file)
     app.config['FLASK_ADMIN_SWATCH'] = (os.getenv('BUKUSERVER_THEME') or 'default').lower()
     app.config['BUKUSERVER_LOCALE'] = os.getenv('BUKUSERVER_LOCALE') or 'en'
     app.app_context().push()
