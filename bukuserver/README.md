@@ -1,5 +1,7 @@
 ## Bukuserver
 
+_**Note: see [the runner script](https://github.com/jarun/buku/wiki/Bukuserver-%28WebUI%29#runner-script) for advanced installation/running/DB swapping functionality**_
+
 ### Table of Contents
 
 - [Installation](#installation)
@@ -127,6 +129,8 @@ Note: `BUKUSERVER_` is the common prefix (_every variable starts with it_).
 Note: Valid boolean values are `true`, `false`, `1`, `0` (case-insensitive).
 
 Note: if input is invalid, the default value will be used if defined
+
+Note: `BUKUSERVER_DB_FILE` can be a DB name (plain filename without extension; cannot contain `.`). The specified DB with `.db` extension is located in default DB directory (which you can override with `BUKU_DEFAULT_DBDIR`).
 
 Note: `BUKUSERVER_LOCALE` requires either `flask_babel` or `flask_babelex` installed
 
