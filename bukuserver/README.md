@@ -108,34 +108,38 @@ See more option on `bukuserver run --help` and `bukuserver --help`
 
 ### Configuration
 
-The following are os env config variables available for bukuserver.
+The following are [os env config variables](#how-to-specify-environment-variables) available for bukuserver.
 
-| Name (_without prefix_) | Description | Value |
+_**Important:** all of them have a shared prefix_ **`BUKUSERVER_`**.
+
+| Name (_without prefix_) | Description | Value _²_ |
 | --- | --- | --- |
 | PER_PAGE | bookmarks per page | positive integer [default: 10] |
-| SECRET_KEY | [flask secret key](https://flask.palletsprojects.com/config/#SECRET_KEY) | string [default: os.urandom(24)] |
+| SECRET_KEY | [flask secret key](https://flask.palletsprojects.com/config/#SECRET_KEY) | string [default: random value] |
 | URL_RENDER_MODE | url render mode | `full`, `netloc` or `netloc-tag` [default: `full`] |
-| DB_FILE | full path to db file | path string [default: standard path for buku] |
-| READONLY | read-only mode | boolean [default: `false`] |
-| DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean [default: `true`] ([here's why](#why-favicons-are-disabled-by-default))|
-| OPEN_IN_NEW_TAB | url link open in new tab | boolean [default: `false`] |
-| REVERSE_PROXY_PATH | reverse proxy path | string |
+| DB_FILE | full path to db file<em>³</em> | path string [default: standard path for buku] |
+| READONLY | read-only mode | boolean<em>¹</em> [default: `false`] |
+| DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean<em>¹</em> [default: `true`] ([here's why](#why-favicons-are-disabled-by-default))|
+| OPEN_IN_NEW_TAB | url link open in new tab | boolean<em>¹</em> [default: `false`] |
+| REVERSE_PROXY_PATH | reverse proxy path<em>⁵</em> | string |
 | THEME | [GUI theme](https://bootswatch.com/3) | string [default: `default`] (`slate` is a good pick for dark mode) |
-| LOCALE | GUI language (partial support) | string [default: `en`] |
-| DEBUG | debug mode (verbose logging etc.) | boolean [default: `false`] |
+| LOCALE | GUI language<em>⁴</em> (partial support) | string [default: `en`] |
+| DEBUG | debug mode (verbose logging etc.) | boolean<em>¹</em> [default: `false`] |
 
-Note: `BUKUSERVER_` is the common prefix (_every variable starts with it_).
+_**¹**_ valid boolean values are `true`, `false`, `1`, `0` (case-insensitive).
 
-Note: Valid boolean values are `true`, `false`, `1`, `0` (case-insensitive).
+_**²**_ if input is invalid, the default value will be used if defined
 
-Note: if input is invalid, the default value will be used if defined
+_**³**_ `BUKUSERVER_DB_FILE` can be a DB name (plain filename without extension; cannot contain `.`). The specified DB with `.db` extension is located in default DB directory (which you can override with `BUKU_DEFAULT_DBDIR`).
 
-Note: `BUKUSERVER_DB_FILE` can be a DB name (plain filename without extension; cannot contain `.`). The specified DB with `.db` extension is located in default DB directory (which you can override with `BUKU_DEFAULT_DBDIR`).
+_**⁴**_ `BUKUSERVER_LOCALE` requires either `flask_babel` or `flask_babelex` installed
 
-Note: `BUKUSERVER_LOCALE` requires either `flask_babel` or `flask_babelex` installed
+_**⁵**_ the value for `BUKUSERVER_REVERSE_PROXY_PATH` is recommended to include preceding slash and not have trailing slash (i.e. use `/foo` not `/foo/`)
 
-e.g. to set bukuserver to show 100 item per page run the following command
 
+#### How to specify environment variables
+
+E.g. to set bukuserver to show 100 items per page run the following command:
 ```
 # on linux
 $ export BUKUSERVER_PER_PAGE=100
@@ -145,11 +149,14 @@ $ SET BUKUSERVER_PER_PAGE=100
 
 # in dockerfile
 ENV BUKUSERVER_PER_PAGE=100
+
+# in env file
+BUKUSERVER_PER_PAGE=100
 ```
 
-Note: the value for BUKUSERVER_REVERSE_PROXY_PATH
-is recommended to include preceding slash and not have trailing slash
-(i.e. use `/foo` not `/foo/`)
+Note: an env file can be supplied either [by providing `--env-file` CLI argument](https://flask.palletsprojects.com/en/stable/cli/#environment-variables-from-dotenv) (requires `python-dotenv` installed),
+or as config for [the runner script](https://github.com/jarun/buku/wiki/Bukuserver-%28WebUI%29#runner-script).
+
 
 #### Why favicons are disabled by default
 
@@ -169,68 +176,70 @@ It is important to note that favicon can potentially be exploited in this way.
 
 ### Screenshots
 
+_**Note: more screenshots (to show off `default` & `slate` themes) can be found [on the respective project wiki page](https://github.com/jarun/buku/wiki/Bukuserver-%28WebUI%29)**_
+
 <p><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/home-page.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/home-page.png" alt="home page" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/home-page.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/home-page.png" alt="home page" width="650"/>
   </a>
 </p>
 <p align="center"><i>home page</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/bookmark-stats.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/bookmark-stats.png" alt="bookmark stats" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-stats.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-stats.png" alt="bookmark stats" width="650"/>
   </a>
 </p>
 <p align="center"><i>bookmark stats</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.8/bukuserver/bookmark-page-with-favicon-enabled.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.8/bukuserver/bookmark-page-with-favicon-enabled.png"
-          alt="bookmark page with favicon enabled" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-page-with-favicon-enabled.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-page-with-favicon-enabled.png"
+          alt="bookmark page with favicon enabled and 'netloc-tag' URL render mode" width="650"/>
   </a>
 </p>
-<p align="center"><i>bookmark page <a href="#configuration">with favicon enabled</a></i></p>
+<p align="center"><i>bookmark page <a href="#configuration">with favicon enabled and 'netloc-tag' URL render mode</a></i></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.8a/bukuserver/bookmark-page-with-slate-theme-and-favicon-enabled.png">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.8a/bukuserver/bookmark-page-with-slate-theme-and-favicon-enabled.png"
+  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-page-with-slate-theme-and-favicon-enabled.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-page-with-slate-theme-and-favicon-enabled.png"
          alt="bookmark page with 'slate' theme and favicon enabled" width="650"/>
   </a>
 </p>
-<p align="center"><i>bookmark page with 'slate' theme and favicon enabled</i></a></p>
+<p align="center"><i>bookmark page with 'slate' theme, favicon enabled and 'netloc-tag' URL render mode</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/create-bookmark.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/create-bookmark.png" alt="create bookmark" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/create-bookmark.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/create-bookmark.png" alt="create bookmark" width="650"/>
   </a>
 </p>
 <p align="center"><i>create bookmark</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/edit-bookmark.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/edit-bookmark.png" alt="edit bookmark" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/edit-bookmark.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/edit-bookmark.png" alt="edit bookmark" width="650"/>
   </a>
 </p>
 <p align="center"><i>edit bookmark</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/view-bookmark-details.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/view-bookmark-details.png" alt="view bookmark details" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/view-bookmark-details.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/view-bookmark-details.png" alt="view bookmark details" width="650"/>
   </a>
 </p>
 <p align="center"><i>view bookmark details</i></a></p>
 
 <p><br><br></p>
 <p align="center">
-  <a href="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/tag-page.png?raw=true">
-    <img src="https://github.com/Buku-dev/docs/blob/v4.7/bukuserver/tag-page.png" alt="tag page" width="650"/>
+  <a href="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/tag-page.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/tag-page.png" alt="tag page" width="650"/>
   </a>
 </p>
 <p align="center"><i>tag page</i></a></p>

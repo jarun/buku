@@ -16,6 +16,24 @@ In GUI mode, the prompt is implemented as 2 dialogs; a list of databases to choo
 
 Running `buku-server.py --stop` will kill the currently running Bukuserver process (thus allowing to restart it in the background, like a daemon). `buku-server.py --stop-if-running` will either start the script or kill Bukuserver if it's running already.
 
+<details><summary><h3>Screenshots</h3></summary>
+
+![DB selection dialog](https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/runner-script/db-selection.png "DB selection dialog")  
+_DB selection dialog – shown on startup (unless no DB files were found); initially the previous DB is selected_
+
+![DB creation dialog](https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/runner-script/db-creation.png "DB creation dialog")  
+_DB creation dialog – shown if no DB was selected (or none found)_
+
+![DB exists](https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/runner-script/existing-db-confirmation.png "DB exists")  
+_A confirmation dialog is shown if new DB name is taken already_
+
+![DB naming error](https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/runner-script/invalid-db-error.png "DB naming error")  
+_DB name must be a valid filename, sans the `.db` extension (invalid chars: `/` on Linux, or any of `<>:"/\|?*` on Windows)_
+
+![no-GUI mode](https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/runner-script/non-gui.png "no-GUI mode")  
+_DB selection prompt in console shell/no-GUI mode (`BUKU_NOGUI=y`)_
+</details>
+
 ## Environment variables
 
 The script behaviour can be configured by setting the following environment variables:
