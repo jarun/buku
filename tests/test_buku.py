@@ -609,17 +609,15 @@ def test_import_md(tmpdir, url, title, tags, newtag, exp_tags):
     assert res == ([] if not url else  # `<>` and `[title]()` are not valid
                    [(url, title or '', exp_tags, None, 0, True, False)])
 
-@pytest.mark.parametrize(
-    "newtag, exp_res",
-    [
-        (None, ("http://example.com", "text1", ",", None, 0, True, False)),
-        ("tag1", ("http://example.com", "text1", ",tag1,", None, 0, True, False)),
-    ],
-)
-def test_import_rss(tmpdir, newtag, exp_res):
+@pytest.mark.parametrize('newtag, exp_res', [
+    (None, ('http://example.com', 'text1', ',', None, 0, True, False)),
+    ('tag1', ('http://example.com', 'text1', ',tag1,', None, 0, True, False)),
+])
+@pytest.mark.parametrize('extension', ['.rss', '.atom'])
+def test_import_rss(tmpdir, extension, newtag, exp_res):
     from buku import import_rss
 
-    p = tmpdir.mkdir("importrss").join("test.rss")
+    p = tmpdir.mkdir('importrss').join('test' + extension)
     p.write(
         '<feed xmlns="http://www.w3.org/2005/Atom">\n'
         '    <title>Bookmarks</title>\n'

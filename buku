@@ -2632,6 +2632,8 @@ class BukuDb:
         exported to an org file.
         If destination file name ends with '.xbel' bookmarks are
         exported to a XBEL file.
+        If destination file name ends with '.rss'/'.atom' bookmarks are
+        exported to an RSS file.
         Otherwise, bookmarks are exported to a Firefox bookmarks.html
         formatted file.
 
@@ -2712,7 +2714,7 @@ class BukuDb:
                 res = convert_bookmark_set(resultset, 'xbel', old)
                 count += res['count']
                 outfp.write(res['data'])
-            elif filepath.endswith('.rss'):
+            elif filepath.endswith('.rss') or filepath.endswith('.atom'):
                 res = convert_bookmark_set(resultset, 'rss', old)
                 count += res['count']
                 outfp.write(res['data'])
@@ -2992,7 +2994,8 @@ class BukuDb:
 
         Supports Firefox, Google Chrome, and IE exported HTML bookmarks.
         Supports XBEL standard bookmarks.
-        Supports Markdown files with extension '.md, .org'.
+        Supports RSS files with extension '.rss', '.atom'.
+        Supports Markdown files with extension '.md', '.org'.
         Supports importing bookmarks from another buku database file.
 
         Parameters
@@ -3026,7 +3029,7 @@ class BukuDb:
             items = import_md(filepath=filepath, newtag=newtag)
         elif filepath.endswith('org'):
             items = import_org(filepath=filepath, newtag=newtag)
-        elif filepath.endswith('rss'):
+        elif filepath.endswith('rss') or filepath.endswith('atom'):
             items = import_rss(filepath=filepath, newtag=newtag)
         elif filepath.endswith('json'):
             if not tacit:
@@ -5993,11 +5996,11 @@ POSITIONAL ARGUMENTS:
                          format: [title](url) <!-- TAGS -->
                          export Orgfile, if file ends with '.org'
                          format: *[[url][title]] :tags:
-                         export rss feed if file ends with '.rss'
+                         export rss feed if file ends with '.rss'/'.atom'
                          export buku DB, if file ends with '.db'
                          combines with search results, if opted
     -i, --import file    import bookmarks from file
-                         supports .html .xbel .json .md .org .rss .db
+                         supports .html .xbel .json .md .org .rss .atom .db
     -p, --print [...]    show record details by indices, ranges
                          print all bookmarks, if no arguments
                          -n shows the last n results (like tail)
