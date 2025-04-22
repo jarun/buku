@@ -68,7 +68,7 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 - Powerful search options (regex, substring...)
 - Continuous search with on the fly mode switch
 - Portable, merge-able database to sync between systems
-- Import/export bookmarks from/to HTML, XBEL, Markdown, RSS or Orgfile
+- Import/export bookmarks from/to HTML, XBEL, Markdown, RSS/Atom or Orgfile
 - Smart tag management using redirection (>>, >, <<)
 - Multi-threaded full DB refresh
 - Manual encryption support
@@ -232,11 +232,11 @@ POWER TOYS:
                            format: [title](url) <!-- TAGS -->
                            export Orgfile, if file ends with '.org'
                            format: *[[url][title]] :tags:
-                           export rss feed if file ends with '.rss'
+                           export rss feed if file ends with '.rss'/'.atom'
                            export buku DB, if file ends with '.db'
                            combines with search results, if opted
       -i, --import file    import bookmarks from file
-                           supports .html .xbel .json .md .org .rss .db
+                           supports .html .xbel .json .md .org .rss .atom .db
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
                            -n shows the last n results (like tail)
