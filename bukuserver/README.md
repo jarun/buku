@@ -122,7 +122,7 @@ _**Important:** all of them have a shared prefix_ **`BUKUSERVER_`**.
 | DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean<em>¹</em> [default: `true`] ([here's why](#why-favicons-are-disabled-by-default))|
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean<em>¹</em> [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path<em>⁵</em> | string |
-| THEME | [GUI theme](https://bootswatch.com/3) | string [default: `default`] (`slate` is a good pick for dark mode) |
+| THEME | [GUI theme](https://bootswatch.com/4) | string [default: `default`] (`slate` is a good pick for dark mode) |
 | LOCALE | GUI language<em>⁴</em> (partial support) | string [default: `en`] |
 | DEBUG | debug mode (verbose logging etc.) | boolean<em>¹</em> [default: `false`] |
 
