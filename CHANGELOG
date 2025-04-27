@@ -1,3 +1,56 @@
+buku v5.0
+2025-04-37
+
+- removed URL shorten/expand feature (see #815)
+- fix "htttp" typos in tests (@chenrui333)
+- fix default value of `--url` used with `--update` (see #729)
+- add Python 3.12 support (@chenrui333)
+- add Python 3.13 support + use it as default for testing
+- list [BukuBot](https://git.xmpp-it.net/sch/BukuBot) in the docs as a related project (@sjehuda)
+- fix pylint warnings
+- fix parsing of `<meta name="keywords">` in fetched webpages (see #734)
+- fix `get_rec_all_by_ids()`
+- fix autoimport of Firefox profiles with a custom absolute path (see #791)
+- fix `--db` parameter being ignored by encryption actions (see #796)
+- fix inconsistent handling of netloc (see #799)
+- fix import in single-parent-folder-tag mode (see #807)
+- add import/export in the `.rss` (Atom) format (@vagos)
+- add `.atom` as an RSS import/export extension
+- add description to XBEL export format (@sjehuda)
+- support raw (unnamed) URLs when parsing Markdown/OrgMode (i.e. `<url>`/`[[url]]` respectively)
+- implement backwards navigation in the interactive shell mode (@20mattia02)
+- implement DB switching in the interactive shell mode (with displaying non-default DB name)
+- support opening interactive shell mode on a non-default DB
+- implement custom-setting the default DB directory
+- implement printing DB list in default directory when invoked specifically as `buku --db`
+- implement handling `--db` parameter without `.` and directory separators as a _name_ (with omitted `.db` extension and located in default DB directory)
+- Bukuserver: implement support for passing a DB name in `BUKUSERVER_DB_FILE`
+- implement thread safety (e.g. for handling simultaneous requests in Bukuserver)
+- Bukuserver: prevent `/api/tags` query from being spammed due to a Flask-Admin bug
+- Bukuserver: increase size of the bookmarklet popup window
+- Bukuserver: minor UI improvements
+- Bukuserver: some readme improvements (@rachmadaniHaryono)
+- Bukuserver: add "contains"/"not contains" modes for some filters (URL/title in Bookmarks, name in Tags)
+- Bukuserver: fix input autofoxus on page/dialog opening
+- Bukuserver: ensure that links in the bookmarklet popup window are always opened externally
+- allow tags supplied by `--add` (or by `--tag`) to override fetched tags (unless started with `+`)
+- implement search-with-markers (see #777)
+- implement bookmarks output ordering [by fields/netloc] (see #777)
+- implement random selection of bookmarks
+- implement bookmark index swapping
+- Bukuserver: implement translations
+- Bukuserver: fix unstable ordering of the filters form
+- Bukuserver: add a runner script
+- Bukuserver: add support for tags/fetch fields to bookmarklet API endpoint
+- Bukuserver: fix popup detection for sites that prevent exposing `opener`
+- Bukuserver: fix disabling no-netloc URLs in rendering modes other than `full`
+- Bukuserver: remove dependency on the stale package Flask-API
+- support `urllib3>=2` as a dependency (see #776)
+- fix various deprecation warnings
+- Bukuserver: update screenshots in documentation
+
+-------------------------------------------------------------------------------
+
 buku v4.9
 2024-04-07
 
