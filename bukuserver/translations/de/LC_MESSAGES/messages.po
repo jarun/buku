@@ -15,7 +15,11 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.16.0\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: /home/lex/Work/buku/bukuserver/api.py:242
+msgid "Input required."
+msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/filters.py:61
 msgid "equals"
@@ -65,114 +69,109 @@ msgstr ""
 msgid "reversed"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:13
-msgid "Tag must be a string."
+#: /home/lex/Work/buku/bukuserver/forms.py:21
+msgid "The value must be a string."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:15
-#, python-format
-msgid "Tag must not contain delimiter \"%(delim)s\"."
+#: /home/lex/Work/buku/bukuserver/forms.py:49
+msgid "Invalid input."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:19
+#: /home/lex/Work/buku/bukuserver/forms.py:53
 msgid "Keywords"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:20
+#: /home/lex/Work/buku/bukuserver/forms.py:54
 msgid "Match all keywords"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:20
+#: /home/lex/Work/buku/bukuserver/forms.py:54
 msgid "Exclude partial matches (with multiple keywords)"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:21
+#: /home/lex/Work/buku/bukuserver/forms.py:55
 msgid "With markers"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:22
+#: /home/lex/Work/buku/bukuserver/forms.py:56
 msgid "The search string will be split into multiple keywords, each will be applied to a field based on prefix:"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:23
+#: /home/lex/Work/buku/bukuserver/forms.py:57
 msgid " - keywords starting with '.', '>' or ':' will be searched for in title, description and URL respectively"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:24
+#: /home/lex/Work/buku/bukuserver/forms.py:58
 msgid " - '#' will be searched for in tags (comma-separated, partial matches; not affected by Deep Search)"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:25
+#: /home/lex/Work/buku/bukuserver/forms.py:59
 msgid " - '#,' is the same but will match FULL tags only"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:26
+#: /home/lex/Work/buku/bukuserver/forms.py:60
 msgid " - '*' will be searched for in all fields (this prefix can be omitted in the 1st keyword)"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:27
+#: /home/lex/Work/buku/bukuserver/forms.py:61
 msgid "Keywords need to be separated by placing spaces before the prefix."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:29
+#: /home/lex/Work/buku/bukuserver/forms.py:63
 msgid "Deep search"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:29
+#: /home/lex/Work/buku/bukuserver/forms.py:63
 msgid "When unset, only FULL words will be matched."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:30
+#: /home/lex/Work/buku/bukuserver/forms.py:64
 msgid "Regex"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:30
+#: /home/lex/Work/buku/bukuserver/forms.py:64
 msgid "The keyword(s) are regular expressions (overrides other options)."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:34
+#: /home/lex/Work/buku/bukuserver/forms.py:68
 msgid "Keyword"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:38
-#: /home/lex/Work/buku/bukuserver/views.py:174
+#: /home/lex/Work/buku/bukuserver/forms.py:72
+#: /home/lex/Work/buku/bukuserver/views.py:173
 msgid "URL"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:39
+#: /home/lex/Work/buku/bukuserver/forms.py:73
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:190
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:225
-#: /home/lex/Work/buku/bukuserver/views.py:175
+#: /home/lex/Work/buku/bukuserver/views.py:174
 msgid "Title"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:40
-#: /home/lex/Work/buku/bukuserver/server.py:161
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:30
-#: /home/lex/Work/buku/bukuserver/views.py:175
+#: /home/lex/Work/buku/bukuserver/forms.py:74
+#: /home/lex/Work/buku/bukuserver/server.py:151
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:31
+#: /home/lex/Work/buku/bukuserver/views.py:174
 msgid "Tags"
 msgstr "Schilder"
 
-#: /home/lex/Work/buku/bukuserver/forms.py:41
-#: /home/lex/Work/buku/bukuserver/views.py:175
+#: /home/lex/Work/buku/bukuserver/forms.py:75
+#: /home/lex/Work/buku/bukuserver/views.py:174
 msgid "Description"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/forms.py:62
-msgid "List of tags expected."
-msgstr ""
-
-#: /home/lex/Work/buku/bukuserver/forms.py:89
+#: /home/lex/Work/buku/bukuserver/forms.py:121
 msgid "Delete tags list from existing tags"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/server.py:160
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:29
+#: /home/lex/Work/buku/bukuserver/server.py:150
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:30
 msgid "Bookmarks"
 msgstr "Lesezeichen"
 
-#: /home/lex/Work/buku/bukuserver/server.py:162
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:31
+#: /home/lex/Work/buku/bukuserver/server.py:152
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:32
 msgid "Statistic"
 msgstr "Statistik"
 
@@ -188,81 +187,81 @@ msgstr ""
 msgid "<EMPTY TITLE>"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:174
+#: /home/lex/Work/buku/bukuserver/views.py:173
 msgid "Entry"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:174
+#: /home/lex/Work/buku/bukuserver/views.py:173
 msgid "Index"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:223
+#: /home/lex/Work/buku/bukuserver/views.py:222
 #, python-format
 msgid "url invalid: %(url)s"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:234
+#: /home/lex/Work/buku/bukuserver/views.py:233
 msgid "Failed to create record."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:247
-#: /home/lex/Work/buku/bukuserver/views.py:554
+#: /home/lex/Work/buku/bukuserver/views.py:246
+#: /home/lex/Work/buku/bukuserver/views.py:553
 msgid "Failed to delete record."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:262
+#: /home/lex/Work/buku/bukuserver/views.py:261
 msgid "Invalid search mode combination"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:350
+#: /home/lex/Work/buku/bukuserver/views.py:349
 msgid "netloc match"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:383
+#: /home/lex/Work/buku/bukuserver/views.py:382
 msgid "contain"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:384
+#: /home/lex/Work/buku/bukuserver/views.py:383
 msgid "not contain"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:385
+#: /home/lex/Work/buku/bukuserver/views.py:384
 msgid "number equal"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:386
+#: /home/lex/Work/buku/bukuserver/views.py:385
 msgid "number not equal"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:387
+#: /home/lex/Work/buku/bukuserver/views.py:386
 msgid "number greater than"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:388
+#: /home/lex/Work/buku/bukuserver/views.py:387
 msgid "number smaller than"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:414
-#: /home/lex/Work/buku/bukuserver/views.py:572
+#: /home/lex/Work/buku/bukuserver/views.py:413
+#: /home/lex/Work/buku/bukuserver/views.py:571
 msgid "Failed to update record."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:429
+#: /home/lex/Work/buku/bukuserver/views.py:428
 msgid "<UNTAGGED>"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:435
-#: /home/lex/Work/buku/bukuserver/views.py:472
+#: /home/lex/Work/buku/bukuserver/views.py:434
+#: /home/lex/Work/buku/bukuserver/views.py:471
 msgctxt "tag"
 msgid "Name"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:435
+#: /home/lex/Work/buku/bukuserver/views.py:434
 msgctxt "tag"
 msgid "Usage Count"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/views.py:535
+#: /home/lex/Work/buku/bukuserver/views.py:534
 msgid "top most common"
 msgstr ""
 
@@ -270,171 +269,178 @@ msgstr ""
 msgid "Pick another"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:9
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:10
+#, python-brace-format
 msgid "Swap record #{} with record #"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:11
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:12
+#, python-brace-format
 msgid "Not a valid record index: '{}'"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:12
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:13
+#, python-brace-format
 msgid "There are only {} records in total!"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:13
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:14
 msgid "Swapping a record with itself has no effect!"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:24
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:25
 msgid "Random"
 msgstr "Zufälliger"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:37
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:38
 msgid "Swap with…"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:37
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:38
 msgid "Move down"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:37
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:38
 msgid "Move up"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:14
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:15
 msgid "Search bookmark"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:27
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:28
 msgid "Bookmark manager like a text-based mini-web"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:48
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:49
 msgid "Bookmarklet"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:50
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:66
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:51
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:67
 msgid "Add to Buku"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:52
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:53
 msgid "Note: if you select text on the page before activating the bookmarklet, it'll be used as description instead of page metadata."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:57
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:58
 msgid "Location Bar (keyboard-only) shortcut"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:59
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:60
 msgid "in Firefox:"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:60
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:61
 #, python-format
 msgid "Open the bookmarks editor and set %(buku)s in the Keyword field of the bookmarklet."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:62
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:63
 msgid "in Chrome:"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:64
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:65
 #, python-format
 msgid "In %(path)s, add a new row by placing %(add_to_buku)s, %(buku)s, and the copied bookmarklet URL in respective fields)."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:65
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:66
 msgid "Settings > Search engine > Manage… > Site Search"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:69
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:70
 msgid "usage:"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:71
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:72
 #, python-format
 msgid "By hitting %(hotkey)s (thus switching to Location Bar), then typing %(buku)s and hitting %(enter)s, you'll be able to open the bookmarklet dialog via keyboard only."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:74
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:75
 #, python-format
 msgid "Note: in Firefox this changes displayed URL, but you can reset it by switching back to Location Bar and hitting %(escape)s twice."
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:88
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:89
 msgid "FULL"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:38
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:66
 msgid "Fetch"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:68
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:96
 msgctxt "tags"
 msgid "name"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:68
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:96
 msgctxt "tags"
 msgid "usage count"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:69
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:97
 msgctxt "bookmarks"
 msgid "index"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:69
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:97
 msgctxt "bookmarks"
 msgid "url"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:69
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:97
 msgctxt "bookmarks"
 msgid "title"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:70
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:98
 msgctxt "bookmarks"
 msgid "tags"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:70
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:98
 msgctxt "bookmarks"
 msgid "order"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:72
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:100
 msgid "Delete record"
 msgstr "Datenzatz löschen"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:101
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:129
 msgid "custom"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:102
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:130
 msgid "Set custom page size (empty for default)"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:108
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:136
 msgid "Invalid page size"
 msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:9
+#, python-brace-format
 msgid "{} days ago"
 msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:9
+#, python-brace-format
 msgid "{} hours ago"
 msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:9
+#, python-brace-format
 msgid "{} minutes ago"
 msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:9
+#, python-brace-format
 msgid "{} seconds ago"
 msgstr ""
 
@@ -447,7 +453,7 @@ msgid "Data created"
 msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:24
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/tags_list.html:12
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/tags_list.html:13
 msgid "Refresh"
 msgstr ""
 

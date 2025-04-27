@@ -5,60 +5,26 @@ import os
 import sys
 import importlib.metadata
 from urllib.parse import urlsplit, urlunsplit, parse_qs
-from typing import Union  # NOQA; type: ignore
 
-from flask import Flask
+import click
+import flask
+from flask import Flask, redirect, request, url_for
 from flask.cli import FlaskGroup
 from flask_admin import Admin
 
-import buku
 from buku import BukuDb, __version__
 
 try:
     from .middleware import ReverseProxyPrefixFix
 except ImportError:
     from bukuserver.middleware import ReverseProxyPrefixFix
-import click
-import flask
-from flask import current_app, redirect, request, url_for
-
-flask_version = importlib.metadata.version('flask')
 
 try:
     from . import api, views, util, _p, _l, gettext, ngettext
-    from response import Response
 except ImportError:
     from bukuserver import api, views, util, _p, _l, gettext, ngettext
-    from bukuserver.response import Response
 
-
-STATISTIC_DATA = None
-
-def _fetch_data():
-    url = request.form.get('url')
-    try:
-        return (None if not url else buku.fetch_data(url))
-    except Exception as e:
-        current_app.logger.debug(str(e))
-        return None
-
-def handle_network():
-    res = _fetch_data()
-    res_dict = res and {'title': res.title, 'description': res.desc, 'tags': res.keywords,
-                        'recognized mime': int(res.mime), 'bad url': int(res.bad)}
-    return (Response.FAILURE() if not res else Response.SUCCESS(data=res_dict))
-
-def fetch_data():
-    res = _fetch_data()
-    return (Response.FAILURE() if not res else Response.SUCCESS(data=res._asdict()))
-
-
-def refresh_bookmark(rec_id: Union[int, None]):
-    result_flag = getattr(flask.g, 'bukudb', api.get_bukudb()).refreshdb(rec_id or 0, request.form.get('threads', 4))
-    return Response.from_flag(result_flag)
-
-
-get_tiny_url = lambda rec_id: Response.REMOVED()
+FLASK_VERSION = importlib.metadata.version('flask')
 
 
 _BOOL_VALUES = {'true': True, '1': True, 'false': False, '0': False}
@@ -154,31 +120,25 @@ def create_app(db_file=None):
     )
     # routing
     #  api
-    tag_api_view = api.ApiTagView.as_view('tag_api')
-    app.add_url_rule('/api/tags', defaults={'tag': None}, view_func=tag_api_view, methods=['GET'], strict_slashes=False)
-    app.add_url_rule('/api/tags/<tag>', view_func=tag_api_view, methods=['GET', 'PUT', 'DELETE'])
-    bookmark_api_view = api.ApiBookmarkView.as_view('bookmark_api')
-    app.add_url_rule('/api/bookmarks', defaults={'rec_id': None}, view_func=bookmark_api_view, methods=['GET', 'POST', 'DELETE'])
-    app.add_url_rule('/api/bookmarks/<int:rec_id>', view_func=bookmark_api_view, methods=['GET', 'PUT', 'DELETE'])
-    app.add_url_rule('/api/bookmarks/refresh', 'refresh_bookmark', refresh_bookmark, defaults={'rec_id': None}, methods=['POST'])
-    app.add_url_rule('/api/bookmarks/<int:rec_id>/refresh', 'refresh_bookmark', refresh_bookmark, methods=['POST'])
-    app.add_url_rule('/api/bookmarks/<int:rec_id>/tiny', 'get_tiny_url', get_tiny_url, methods=['GET'])
-    app.add_url_rule('/api/network_handle', 'network_handle', handle_network, methods=['POST'])
-    app.add_url_rule('/api/fetch_data', 'fetch_data', fetch_data, methods=['POST'])
-    bookmark_range_api_view = api.ApiBookmarkRangeView.as_view('bookmark_range_api')
-    app.add_url_rule(
-        '/api/bookmarks/<int:starting_id>/<int:ending_id>',
-        view_func=bookmark_range_api_view, methods=['GET', 'PUT', 'DELETE'])
-    bookmark_search_api_view = api.ApiBookmarkSearchView.as_view('bookmark_search_api')
-    app.add_url_rule('/api/bookmarks/search', view_func=bookmark_search_api_view, methods=['GET', 'DELETE'])
-    bookmarklet_view = api.BookmarkletView.as_view('bookmarklet')
-    app.add_url_rule('/bookmarklet', view_func=bookmarklet_view, methods=['GET'])
+    app.add_url_rule('/api/tags', 'get_all_tags', api.get_all_tags, methods=['GET'], strict_slashes=False)
+    app.add_url_rule('/api/tags/<tag>', view_func=api.ApiTagView.as_view('tag'), methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule('/api/bookmarks', view_func=api.ApiBookmarksView.as_view('bookmarks'), methods=['GET', 'POST', 'DELETE'])
+    app.add_url_rule('/api/bookmarks/<int:index>', view_func=api.ApiBookmarkView.as_view('bookmark'), methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule('/api/bookmarks/refresh', 'bookmarks_refresh', api.refresh_bookmark, defaults={'index': None}, methods=['POST'])
+    app.add_url_rule('/api/bookmarks/<int:index>/refresh', 'bookmark_refresh', api.refresh_bookmark, methods=['POST'])
+    app.add_url_rule('/api/bookmarks/<int:index>/tiny', 'tiny_url', api.get_tiny_url, methods=['GET'])
+    app.add_url_rule('/api/bookmarks/<int:start_index>/<int:end_index>',
+                     view_func=api.ApiBookmarkRangeView.as_view('bookmark_range'), methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule('/api/bookmarks/search', view_func=api.ApiBookmarkSearchView.as_view('bookmarks_search'), methods=['GET', 'DELETE'])
+    app.add_url_rule('/api/network_handle', 'network_handle', api.handle_network, methods=['POST'])
+    app.add_url_rule('/api/fetch_data', 'fetch_data', api.fetch_data, methods=['POST'])
 
     #  non api
     @app.route('/favicon.ico')
     def favicon():
         return redirect(url_for('static', filename='bukuserver/favicon.svg'), code=301)  # permanent redirect
 
+    app.add_url_rule('/bookmarklet', 'bookmarklet', api.bookmarklet_redirect, methods=['GET'])
     admin.add_view(views.BookmarkModelView(bukudb, _l('Bookmarks')))
     admin.add_view(views.TagModelView(bukudb, _l('Tags')))
     admin.add_view(views.StatisticView(bukudb, _l('Statistic'), endpoint='statistic'))
@@ -203,7 +163,7 @@ def get_custom_version(ctx, param, value):
         % {
             "app_name": "buku",
             "app_version": __version__,
-            "version": flask_version,
+            "version": FLASK_VERSION,
             "python_version": sys.version,
         },
         color=ctx.color,
