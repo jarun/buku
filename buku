@@ -5481,7 +5481,7 @@ def to_temp_file_content(url, title_in, tags_in, desc):
 
     # TAGS
     strings += ('# Add comma-separated TAGS in next line (single line).',)
-    strings += (tags_in.strip(DELIM),) if not None else ''
+    strings += [(tags_in or '').strip(DELIM)]
 
     # DESC
     strings += ('# Add COMMENTS in next line(s). Leave blank to web fetch, "-" for no comments.',)
