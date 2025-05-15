@@ -46,14 +46,14 @@ def not_in_list_func(query, value, index):
 
 def top_x_func(query, value, index):
     items = sorted(set(x[index] for x in query), reverse=True)
-    top_x = items[:value]
-    return filter(lambda x: x[index] in top_x, query)
+    top_x = set(items[:value])
+    return filter((lambda x: x[index] in top_x), query)
 
 
 def bottom_x_func(query, value, index):
     items = sorted(set(x[index] for x in query), reverse=False)
-    top_x = items[:value]
-    return filter(lambda x: x[index] in top_x, query)
+    top_x = set(items[:value])
+    return filter((lambda x: x[index] in top_x), query)
 
 
 class FilterType(Enum):
