@@ -427,10 +427,6 @@ def test_to_temp_file_content(url, title_in, tags_in, desc):
         title_text = "-"
     else:
         title_text = title_in
-    if tags_in is None:
-        with pytest.raises(AttributeError):
-            res = buku.to_temp_file_content(url, title_in, tags_in, desc)
-        return
     res = buku.to_temp_file_content(url, title_in, tags_in, desc)
     lines = """# Lines beginning with "#" will be stripped.
 # Add URL in next line (single line).{}
