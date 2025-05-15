@@ -2,7 +2,7 @@
 
 ## get buku database
 
-```ptyhon
+```python
 >>> import buku
 >>> bdb = buku.BukuDb()
 ```
