@@ -2330,7 +2330,7 @@ class BukuDb:
             DELIM separated string of tags.
         """
 
-        tags = tagstr.split(',')
+        tags = (tagstr or '').split(',')
         if not len(tags):
             return tagstr
 
