@@ -4652,7 +4652,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
     if noninteractive:
         try:
-            for i, row in enumerate(results):
+            for i, row in enumerate(results or []):
                 print_single_rec(row, i + 1, columns)
         except Exception as e:
             LOGERR(e)
