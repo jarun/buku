@@ -1,6 +1,6 @@
 FROM python:alpine
 
-MAINTAINER Ameya Shenoy "shenoy.ameya@gmail.com"
+LABEL org.opencontainers.image.authors="shenoy.ameya@gmail.com"
 
 ENV BUKUSERVER_PORT=5001
 
@@ -19,11 +19,11 @@ RUN set -ex \
     gunicorn \
     /buku[server] \
   && apk del .build-deps \
+  && echo "import sys;  bind = '0.0.0.0:${BUKUSERVER_PORT}'" > 'gunicorn.conf.py' \
   && rm -rf /buku
 
 HEALTHCHECK --interval=1m --timeout=10s \
   CMD nc -z 127.0.0.1 ${BUKUSERVER_PORT} || exit 1
 
-ENTRYPOINT gunicorn --bind 0.0.0.0:${BUKUSERVER_PORT} "bukuserver.server:create_app()"
+ENTRYPOINT ["gunicorn", "bukuserver.server:create_app()"]
 EXPOSE ${BUKUSERVER_PORT}
-
