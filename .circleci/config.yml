@@ -5,7 +5,7 @@ executors:
     environment:
       IMAGE_NAME: bukuserver/bukuserver
     docker:
-      - image: circleci/buildpack-deps:stretch
+      - image: cimg/base:current
 
 test-template: &test-template
   working_directory: ~/Buku
@@ -89,36 +89,23 @@ jobs:
 #            go get github.com/tcnksm/ghr
 #            ghr -t ${GITHUB_API_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${CIRCLE_TAG} ./dist/
 
-  build-docker-image:
+  build-and-publish-docker-image:
     executor: docker-publisher
     steps:
       - checkout
       - setup_remote_docker
       - run:
-          name: Build Docker image
-          command: docker build -t $IMAGE_NAME:latest .
+          name: Login to Docker Hub
+          command: 'echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin'
       - run:
-          name: Archive Docker image
-          command: docker save -o image.tar $IMAGE_NAME
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./image.tar
-
-  publish-on-docker-hub:
-    executor: docker-publisher
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_remote_docker
+          name: Create a builder instance
+          command: docker buildx create --use
       - run:
-          name: Load archived Docker image
-          command: docker load -i /tmp/workspace/image.tar
-      - run:
-          name: Publish Docker Image to Docker Hub
+          name: Build Docker image and publish it to Docker Hub
           command: |
-            echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-            docker push ${IMAGE_NAME}:latest
+            TAGS="--tag $IMAGE_NAME:latest"
+            [ "$CIRCLE_TAG" ] && TAGS="--tag $IMAGE_NAME:$CIRCLE_TAG $TAGS"
+            docker buildx build --platform=linux/amd64,linux/arm64 $TAGS --push .
 
 workflows:
   version: 2.1
@@ -153,15 +140,7 @@ workflows:
 
   publish-docker-image:
     jobs:
-      - build-docker-image:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - publish-on-docker-hub:
-          requires:
-            - build-docker-image
+      - build-and-publish-docker-image:
           filters:
             tags:
               only: /^v.*/

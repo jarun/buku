@@ -15,3 +15,5 @@ buku.py
 /tests/vcr_cassettes/tests.test_bukuDb/
 /bookmarks.db
 /venv/
+/docker-compose/data/*
+!/docker-compose/data/nginx/
