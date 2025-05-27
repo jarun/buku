@@ -2330,9 +2330,9 @@ class BukuDb:
             DELIM separated string of tags.
         """
 
+        if not tagstr:
+            return ''
         tags = tagstr.split(',')
-        if not len(tags):
-            return tagstr
 
         qry = 'SELECT DISTINCT tags FROM bookmarks WHERE tags LIKE ?'
         tagset = set()
