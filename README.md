@@ -72,8 +72,10 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 - Smart tag management using redirection (>>, >, <<)
 - Multi-threaded full DB refresh
 - Manual encryption support
-- Shell completion scripts, man page with examples
+- Shell completion scripts, man page with handy examples
 - Privacy-aware (no unconfirmed user data collection)
+- Can be used as a Python library ([_API documentation_](https://buku.readthedocs.io/en/latest/?badge=latest))
+- Has a compation Web-application ([Bukuserver](https://github.com/jarun/buku/wiki/Bukuserver-%28WebUI%29)) with an HTTP-based API (for personal use only)
 
 ### Installation
 
