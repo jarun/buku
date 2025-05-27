@@ -239,6 +239,7 @@ POWER TOYS:
                            combines with search results, if opted
       -i, --import file    import bookmarks from file
                            supports .html .xbel .json .md .org .rss .atom .db
+                           (.json = Firefox backup; .db = another Buku DB)
       -p, --print [...]    show record details by indices, ranges
                            print all bookmarks, if no arguments
                            -n shows the last n results (like tail)
