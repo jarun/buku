@@ -239,10 +239,11 @@ def prepare_vars():
     }
 
 def run_repeatedly(dbdir, devmode=False, gui=GUI, exec=None, workdir=None, virtualenv=None):
+    virtualenv = virtualenv and os.path.expanduser(virtualenv)
     if workdir:
         os.chdir(os.path.expanduser(workdir))
     elif virtualenv:
-        os.chdir(os.path.expanduser(virtualenv))
+        os.chdir(virtualenv)
         virtualenv = '.'
     set_title(TITLE + ('' if dbdir == get_buku_config_dir() else f' [{dbdir}]'))
     virtualenv and load_virtualenv(virtualenv, devmode=devmode, reinstall=bool(workdir))
