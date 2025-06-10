@@ -1,0 +1,40 @@
+Fetch the data of all bookmarks in specified index range
+---
+#GET /api/bookmarks/{start_index}/{end_index}
+
+tags: [Bookmarks]
+
+parameters:
+  - name: start_index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+  - name: end_index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+
+responses:
+  200:
+    description: Bookmark data
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - properties:
+            bookmarks:
+              type: object
+              additionalProperties:
+                $ref: '#/definitions/Data:Bookmark'
+              description: "Each key is the respective bookmark index"
+              example:
+                {42: {url: "https://slashdot.org/",
+                      title: "SLASHDOT",
+                      tags: ['news', 'old'],
+                      description: "News for old nerds, stuff that doesn't matter"}}
+
+  404:
+    description: Range not valid (this includes nonexistent indices)
+    schema:
+      $ref: '#/definitions/Response:NotFound:BookmarkRange'

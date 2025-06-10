@@ -1,0 +1,44 @@
+Replace the specified tag with one or more new tags
+---
+#PUT /api/tags/{tag}  {"tags": []}
+
+tags: [Tags]
+
+parameters:
+  - name: tag
+    in: path
+    required: true
+    type: string
+    pattern: '^[^,]*[^,\s]+[^,]*$'
+    description: "Cannot include comma; cannot be blank"
+  - name: form
+    in: body
+    required: true
+    schema:
+      $ref: '#/definitions/Form:Tags'
+
+responses:
+  200:
+    description: Renamed successfully
+    schema:
+      $ref: '#/definitions/Response:Success'
+
+  400:
+    description: Ill-formed request
+    schema:
+      $ref: '#/definitions/Response:IllFormedRequest'
+
+  404:
+    description: Tag not found
+    schema:
+      $ref: '#/definitions/Response:NotFound:Tag'
+
+  409:
+    description: Failed to rename
+    schema:
+      $ref: '#/definitions/Response:Failure'
+
+  422:
+    description: Invalid tag/request data
+    schema:
+      $ref: '#/definitions/Response:InputNotValid:Tags'

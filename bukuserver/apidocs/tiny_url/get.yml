@@ -1,0 +1,19 @@
+Fetch the shortened URL
+`[NO LONGER AVAILABLE]`
+---
+#GET /api/bookmarks/{index}/tiny
+
+tags: [Util]
+
+parameters:
+  - name: index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+
+responses:
+  410:
+    description: Functionality no longer available.
+    schema:
+      $ref: '#/definitions/Response:Removed'

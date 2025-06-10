@@ -8,6 +8,7 @@ import flask
 from flask import current_app, redirect, request, url_for
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
+from flasgger import swag_from
 
 import buku
 from buku import BukuDb
@@ -95,14 +96,18 @@ def _fetch_data(convert):
         current_app.logger.debug(str(e))
         return Response.FAILURE()
 
+@swag_from('./apidocs/network_handle/post.yml')
 def handle_network():
     return _fetch_data(lambda x: {'title': x.title, 'description': x.desc, 'tags': x.keywords,
                                   'recognized mime': int(x.mime), 'bad url': int(x.bad)})
 
+@swag_from('./apidocs/fetch_data/post.yml')
 def fetch_data():
     return _fetch_data(lambda x: x._asdict())
 
 
+@swag_from('./apidocs/bookmarks_refresh/post.yml', endpoint='bookmarks_refresh')
+@swag_from('./apidocs/bookmark_refresh/post.yml', endpoint='bookmark_refresh')
 def refresh_bookmark(index: T.Optional[int]):
     bdb = getattr(flask.g, 'bukudb', get_bukudb())
     if index and not bdb.get_rec_by_id(index):
@@ -111,9 +116,10 @@ def refresh_bookmark(index: T.Optional[int]):
     return Response.from_flag(result_flag)
 
 
-get_tiny_url = lambda index: Response.REMOVED()
+get_tiny_url = swag_from('./apidocs/tiny_url/get.yml')(lambda index: Response.REMOVED())
 
 
+@swag_from('./apidocs/tags/get.yml')
 def get_all_tags():
     return Response.SUCCESS(data={"tags": search_tag(db=get_bukudb(), limit=5)[0]})
 

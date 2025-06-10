@@ -1,0 +1,59 @@
+Update all bookmarks in specified index range
+_Note that this request **does not overwrite tags** (instead, tags are added or deleted based on **del_tags** value)._
+---
+#PUT /api/bookmarks/{start_index}/{end_index}  {Bookmark}
+
+tags: [Bookmarks]
+
+parameters:
+  - name: start_index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+  - name: end_index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+  - name: form
+    in: body
+    required: true
+    schema:
+      type: object
+      description: "Each key is the respective bookmark index. _**All**_ bookmarks in the range must be present. (Indices outside of the range are ignored.)"
+      additionalProperties:
+        $ref: '#/definitions/Form:Bookmark'
+      example: {1: {title: "SLASHDOT"}, 2: {}, 3: {tags: ['old', 'news'], del_tags: false}, 4: {fetch: true}}
+
+responses:
+  200:
+    description: Updated successfully
+    schema:
+      $ref: '#/definitions/Response:Success'
+
+  400:
+    description: Ill-formed request
+    schema:
+      $ref: '#/definitions/Response:IllFormedRequest'
+
+  404:
+    description: Range not valid (this includes nonexistent indices)
+    schema:
+      $ref: '#/definitions/Response:NotFound:BookmarkRange'
+
+  409:
+    description: Failed to update a bookmark
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Failure'
+        - properties:
+            index:
+              type: integer
+              description: "Indicates which bookmark could not be updated."
+              example: 42
+
+  422:
+    description: Invalid request data
+    schema:
+      $ref: '#/definitions/Response:InputNotValid:BookmarkRange'

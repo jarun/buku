@@ -11,6 +11,7 @@ import flask
 from flask import Flask, redirect, request, url_for
 from flask.cli import FlaskGroup
 from flask_admin import Admin
+from flasgger import Swagger
 
 from buku import BukuDb, __version__
 
@@ -98,6 +99,8 @@ def create_app(db_file=None):
     bukudb = BukuDb(dbfile=db_file)
     app.config['FLASK_ADMIN_SWATCH'] = (os.getenv('BUKUSERVER_THEME') or 'default').lower()
     app.config['BUKUSERVER_LOCALE'] = os.getenv('BUKUSERVER_LOCALE') or 'en'
+    _dir = os.path.dirname(os.path.realpath(__file__))
+    app.config['SWAGGER'] = {'title': 'Bukuserver API', 'doc_dir': os.path.join(_dir, 'apidocs')}
     app.app_context().push()
     setattr(flask.g, 'bukudb', bukudb)
     init_locale(app)
@@ -118,6 +121,7 @@ def create_app(db_file=None):
             template='bukuserver/home.html', url='/'
         )
     )
+    Swagger(app, template_file=os.path.join(_dir, 'apidocs', 'template.yml'))
     # routing
     #  api
     app.add_url_rule('/api/tags', 'get_all_tags', api.get_all_tags, methods=['GET'], strict_slashes=False)

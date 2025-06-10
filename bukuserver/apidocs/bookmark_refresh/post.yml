@@ -1,0 +1,28 @@
+Refresh bookmark data from fetched resource.
+---
+#POST /api/bookmarks/{index}/refresh
+
+tags: [Util]
+
+parameters:
+  - name: index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+
+responses:
+  200:
+    description: Success
+    schema:
+      $ref: '#/definitions/Response:Success'
+
+  404:
+    description: Bookmark not found
+    schema:
+      $ref: '#/definitions/Response:NotFound:Bookmark'
+
+  409:
+    description: Failure
+    schema:
+      $ref: '#/definitions/Response:Failure'

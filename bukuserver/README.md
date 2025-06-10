@@ -12,6 +12,7 @@ _**Note: see [the runner script](https://github.com/jarun/buku/wiki/Bukuserver-%
   - [Using Docker Compose](#using-docker-compose)
 - [Webserver options](#webserver-options)
 - [Configuration](#configuration)
+- [API](#api)
 - [Screenshots](#screenshots)
 
 ### Installation
@@ -173,6 +174,27 @@ a technique used to identify and track a person's web browsing habits.
   ([English translation](https://www-heise-de.translate.goog/news/Browser-Fingerprinting-Favicons-als-Super-Cookies-5027814.html?_x_tr_sl=de&_x_tr_tl=en&_x_tr_hl=en))
 
 It is important to note that favicon can potentially be exploited in this way.
+
+### API
+
+Bukuserver implements a RESTful API that provides an HTTP-based interface for the main functionality.
+
+The API root is at `/api`; you can also access a [Swagger](https://swagger.io/tools/swagger-ui)-based interactive doc at the endpoint `/apidocs` (e.g. `http://localhost:5000/apidocs`).
+
+_**Note: unlike regular IDs, indices aren't static; they're likely to change if used with ID**_
+* `/api/tags` can be used to `GET` the list of all tags
+* `/api/tags/{tag}` can be used to `GET` information on specified tag, as well as `DELETE` or replace it with new tags (`PUT`) in all bookmarks
+* `/api/bookmarks` can be used to `GET` or `DELETE` all bookmarks, as well as create (`POST`) a new one
+* `/api/bookmarks/{index}` can be used to `GET`, `DELETE` or update (`PUT`) an existing bookmark
+* `/api/bookmarks/{start_index}/{end_index}` can be used to `GET`, `DELETE` or update (`PUT`) bookmarks in existing index range
+* `/api/bookmarks/search` can be used to `GET` or `DELETE` bookmarks matching the query (you can use it to obtain current index by URL)
+* ~~`/api/bookmarks/{index}/tiny` can be used to `GET` a shortened URL~~ ([the service providing this functionality is no longer available](https://web.archive.org/web/20250109212915/https://tny.im/))
+* `/api/bookmarks/{index}/refresh` can be used to update (`POST`) data for a bookmark by remotely fetching & parsing the URL
+* `/api/bookmarks/refresh` can be used to update (`POST`) data for _**all**_ bookmarks by remotely fetching & parsing the URLs
+* `/api/fetch_data` can be used to invoke (`POST`) the fetch+parse functionality for an arbitrary URL
+* `/api/network_handle` can be used to invoke (`POST`) the fetch+parse functionality for an arbitrary URL (_outdated interface_)
+
+Also note that certain `POST`/`DELETE` endpoints (bookmarks search & data fetch) expect their parameters in urlencoded format, while others expect JSON.
 
 ### Screenshots
 

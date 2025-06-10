@@ -1,0 +1,38 @@
+Get information on the specified tag
+---
+#GET /api/tags/{tag}
+
+tags: [Tags]
+
+parameters:
+  - name: tag
+    in: path
+    required: true
+    type: string
+    pattern: '^[^,]*[^,\s]+[^,]*$'
+    description: "Cannot include comma; cannot be blank"
+
+responses:
+  200:
+    description: Tag information
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - type: object
+          properties:
+            name:
+              type: string
+              example: 'foo'
+            usage_count:
+              type: integer
+              example: 42
+
+  404:
+    description: Tag not found
+    schema:
+      $ref: '#/definitions/Response:NotFound:Tag'
+
+  422:
+    description: Invalid tag
+    schema:
+      $ref: '#/definitions/Response:NotValid:Tag'
