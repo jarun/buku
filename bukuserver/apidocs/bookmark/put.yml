@@ -1,0 +1,44 @@
+Update an existing bookmark at current index
+---
+#PUT /api/bookmarks/{index}  {Bookmark}
+
+tags: [Bookmarks]
+
+parameters:
+  - name: index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+  - name: form
+    in: body
+    required: true
+    description: "The URL must not be present in any other bookmark"
+    schema:
+      $ref: '#/definitions/Form:Bookmark'
+
+responses:
+  200:
+    description: Updated successfully
+    schema:
+      $ref: '#/definitions/Response:Success'
+
+  400:
+    description: Ill-formed request
+    schema:
+      $ref: '#/definitions/Response:IllFormedRequest'
+
+  404:
+    description: Bookmark not found
+    schema:
+      $ref: '#/definitions/Response:NotFound:Bookmark'
+
+  409:
+    description: Failed to update a bookmark
+    schema:
+      $ref: '#/definitions/Response:Failure'
+
+  422:
+    description: Invalid request data
+    schema:
+      $ref: '#/definitions/Response:InputNotValid:Bookmark'

@@ -1,0 +1,50 @@
+Fetch data from URL (i.e. to test parsing functionality)
+`[DEPRECATED]` prefer **/api/fetch_data**
+---
+#POST /api/network_handle  url=
+
+tags: [Util]
+consumes: ['application/x-www-form-urlencoded']
+
+parameters:
+  - name: url
+    in: formData
+    required: true
+    type: string
+    format: uri
+
+responses:
+  200:
+    description: Operation executed normally
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - properties:
+            title:
+              type: string
+              example: "Slashdot: News for nerds, stuff that matters"
+            description:
+              type: string
+              example: "Slashdot: News for nerds, stuff that matters.\n
+                Timely news source for technology related news with a heavy slant towards Linux and Open Source issues."
+            tags:
+              type: string
+              example: "empty,usually"
+            recognized mime:
+              type: integer
+              example: 0
+              description: 1 indicates that the URL implied non-webpage content (and therefore HTTP HEAD request was sent)
+            bad url:
+              type: integer
+              example: 0
+              description: 1 indicates that the input did not contain a fetchable URL (and therefore no request was sent)
+
+  409:
+    description: Operation could not be executed
+    schema:
+      $ref: '#/definitions/Response:Failure'
+
+  422:
+    description: Invalid request data
+    schema:
+      $ref: '#/definitions/Response:InputNotValid:Url'

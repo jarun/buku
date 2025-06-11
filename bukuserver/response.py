@@ -7,23 +7,24 @@ OK, FAIL = 0, 1
 
 
 class Response(Enum):
-    SUCCESS = (HTTPStatus.OK, "Success.")                                # 200
-    FAILURE = (HTTPStatus.BAD_REQUEST, "Failure.")                       # 400
-    REMOVED = (HTTPStatus.GONE, "Functionality no longer available.")    # 410
-    INPUT_NOT_VALID = (HTTPStatus.BAD_REQUEST, "Input data not valid.")  # 400
-    BOOKMARK_NOT_FOUND = (HTTPStatus.NOT_FOUND, "Bookmark not found.")   # 404
-    TAG_NOT_FOUND = (HTTPStatus.NOT_FOUND, "Tag not found.")             # 404
-    RANGE_NOT_VALID = (HTTPStatus.BAD_REQUEST, "Range not valid.")       # 400
-    TAG_NOT_VALID = (HTTPStatus.BAD_REQUEST, "Invalid tag.")             # 400
+    SUCCESS = (HTTPStatus.OK, "Success.")                                         # 200
+    FAILURE = (HTTPStatus.CONFLICT, "Failure.")                                   # 409
+    REMOVED = (HTTPStatus.GONE, "Functionality no longer available.")             # 410
+    INVALID_REQUEST = (HTTPStatus.BAD_REQUEST, "Ill-formed request.")             # 400
+    INPUT_NOT_VALID = (HTTPStatus.UNPROCESSABLE_ENTITY, "Input data not valid.")  # 422
+    TAG_NOT_VALID = (HTTPStatus.UNPROCESSABLE_ENTITY, "Invalid tag.")             # 422
+    BOOKMARK_NOT_FOUND = (HTTPStatus.NOT_FOUND, "Bookmark not found.")            # 404
+    RANGE_NOT_VALID = (HTTPStatus.NOT_FOUND, "Range not valid.")                  # 404
+    TAG_NOT_FOUND = (HTTPStatus.NOT_FOUND, "Tag not found.")                      # 404
 
     @staticmethod
-    def bad_request(message: str):
-        json = {'status': Response.FAILURE.status, 'message': message}
-        return (jsonify(json), Response.FAILURE.status_code, {'ContentType': 'application/json'})
+    def invalid(errors):
+        return Response.INPUT_NOT_VALID(data={'errors': errors})
 
     @staticmethod
-    def from_flag(flag: bool):
-        return Response.SUCCESS() if flag else Response.FAILURE()
+    def from_flag(flag: bool, *, data: Dict[str, Any] = None, errors: Dict[str, Any] = None):
+        errors = dict(({'errors': errors} if errors else {}), **(data or {}))
+        return Response.SUCCESS(data=data) if flag else Response.FAILURE(data=errors)
 
     @property
     def status_code(self) -> int:

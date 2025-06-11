@@ -1,0 +1,33 @@
+Delete all bookmarks in specified index range
+---
+#DELETE /api/bookmarks/{start_index}/{end_index}
+
+tags: [Bookmarks]
+
+parameters:
+  - name: start_index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+  - name: end_index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+
+responses:
+  200:
+    description: Success
+    schema:
+      $ref: '#/definitions/Response:Success'
+
+  404:
+    description: Range not valid (this includes nonexistent indices)
+    schema:
+      $ref: '#/definitions/Response:NotFound:BookmarkRange'
+
+  409:
+    description: Failure
+    schema:
+      $ref: '#/definitions/Response:Failure'

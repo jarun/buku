@@ -3,37 +3,40 @@
 """Server module."""
 import collections
 import typing as T
-from unittest import mock
 
+import flask
+from flask import current_app, redirect, request, url_for
 from flask.views import MethodView
+from werkzeug.exceptions import BadRequest
+from flasgger import swag_from
 
 import buku
 from buku import BukuDb
 
-import flask
-from flask import current_app, redirect, request, url_for
-
 try:
+    from . import _
     from response import Response
-    from forms import ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm, ApiTagForm
+    from forms import (TAG_RE, ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm,
+                       ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm)
 except ImportError:
+    from bukuserver import _
     from bukuserver.response import Response
-    from bukuserver.forms import ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm, ApiTagForm
+    from bukuserver.forms import (TAG_RE, ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm,
+                                  ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm)
 
 
-STATISTIC_DATA = None
+_parse_bool = lambda x: str(x).lower() == 'true'
 
-
-def entity(bookmark, id=False):
+def entity(bookmark, index=False):
     data = {
-        'id': bookmark.id,
+        'index': bookmark.id,
         'url': bookmark.url,
         'title': bookmark.title,
         'tags': bookmark.taglist,
         'description': bookmark.desc,
     }
-    if not id:
-        data.pop('id')
+    if not index:
+        data.pop('index')
     return data
 
 
@@ -83,23 +86,64 @@ def search_tag(
     return list(sorted(tags)), dict(counter.most_common(limit))
 
 
-class ApiTagView(MethodView):
+def _fetch_data(convert):
+    form = ApiFetchDataForm(request.form)
+    if not form.validate():
+        return Response.INPUT_NOT_VALID(data={'errors': form.errors})
+    try:
+        return Response.SUCCESS(data=convert(buku.fetch_data(form.url.data)))
+    except Exception as e:
+        current_app.logger.debug(str(e))
+        return Response.FAILURE()
 
-    def get(self, tag: T.Optional[str]):
+@swag_from('./apidocs/network_handle/post.yml')
+def handle_network():
+    return _fetch_data(lambda x: {'title': x.title, 'description': x.desc, 'tags': x.keywords,
+                                  'recognized mime': int(x.mime), 'bad url': int(x.bad)})
+
+@swag_from('./apidocs/fetch_data/post.yml')
+def fetch_data():
+    return _fetch_data(lambda x: x._asdict())
+
+
+@swag_from('./apidocs/bookmarks_refresh/post.yml', endpoint='bookmarks_refresh')
+@swag_from('./apidocs/bookmark_refresh/post.yml', endpoint='bookmark_refresh')
+def refresh_bookmark(index: T.Optional[int]):
+    bdb = getattr(flask.g, 'bukudb', get_bukudb())
+    if index and not bdb.get_rec_by_id(index):
+        return Response.BOOKMARK_NOT_FOUND()
+    result_flag = bdb.refreshdb(index or None, request.form.get('threads', 4))
+    return Response.from_flag(result_flag)
+
+
+get_tiny_url = swag_from('./apidocs/tiny_url/get.yml')(lambda index: Response.REMOVED())
+
+
+@swag_from('./apidocs/tags/get.yml')
+def get_all_tags():
+    return Response.SUCCESS(data={"tags": search_tag(db=get_bukudb(), limit=5)[0]})
+
+class ApiTagView(MethodView):
+    def get(self, tag: str):
         bukudb = get_bukudb()
-        if tag is None:
-            return Response.SUCCESS(data={"tags": search_tag(db=bukudb, limit=5)[0]})
+        if not TAG_RE.match(tag):
+            return Response.TAG_NOT_VALID()
+        tag = tag.lower().strip()
         tags = search_tag(db=bukudb, stag=tag)
-        if tag not in tags[1]:
-            return Response.TAG_NOT_FOUND()
-        return Response.SUCCESS(data={"name": tag, "usage_count": tags[1][tag]})
+        return (Response.TAG_NOT_FOUND() if tag not in tags[1] else
+                Response.SUCCESS(data={"name": tag, "usage_count": tags[1][tag]}))
 
     def put(self, tag: str):
-        form = ApiTagForm({})
-        error_response, data = form.process_data(request.get_json())
-        if error_response is not None:
-            return error_response(data=data)
+        if not TAG_RE.match(tag):
+            return Response.TAG_NOT_VALID()
+        try:
+            form = ApiTagForm(data=request.get_json())
+        except BadRequest:
+            return Response.INVALID_REQUEST()
+        if not form.validate():
+            return Response.invalid(form.errors)
         bukudb = get_bukudb()
+        tag = tag.lower().strip()
         tags = search_tag(db=bukudb, stag=tag)
         if tag not in tags[1]:
             return Response.TAG_NOT_FOUND()
@@ -110,178 +154,157 @@ class ApiTagView(MethodView):
             return Response.FAILURE()
 
     def delete(self, tag: str):
-        if buku.DELIM in tag:
+        if not TAG_RE.match(tag):
             return Response.TAG_NOT_VALID()
         bukudb = get_bukudb()
+        tag = tag.lower().strip()
         tags = search_tag(db=bukudb, stag=tag)
-        if tag not in tags[1]:
-            return Response.TAG_NOT_FOUND()
-        return Response.from_flag(bukudb.delete_tag_at_index(0, tag, chatty=False))
+        return (Response.TAG_NOT_FOUND() if tag not in tags[1] else
+                Response.from_flag(bukudb.delete_tag_at_index(0, tag, chatty=False)))
 
 
-class ApiBookmarkView(MethodView):
-
-    def get(self, rec_id: T.Union[int, None]):
-        if rec_id is None:
-            bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-            all_bookmarks = bukudb.get_rec_all()
-            result = {'bookmarks': [entity(bookmark, id=not request.path.startswith('/api/'))
-                                    for bookmark in all_bookmarks]}
-        else:
-            bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-            bookmark = bukudb.get_rec_by_id(rec_id)
-            if bookmark is None:
-                return Response.BOOKMARK_NOT_FOUND()
-            result = entity(bookmark)
-        return Response.SUCCESS(data=result)
-
-    def post(self, rec_id: None = None):
-        form = ApiBookmarkCreateForm({})
-        error_response, error_data = form.process_data(request.get_json())
-        if error_response is not None:
-            return error_response(data=error_data)
+class ApiBookmarksView(MethodView):
+    def get(self):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        result_flag = bukudb.add_rec(
+        order = request.args.getlist('order')
+        all_bookmarks = bukudb.get_rec_all(order=order)
+        return Response.SUCCESS(data={'bookmarks': [entity(bookmark, index=order)
+                                                    for bookmark in all_bookmarks]})
+
+    def post(self):
+        try:
+            form = ApiBookmarkCreateForm(data=request.get_json())
+        except BadRequest:
+            return Response.INVALID_REQUEST()
+        if not form.validate():
+            return Response.invalid(form.errors)
+        bukudb = getattr(flask.g, 'bukudb', get_bukudb())
+        index = bukudb.add_rec(
             form.url.data,
             form.title.data,
             form.tags_str,
             form.description.data,
             fetch=form.fetch.data)
-        return Response.from_flag(result_flag)
+        return Response.from_flag(index is not None, data=index and {'index': index})
 
-    def put(self, rec_id: int):
-        form = ApiBookmarkEditForm({})
-        error_response, error_data = form.process_data(request.get_json())
-        if error_response is not None:
-            return error_response(data=error_data)
+    def delete(self):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        result_flag = bukudb.update_rec(
-            rec_id,
-            form.url.data,
-            form.title.data,
-            form.tags_str,
-            form.description.data)
-        return Response.from_flag(result_flag)
+        return Response.from_flag(bukudb.cleardb(confirm=False))
 
-    def delete(self, rec_id: T.Union[int, None]):
-        if rec_id is None:
-            bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-            with mock.patch('buku.read_in', return_value='y'):
-                result_flag = bukudb.cleardb()
-        else:
-            bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-            result_flag = bukudb.delete_rec(rec_id, retain_order=True)
-        return Response.from_flag(result_flag)
+
+class ApiBookmarkView(MethodView):
+    def get(self, index: int):
+        bukudb = getattr(flask.g, 'bukudb', get_bukudb())
+        bookmark = bukudb.get_rec_by_id(index)
+        return (Response.BOOKMARK_NOT_FOUND() if bookmark is None else
+                Response.SUCCESS(data=entity(bookmark)))
+
+    def put(self, index: int):
+        try:
+            form = ApiBookmarkEditForm(data=request.get_json())
+        except BadRequest:
+            return Response.INVALID_REQUEST()
+        if not form.validate():
+            return Response.invalid(form.errors)
+        bukudb = getattr(flask.g, 'bukudb', get_bukudb())
+        if not bukudb.get_rec_by_id(index):
+            return Response.BOOKMARK_NOT_FOUND()
+        if not form.has_data:
+            return Response.SUCCESS()  # noop
+        success = bukudb.update_rec(index, url=form.url.data, title_in=form.title.data,
+                                    tags_in=form.tags_str, desc=form.description.data)
+        return Response.from_flag(success)
+
+    def delete(self, index: int):
+        bukudb = getattr(flask.g, 'bukudb', get_bukudb())
+        return (Response.BOOKMARK_NOT_FOUND() if not bukudb.get_rec_by_id(index) else
+                Response.from_flag(bukudb.delete_rec(index, retain_order=True)))
 
 
 class ApiBookmarkRangeView(MethodView):
-
-    def get(self, starting_id: int, ending_id: int):
+    def get(self, start_index: int, end_index: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        max_id = bukudb.get_max_id() or 0
-        if starting_id > ending_id or ending_id > max_id:
+        max_index = bukudb.get_max_id() or 0
+        if start_index > end_index or end_index > max_index:
             return Response.RANGE_NOT_VALID()
-        result = {'bookmarks': {i: entity(bukudb.get_rec_by_id(i))
-                                for i in range(starting_id, ending_id + 1)}}
+        result = {'bookmarks': {index: entity(bukudb.get_rec_by_id(index))
+                                for index in range(start_index, end_index + 1)}}
         return Response.SUCCESS(data=result)
 
-    def put(self, starting_id: int, ending_id: int):
+    def put(self, start_index: int, end_index: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        max_id = bukudb.get_max_id() or 0
-        if starting_id > ending_id or ending_id > max_id:
+        max_index = bukudb.get_max_id() or 0
+        if start_index > end_index or end_index > max_index:
             return Response.RANGE_NOT_VALID()
         updates = []
         errors = {}
-        for rec_id in range(starting_id, ending_id + 1):
-            json = request.get_json().get(str(rec_id))
+        for index in range(start_index, end_index + 1):
+            try:
+                json = request.get_json().get(str(index))
+            except BadRequest:
+                return Response.INVALID_REQUEST()
             if json is None:
-                errors[rec_id] = 'Input required.'
+                errors[index] = _('Input required.')
                 continue
-            form = ApiBookmarkRangeEditForm({})
-            error_response, error_data = form.process_data(json)
-            if error_response is not None:
-                errors[rec_id] = error_data.get('errors')
-            updates += [{'index': rec_id,
-                         'url': form.url.data,
-                         'title_in': form.title.data,
-                         'tags_in': form.tags_in,
-                         'desc': form.description.data}]
-
+            form = ApiBookmarkRangeEditForm(data=json)
+            if not form.validate():
+                errors[index] = form.errors
+            elif form.has_data:
+                updates += [{'index': index,
+                             'url': form.url.data,
+                             'title_in': form.title.data,
+                             'tags_in': form.tags_in,
+                             'desc': form.description.data}]
         if errors:
-            return Response.INPUT_NOT_VALID(data={'errors': errors})
+            return Response.invalid(errors)
         for update in updates:
             if not bukudb.update_rec(**update):
-                return Response.FAILURE()
+                return Response.FAILURE(data={'index': update['index']})
         return Response.SUCCESS()
 
-    def delete(self, starting_id: int, ending_id: int):
+    def delete(self, start_index: int, end_index: int):
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        max_id = bukudb.get_max_id() or 0
-        if starting_id > ending_id or ending_id > max_id:
+        max_index = bukudb.get_max_id() or 0
+        if start_index > end_index or end_index > max_index:
             return Response.RANGE_NOT_VALID()
-        idx = min([starting_id, ending_id])
-        result_flag = bukudb.delete_rec(idx, starting_id, ending_id, is_range=True, retain_order=True)
+        result_flag = bukudb.delete_rec(None, start_index, end_index, is_range=True, retain_order=True)
         return Response.from_flag(result_flag)
 
 
 class ApiBookmarkSearchView(MethodView):
-
     def get(self):
-        arg_obj = request.args
-        keywords = arg_obj.getlist('keywords')
-        all_keywords = arg_obj.get('all_keywords')
-        deep = arg_obj.get('deep')
-        regex = arg_obj.get('regex')
-        # api request is more strict
-        all_keywords = False if all_keywords is None else all_keywords
-        deep = False if deep is None else deep
-        regex = False if regex is None else regex
-        all_keywords = (
-            all_keywords if isinstance(all_keywords, bool) else
-            all_keywords.lower() == 'true'
-        )
-        deep = deep if isinstance(deep, bool) else deep.lower() == 'true'
-        regex = regex if isinstance(regex, bool) else regex.lower() == 'true'
+        form = ApiBookmarkSearchForm(request.args)
+        if not form.validate():
+            return Response.INPUT_NOT_VALID(data={'errors': form.errors})
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        result = {'bookmarks': [entity(bookmark, id=True)
-                                for bookmark in bukudb.searchdb(keywords, all_keywords, deep, regex)]}
-        current_app.logger.debug('total bookmarks:{}'.format(len(result['bookmarks'])))
-        return Response.SUCCESS(data=result)
+        result = [entity(bookmark, index=True) for bookmark in bukudb.searchdb(**form.data)]
+        current_app.logger.debug('total bookmarks:{}'.format(len(result)))
+        return Response.SUCCESS(data={'bookmarks': result})
 
     def delete(self):
-        arg_obj = request.form
-        keywords = arg_obj.getlist('keywords')
-        all_keywords = arg_obj.get('all_keywords')
-        deep = arg_obj.get('deep')
-        regex = arg_obj.get('regex')
-        # api request is more strict
-        all_keywords = False if all_keywords is None else all_keywords
-        deep = False if deep is None else deep
-        regex = False if regex is None else regex
-        all_keywords = (
-            all_keywords if isinstance(all_keywords, bool) else
-            all_keywords.lower() == 'true'
-        )
-        deep = deep if isinstance(deep, bool) else deep.lower() == 'true'
-        regex = regex if isinstance(regex, bool) else regex.lower() == 'true'
+        form = ApiBookmarkSearchForm(request.form)
+        if not form.validate():
+            return Response.INPUT_NOT_VALID(data={'errors': form.errors})
         bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        res = None
-        for bookmark in bukudb.searchdb(keywords, all_keywords, deep, regex):
-            if not bukudb.delete_rec(bookmark.id, retain_order=True):
-                res = Response.FAILURE()
-        return res or Response.SUCCESS()
+        deleted, failed, indices = 0, 0, {x.id for x in bukudb.searchdb(**form.data)}
+        current_app.logger.debug('total bookmarks:{}'.format(len(indices)))
+        for index in sorted(indices, reverse=True):
+            if bukudb.delete_rec(index, retain_order=True):
+                deleted += 1
+            else:
+                failed += 1
+        return Response.from_flag(failed == 0, data={'deleted': deleted}, errors={'failed': failed})
 
 
-class BookmarkletView(MethodView):  # pylint: disable=too-few-public-methods
-    def get(self):
-        url = request.args.get('url')
-        title = request.args.get('title')
-        description = request.args.get('description')
-        tags = request.args.get('tags')
-        fetch = request.args.get('fetch')
+def bookmarklet_redirect():
+    url = request.args.get('url')
+    title = request.args.get('title')
+    description = request.args.get('description')
+    tags = request.args.get('tags')
+    fetch = request.args.get('fetch')
 
-        bukudb = getattr(flask.g, 'bukudb', get_bukudb())
-        rec_id = bukudb.get_rec_id(url)
-        goto = (url_for('bookmark.edit_view', id=rec_id, popup=True) if rec_id else
-                url_for('bookmark.create_view', link=url, title=title, description=description, tags=tags, fetch=fetch, popup=True))
-        return redirect(goto)
+    bukudb = getattr(flask.g, 'bukudb', get_bukudb())
+    rec_id = bukudb.get_rec_id(url)
+    goto = (url_for('bookmark.edit_view', id=rec_id, popup=True) if rec_id else
+            url_for('bookmark.create_view', link=url, title=title, description=description, tags=tags, fetch=fetch, popup=True))
+    return redirect(goto)

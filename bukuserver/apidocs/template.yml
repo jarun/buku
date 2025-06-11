@@ -1,0 +1,213 @@
+info:
+  title: "Bukuserver API"
+  description: "RESTful API for managing your personal bookmarks."
+  version: 'v5.0'
+
+consumes: ['application/json']
+produces: ['application/json']
+
+tags:
+  - name: Tags
+    description: "Global operations on tags"
+  - name: Bookmarks
+    description: "Index-based (CRUD) operations on bookmarks"
+  - name: Util
+    description: "Other functionality"
+
+definitions:
+  'Value:Tag':
+    type: string
+    pattern: '^[^,]*[^,\s]+[^,]*$'
+    description: "Cannot include comma; cannot be blank"
+
+  'Data:Bookmark':
+    type: object
+    properties:
+      url:
+        type: string
+        format: uri
+        example: 'https://slashdot.org/'
+      title:
+        type: string
+        example: "SLASHDOT"
+      tags:
+        type: array
+        items:
+          $ref: '#/definitions/Value:Tag'
+        example: ['news', 'old']
+      description:
+        type: string
+        example: "News for old nerds, stuff that doesn't matter"
+
+  'Data:BookmarkWithIndex':
+    allOf:
+      - $ref: '#/definitions/Data:Bookmark'
+      - properties:
+          index:
+            type: integer
+            example: 42
+            description: "If omitted (in a list), implies natural order (i.e. enumerated starting from 1)"
+
+  'Form:Bookmark':
+    allOf:
+      - $ref: '#/definitions/Data:Bookmark'
+      - properties:
+          fetch:
+            type: boolean
+            example: false
+            description: "'true' enables fetching unspecified data (e.g. title) from the URL"
+
+  'Form:Tags':
+    type: object
+    properties:
+      tags:
+        type: array
+        items:
+          $ref: '#/definitions/Value:Tag'
+        example: ['bar', 'baz']
+
+  'Response:Success':
+    type: object
+    properties:
+      message:
+        type: string
+        example: "Success."
+      status:
+        type: integer
+        example: 0
+        description: 0 indicates successful completion of the request
+
+  'Response:Failure':
+    type: object
+    properties:
+      message:
+        type: string
+        example: "Failure."
+      status:
+        type: integer
+        example: 1
+        description: 1 indicates failed completion of the request
+
+  'Response:IllFormedRequest':
+    allOf:
+      - $ref: '#/definitions/Response:Failure'
+      - properties:
+          message:
+            example: "Ill-formed request."
+
+  'Response:InputNotValid':
+    allOf:
+      - $ref: '#/definitions/Response:Failure'
+      - properties:
+          message:
+            example: "Input data not valid."
+          errors:
+            type: object
+            additionalProperties: {}
+
+  'Response:InputNotValid:Tags':
+    allOf:
+      - $ref: '#/definitions/Response:InputNotValid'
+      - properties:
+          errors:
+            properties:
+              tags:
+                description: "A single error for the field itself, or a list containing error lists for each tag."
+                example: ["This field is required."]
+
+  'Response:InputNotValid:Url':
+    allOf:
+      - $ref: '#/definitions/Response:InputNotValid'
+      - properties:
+          errors:
+            properties:
+              url:
+                type: array
+                items: {type: string}
+                example: ["This field is required."]
+
+  'Response:InputNotValid:Bookmark':
+    allOf:
+      - $ref: '#/definitions/Response:InputNotValid'
+      - properties:
+          errors:
+            properties:
+              url:
+                type: array
+                items: {type: string}
+              title:
+                type: array
+                items: {type: string}
+              tags:
+                type: array
+                items:
+                  type: array
+                  items: {type: string}
+              description:
+                type: array
+                items: {type: string}
+              fetch:
+                type: array
+                items: {type: string}
+            example: {url: ["This field is required."], tags: [[], ["The value must be a string."], ["Invalid input."]]}
+
+  'Response:InputNotValid:BookmarkRange':
+    allOf:
+      - $ref: '#/definitions/Response:InputNotValid'
+      - properties:
+          errors:
+            description: "Each key is a bookmark index"
+            additionalProperties:
+              description: "A single error indicating that the bookmark is missing, or a form validation result"
+            example:
+              {1: {url: ["Field must be at least 1 character long."]},
+               3: "Input required.",
+               4: {tags: [[], ["The value must be a string."], ["Invalid input."]]}}
+
+  'Response:InputNotValid:BookmarkSearch':
+    allOf:
+      - $ref: '#/definitions/Response:InputNotValid'
+      - properties:
+          errors:
+            properties:
+              keywords:
+                type: array
+                items:
+                  type: array
+                  items: {type: string}
+            example: {keywords: [[], ["The value must be a string."]]}
+
+  'Response:NotFound:Bookmark':
+    allOf:
+      - $ref: '#/definitions/Response:Failure'
+      - properties:
+          message:
+            example: "Bookmark not found."
+
+  'Response:NotFound:BookmarkRange':
+    allOf:
+      - $ref: '#/definitions/Response:Failure'
+      - properties:
+          message:
+            example: "Range not valid."
+
+  'Response:NotFound:Tag':
+    allOf:
+      - $ref: '#/definitions/Response:Failure'
+      - properties:
+          message:
+            example: "Tag not found."
+
+  'Response:NotValid:Tag':
+    allOf:
+      - $ref: '#/definitions/Response:Failure'
+      - properties:
+          message:
+            example: "Invalid tag."
+
+  'Response:Removed':
+    allOf:
+      - $ref: '#/definitions/Response:Failure'
+      - properties:
+          message:
+            example: "Functionality no longer available."

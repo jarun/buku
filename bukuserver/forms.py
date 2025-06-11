@@ -1,18 +1,52 @@
 """Forms module."""
 # pylint: disable=too-few-public-methods, missing-docstring
-from typing import Any, Dict, Tuple
+import re
 from flask_wtf import FlaskForm
-from wtforms.fields import BooleanField, FieldList, StringField, TextAreaField, HiddenField
-from wtforms.validators import DataRequired, InputRequired, ValidationError
-from buku import DELIM, parse_tags
+from wtforms import Form
+from wtforms.fields import BooleanField, FieldList, StringField, TextAreaField, HiddenField, SelectMultipleField
+from wtforms.validators import DataRequired, InputRequired, Length, Regexp, StopValidation
+from buku import DELIM, taglist_str
 from bukuserver import _, _l, LazyString
-from bukuserver.response import Response
 
-def validate_tag(form, field):
+_parse_bool = lambda x: str(x).lower() == 'true'
+
+TAG_RE = re.compile(r'^[^,]*[^,\s]+[^,]*$')
+
+def optional_none(form, field):
+    if field.data is None:
+        raise StopValidation()
+
+def is_string(form, field):
     if not isinstance(field.data, str):
-        raise ValidationError(_('Tag must be a string.'))
-    if DELIM in field.data:
-        raise ValidationError(_('Tag must not contain delimiter "%(delim)s".', delim=DELIM))
+        raise StopValidation(_('The value must be a string.'))
+
+validate_tag = [is_string, Regexp(TAG_RE)]
+
+
+class ValueList(SelectMultipleField):
+    """A form field model for simple value lists, capable of processing regular array data."""
+
+    def __init__(self, *args, item_validators=[], **kwargs):
+        self.data, self._valid, self._field = None, True, StringField(validators=item_validators)
+        super().__init__(*args, choices=[], validate_choice=False, coerce=(lambda x: x), **kwargs)
+
+    def process_data(self, value):
+        self._valid = isinstance(value, (list, tuple, set, type(None)))  # i.e. for JSON input
+        self.data = None
+        if self._valid:
+            super().process_data(value)
+
+    def pre_validate(self, form):
+        _errors = []
+        _field = self._field.bind(form=form, name=self.name, _meta=self.meta, translations=self._translations)  # pylint: disable=no-member
+        for item in (self.data or []):
+            _field.data = item
+            _field.validate(form)
+            _errors += [_field.errors]
+        if any(x for x in _errors):
+            self.errors += _errors
+        if not self._valid:
+            raise StopValidation(self.gettext('Invalid input.'))
 
 
 class SearchBookmarksForm(FlaskForm):
@@ -47,54 +81,58 @@ class SwapForm(FlaskForm):
     id2 = HiddenField(filters=[int])
 
 
-class ApiTagForm(FlaskForm):
-    class Meta:
-        csrf = False
+class ApiFetchDataForm(Form):
+    url = StringField(validators=[DataRequired()])
 
-    tags = FieldList(StringField(validators=[DataRequired(), validate_tag]), min_entries=1)
 
-    tags_str = None
+class ApiTagForm(Form):
+    tags = ValueList(validators=[DataRequired()], item_validators=validate_tag)
 
-    def process_data(self, data: Dict[str, Any]) -> Tuple[Response, Dict[str, Any]]:
-        """Generate comma-separated string tags_str based on list of tags."""
-        tags = data.get('tags')
-        if tags and not isinstance(tags, list):
-            return Response.INPUT_NOT_VALID, {'errors': {'tags': _('List of tags expected.')}}
-
-        super().process(data=data)
-        if not self.validate():
-            return Response.INPUT_NOT_VALID, {'errors': self.errors}
-
-        self.tags_str = None if tags is None else parse_tags([DELIM.join(tags)])
-        return None, None
+    @property
+    def tags_str(self):
+        return (None if self.tags.data is None else taglist_str(DELIM.join(self.tags.data)))
 
 
 class ApiBookmarkCreateForm(ApiTagForm):
-    class Meta:
-        csrf = False
-
     url = StringField(validators=[DataRequired()])
     title = StringField()
     description = StringField()
-    tags = FieldList(StringField(validators=[validate_tag]), min_entries=0)
-    fetch = HiddenField(filters=[bool], default=True)
+    tags = ValueList(item_validators=validate_tag)
+    fetch = BooleanField(filters=[_parse_bool])
+
+    @property
+    def data_values(self):
+        return [self.url.data, self.title.data, self.description.data, self.tags.data]
+
+    @property
+    def has_data(self):
+        return self.fetch.data or any(self.data_values)
 
 
 class ApiBookmarkEditForm(ApiBookmarkCreateForm):
-    url = StringField()
+    url = StringField(validators=[optional_none, Length(min=1)])
+
+    @property
+    def has_data(self):  # allowing to delete existing values
+        return self.fetch.data or any(x is not None for x in self.data_values)
 
 
 class ApiBookmarkRangeEditForm(ApiBookmarkEditForm):
-
     del_tags = BooleanField(_('Delete tags list from existing tags'), default=False)
 
-    tags_in = None
+    @property
+    def tags_in(self):
+        return (None if not self.tags.data else ('-' if self.del_tags.data else '+') + self.tags_str)
 
-    def process_data(self, data: Dict[str, Any]) -> Tuple[Response, Dict[str, Any]]:
-        """Generate comma-separated string tags_in based on list of tags."""
-        error_response, data = super().process_data(data)
+    @property
+    def data_values(self):  # ignoring empty tags list
+        return [self.url.data, self.title.data, self.description.data, self.tags_in]
 
-        if self.tags_str is not None:
-            self.tags_in = ("-" if self.del_tags.data else "+") + self.tags_str
 
-        return error_response, data
+class ApiBookmarkSearchForm(Form):
+    keywords = ValueList(validators=[DataRequired()], item_validators=[is_string])
+    all_keywords = BooleanField(filters=[_parse_bool])
+    deep = BooleanField(filters=[_parse_bool])
+    regex = BooleanField(filters=[_parse_bool])
+    markers = BooleanField(filters=[_parse_bool])
+    order = ValueList(item_validators=[is_string])

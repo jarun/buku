@@ -1,0 +1,25 @@
+Fetch the data of a bookmark at current index
+---
+#GET /api/bookmarks/{index}
+
+tags: [Bookmarks]
+
+parameters:
+  - name: index
+    in: path
+    required: true
+    type: integer
+    minimum: 1
+
+responses:
+  200:
+    description: Bookmark data
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - $ref: '#/definitions/Data:Bookmark'
+
+  404:
+    description: Bookmark not found
+    schema:
+      $ref: '#/definitions/Response:NotFound:Bookmark'

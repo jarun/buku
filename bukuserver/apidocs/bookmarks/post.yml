@@ -1,0 +1,43 @@
+Create a new bookmark
+---
+#POST /api/bookmarks  {Bookmark}
+
+tags: [Bookmarks]
+
+parameters:
+  - name: form
+    in: body
+    required: true
+    description: "The URL must not be present in the database"
+    schema:
+      allOf:
+        - $ref: '#/definitions/Form:Bookmark'
+        - properties:
+            url:
+              required: true
+
+responses:
+  200:
+    description: Success
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - properties:
+            index:
+              type: integer
+              example: 42
+
+  400:
+    description: Ill-formed request
+    schema:
+      $ref: '#/definitions/Response:IllFormedRequest'
+
+  409:
+    description: Failed to create a bookmark (e.g. duplicate URL)
+    schema:
+      $ref: '#/definitions/Response:Failure'
+
+  422:
+    description: Invalid request data
+    schema:
+      $ref: '#/definitions/Response:InputNotValid:Bookmark'

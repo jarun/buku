@@ -1,0 +1,31 @@
+Fetch the list of all bookmarks
+---
+#GET /api/bookmarks?order=
+
+tags: [Bookmarks]
+
+parameters:
+  - name: order
+    in: query
+    collectionFormat: multi
+    type: array
+    items:
+      type: string
+    example: [-netloc, title, +url]
+    description: |-
+      Determines ordering of the bookmarks list, by sequentially comparing values of each specified field.
+      Valid field names: `index`, `url` (or `uri`), `title`, `description` (or `desc`), `tags`, `netloc` (i.e. hostname).
+      A field name can be prefixed with `+` or `-` to specify sorting direction for the field (`+` is the default).
+    # omitted some valid names that may be confusing for the user
+
+responses:
+  200:
+    description: A list of bookmarks (with indices if **order** was supplied)
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - properties:
+            bookmarks:
+              type: array
+              items:
+                $ref: '#/definitions/Data:BookmarkWithIndex'

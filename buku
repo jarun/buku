@@ -2129,8 +2129,13 @@ class BukuDb:
             LOGERR('delete_rec_all(): %s', e)
             return False
 
-    def cleardb(self):
+    def cleardb(self, confirm=True):
         """Drops the bookmark table if it exists.
+
+        Parameters
+        ----------
+        confirm : bool
+            False if confirmation prompt is required. Default is True.
 
         Returns
         -------
@@ -2138,7 +2143,7 @@ class BukuDb:
             True on success, False on failure.
         """
 
-        resp = read_in('Remove ALL bookmarks? (y/n): ')
+        resp = ('y' if not confirm else read_in('Remove ALL bookmarks? (y/n): '))
         if resp != 'y':
             print('No bookmarks deleted')
             return False

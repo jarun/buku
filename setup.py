@@ -43,6 +43,7 @@ server_require = [
     "Flask-WTF>=1.0.1",
     "Flask>=2.2.2",
     "Jinja2>=3",
+    'flasgger',
 ]
 install_requires = [
     'beautifulsoup4>=4.4.1',

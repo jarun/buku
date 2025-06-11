@@ -1,0 +1,16 @@
+Refresh all bookmark data from fetched resources.
+---
+#POST /api/bookmarks/refresh
+
+tags: [Util]
+
+responses:
+  200:
+    description: Success
+    schema:
+      $ref: '#/definitions/Response:Success'
+
+  409:
+    description: Failure
+    schema:
+      $ref: '#/definitions/Response:Failure'

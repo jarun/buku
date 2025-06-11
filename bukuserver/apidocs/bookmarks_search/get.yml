@@ -1,0 +1,73 @@
+Fetch all bookmarks matching the query
+You can send a non-boolean value in a boolean field, but it is only considered truthy if converting it to a lowercase string produces **'true'**.
+
+Special behaviour exists for the following combinations:
+- **all_keywords** = _true_, **regex** = _false_, **keywords** = _blank_ (bookmarks with no title or no tags)
+- **all_keywords** = _true_, **regex** = _false_, **keywords** = _immutable_ (bookmarks marked with **--immutable** flag)
+---
+#GET /api/bookmarks/search?{BookmarkSearch=}
+
+tags: [Util]
+
+parameters:
+  - name: all_keywords
+    in: query
+    type: boolean
+    description: "Exclude partial matches (with multiple keywords)."
+  - name: deep
+    in: query
+    type: boolean
+    description: "Unless set to true, only _**full** words_ will be matched."
+  - name: regex
+    in: query
+    type: boolean
+    description: "The keyword(s) are regular expressions (overrides other options)."
+  - name: order
+    in: query
+    collectionFormat: multi
+    type: array
+    items:
+      type: string
+    example: [-netloc, title, +url]
+    description: |-
+      Determines ordering of the bookmarks list, by sequentially comparing values of each specified field.
+      Valid field names: `index`, `url` (or `uri`), `title`, `description` (or `desc`), `tags`, `netloc` (i.e. hostname).
+      A field name can be prefixed with `+` or `-` to specify sorting direction for the field (`+` is the default).
+    # omitted some valid names that may be confusing for the user
+
+  - name: markers
+    in: query
+    type: boolean
+    description: |-
+      When this is enabled, each keyword will be applied to a specific field based on prefix:
+      * keywords starting with `.`, `>` or `:` will be searched for in _title_, _description_ and _URL_ respectively
+      * `#` will be searched for in _tags_ (comma-separated, partial matches; not affected by **deep** value)
+      * `#,` is the same but will match _**full** tags only_
+      * `*` will be searched for in _all fields_ (implied if no prefix was provided)
+
+  - name: keywords
+    in: query
+    required: true
+    collectionFormat: multi
+    type: array
+    items:
+      type: string
+    example: ["global substring", ".title substring", ":url substring", ">description substring", "#partial,tags:", "#,exact,tags", "*another global substring"]
+    description: "A set of terms to search for."
+
+responses:
+  200:
+    description: A list of bookmarks
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - properties:
+            bookmarks:
+              type: array
+              items:
+                $ref: '#/definitions/Data:BookmarkWithIndex'
+
+  422:
+    description: Invalid request data
+    schema:
+      $ref: '#/definitions/Response:InputNotValid:BookmarkSearch'

@@ -1,0 +1,34 @@
+Remove the specified tag from all bookmarks
+---
+#DELETE /api/tags/{tag}
+
+tags: [Tags]
+
+parameters:
+  - name: tag
+    in: path
+    required: true
+    type: string
+    pattern: '^[^,]*[^,\s]+[^,]*$'
+    description: "Cannot include comma; cannot be blank"
+
+responses:
+  200:
+    description: Deleted successfully
+    schema:
+      $ref: '#/definitions/Response:Success'
+
+  404:
+    description: Tag not found
+    schema:
+      $ref: '#/definitions/Response:NotFound:Tag'
+
+  409:
+    description: Failed to delete
+    schema:
+      $ref: '#/definitions/Response:Failure'
+
+  422:
+    description: Invalid tag
+    schema:
+      $ref: '#/definitions/Response:NotValid:Tag'

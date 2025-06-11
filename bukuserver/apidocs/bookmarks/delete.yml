@@ -1,0 +1,16 @@
+Delete all bookmarks from the database
+---
+#DELETE /api/bookmarks
+
+tags: [Bookmarks]
+
+responses:
+  200:
+    description: Success
+    schema:
+      $ref: '#/definitions/Response:Success'
+
+  409:
+    description: Failure
+    schema:
+      $ref: '#/definitions/Response:Failure'

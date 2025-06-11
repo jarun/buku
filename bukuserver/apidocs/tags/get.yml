@@ -1,0 +1,19 @@
+Fetch the list of all tags
+---
+#GET /api/tags
+
+tags: [Tags]
+
+responses:
+  200:
+    description: A list of tags (sorted lexicographically)
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - type: object
+          properties:
+            tags:
+              type: array
+              items:
+                type: string
+              example: ['bar', 'baz', 'foo']

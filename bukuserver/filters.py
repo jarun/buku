@@ -154,7 +154,8 @@ class BookmarkBukuFilter(BaseFilter):
 
     def operation(self):
         parts = ', '.join(v for k, v in self.KEYS.items() if self.params[k])
-        return _l(f'search{parts and " " + parts}')
+        key = 'search' + (parts and ' ' + parts)
+        return _l(key)
 
     def apply(self, query, value):
         return query
