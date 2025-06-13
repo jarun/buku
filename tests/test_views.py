@@ -2,10 +2,12 @@
 
 resources: https://flask.palletsprojects.com/en/2.2.x/testing/
 """
+import os
 from argparse import Namespace
 from unittest import mock
 
 import pytest
+import flask
 from flask import request
 from lxml import etree
 from werkzeug.datastructures import MultiDict
@@ -27,6 +29,9 @@ def app(dbfile):
     # other setup can go here
     yield app
     # clean up / reset resources here
+    flask.g.bukudb.close()
+    if os.path.exists(dbfile):
+        os.remove(dbfile)
 
 def env_fixture(name, **kwargs):  # place this fixture BEFORE app or its dependencies
     """Produces a fixture that mocks a test parameter directly in an env var (before app init)"""
@@ -35,7 +40,10 @@ def env_fixture(name, **kwargs):  # place this fixture BEFORE app or its depende
             monkeypatch.setenv(name, str(request.param))
         app = server.create_app(dbfile)
         app.config.update({'TESTING': True, 'WTF_CSRF_ENABLED': False})
-        return request.param
+        yield request.param
+        flask.g.bukudb.close()
+        if os.path.exists(dbfile):
+            os.remove(dbfile)
     return pytest.fixture(**kwargs)(_env_fixture)
 
 
@@ -49,7 +57,11 @@ def runner(app):
 
 @pytest.fixture()
 def bukudb(dbfile):
-    return BukuDb(dbfile=dbfile)
+    bdb = BukuDb(dbfile=dbfile)
+    yield bdb
+    bdb.close()
+    if os.path.exists(dbfile):
+        os.remove(dbfile)
 
 @pytest.fixture
 def tmv_instance(bukudb):

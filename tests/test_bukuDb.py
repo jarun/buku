@@ -66,11 +66,7 @@ def vcr_cassette_dir(request):
 
 def rmdb(*bdbs):
     for bdb in bdbs:
-        try:
-            bdb.cur.close()
-            bdb.conn.close()
-        except Exception:
-            pass
+        bdb.close()
     if exists(TEST_TEMP_DBFILE_PATH):
         os.remove(TEST_TEMP_DBFILE_PATH)
 
@@ -1117,7 +1113,7 @@ def test_export_on(bukuDb, ext, expected):
     bdb._to_export = dict(to_export)
     bdb.exportdb(outfile, None)
     if ext == 'db':
-        assert BukuDb(dbfile=outfile).get_rec_all() == list(bookmark_vars(expected))
+        assert bukuDb(dbfile=outfile).get_rec_all() == list(bookmark_vars(expected))
     else:
         with open(outfile, encoding='utf-8') as fout:
             output = fout.read()
@@ -1852,18 +1848,18 @@ def test_exclude_results_from_search(bukuDb, search_results, exclude_results, ex
         assert exp_res == bukuDb().exclude_results_from_search(search_results, ['without'])
 
 
-def test_exportdb_empty_db():
+def test_exportdb_empty_db(bukuDb):
     with NamedTemporaryFile(delete=False) as f:
-        db = BukuDb(dbfile=f.name)
+        db = bukuDb(dbfile=f.name)
         with NamedTemporaryFile(delete=False) as f2:
             res = db.exportdb(f2.name)
             assert not res
 
 
-def test_exportdb_single_rec(tmpdir):
+def test_exportdb_single_rec(bukuDb, tmpdir):
     f1 = NamedTemporaryFile(delete=False)
     f1.close()
-    db = BukuDb(dbfile=f1.name)
+    db = bukuDb(dbfile=f1.name)
     _add_rec(db, "http://example.com")
     exp_file = tmpdir.join("export")
     db.exportdb(exp_file.strpath)
@@ -1871,17 +1867,17 @@ def test_exportdb_single_rec(tmpdir):
         assert f2.read()
 
 
-def test_exportdb_to_db():
+def test_exportdb_to_db(bukuDb):
     f1 = NamedTemporaryFile(delete=False)
     f1.close()
     f2 = NamedTemporaryFile(delete=False, suffix=".db")
     f2.close()
-    db = BukuDb(dbfile=f1.name)
+    db = bukuDb(dbfile=f1.name)
     _add_rec(db, "http://example.com")
     _add_rec(db, "http://google.com")
     with mock.patch("builtins.input", return_value="y"):
         db.exportdb(f2.name)
-    db2 = BukuDb(dbfile=f2.name)
+    db2 = bukuDb(dbfile=f2.name)
     assert db.get_rec_all() == db2.get_rec_all()
 
 
@@ -1924,9 +1920,9 @@ def test_exportdb_pick(_bukudb_sort, _convert_bookmark_set, _sample, _open, _pri
         [["http://example.com", "http://google.com"], 2],
     ],
 )
-def test_get_max_id(urls, exp_res):
+def test_get_max_id(bukuDb, urls, exp_res):
     with NamedTemporaryFile(delete=False) as f:
-        db = BukuDb(dbfile=f.name)
+        db = bukuDb(dbfile=f.name)
         if urls:
             list(map(lambda x: _add_rec(db, x), urls))
         assert db.get_max_id() == exp_res
