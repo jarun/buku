@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 from http import HTTPStatus
 import pytest
@@ -45,7 +46,9 @@ def client(tmp_path):
     test_db = tmp_path / 'test.db'
     app = server.create_app(test_db.as_posix())
     client = app.test_client()
-    return client
+    yield client
+    flask.g.bukudb.close()
+    os.remove(test_db)
 
 
 def test_home(client):
