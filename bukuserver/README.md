@@ -206,7 +206,7 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
     <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/home-page.png" alt="home page" width="650"/>
   </a>
 </p>
-<p align="center"><i>home page</i></a></p>
+<p align="center"><i>home page</i></p>
 
 <p><br><br></p>
 <p align="center">
@@ -214,7 +214,7 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
     <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/bookmark-stats.png" alt="bookmark stats" width="650"/>
   </a>
 </p>
-<p align="center"><i>bookmark stats</i></a></p>
+<p align="center"><i>bookmark stats</i></p>
 
 <p><br><br></p>
 <p align="center">
@@ -232,7 +232,7 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
          alt="bookmark page with 'slate' theme and favicon enabled" width="650"/>
   </a>
 </p>
-<p align="center"><i>bookmark page with 'slate' theme, favicon enabled and 'netloc-tag' URL render mode</i></a></p>
+<p align="center"><i>bookmark page with 'slate' theme, favicon enabled and 'netloc-tag' URL render mode</i></p>
 
 <p><br><br></p>
 <p align="center">
@@ -240,7 +240,7 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
     <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/create-bookmark.png" alt="create bookmark" width="650"/>
   </a>
 </p>
-<p align="center"><i>create bookmark</i></a></p>
+<p align="center"><i>create bookmark</i></p>
 
 <p><br><br></p>
 <p align="center">
@@ -248,7 +248,7 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
     <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/edit-bookmark.png" alt="edit bookmark" width="650"/>
   </a>
 </p>
-<p align="center"><i>edit bookmark</i></a></p>
+<p align="center"><i>edit bookmark</i></p>
 
 <p><br><br></p>
 <p align="center">
@@ -256,7 +256,7 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
     <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/view-bookmark-details.png" alt="view bookmark details" width="650"/>
   </a>
 </p>
-<p align="center"><i>view bookmark details</i></a></p>
+<p align="center"><i>view bookmark details</i></p>
 
 <p><br><br></p>
 <p align="center">
@@ -264,4 +264,12 @@ _**Note: more screenshots (to show off `default` & `slate` themes) can be found 
     <img src="https://github.com/Buku-dev/docs/blob/v4.9-bootstrap3/bukuserver/tag-page.png" alt="tag page" width="650"/>
   </a>
 </p>
-<p align="center"><i>tag page</i></a></p>
+<p align="center"><i>tag page</i></p>
+
+<p><br><br></p>
+<p align="center">
+  <a href="https://github.com/Buku-dev/docs/blob/v4.10/bukuserver/apidocs.png?raw=true">
+    <img src="https://github.com/Buku-dev/docs/blob/v4.10/bukuserver/apidocs.png" alt="interactive API documentation" width="650"/>
+  </a>
+</p>
+<p align="center"><i>interactive <a href="#api">API</a> documentation</i></p>
