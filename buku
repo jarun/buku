@@ -639,22 +639,26 @@ class BukuDb:
         """Converts field list to ordering parameters (for DB query or entity list sorting).
         Fields are listed in priority order, with '+'/'-' prefix signifying ASC/DESC; assuming ASC if not specified.
         Other than names from DB, you can pass those from JSON export."""
+        _field = lambda s: re.sub(r'^[+-]?(#)? *', r'\1', s).rstrip().lower()
+        tags = {_field(s) for s in (fields or []) if re.fullmatch(r'[+-]?#[^,]+', s)}
         names = {'index': 'id', 'uri': 'url', 'description': 'desc', **({'title': 'metadata'} if for_db else {'metadata': 'title'})}
-        valid = list(names) + list(names.values()) + ['tags', 'netloc']
-        _fields = [(re.sub(r'^[+-]', '', s), not s.startswith('-')) for s in (fields or [])]
+        valid = list(names) + list(names.values()) + ['tags', 'netloc'] + list(tags)
+        _fields = [(_field(s), not s.startswith('-')) for s in (fields or [])]
         _fields = [(names.get(field, field), direction) for field, direction in _fields if field in valid]
         return _fields or [('id', True)]
 
     def _sort(self, records: List[BookmarkVar], fields=['+id'], ignore_case=True) -> List[BookmarkVar]:
         text_fields = (set() if not ignore_case else {'url', 'desc', 'title', 'tags', 'netloc'})
-        get = lambda x, k: (getattr(x, k) if k not in text_fields else str(getattr(x, k) or '').lower())
+        get = lambda x, k: (k[1:] in x.taglist if k.startswith('#') else
+                            getattr(x, k) if k not in text_fields else str(getattr(x, k) or '').lower())
         order = self._ordering(fields, for_db=False)
         return sorted(bookmark_vars(records), key=lambda x: [SortKey(get(x, k), ascending=asc) for k, asc in order])
 
     def _order(self, fields=['+id'], ignore_case=True) -> str:
         """Converts field list to SQL 'ORDER BY' parameters. (See also BukuDb._ordering().)"""
         text_fields = (set() if not ignore_case else {'url', 'desc', 'metadata', 'tags'})
-        get = lambda field: ('LOWER(NETLOC(url))' if field == 'netloc' else field if field not in text_fields else f'LOWER({field})')
+        get = lambda field: ("tags LIKE '%,{0},%'".format(field[1:].replace("'", "''")) if field.startswith('#') else
+                             'LOWER(NETLOC(url))' if field == 'netloc' else field if field not in text_fields else f'LOWER({field})')
         return ', '.join(f'{get(field)} {"ASC" if direction else "DESC"}' for field, direction in self._ordering(fields))
 
     def get_rec_all(self, *, lock: bool = True, order: List[str] = ['id']):

@@ -22,6 +22,12 @@ msgstr ""
 msgid "by tags"
 msgstr ""
 
+msgid "with tag first"
+msgstr ""
+
+msgid "with tag last"
+msgstr ""
+
 msgid "search"
 msgstr ""
 

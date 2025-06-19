@@ -1684,6 +1684,12 @@ def test_load_firefox_database(bukuDb, firefox_db, add_pt):
     (True, ['+title', '-tags', 'description', 'index', 'uri'],
      ['javascript:void(1)', 'javascript:void(0)', 'http://slashdot.org',
       'http://example.com/', 'example.com/#', 'http://www.zażółćgęśląjaźń.pl/']),
+    (True, ['# tEst  ', '#invalid,tag', '-index'],
+     ['javascript:void(1)', 'javascript:void(0)', 'http://www.zażółćgęśląjaźń.pl/',
+      'http://slashdot.org', 'example.com/#', 'http://example.com/']),
+    (True, ['-#  teSt ', '-#invalid,tag', '-index'],
+     ['example.com/#', 'http://example.com/', 'javascript:void(1)',
+      'javascript:void(0)', 'http://www.zażółćgęśląjaźń.pl/', 'http://slashdot.org']),
 ])
 def test_sort(bukuDb, fields, ignore_case, expected):
     _bookmarks = (TEST_BOOKMARKS + [(f'javascript:void({i})', 'foo', parse_tags([f'tag{i}']), 'stuff') for i in range(2)] +
@@ -1700,6 +1706,8 @@ def test_sort(bukuDb, fields, ignore_case, expected):
     (False, ['+title', '-tags', 'description', 'index', 'uri'], 'metadata ASC, tags DESC, desc ASC, id ASC, url ASC'),
     (True, ['+title', '-tags', 'description', 'index', 'uri'],
      'LOWER(metadata) ASC, LOWER(tags) DESC, LOWER(desc) ASC, id ASC, LOWER(url) ASC'),
+    (True, ['#foo', '# BaR ', "-# b'A'z ", '# invalid, tag '],
+     "tags LIKE '%,foo,%' ASC, tags LIKE '%,bar,%' ASC, tags LIKE '%,b''a''z,%' DESC")
 ])
 def test_order(bukuDb, fields, ignore_case, expected):
     assert bukuDb()._order(fields, ignore_case=ignore_case) == expected

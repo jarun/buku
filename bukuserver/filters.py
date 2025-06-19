@@ -122,21 +122,24 @@ class TagBaseFilter(BaseFilter):
 
 class BookmarkOrderFilter(BaseFilter):
     DIR_LIST = [('asc', _l('natural')), ('desc', _l('reversed'))]
-    FIELDS = ['index', 'url', 'netloc', 'title', 'description', 'tags']
+    FIELDS = ['index', 'url', 'netloc', 'title', 'description', 'tags', '-#', '#']
+    _NAMES = {'-#': 'with tag first', '#': 'with tag last'}
 
     def __init__(self, field, *args, **kwargs):
         self.field = field
-        super().__init__('order', *args, options=self.DIR_LIST, **kwargs)
+        super().__init__('order', *args, options=(None if field in self._NAMES else self.DIR_LIST), **kwargs)
 
     def operation(self):
-        return _l(f'by {self.field}')
+        key = self._NAMES.get(self.field, f'by {self.field}')
+        return _l(key)
 
     def apply(self, query, value):
         return query
 
     @staticmethod
     def value(filters, values):
-        return [('-' if value == 'desc' else '+') + filters[idx].field
+        return [(filters[idx].field + value if filters[idx].field in BookmarkOrderFilter._NAMES else
+                 ('-' if value == 'desc' else '+') + filters[idx].field)
                 for idx, key, value in values if key == 'order']
 
 

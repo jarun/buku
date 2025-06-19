@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: /home/lex/Work/buku/bukuserver/api.py:242
+#: /home/lex/Work/buku/bukuserver/api.py:256
 msgid "Input required."
 msgstr "Введите данные."
 
@@ -150,7 +150,7 @@ msgid "Title"
 msgstr "Название"
 
 #: /home/lex/Work/buku/bukuserver/forms.py:74
-#: /home/lex/Work/buku/bukuserver/server.py:151
+#: /home/lex/Work/buku/bukuserver/server.py:147
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:31
 #: /home/lex/Work/buku/bukuserver/views.py:174
 msgid "Tags"
@@ -165,12 +165,12 @@ msgstr "Описание"
 msgid "Delete tags list from existing tags"
 msgstr "Удалить список тегов из существующих"
 
-#: /home/lex/Work/buku/bukuserver/server.py:150
+#: /home/lex/Work/buku/bukuserver/server.py:146
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:30
 msgid "Bookmarks"
 msgstr "Закладки"
 
-#: /home/lex/Work/buku/bukuserver/server.py:152
+#: /home/lex/Work/buku/bukuserver/server.py:148
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:32
 msgid "Statistic"
 msgstr "Статистика"
@@ -556,6 +556,12 @@ msgstr "по описанию"
 
 msgid "by tags"
 msgstr "по тегам"
+
+msgid "with tag first"
+msgstr "сначала с тегом"
+
+msgid "with tag last"
+msgstr "сначала без тега"
 
 msgid "search"
 msgstr "поиск"
