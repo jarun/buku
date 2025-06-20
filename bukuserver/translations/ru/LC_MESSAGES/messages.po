@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: /home/lex/Work/buku/bukuserver/api.py:256
+#: /home/lex/Work/buku/bukuserver/api.py:272
 msgid "Input required."
 msgstr "Введите данные."
 
@@ -138,26 +138,26 @@ msgid "Keyword"
 msgstr "Искать"
 
 #: /home/lex/Work/buku/bukuserver/forms.py:72
-#: /home/lex/Work/buku/bukuserver/views.py:173
+#: /home/lex/Work/buku/bukuserver/views.py:174
 msgid "URL"
 msgstr "Ссылка"
 
 #: /home/lex/Work/buku/bukuserver/forms.py:73
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:190
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/statistic.html:225
-#: /home/lex/Work/buku/bukuserver/views.py:174
+#: /home/lex/Work/buku/bukuserver/views.py:175
 msgid "Title"
 msgstr "Название"
 
 #: /home/lex/Work/buku/bukuserver/forms.py:74
-#: /home/lex/Work/buku/bukuserver/server.py:147
+#: /home/lex/Work/buku/bukuserver/server.py:148
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:31
-#: /home/lex/Work/buku/bukuserver/views.py:174
+#: /home/lex/Work/buku/bukuserver/views.py:175
 msgid "Tags"
 msgstr "Теги"
 
 #: /home/lex/Work/buku/bukuserver/forms.py:75
-#: /home/lex/Work/buku/bukuserver/views.py:174
+#: /home/lex/Work/buku/bukuserver/views.py:175
 msgid "Description"
 msgstr "Описание"
 
@@ -165,103 +165,107 @@ msgstr "Описание"
 msgid "Delete tags list from existing tags"
 msgstr "Удалить список тегов из существующих"
 
-#: /home/lex/Work/buku/bukuserver/server.py:146
+#: /home/lex/Work/buku/bukuserver/server.py:147
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:30
 msgid "Bookmarks"
 msgstr "Закладки"
 
-#: /home/lex/Work/buku/bukuserver/server.py:148
+#: /home/lex/Work/buku/bukuserver/server.py:149
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:32
 msgid "Statistic"
 msgstr "Статистика"
 
-#: /home/lex/Work/buku/bukuserver/views.py:111
+#: /home/lex/Work/buku/bukuserver/views.py:112
 msgid "Duplicate URL"
 msgstr "Такая ссылка в базе уже есть"
 
-#: /home/lex/Work/buku/bukuserver/views.py:112
+#: /home/lex/Work/buku/bukuserver/views.py:113
 msgid "Rejected by the database"
 msgstr "База данных отказала в выполнении операции"
 
-#: /home/lex/Work/buku/bukuserver/views.py:125
+#: /home/lex/Work/buku/bukuserver/views.py:126
 msgid "<EMPTY TITLE>"
 msgstr "<БЕЗ НАЗВАНИЯ>"
 
-#: /home/lex/Work/buku/bukuserver/views.py:173
+#: /home/lex/Work/buku/bukuserver/views.py:174
 msgid "Entry"
 msgstr "Закладка"
 
-#: /home/lex/Work/buku/bukuserver/views.py:173
+#: /home/lex/Work/buku/bukuserver/views.py:174
 msgid "Index"
 msgstr "Номер"
 
-#: /home/lex/Work/buku/bukuserver/views.py:222
+#: /home/lex/Work/buku/bukuserver/views.py:223
 #, python-format
 msgid "url invalid: %(url)s"
 msgstr "некорректная ссылка: %(url)s"
 
-#: /home/lex/Work/buku/bukuserver/views.py:233
+#: /home/lex/Work/buku/bukuserver/views.py:234
 msgid "Failed to create record."
 msgstr "Ошибка создания записи."
 
-#: /home/lex/Work/buku/bukuserver/views.py:246
-#: /home/lex/Work/buku/bukuserver/views.py:553
+#: /home/lex/Work/buku/bukuserver/views.py:247
+#: /home/lex/Work/buku/bukuserver/views.py:562
 msgid "Failed to delete record."
 msgstr "Ошибка удаления записи."
 
-#: /home/lex/Work/buku/bukuserver/views.py:261
+#: /home/lex/Work/buku/bukuserver/views.py:262
 msgid "Invalid search mode combination"
 msgstr "Некорректная комбинация фильтров поиска"
 
-#: /home/lex/Work/buku/bukuserver/views.py:349
+#: /home/lex/Work/buku/bukuserver/views.py:278
+msgid "Reordered bookmarks in DB"
+msgstr "Порядок закладок в БД был успешно изменён"
+
+#: /home/lex/Work/buku/bukuserver/views.py:358
 msgid "netloc match"
 msgstr "на сайт"
 
-#: /home/lex/Work/buku/bukuserver/views.py:382
+#: /home/lex/Work/buku/bukuserver/views.py:391
 msgid "contain"
 msgstr "содержат"
 
-#: /home/lex/Work/buku/bukuserver/views.py:383
+#: /home/lex/Work/buku/bukuserver/views.py:392
 msgid "not contain"
 msgstr "не содержат"
 
-#: /home/lex/Work/buku/bukuserver/views.py:384
+#: /home/lex/Work/buku/bukuserver/views.py:393
 msgid "number equal"
 msgstr "количество равно"
 
-#: /home/lex/Work/buku/bukuserver/views.py:385
+#: /home/lex/Work/buku/bukuserver/views.py:394
 msgid "number not equal"
 msgstr "количество не равно"
 
-#: /home/lex/Work/buku/bukuserver/views.py:386
+#: /home/lex/Work/buku/bukuserver/views.py:395
 msgid "number greater than"
 msgstr "количество больше чем"
 
-#: /home/lex/Work/buku/bukuserver/views.py:387
+#: /home/lex/Work/buku/bukuserver/views.py:396
 msgid "number smaller than"
 msgstr "количество меньше чем"
 
-#: /home/lex/Work/buku/bukuserver/views.py:413
-#: /home/lex/Work/buku/bukuserver/views.py:571
+#: /home/lex/Work/buku/bukuserver/views.py:422
+#: /home/lex/Work/buku/bukuserver/views.py:580
 msgid "Failed to update record."
 msgstr "Ошибка обновления записи."
 
-#: /home/lex/Work/buku/bukuserver/views.py:428
+#: /home/lex/Work/buku/bukuserver/views.py:437
 msgid "<UNTAGGED>"
 msgstr "<БЕЗ ТЕГОВ>"
 
-#: /home/lex/Work/buku/bukuserver/views.py:434
-#: /home/lex/Work/buku/bukuserver/views.py:471
+#: /home/lex/Work/buku/bukuserver/views.py:443
+#: /home/lex/Work/buku/bukuserver/views.py:480
 msgctxt "tag"
 msgid "Name"
 msgstr "Тег"
 
-#: /home/lex/Work/buku/bukuserver/views.py:434
+#: /home/lex/Work/buku/bukuserver/views.py:443
 msgctxt "tag"
 msgid "Usage Count"
 msgstr "Число закладок"
 
-#: /home/lex/Work/buku/bukuserver/views.py:534
+#: /home/lex/Work/buku/bukuserver/views.py:543
 msgid "top most common"
 msgstr "самое распространённое"
 
@@ -292,15 +296,27 @@ msgstr "Попытка поменять запись местами саму с 
 msgid "Random"
 msgstr "Случайная"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:38
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:31
+msgid "Update indices to match this order"
+msgstr "Изменить порядок записей в БД на текущий"
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:32
+msgid "Reorder"
+msgstr "Изменить порядок"
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:35
+msgid "Save this order in DB?"
+msgstr "Сохранить закладки в БД в этом порядке?"
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:58
 msgid "Swap with…"
 msgstr "Поменять местами с…"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:38
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:58
 msgid "Move down"
 msgstr "Сдвинуть вниз"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:38
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/bookmarks_list.html:58
 msgid "Move up"
 msgstr "Сдвинуть вверх"
 

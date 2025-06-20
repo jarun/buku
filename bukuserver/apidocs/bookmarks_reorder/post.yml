@@ -1,0 +1,45 @@
+Update DB indices to match specified order.
+---
+#POST /api/bookmarks/reorder  order=
+
+tags: [Util]
+
+parameters:
+  - name: form
+    in: body
+    required: true
+    schema:
+      type: object
+      properties:
+        order:
+          required: true
+          type: array
+          items:
+            type: string
+          example: [-netloc, title, +url]
+          description: |-
+            Determines ordering of the bookmarks list, by sequentially comparing values of each specified field.
+            Valid field names: `index`, `url` (or `uri`), `title`, `description` (or `desc`), `tags`, `netloc` (i.e. hostname).
+            A field name can be prefixed with `+` or `-` to specify sorting direction for the field (`+` is the default).
+          # omitted some valid names that may be confusing for the user
+
+responses:
+  200:
+    description: Reordered successfully
+    schema:
+      $ref: '#/definitions/Response:Success'
+
+  400:
+    description: Ill-formed request
+    schema:
+      $ref: '#/definitions/Response:IllFormedRequest'
+
+  409:
+    description: Failed to reorder bookmarks
+    schema:
+      $ref: '#/definitions/Response:Failure'
+
+  422:
+    description: Invalid request data
+    schema:
+      $ref: '#/definitions/Response:InputNotValid'

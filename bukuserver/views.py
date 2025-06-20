@@ -4,6 +4,7 @@ import itertools
 import logging
 import random
 import re
+import json
 import types
 from argparse import Namespace
 from collections import Counter, namedtuple
@@ -268,6 +269,14 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         else:
             bookmarks = bukudb.get_rec_all(order=order)
         return self._apply_filters(bookmarks or [], filters)
+
+    @expose('/reorder', methods=['POST'])
+    def refresh(self):
+        filters = json.loads(request.form['filters'])
+        order = bs_filters.BookmarkOrderFilter.value(self._filters, filters)
+        self.bukudb.reorder(order)
+        flash(_('Reordered bookmarks in DB'), 'success')
+        return redirect(url_for('.index_view'))
 
     def get_list(self, page, sort_field, sort_desc, _, filters, page_size=None):
         bookmarks = self._from_filters(filters)

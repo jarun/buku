@@ -277,6 +277,7 @@ POWER TOYS:
                            options, including removed info
                            (requires --update and --export; specific
                            HTTP response filter can be provided)
+      --reorder order...   update DB indices to match specified order
       --cached index|URL   browse a cached page from Wayback Machine
       --offline            add a bookmark without connecting to web
       --suggest            show similar tags when adding bookmarks
@@ -312,6 +313,7 @@ PROMPT KEYS:
                            note: tag marker is not affected by 'd' (deep search)
     v fields               change sorting order (default is '+index')
                            multiple comma/space separated fields can be specified
+    v! fields              update indices in DB to match specified order
     r expression           run a regex search
     t [tag, ...]           search by tags; show taglist, if no args
     g taglist id|range [...] [>>|>|<<] [record id|range ...]
@@ -568,7 +570,11 @@ PROMPT KEYS:
 
         $ buku --swap 4 5
 
-46. More **help**:
+46. Update indices in all bookmarks to match specified order:
+
+        $ buku --reorder ,-netloc,title,+url
+
+47. More **help**:
 
         $ buku -h
         $ man buku

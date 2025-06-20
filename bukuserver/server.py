@@ -129,6 +129,7 @@ def create_app(db_file=None):
     app.add_url_rule('/api/bookmarks', view_func=api.ApiBookmarksView.as_view('bookmarks'), methods=['GET', 'POST', 'DELETE'])
     app.add_url_rule('/api/bookmarks/<int:index>', view_func=api.ApiBookmarkView.as_view('bookmark'), methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/refresh', 'bookmarks_refresh', api.refresh_bookmark, defaults={'index': None}, methods=['POST'])
+    app.add_url_rule('/api/bookmarks/reorder', 'bookmarks_reorder', api.reorder_bookmarks, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<int:index>/refresh', 'bookmark_refresh', api.refresh_bookmark, methods=['POST'])
     app.add_url_rule('/api/bookmarks/<int:index>/tiny', 'tiny_url', api.get_tiny_url, methods=['GET'])
     app.add_url_rule('/api/bookmarks/<int:start_index>/<int:end_index>',
