@@ -24,6 +24,26 @@
     {% set _random = url_for('.details_view', modal=True, id='random', url=return_url, **(request.args|flt)) %}
     <li><a id="random" data-target="#fa_modal_window" data-toggle="modal" href="{{ _random }}">{{ _('Random') }}</a></li>
   {% endif %}
+  <li id="reorderButton" class="hidden">
+    <form id="reorder" class="hidden" method="POST" action="reorder">
+      <input type="hidden" name="filters"/>
+    </form>
+    <a href="#" title="{{ _('Update indices to match this order') }}"
+       onclick="reorder.confirmAndSubmit()">{{ _('Reorder') }}</a>
+  </li>
+  <script>
+    reorder.confirmAndSubmit = () => confirm({{ _('Save this order in DB?') | tojson }}) && reorder.submit();
+    addEventListener('DOMContentLoaded', () => {
+      let flt = JSON.parse( $('#active-filters-data').text() );
+      if ((flt.length > 0) && flt.every(x => x[1] == 'order')) {
+        reorderButton.classList.remove('hidden');
+        $('#reorder [name=filters]').val(JSON.stringify(flt));
+        $(`.field-filters .filter, .filters .remove-filter`).on('click', () => reorderButton.classList.add('hidden'));
+        $(`.filters select`).on('change', () => reorderButton.classList.add('hidden'));
+        $(`.filters input`).on('input', () => reorderButton.classList.add('hidden'));
+      }
+    });
+  </script>
 {% endblock %}
 
 {% macro swap_rows_action(icon, row_id, step=None) %}  {# based on admin/model/row_actions.delete_row() #}
@@ -66,6 +86,7 @@
   {{ super() }}
   {{ buku.page_size_custom() }}
   {{ buku.script('buku_filter.js') }}
+  {{ buku.script('order_filter.js') }}
   {{ buku.focus(None) }}
   {{ buku.link_saved() }}
   <script>

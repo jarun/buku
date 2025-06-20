@@ -136,3 +136,6 @@ class ApiBookmarkSearchForm(Form):
     regex = BooleanField(filters=[_parse_bool])
     markers = BooleanField(filters=[_parse_bool])
     order = ValueList(item_validators=[is_string])
+
+class ApiBookmarksReorderForm(Form):
+    order = ValueList(validators=[DataRequired()], item_validators=[is_string])

@@ -18,12 +18,12 @@ try:
     from . import _
     from response import Response
     from forms import (TAG_RE, ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm,
-                       ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm)
+                       ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm, ApiBookmarksReorderForm)
 except ImportError:
     from bukuserver import _
     from bukuserver.response import Response
     from bukuserver.forms import (TAG_RE, ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm,
-                                  ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm)
+                                  ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm, ApiBookmarksReorderForm)
 
 
 _parse_bool = lambda x: str(x).lower() == 'true'
@@ -122,6 +122,22 @@ def refresh_bookmark(index: T.Optional[int]):
             return Response.BOOKMARK_NOT_FOUND()
         result_flag = bdb.refreshdb(index or None, request.form.get('threads', 4))
         return Response.from_flag(result_flag)
+
+@swag_from('./apidocs/bookmarks_reorder/post.yml')
+def reorder_bookmarks():
+    try:
+        form = ApiBookmarksReorderForm(data=request.get_json())
+    except BadRequest:
+        return Response.INVALID_REQUEST()
+    if not form.validate():
+        return Response.invalid(form.errors)
+    try:
+        with get_bukudb() as bdb:
+            bdb.reorder(form.order.data)
+        return Response.SUCCESS()
+    except Exception as e:
+        current_app.logger.exception(str(e))
+        return Response.FAILURE()
 
 
 get_tiny_url = swag_from('./apidocs/tiny_url/get.yml')(lambda index: Response.REMOVED())

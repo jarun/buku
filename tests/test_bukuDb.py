@@ -1684,13 +1684,24 @@ def test_load_firefox_database(bukuDb, firefox_db, add_pt):
     (True, ['+title', '-tags', 'description', 'index', 'uri'],
      ['javascript:void(1)', 'javascript:void(0)', 'http://slashdot.org',
       'http://example.com/', 'example.com/#', 'http://www.zażółćgęśląjaźń.pl/']),
+    (True, ['# tEst  ', '#invalid,tag', '-index'],
+     ['javascript:void(1)', 'javascript:void(0)', 'http://www.zażółćgęśląjaźń.pl/',
+      'http://slashdot.org', 'example.com/#', 'http://example.com/']),
+    (True, ['-#  teSt ', '-#invalid,tag', '-index'],
+     ['example.com/#', 'http://example.com/', 'javascript:void(1)',
+      'javascript:void(0)', 'http://www.zażółćgęśląjaźń.pl/', 'http://slashdot.org']),
 ])
-def test_sort(bukuDb, fields, ignore_case, expected):
+def test_sort_and_reorder(bukuDb, fields, ignore_case, expected):
     _bookmarks = (TEST_BOOKMARKS + [(f'javascript:void({i})', 'foo', parse_tags([f'tag{i}']), 'stuff') for i in range(2)] +
                   [('example.com/#', 'test', parse_tags(['test,tes,est,es']), 'a case for replace_tag test')])
     bookmarks = [(i,) + tuple(x) for i, x in enumerate(_bookmarks, start=1)]
     shuffle(bookmarks)  # making sure sorting by index works as well
-    assert [x.url for x in bukuDb()._sort(bookmarks, fields, ignore_case=ignore_case)] == expected
+    bdb = bukuDb()
+    assert [x.url for x in bdb._sort(bookmarks, fields, ignore_case=ignore_case)] == expected
+    for bookmark in _bookmarks:
+        _add_rec(bdb, *bookmark)
+    bdb.reorder(fields, ignore_case=ignore_case)
+    assert [x.url for x in bdb.get_rec_all()] == expected
 
 @pytest.mark.parametrize('ignore_case, fields, expected', [
     (True, ['+id'], 'id ASC'),
@@ -1700,6 +1711,8 @@ def test_sort(bukuDb, fields, ignore_case, expected):
     (False, ['+title', '-tags', 'description', 'index', 'uri'], 'metadata ASC, tags DESC, desc ASC, id ASC, url ASC'),
     (True, ['+title', '-tags', 'description', 'index', 'uri'],
      'LOWER(metadata) ASC, LOWER(tags) DESC, LOWER(desc) ASC, id ASC, LOWER(url) ASC'),
+    (True, ['#foo', '# BaR ', "-# b'A'z ", '# invalid, tag '],
+     "tags LIKE '%,foo,%' ASC, tags LIKE '%,bar,%' ASC, tags LIKE '%,b''a''z,%' DESC")
 ])
 def test_order(bukuDb, fields, ignore_case, expected):
     assert bukuDb()._order(fields, ignore_case=ignore_case) == expected

@@ -329,6 +329,9 @@ when fetching an URL causes any (given) HTTP error, delete/do not add it. (Use a
 .BI \--export-on " [...]"
 export records affected by the above options, including removed info (requires --update and --export; specific HTTP response filter can be provided).
 .TP
+.BI \--reorder " order..."
+update DB indices to match specified order (specified the same way as for --order)
+.TP
 .BI \--cached " index|URL"
 Browse the latest cached version of the URL at DB
 .I index
@@ -377,6 +380,20 @@ Search for records with ALL keywords.
 .TP
 .BI "d"
 Toggle deep search to match substrings ('pen' matches 'opened').
+.TP
+.BI "m"
+Search with markers - search string is split into keywords by prefix markers, which determine what field the keywords is searched in:
+  - '.', '>' or ':' - title, description or URL
+  - '#'/'#,' - tags (comma-separated, partial/full match)
+  - '*' - all fields (can be omitted in the 1st keyword)
+
+Note: tag marker is not affected by \fBd\fR (deep search)
+.TP
+.BI "v" " fields"
+Change sorting order (default is '+index'). Multiple comma/space separated fields can be specified.
+.TP
+.BI "v!" " fields"
+Update indices in DB to match specified order.
 .TP
 .BI "r" " expression"
 Run a regular expression search.
@@ -964,6 +981,14 @@ Swap positions of records #4 and #5:
 .EX
 .IP
 .B buku --swap 4 5
+.EE
+.PP
+.IP 46. 4
+Update indices in all bookmarks to match specified order:
+.PP
+.EX
+.IP
+.B buku --reorder ,-netloc,title,+url
 .EE
 .PP
 

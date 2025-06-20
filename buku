@@ -75,6 +75,7 @@ PROMPTMSG = 'buku (? for help): '  # Prompt message string
 
 strip_delim = lambda s, delim=DELIM, sub=' ': str(s).replace(delim, sub)
 taglist = lambda ss: sorted(set(s.lower().strip() for s in ss if (s or '').strip()))
+parse_order = lambda order: [s for ss in order for s in re.split(r'\s*,\s*', ss.strip()) if s]
 like_escape = lambda s, c='`': s.replace(c, c+c).replace('_', c+'_').replace('%', c+'%')
 split_by_marker = lambda s: re.split(r'\s+(?=[.:>#*])', s)
 
@@ -639,25 +640,29 @@ class BukuDb:
         """Converts field list to ordering parameters (for DB query or entity list sorting).
         Fields are listed in priority order, with '+'/'-' prefix signifying ASC/DESC; assuming ASC if not specified.
         Other than names from DB, you can pass those from JSON export."""
+        _field = lambda s: re.sub(r'^[+-]?(#)? *', r'\1', s).rstrip().lower()
+        tags = {_field(s) for s in (fields or []) if re.fullmatch(r'[+-]?#[^,]+', s)}
         names = {'index': 'id', 'uri': 'url', 'description': 'desc', **({'title': 'metadata'} if for_db else {'metadata': 'title'})}
-        valid = list(names) + list(names.values()) + ['tags', 'netloc']
-        _fields = [(re.sub(r'^[+-]', '', s), not s.startswith('-')) for s in (fields or [])]
+        valid = list(names) + list(names.values()) + ['tags', 'netloc'] + list(tags)
+        _fields = [(_field(s), not s.startswith('-')) for s in (fields or [])]
         _fields = [(names.get(field, field), direction) for field, direction in _fields if field in valid]
         return _fields or [('id', True)]
 
     def _sort(self, records: List[BookmarkVar], fields=['+id'], ignore_case=True) -> List[BookmarkVar]:
         text_fields = (set() if not ignore_case else {'url', 'desc', 'title', 'tags', 'netloc'})
-        get = lambda x, k: (getattr(x, k) if k not in text_fields else str(getattr(x, k) or '').lower())
+        get = lambda x, k: (k[1:] in x.taglist if k.startswith('#') else
+                            getattr(x, k) if k not in text_fields else str(getattr(x, k) or '').lower())
         order = self._ordering(fields, for_db=False)
         return sorted(bookmark_vars(records), key=lambda x: [SortKey(get(x, k), ascending=asc) for k, asc in order])
 
     def _order(self, fields=['+id'], ignore_case=True) -> str:
         """Converts field list to SQL 'ORDER BY' parameters. (See also BukuDb._ordering().)"""
         text_fields = (set() if not ignore_case else {'url', 'desc', 'metadata', 'tags'})
-        get = lambda field: ('LOWER(NETLOC(url))' if field == 'netloc' else field if field not in text_fields else f'LOWER({field})')
+        get = lambda field: ("tags LIKE '%,{0},%'".format(field[1:].replace("'", "''")) if field.startswith('#') else
+                             'LOWER(NETLOC(url))' if field == 'netloc' else field if field not in text_fields else f'LOWER({field})')
         return ', '.join(f'{get(field)} {"ASC" if direction else "DESC"}' for field, direction in self._ordering(fields))
 
-    def get_rec_all(self, *, lock: bool = True, order: List[str] = ['id']):
+    def get_rec_all(self, *, lock: bool = True, order: List[str] = ['id'], ignore_case: bool = True):
         """Get all the bookmarks in the database.
 
         Parameters
@@ -666,6 +671,8 @@ class BukuDb:
             Whether to restrict concurrent access (True by default).
         order : list of str
             Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
+        ignore_case : bool
+            Whether to ignore case when applying order (True by default).
 
         Returns
         -------
@@ -673,7 +680,7 @@ class BukuDb:
             A list of tuples representing bookmark records.
         """
 
-        return self._fetch(f'SELECT * FROM bookmarks ORDER BY {self._order(order)}', lock=lock)
+        return self._fetch(f'SELECT * FROM bookmarks ORDER BY {self._order(order, ignore_case)}', lock=lock)
 
     def get_rec_by_id(self, index: int, *, lock: bool = True) -> Optional[BookmarkVar]:
         """Get a bookmark from database by its ID.
@@ -778,6 +785,24 @@ class BukuDb:
             return self.cur.fetchall()[0][0]
         with self.lock:
             return self.get_max_id(lock=False)
+
+    def reorder(self, order: List[str], *, ignore_case=True):
+        """Change indices of all records in DB to match the specified order.
+
+        Parameters
+        ----------
+        order : list of str
+            Order description (fields from JSON export or DB, prepended with '+'/'-' for ASC/DESC).
+        ignore_case : bool
+            Whether to ignore case when applying order (True by default).
+        """
+        with self.lock:
+            sorted_urls = [x.url for x in self.get_rec_all(lock=False, order=order, ignore_case=ignore_case)]
+            self.cur.execute('UPDATE bookmarks SET id = -id')
+            for idx, url in enumerate(sorted_urls, start=1):
+                self.cur.execute('UPDATE bookmarks SET id = ? WHERE url = ?', (idx, url))
+            self.conn.commit()
+            self.cur.execute('VACUUM')
 
     def add_rec(
             self,
@@ -3370,6 +3395,7 @@ PROMPT KEYS:
                            note: tag marker is not affected by 'd' (deep search)
     v fields               change sorting order (default is '+index')
                            multiple comma/space separated fields can be specified
+    v! fields              update indices in DB to match specified order
     r expression           run a regex search
     t [tag, ...]           search by tags; show taglist, if no args
     g taglist id|range [...] [>>|>|<<] [record id|range ...]
@@ -4775,11 +4801,16 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             print('search-with-markers', ('on' if markers else 'off'))
             continue
 
-        if nav.startswith('v '):  # letters 's' and 'o' are taken already
+        if re.match(r'v!? ', nav):  # letters 's' and 'o' are taken already
             _fields = {'metadata': 'title', **JSON_FIELDS}
             _order = bdb._ordering(filter(None, re.split(r'[,\s]+', nav[2:].strip())))
-            order = [('+' if asc else '-') + _fields.get(s, s) for s, asc in _order]
-            print('order', ', '.join(order))
+            order_ = [('+' if asc else '-') + _fields.get(s, s) for s, asc in _order]
+            if nav.startswith('v '):
+                order = order_
+                print('order', ', '.join(order))
+            else:
+                bdb.reorder(order_)
+                print('Reindexed bookmarks to match order:', ', '.join(order_))
             continue
 
         # Toggle GUI browser with 'O'
@@ -6046,6 +6077,7 @@ POSITIONAL ARGUMENTS:
                          options, including removed info
                          (requires --update and --export; specific
                          HTTP response filter can be provided)
+    --reorder order...   update DB indices to match specified order
     --cached index|URL   browse a cached page from Wayback Machine
     --offline            add a bookmark without connecting to web
     --suggest            show similar tags when adding bookmarks
@@ -6074,6 +6106,7 @@ POSITIONAL ARGUMENTS:
     addarg('--tag-error', nargs='?', const=True, default=False, help=hide)
     addarg('--del-error', nargs='*', help=hide)
     addarg('--export-on', nargs='*', help=hide)
+    addarg('--reorder', nargs='+', help=hide)
     addarg('--cached', nargs=1, help=hide)
     addarg('--offline', action='store_true', help=hide)
     addarg('--suggest', action='store_true', help=hide)
@@ -6179,7 +6212,7 @@ POSITIONAL ARGUMENTS:
     elif args.unlock is not None:
         BukuCrypt.decrypt_file(args.unlock, dbfile=_db)
 
-    order = [s for ss in (args.order or []) for s in re.split(r'\s*,\s*', ss.strip()) if s]
+    order = parse_order(args.order or [])
 
     # Set up title
     if args.title is not None:
@@ -6539,6 +6572,12 @@ POSITIONAL ARGUMENTS:
     # Fix tags
     if args.fixtags:
         bdb.fixtags()
+
+    if args.reorder:
+        size = bdb.get_max_id()
+        if size and (args.np or read_in(f'Are you sure you want to reorder all {size} bookmarks? (y/n): ') == 'y'):
+            bdb.reorder(parse_order(args.reorder))
+            print(f'...Reordered {size} bookmarks.')
 
     # Close DB connection and quit
     bdb.close_quit(0)
