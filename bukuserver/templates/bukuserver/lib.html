@@ -101,6 +101,7 @@
     const FILTERS = {{ LISTS.get(list, {})|tojson }};
     let watcher = new MutationObserver(xs => xs.forEach(x => x.addedNodes.forEach(e => {
       if (!['filter-groups-data', 'active-filters-data'].includes(e.id)) return;
+      e.setAttribute('data-initial', e.innerHTML);
       let data = JSON.parse(e.innerHTML);
       let converted = (e.id == 'active-filters-data' ? data.map(([id, name, value]) => [id, FILTERS[name]||name, value]) :
                        Object.fromEntries( Object.entries(data).map(([k, v]) => [FILTERS[k]||k, v]) ));

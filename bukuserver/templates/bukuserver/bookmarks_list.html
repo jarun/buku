@@ -34,7 +34,7 @@
   <script>
     reorder.confirmAndSubmit = () => confirm({{ _('Save this order in DB?') | tojson }}) && reorder.submit();
     addEventListener('DOMContentLoaded', () => {
-      let flt = JSON.parse( $('#active-filters-data').text() );
+      let flt = JSON.parse( $('#active-filters-data').attr('data-initial') );
       if ((flt.length > 0) && flt.every(x => x[1] == 'order')) {
         reorderButton.classList.remove('hidden');
         $('#reorder [name=filters]').val(JSON.stringify(flt));
