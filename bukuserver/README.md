@@ -121,6 +121,7 @@ _**Important:** all of them have a shared prefix_ **`BUKUSERVER_`**.
 | DB_FILE | full path to db file<em>³</em> | path string [default: standard path for buku] |
 | READONLY | read-only mode | boolean<em>¹</em> [default: `false`] |
 | DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean<em>¹</em> [default: `true`] ([here's why](#why-favicons-are-disabled-by-default))|
+| AUTOFETCH | initial Fetch value in Create form | boolean<em>¹</em> [default: `true`] |
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean<em>¹</em> [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path<em>⁵</em> | string |
 | THEME | [GUI theme](https://bootswatch.com/3) | string [default: `default`] (`slate` is a good pick for dark mode) |
