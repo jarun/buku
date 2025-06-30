@@ -60,12 +60,13 @@
 {% endmacro %}
 
 {% macro fetch_checkbox(checked=True) %}
-  <script>
+  <script>{
+    let tooltip = {{ _('Collect missing data (+extra tags) by fetching & parsing the webpage')|tojson }}
     $('.admin-form [name=fetch]').remove();
     $('.admin-form').append(
-      $(`<div class="form-group"><label style="display: block"><span class="col-md-2 text-right">{{ _('Fetch') }} &nbsp; </span>`
+      $(`<div class="form-group" title="${tooltip}"><label style="display: block"><span class="col-md-2 text-right">{{ _('Fetch') }} &nbsp; </span>`
         +`<span class="col-md-10"><input type="checkbox" name="fetch"{% if checked %} checked{% endif %}></span></label></div>`));
-  </script>
+  }</script>
 {% endmacro %}
 
 {% macro details_formatting(prefix='') %}

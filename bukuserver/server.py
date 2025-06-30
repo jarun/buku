@@ -87,6 +87,8 @@ def create_app(db_file=None):
         get_bool_from_env_var('BUKUSERVER_DISABLE_FAVICON', True)
     app.config['BUKUSERVER_OPEN_IN_NEW_TAB'] = \
         get_bool_from_env_var('BUKUSERVER_OPEN_IN_NEW_TAB')
+    app.config['BUKUSERVER_AUTOFETCH'] = \
+        get_bool_from_env_var('BUKUSERVER_AUTOFETCH', True)
     app.config['BUKUSERVER_DB_FILE'] = db_file
     reverse_proxy_path = os.getenv('BUKUSERVER_REVERSE_PROXY_PATH')
     if reverse_proxy_path:
