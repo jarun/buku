@@ -87,6 +87,9 @@ bukuserver = "bukuserver.server:cli"
 py-modules = ["buku"]
 packages.find.include = ["bukuserver", "bukuserver.*"]
 
+[tool.setuptools.data-files]
+"share/man/man1" = ["*.1"]
+
 [tool.setuptools.dynamic]
 version = { attr = "buku.__version__" }
 
