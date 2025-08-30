@@ -1,0 +1,95 @@
+[project]
+name = "buku"
+description = "Bookmark manager like a text-based mini-web."
+keywords = ["cli", "bookmarks", "tag", "utility"]
+readme = "README.md"
+license = { text = "GPLv3" }
+authors = [{ name = "Arun Prakash Jana", email = "engineerarun@gmail.com" }]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Utilities",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "beautifulsoup4>=4.4.1",
+    "certifi",
+    "cryptography>=1.2.3",
+    "html5lib>=1.0.1",
+    "urllib3>=1.23,<3",
+    "pyreadline3; sys_platform == 'win32'",
+    "colorama>=0.4.6; sys_platform == 'win32'",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/jarun/buku"
+Documentation = "https://buku.readthedocs.io/en/latest"
+Funding = "https://github.com/sponsors/jarun"
+Source = "https://github.com/jarun/buku"
+Tracker = "https://github.com/jarun/buku/issues"
+
+[project.optional-dependencies]
+tests = [
+    "attrs>=17.4.0",
+    "beautifulsoup4>=4.6.0",
+    "Click>=7.0",
+    "flake8>=3.4.1",
+    "hypothesis>=6.0.0",
+    "mypy-extensions==0.4.1",
+    "py>=1.5.0",
+    "pylint>=1.7.2",
+    "pytest-cov",
+    "pytest-recording>=0.12.1",
+    "pytest-timeout",
+    "pytest>=6.2.1",
+    "PyYAML>=4.2b1",
+    "tomli; python_version < '3.11'",
+    "vcrpy>=1.13.0",
+    "lxml",
+    "buku[server,locales]",
+]
+server = [
+    "arrow>=1.2.2",
+    "Flask-Admin>=2.0.0",
+    "flask-paginate>=2022.1.8",
+    "Flask-WTF>=1.0.1",
+    "Flask>=2.2.2",
+    "Jinja2>=3",
+    "flasgger",
+]
+locales = ["Flask-Admin[translation]"]
+docs = [
+    "myst-parser>=0.17.0",
+    "sphinx-autobuild>=2021.3.14",
+    "sphinx-rtd-theme>=1.0.0",
+]
+packaging = ["twine>=1.11.0"]
+
+[project.scripts]
+buku = "buku:main"
+bukuserver = "bukuserver.server:cli"
+
+[tool.setuptools]
+py-modules = ["buku"]
+packages.find.include = ["bukuserver", "bukuserver.*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "buku.__version__" }
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
