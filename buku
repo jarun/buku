@@ -200,208 +200,171 @@ class BukuCrypt:
             return hasher.digest()
 
     @staticmethod
-    def encrypt_file(iterations, dbfile=None):
+    def encrypt_file(iterations=8, dbfile=None, encfile=None, password=None, replace=True):
         """Encrypt the bookmarks database file.
 
         Parameters
         ----------
         iterations : int
-            Number of iterations for key generation.
+            Number of iterations for key generation. (Defaults to 8)
         dbfile : str, optional
-            Custom database file path (including filename).
+            Custom database file path (including filename). Fallback value is the default DB.
+        encfile : str, optional
+            Encoded dbfile. (Defaults to dbfile + '.enc')
+        password : str, optional
+            Password to use (if not provided, will be prompted from the user).
+        replace : bool
+            If True (default), the original file will be removed on success.
         """
-
-        try:
-            from getpass import getpass
-            from hashlib import sha256
-
-            from cryptography.hazmat.backends import default_backend
-            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-        except ImportError:
-            LOGERR('cryptography lib(s) missing')
-            sys.exit(1)
-
-        if iterations < 1:
-            LOGERR('Iterations must be >= 1')
-            sys.exit(1)
-
-        if not dbfile:
-            dbfile = os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
-        encfile = dbfile + '.enc'
-
-        db_exists = os.path.exists(dbfile)
-        enc_exists = os.path.exists(encfile)
-
-        if db_exists and not enc_exists:
-            pass
-        elif not db_exists:
-            LOGERR('%s missing. Already encrypted?', dbfile)
-            sys.exit(1)
-        else:
-            # db_exists and enc_exists
-            LOGERR('Both encrypted and flat DB files exist!')
-            sys.exit(1)
-
-        password = getpass()
-        passconfirm = getpass()
-        if not password or not passconfirm:
-            LOGERR('Empty password')
-            sys.exit(1)
-        if password != passconfirm:
-            LOGERR('Passwords do not match')
-            sys.exit(1)
-
-        try:
-            # Get SHA256 hash of DB file
-            dbhash = BukuCrypt.get_filehash(dbfile)
-        except Exception as e:
-            LOGERR(e)
-            sys.exit(1)
-
-        # Generate random 256-bit salt and key
-        salt = os.urandom(BukuCrypt.SALT_SIZE)
-        key = ('%s%s' % (password, salt.decode('utf-8', 'replace'))).encode('utf-8')
-        for _ in range(iterations):
-            key = sha256(key).digest()
-
-        iv = os.urandom(16)
-        encryptor = Cipher(
-            algorithms.AES(key),
-            modes.CBC(iv),
-            backend=default_backend()
-        ).encryptor()
-        filesize = os.path.getsize(dbfile)
-
-        try:
-            with open(dbfile, 'rb') as infp, open(encfile, 'wb') as outfp:
-                outfp.write(struct.pack('<Q', filesize))
-                outfp.write(salt)
-                outfp.write(iv)
-
-                # Embed DB file hash in encrypted file
-                outfp.write(dbhash)
-
-                while True:
-                    chunk = infp.read(BukuCrypt.CHUNKSIZE)
-                    if len(chunk) == 0:
-                        break
-                    if len(chunk) % 16 != 0:
-                        chunk = b'%b%b' % (chunk, b' ' * (16 - len(chunk) % 16))
-
-                    outfp.write(encryptor.update(chunk))
-
-                outfp.write(encryptor.finalize())
-
-            os.remove(dbfile)
-            print('File encrypted')
-            sys.exit(0)
-        except Exception as e:
-            with contextlib.suppress(FileNotFoundError):
-                os.remove(encfile)
-            LOGERR(e)
-            sys.exit(1)
+        BukuCrypt(iterations, dbfile, encfile, password, replace)._encrypt_file()
 
     @staticmethod
-    def decrypt_file(iterations, dbfile=None):
+    def decrypt_file(iterations=8, dbfile=None, encfile=None, password=None, replace=True):
         """Decrypt the bookmarks database file.
 
         Parameters
         ----------
         iterations : int
-            Number of iterations for key generation.
+            Number of iterations for key generation. (Defaults to 8)
         dbfile : str, optional
             Custom database file path (including filename).
             The '.enc' suffix must be omitted.
+        encfile : str, optional
+            Encoded dbfile. (Defaults to dbfile + '.enc')
+        password : str, optional
+            Password to use (if not provided, will be prompted from the user).
+        replace : bool
+            If True (default), the original file will be removed on success.
         """
+        BukuCrypt(iterations, dbfile, encfile, password, replace)._decrypt_file()
 
+    def __init__(self, iterations=8, dbfile=None, encfile=None, password=None, replace=True):
         try:
             from getpass import getpass
             from hashlib import sha256
 
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-        except ImportError:
-            LOGERR('cryptography lib(s) missing')
-            sys.exit(1)
+        except ImportError as e:
+            raise RuntimeError('cryptography lib(s) missing') from e
+        self._sha256, self._default_backend = sha256, default_backend
+        self._Cipher, self._algorithms, self._modes = Cipher, algorithms, modes
+        self._getpass = (getpass if sys.stdin.isatty() else (lambda: sys.stdin.readline().rstrip('\n')))
 
         if iterations < 1:
-            LOGERR('Decryption failed')
-            sys.exit(1)
+            raise RuntimeError('Iterations must be >= 1')
 
-        if not dbfile:
-            dbfile = os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
-        else:
-            dbfile = os.path.abspath(dbfile)
-            dbpath, filename = os.path.split(dbfile)
+        self.iterations, self.password, self.replace = iterations, password, replace
+        self.dbfile = dbfile or os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
+        self.encfile = encfile or (dbfile + '.enc')
 
-        encfile = dbfile + '.enc'
+        self._db_exists = os.path.exists(self.dbfile)
+        self._enc_exists = os.path.exists(self.encfile)
+        if self._db_exists and self._enc_exists:
+            raise RuntimeError('Both encrypted and flat DB files exist!')
 
-        enc_exists = os.path.exists(encfile)
-        db_exists = os.path.exists(dbfile)
+    def _encrypt_file(self):
+        if not self._db_exists:
+            raise RuntimeError(f'{self.dbfile} missing. Already encrypted?')
 
-        if enc_exists and not db_exists:
-            pass
-        elif not enc_exists:
-            LOGERR('%s missing', encfile)
-            sys.exit(1)
-        else:
-            # db_exists and enc_exists
-            LOGERR('Both encrypted and flat DB files exist!')
-            sys.exit(1)
-
-        password = getpass()
-        if not password:
-            LOGERR('Decryption failed')
-            sys.exit(1)
+        if not self.password:
+            self.password = self._getpass()
+            if not self.password:
+                raise RuntimeError('Empty password')
+            passconfirm = self._getpass()
+            if not passconfirm:
+                raise RuntimeError('Empty password')
+            if self.password != passconfirm:
+                raise RuntimeError('Passwords do not match')
 
         try:
-            with open(encfile, 'rb') as infp:
-                size = struct.unpack('<Q', infp.read(struct.calcsize('Q')))[0]
-
-                # Read 256-bit salt and generate key
-                salt = infp.read(32)
-                key = ('%s%s' % (password, salt.decode('utf-8', 'replace'))).encode('utf-8')
-                for _ in range(iterations):
-                    key = sha256(key).digest()
-
-                iv = infp.read(16)
-                decryptor = Cipher(
-                    algorithms.AES(key),
-                    modes.CBC(iv),
-                    backend=default_backend(),
-                ).decryptor()
-
-                # Get original DB file's SHA256 hash from encrypted file
-                enchash = infp.read(32)
-
-                with open(dbfile, 'wb') as outfp:
-                    while True:
-                        chunk = infp.read(BukuCrypt.CHUNKSIZE)
-                        if len(chunk) == 0:
-                            break
-                        outfp.write(decryptor.update(chunk))
-                    outfp.write(decryptor.finalize())
-                    outfp.truncate(size)
-
-            # Match hash of generated file with that of original DB file
-            dbhash = BukuCrypt.get_filehash(dbfile)
-            if dbhash != enchash:
-                os.remove(dbfile)
-                LOGERR('Decryption failed')
-                sys.exit(1)
-            else:
-                os.remove(encfile)
-                print('File decrypted')
-        except struct.error:
-            with contextlib.suppress(FileNotFoundError):
-                os.remove(dbfile)
-            LOGERR('Tainted file')
-            sys.exit(1)
+            self._encrypt()
+            if self.replace:
+                os.remove(self.dbfile)
         except Exception as e:
             with contextlib.suppress(FileNotFoundError):
-                os.remove(dbfile)
-            LOGERR(e)
-            sys.exit(1)
+                os.remove(self.encfile)
+            raise RuntimeError(e) from e
+
+    def _decrypt_file(self):
+        if not self._enc_exists:
+            raise RuntimeError(f'{self.encfile} missing')
+
+        self.password = self.password or self._getpass()
+        if not self.password:
+            raise RuntimeError('Empty password')
+
+        try:
+            enchash = self._decrypt()
+            # Match hash of generated file with that of original DB file
+            dbhash = BukuCrypt.get_filehash(self.dbfile)
+            if dbhash != enchash:
+                os.remove(self.dbfile)
+                raise RuntimeError('Decryption failed')
+            if self.replace:
+                os.remove(self.encfile)
+        except struct.error as e:
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(self.dbfile)
+            raise RuntimeError('Tainted file') from e
+        except Exception as e:
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(self.dbfile)
+            raise RuntimeError(e) from e
+
+    def _cipher(self, key, iv):
+        return self._Cipher(self._algorithms.AES(key), self._modes.CBC(iv), backend=self._default_backend())
+
+    def _key(self, salt):
+        key = ('%s%s' % (self.password, salt.decode('utf-8', 'replace'))).encode('utf-8')
+        for _ in range(self.iterations):
+            key = self._sha256(key).digest()
+        return key
+
+    def _encrypt(self):
+        # Get SHA256 hash of DB file
+        dbhash = BukuCrypt.get_filehash(self.dbfile)
+
+        # Generate random 256-bit salt and key
+        salt = os.urandom(BukuCrypt.SALT_SIZE)
+        iv = os.urandom(16)
+        encryptor = self._cipher(self._key(salt), iv).encryptor()
+        filesize = os.path.getsize(self.dbfile)
+
+        with open(self.dbfile, 'rb') as infp, open(self.encfile, 'wb') as outfp:
+            outfp.write(struct.pack('<Q', filesize))
+            outfp.write(salt)
+            outfp.write(iv)
+
+            # Embed DB file hash in encrypted file
+            outfp.write(dbhash)
+
+            while chunk := infp.read(BukuCrypt.CHUNKSIZE):
+                if len(chunk) % 16 != 0:
+                    chunk = b'%b%b' % (chunk, b' ' * (16 - len(chunk) % 16))
+                outfp.write(encryptor.update(chunk))
+
+            outfp.write(encryptor.finalize())
+        return dbhash
+
+    def _decrypt(self):
+        with open(self.encfile, 'rb') as infp:
+            size = struct.unpack('<Q', infp.read(struct.calcsize('Q')))[0]
+
+            # Read 256-bit salt and generate key
+            salt = infp.read(32)
+            iv = infp.read(16)
+            decryptor = self._cipher(self._key(salt), iv).decryptor()
+
+            # Get original DB file's SHA256 hash from encrypted file
+            enchash = infp.read(32)
+
+            with open(self.dbfile, 'wb') as outfp:
+                while chunk := infp.read(BukuCrypt.CHUNKSIZE):
+                    outfp.write(decryptor.update(chunk))
+                outfp.write(decryptor.finalize())
+                outfp.truncate(size)
+        return enchash
 
 
 @total_ordering
@@ -6207,10 +6170,17 @@ POSITIONAL ARGUMENTS:
         urllib3.disable_warnings()
 
     # Handle encrypt/decrypt options at top priority
-    if args.lock is not None:
-        BukuCrypt.encrypt_file(args.lock, dbfile=_db)
-    elif args.unlock is not None:
-        BukuCrypt.decrypt_file(args.unlock, dbfile=_db)
+    try:
+        if args.lock is not None:
+            BukuCrypt.encrypt_file(args.lock, dbfile=_db)
+            print('File encrypted')
+            sys.exit(0)
+        if args.unlock is not None:
+            BukuCrypt.decrypt_file(args.unlock, dbfile=_db)
+            print('File decrypted')
+    except RuntimeError as e:
+        LOGERR(e)
+        sys.exit(1)
 
     order = parse_order(args.order or [])
 

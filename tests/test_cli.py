@@ -320,11 +320,12 @@ def test_custom_db(_BukuCrypt, BukuDb, stdin, db, action):
         calls += [mock.call.BukuDb.get_default_dbdir()]
     if action == 'lock':
         calls += [mock.call.BukuCrypt.encrypt_file(8, dbfile=_db)]
-    elif action == 'unlock':
-        calls += [mock.call.BukuCrypt.decrypt_file(8, dbfile=_db)]
-    calls += [mock.call.BukuDb(None, 0, True, dbfile=_db, colorize=True)]
-    if action == 'print':
-        calls += [mock.call.bdb.get_max_id(),
-                  mock.call.bdb.print_rec(None, order=[])]
-    calls += [mock.call.bdb.close_quit(0)]
+    else:
+        if action == 'unlock':
+            calls += [mock.call.BukuCrypt.decrypt_file(8, dbfile=_db)]
+        calls += [mock.call.BukuDb(None, 0, True, dbfile=_db, colorize=True)]
+        if action == 'print':
+            calls += [mock.call.bdb.get_max_id(),
+                      mock.call.bdb.print_rec(None, order=[])]
+        calls += [mock.call.bdb.close_quit(0)]
     assert wrap.mock_calls == calls
