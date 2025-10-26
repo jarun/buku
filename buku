@@ -47,7 +47,7 @@ from enum import Enum
 from itertools import chain
 from functools import total_ordering
 from subprocess import DEVNULL, PIPE, Popen
-from typing import Any, Dict, List, Optional, Tuple, NamedTuple
+from typing import Any, Dict, List, Optional, Tuple, NamedTuple, TypeAlias, TypeVar
 from collections.abc import Sequence, Set, Callable
 from warnings import warn
 import xml.etree.ElementTree as ET
@@ -136,12 +136,11 @@ TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
 IGNORE_FF_BOOKMARK_FOLDERS = frozenset(["placesRoot", "bookmarksMenuFolder"])
 PERMANENT_REDIRECTS = {301, 308}
 
-# IntSet: TypeAlias = Set[int] | range      # TODO: use after dropping 3.9
-# Ints: TypeAlias = Sequence[int] | IntSet
-# IntOrInts: TypeAlias = int | Ints
-# T = TypeVar('T')
-# Values: TypeAlias = Sequence[T] | Set[T]
-# del T
+IntSet: TypeAlias = Set[int] | range
+Ints: TypeAlias = Sequence[int] | IntSet
+IntOrInts: TypeAlias = int | Ints
+_T = TypeVar('T')  # pylint: disable=typevar-name-mismatch
+Values: TypeAlias = Sequence[_T] | Set[_T]
 
 # Set up logging
 LOGGER = logging.getLogger()
@@ -700,7 +699,7 @@ class BukuDb:
 
         return self._fetch_first('SELECT * FROM bookmarks WHERE id = ?', index, lock=lock)
 
-    def get_rec_all_by_ids(self, indices: Sequence[int] | Set[int] | range, *, lock: bool = True, order: List[str] = ['id']):  # Ints
+    def get_rec_all_by_ids(self, indices: Ints, *, lock: bool = True, order: List[str] = ['id']):
         """Get all the bookmarks in the database.
 
         Parameters
@@ -741,7 +740,7 @@ class BukuDb:
         row = self._fetch_first('SELECT * FROM bookmarks WHERE url = ?', url, lock=lock)
         return row and row.id
 
-    def get_rec_ids(self, urls: Sequence[str] | Set[str], *, lock: bool = True):  # Values[str]
+    def get_rec_ids(self, urls: Values[str], *, lock: bool = True):
         """Check if URL already exists in DB.
 
         Parameters
@@ -816,9 +815,9 @@ class BukuDb:
             url_redirect: bool = False,
             tag_redirect: bool | str = False,
             tag_error: bool | str = False,
-            del_error: Optional[Set[int] | range] = None,
+            del_error: Optional[IntSet] = None,
             tags_fetch: bool = True,
-            tags_except: Optional[str] = None) -> int:  # Optional[IntSet]
+            tags_except: Optional[str] = None) -> int:
         """Add a new bookmark.
 
         Parameters
@@ -1048,7 +1047,7 @@ class BukuDb:
 
     def update_rec(
             self,
-            index: Optional[int | Sequence[int] | Set[int] | range],  # Optional[IntOrInts]
+            index: Optional[IntOrInts],
             url: Optional[str] = None,
             title_in: Optional[str] = None,
             tags_in: Optional[str] = None,
@@ -1058,8 +1057,8 @@ class BukuDb:
             url_redirect: bool = False,
             tag_redirect: bool | str = False,
             tag_error: bool | str = False,
-            del_error: Optional[Set[int] | range] = None,             # Optional[IntSet]
-            export_on: Optional[Set[int] | range] = None,             # Optional[IntSet]
+            del_error: Optional[IntSet] = None,
+            export_on: Optional[IntSet] = None,
             retain_order: bool = False) -> bool:
         """Update an existing record at (each) index.
 
@@ -1264,13 +1263,13 @@ class BukuDb:
 
     def refreshdb(
             self,
-            index: Optional[int | Sequence[int] | Set[int] | range],  # Optional[IntOrInts]
+            index: Optional[IntOrInts],
             threads: int,
             url_redirect: bool = False,
             tag_redirect: bool | str = False,
             tag_error: bool | str = False,
-            del_error: Optional[Set[int] | range] = None,             # Optional[IntSet]
-            export_on: Optional[Set[int] | range] = None,             # Optional[IntSet]
+            del_error: Optional[IntSet] = None,
+            export_on: Optional[IntSet] = None,
             update_title: bool = True,
             custom_url: Optional[str] = None,
             custom_tags: Optional[str] = None,
@@ -2179,7 +2178,7 @@ class BukuDb:
 
         return False
 
-    def print_rec(self, index: Optional[int | Sequence[int] | Set[int] | range] = 0,  # Optional[IntOrInts]
+    def print_rec(self, index: Optional[IntOrInts] = 0,
                   low: int = 0, high: int = 0, is_range: bool = False, order: List[str] = []) -> bool:
         """Print bookmark details at index or all bookmarks if index is 0.
 
@@ -5812,7 +5811,7 @@ def monkeypatch_textwrap_for_cjk():
     textwrap.fill.patched = True
 
 
-def parse_range(tokens: Optional[str | Sequence[str] | Set[str]],  # Optional[str | Values[str]]
+def parse_range(tokens: Optional[str | Values[str]],
                 valid: Optional[Callable[[int], bool]] = None,
                 maxidx: int = None) -> Optional[Set[int]]:
     """Convert a token or sequence/set of token into a set of indices.
