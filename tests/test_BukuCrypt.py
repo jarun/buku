@@ -1,5 +1,4 @@
 """test module."""
-from unittest import mock
 import os
 import random
 
@@ -29,11 +28,9 @@ def test_encrypt_decrypt(tmpdir, filesize):
     with open(dbfile, 'wb') as fp:
         fp.write(content)
     assert os.stat(dbfile).st_size == filesize
-    with mock.patch('getpass.getpass', return_value='password'):
-        from buku import BukuCrypt
-        with pytest.raises(SystemExit):
-            BukuCrypt.encrypt_file(1, dbfile=dbfile)
-        BukuCrypt.decrypt_file(1, dbfile=dbfile)
+    from buku import BukuCrypt
+    BukuCrypt.encrypt_file(1, dbfile=dbfile, password='password')
+    BukuCrypt.decrypt_file(1, dbfile=dbfile, password='password')
     assert os.path.exists(dbfile)
     with open(dbfile, 'rb') as fp:
         roundtrip_content = fp.read()
