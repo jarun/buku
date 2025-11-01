@@ -72,7 +72,7 @@ def test_prompt(BukuDb, bdb, piped_input, prompt, nostdin, db):
         piped_input.assert_called_with(argv, [])
     else:
         piped_input.assert_not_called()
-    BukuDb.assert_called_with(dbfile=db or os.path.join('/default/db/dir', 'bookmarks.db'))
+    BukuDb.assert_called_with(dbfile=db or os.path.join('/default/db/dir', 'bookmarks.db'), default_scheme=buku.SCHEME_HTTP)
     prompt.assert_called_with(bdb, None)
     bdb.close_quit.assert_called_with(0)
 
@@ -323,7 +323,7 @@ def test_custom_db(_BukuCrypt, BukuDb, stdin, db, action):
     else:
         if action == 'unlock':
             calls += [mock.call.BukuCrypt.decrypt_file(8, dbfile=_db)]
-        calls += [mock.call.BukuDb(None, 0, True, dbfile=_db, colorize=True)]
+        calls += [mock.call.BukuDb(None, 0, True, dbfile=_db, colorize=True, default_scheme=buku.SCHEME_HTTP)]
         if action == 'print':
             calls += [mock.call.bdb.get_max_id(),
                       mock.call.bdb.print_rec(None, order=[])]
