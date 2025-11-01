@@ -3,7 +3,7 @@
 import re
 from flask_wtf import FlaskForm
 from wtforms import Form
-from wtforms.fields import BooleanField, FieldList, StringField, TextAreaField, HiddenField, SelectMultipleField
+from wtforms.fields import BooleanField, FieldList, URLField, StringField, TextAreaField, HiddenField, SelectMultipleField
 from wtforms.validators import DataRequired, InputRequired, Length, Regexp, StopValidation
 from buku import DELIM, taglist_str
 from bukuserver import _, _l, LazyString
@@ -69,7 +69,7 @@ class HomeForm(SearchBookmarksForm):
 
 
 class BookmarkForm(FlaskForm):
-    url = StringField(_l('URL'), name='link', validators=[InputRequired()])
+    url = URLField(_l('URL'), name='link', validators=[InputRequired()])
     title = StringField(_l('Title'))
     tags = StringField(_l('Tags'))
     description = TextAreaField(_l('Description'))

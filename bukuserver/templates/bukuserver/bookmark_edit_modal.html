@@ -4,5 +4,6 @@
 {% block tail %}
   {{ super() }}
   {{ buku.script('bookmark.js') }}
+  {{ buku.horizontal_form() }}
   {{ buku.focus('.modal-body') }}
 {% endblock %}

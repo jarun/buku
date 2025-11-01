@@ -10,6 +10,13 @@ table tr td:not(:first-child) {
     }
 }
 
+/* fixing details filter width */
+#fa_filter {flex-grow: 1}
+
+/* fixing tags input height */
+.select2-container.form-control {display: flex !important}
+.select2-container.form-control .select2-choices {flex-grow: 1}
+
 .link {
     display: block;
 }
