@@ -136,6 +136,8 @@ TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
 IGNORE_FF_BOOKMARK_FOLDERS = frozenset(["placesRoot", "bookmarksMenuFolder"])
 PERMANENT_REDIRECTS = {301, 308}
 
+SCHEME_HTTP = 'http'
+
 IntSet: TypeAlias = Set[int] | range
 Ints: TypeAlias = Sequence[int] | IntSet
 IntOrInts: TypeAlias = int | Ints
@@ -451,7 +453,7 @@ class BukuDb:
 
     def __init__(
             self, json: Optional[str] = None, field_filter: int = 0, chatty: bool = False,
-            dbfile: Optional[str] = None, colorize: bool = True) -> None:
+            dbfile: Optional[str] = None, colorize: bool = True, default_scheme: str = SCHEME_HTTP) -> None:
         """Database initialization API.
 
         Parameters
@@ -466,6 +468,8 @@ class BukuDb:
             Sets the verbosity of the APIs. Default is False.
         colorize : bool
             Indicates whether color should be used in output. Default is True.
+        default_scheme : str
+            Scheme to assume if missing from bookmark's URI. Default is http.
         """
 
         self.json = json
@@ -476,6 +480,7 @@ class BukuDb:
         self.lock = threading.RLock()  # repeatable lock, only blocks *concurrent* access
         self._to_export = None  # type: Optional[Dict[str, str | BookmarkVar]]
         self._to_delete = None  # type: Optional[int | Sequence[int] | Set[int] | range]
+        self.default_scheme = default_scheme
 
     @staticmethod
     def get_default_dbdir():
@@ -2579,7 +2584,7 @@ class BukuDb:
                 qry = 'SELECT URL from bookmarks where id BETWEEN ? AND ?'
                 with self.lock:
                     for row in self.cur.execute(qry, (low, high)):
-                        browse(row[0])
+                        browse(row[0], self.default_scheme)
                 return True
             except IndexError:
                 LOGERR('Index out of range')
@@ -2602,7 +2607,7 @@ class BukuDb:
         try:
             with self.lock:
                 for row in self.cur.execute(qry, (index,)):
-                    browse(row[0])
+                    browse(row[0], self.default_scheme)
                     return True
             LOGERR('No matching index %d', index)
         except IndexError:
@@ -4848,7 +4853,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
         # open all results and re-prompt with 'a'
         if nav == 'a':
             for index in range(cur_index, next_index):
-                browse(results[index][1])
+                browse(results[index][1], bdb.default_scheme)
             continue
 
         # list tags with 't'
@@ -4874,7 +4879,8 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                     if not os.path.exists(newdb):
                         print(f'DB file is being created at {newdb}')
                     _bdb = bdb
-                    bdb = BukuDb(json=bdb.json, field_filter=bdb.field_filter, colorize=bdb.colorize, dbfile=newdb)
+                    bdb = BukuDb(json=bdb.json, field_filter=bdb.field_filter, colorize=bdb.colorize, dbfile=newdb,
+                                 default_scheme=bdb.default_scheme)
                     _bdb.close()
                     results, new_results = [], False
                     cur_index = next_index = prev_index = 0
@@ -4898,7 +4904,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
                 if index < 0 or index >= next_index:
                     print('No matching index %s' % nav)
                     continue
-                browse(results[index][1])
+                browse(results[index][1], bdb.default_scheme)
             elif '-' in nav:
                 try:
                     vals = [int(x) for x in nav.split('-')]
@@ -4907,7 +4913,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
 
                     for _id in range(vals[0]-1, vals[-1]):
                         if 0 <= _id < next_index:
-                            browse(results[_id][1])
+                            browse(results[_id][1], bdb.default_scheme)
                         else:
                             print('No matching index %d' % (_id + 1))
                 except ValueError:
@@ -5185,7 +5191,7 @@ def is_int(string):
         return False
 
 
-def browse(url):
+def browse(url, default_scheme=SCHEME_HTTP):
     """Duplicate stdin, stdout and open URL in default browser.
 
     .. Note:: Duplicates stdin and stdout in order to
@@ -5195,6 +5201,8 @@ def browse(url):
     ----------
     url : str
         URL to open in browser.
+    default_scheme : str
+        Scheme to assume if missing from URL. Default is http.
 
     Attributes
     ----------
@@ -5206,12 +5214,10 @@ def browse(url):
     """
 
     if not urlparse(url).scheme:
-        # Prefix with 'http://' if no scheme
-        # Otherwise, opening in browser fails anyway
-        # We expect http to https redirection
-        # will happen for https-only websites
-        LOGERR('Scheme missing in URI, trying http')
-        url = 'http://' + url
+        # Prefix with default_scheme to improve the chance
+        # it will open properly in the browser
+        LOGERR('Scheme missing in URI, trying %s', default_scheme)
+        url = f'{default_scheme}://{url}'
 
     browser = webbrowser.get()
     if browse.override_text_browser:
@@ -6021,6 +6027,8 @@ POSITIONAL ARGUMENTS:
     -o, --open [...]     browse bookmarks by indices and ranges
                          open a random bookmark, if no arguments
     --oa                 browse all search results immediately
+    --default-scheme S   if scheme is missing from uri, assume S
+                         when opening in browser (default http)
     --replace old new    replace old tag with new tag everywhere
                          delete old tag, if new tag not specified
     --url-redirect       when fetching an URL, use the resulting
@@ -6062,6 +6070,7 @@ POSITIONAL ARGUMENTS:
     addarg('--np', action='store_true', help=hide)
     addarg('-o', '--open', nargs='*', help=hide)
     addarg('--oa', action='store_true', help=hide)
+    addarg('--default-scheme', nargs=1, default=[SCHEME_HTTP], help=hide)
     addarg('--replace', nargs='+', help=hide)
     addarg('--url-redirect', action='store_true', help=hide)
     addarg('--tag-redirect', nargs='?', const=True, default=False, help=hide)
@@ -6153,7 +6162,7 @@ POSITIONAL ARGUMENTS:
             _db = _db or os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
             if not os.path.exists(_db):
                 print(f'DB file is being created at {_db}')  # not printed without chatty param
-            bdb = BukuDb(dbfile=_db)
+            bdb = BukuDb(dbfile=_db, default_scheme=args.default_scheme[0])
         except Exception:
             sys.exit(1)
         prompt(bdb, None)
@@ -6229,7 +6238,7 @@ POSITIONAL ARGUMENTS:
 
     # Initialize the database and get handles, set verbose by default
     try:
-        bdb = BukuDb(args.json, args.format, not args.tacit, dbfile=_db, colorize=not args.nc)
+        bdb = BukuDb(args.json, args.format, not args.tacit, dbfile=_db, colorize=not args.nc, default_scheme=args.default_scheme[0])
     except Exception:
         sys.exit(1)
 
@@ -6376,7 +6385,7 @@ POSITIONAL ARGUMENTS:
         # URLs are opened first and updated/deleted later.
         if args.oa:
             for row in search_results:
-                browse(row[1])
+                browse(row[1], args.default_scheme[0])
 
         if (
                 (args.export is not None) or

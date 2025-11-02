@@ -259,6 +259,8 @@ POWER TOYS:
       -o, --open [...]     browse bookmarks by indices and ranges
                            open a random bookmark, if no arguments
       --oa                 browse all search results immediately
+      --default-scheme S   if scheme is missing from uri, assume S
+                           when opening in browser (default http)
       --replace old new    replace old tag with new tag everywhere
                            delete old tag, if new tag not specified
       --url-redirect       when fetching an URL, use the resulting
