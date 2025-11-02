@@ -196,12 +196,19 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         super().__init__(custom_model, *args, **kwargs)
 
     @property
+    def url_render_mode(self):
+        return app_param('URL_RENDER_MODE', DEFAULT_URL_RENDER_MODE)
+
+    @property
     def page_size(self):
         return app_param('PER_PAGE', DEFAULT_PER_PAGE)
 
     @property
-    def url_render_mode(self):
-        return app_param('URL_RENDER_MODE', DEFAULT_URL_RENDER_MODE)
+    def page_size_options(self):
+        return tuple(sorted(set([self.page_size] + list(super().page_size_options))))
+
+    def get_safe_page_size(self, page_size):  # un-enforcing the restriction
+        return (page_size if self.can_set_page_size and page_size > 0 else self.page_size)
 
     def create_form(self, obj=None):
         form = super().create_form(obj)
@@ -463,6 +470,13 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
     @property
     def page_size(self):
         return app_param('PER_PAGE', DEFAULT_PER_PAGE)
+
+    @property
+    def page_size_options(self):
+        return tuple(sorted(set([self.page_size] + list(super().page_size_options))))
+
+    def get_safe_page_size(self, page_size):  # un-enforcing the restriction
+        return (page_size if self.can_set_page_size and page_size > 0 else self.page_size)
 
     @expose('/refresh', methods=['POST'])
     def refresh(self):

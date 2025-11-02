@@ -1,8 +1,5 @@
-try:  # as per Flask-Admin-1.6.1
-    try:
-        from flask_babelex import gettext, ngettext, pgettext, lazy_gettext, lazy_pgettext, LazyString
-    except ImportError:
-        from flask_babel import gettext, ngettext, pgettext, lazy_gettext, lazy_pgettext, LazyString
+try:
+    from flask_babel import gettext, ngettext, pgettext, lazy_gettext, lazy_pgettext, LazyString
 except ImportError:
     from flask_admin.babel import gettext as _gettext, ngettext, lazy_gettext
     gettext = lambda s, *a, **kw: (s if not kw else _gettext(s, *a, **kw))

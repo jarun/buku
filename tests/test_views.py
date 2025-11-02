@@ -250,7 +250,7 @@ def test_update(bukudb, client, override):
 @pytest.mark.slow
 @pytest.mark.parametrize('redirect, uri, args', [
     ('_add_another', '/bookmark/new/', {'url': '/bookmark/'}),
-    ('_continue_editing', '/bookmark/edit/', {'id': '1'}),
+    ('_continue_editing', '/bookmark/edit/', {'id': '1', 'url': '/bookmark/'}),
 ])
 def test_update_redirect(bukudb, client, redirect, uri, args):
     _add_rec(bukudb, 'http://example.org')
@@ -412,22 +412,22 @@ _DICT = {
     'en': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Home', 'Bookmarks', 'Tags', 'Statistic'],
            f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()': ['List (1)', 'Create', 'Random', 'Reorder', 'Add Filter', '10 items'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['View Record', 'Edit Record'],
-           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete Record']},
     'de': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Start', 'Lesezeichen', 'Schilder', 'Statistik'],
            f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()':
                ['Liste (1)', 'Erstellen', 'Zufälliger', 'Neu anordnen', 'Filter hinzufügen', '10 Elemente'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Eintrag ansehen', 'Eintrag bearbeiten'],
-           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},  # ['Datensatz löschen']},
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Datenzatz löschen']},
     'fr': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Accueil', 'Signets', 'Étiquettes', 'Statistique'],
            f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()':
-               ['Liste (1)', 'Créer', 'Aléatoire', 'Réorganiser', 'Ajouter un filtre', '10 items'],
+               ['Liste (1)', 'Créer', 'Aléatoire', 'Réorganiser', 'Ajouter un filtre', '10 articles'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Afficher L\'enregistrement', 'Modifier enregistrement'],
-           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},  # ['Supprimer l\'enregistrement']},
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Supprimer l\'enregistrement']},
     'ru': {f'//ul{xpath_cls("nav navbar-nav")}/li/a/text()': ['Главная', 'Закладки', 'Теги', 'Статистика'],
            f'//ul{xpath_cls("nav nav-tabs")}/li/a/text()':
                ['Список (1)', 'Создать', 'Случайная', 'Изменить порядок', 'Добавить Фильтр', '10 элементы'],
            f'//td{xpath_cls("list-buttons-column")}/a/@title': ['Просмотр записи', 'Редактировать запись'],
-           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Delete record']},  # ['Удалить запись']},
+           f'//td{xpath_cls("list-buttons-column")}/form/button/@title': ['Удалить запись']},
 }
 locale = env_fixture('BUKUSERVER_LOCALE', params=['en', 'de', 'fr', 'ru', None])
 

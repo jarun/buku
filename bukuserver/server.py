@@ -11,6 +11,7 @@ import flask
 from flask import Flask, redirect, request, url_for
 from flask.cli import FlaskGroup
 from flask_admin import Admin
+from flask_admin.theme import Bootstrap4Theme
 from flasgger import Swagger
 
 from buku import BukuDb, __version__
@@ -35,13 +36,9 @@ def get_bool_from_env_var(key: str, default_value: bool = False) -> bool:
 
 
 def init_locale(app, context_processor=lambda: {}):
-    try:  # as per Flask-Admin-1.6.1
-        try:
-            from flask_babelex import Babel
-            Babel(app).localeselector(lambda: app.config['BUKUSERVER_LOCALE'])
-        except ImportError:
-            from flask_babel import Babel
-            Babel().init_app(app, locale_selector=lambda: app.config['BUKUSERVER_LOCALE'])
+    try:
+        from flask_babel import Babel
+        Babel().init_app(app, locale_selector=lambda: app.config['BUKUSERVER_LOCALE'])
         app.context_processor(lambda: {'lang': app.config['BUKUSERVER_LOCALE'] or 'en', **context_processor()})
     except Exception as e:
         app.jinja_env.add_extension('jinja2.ext.i18n')
@@ -99,7 +96,7 @@ def create_app(db_file=None):
         app.config['REVERSE_PROXY_PATH'] = reverse_proxy_path
         ReverseProxyPrefixFix(app)
     bukudb = BukuDb(dbfile=db_file)
-    app.config['FLASK_ADMIN_SWATCH'] = (os.getenv('BUKUSERVER_THEME') or 'default').lower()
+    theme = (os.getenv('BUKUSERVER_THEME') or 'default').lower()
     app.config['BUKUSERVER_LOCALE'] = os.getenv('BUKUSERVER_LOCALE') or 'en'
     _dir = os.path.dirname(os.path.realpath(__file__))
     app.config['SWAGGER'] = {'title': 'Bukuserver API', 'doc_dir': os.path.join(_dir, 'apidocs')}
@@ -118,7 +115,7 @@ def create_app(db_file=None):
     app.jinja_env.globals.update(_p=_p, dbfile=bukudb.dbfile, dbname=bukudb.dbname)
 
     admin = Admin(
-        app, name='buku server', template_mode='bootstrap4',
+        app, name='buku server', theme=Bootstrap4Theme(swatch=theme),
         index_view=views.CustomAdminIndexView(
             template='bukuserver/home.html', url='/'
         )
