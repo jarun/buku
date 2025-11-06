@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 
-import os
 import re
-import shutil
 
 from setuptools import find_packages, setup
-
-if os.path.isfile('buku'):
-    shutil.copyfile('buku', 'buku.py')
 
 with open('buku.py', encoding='utf-8') as f:
     version = re.search('__version__ = \'([^\']+)\'', f.read()).group(1)  # type: ignore

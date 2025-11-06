@@ -6,7 +6,6 @@
 buku.egg-info
 dist
 build
-buku.py
 .tox
 .history
 .vscode/launch.json
