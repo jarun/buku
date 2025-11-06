@@ -12,7 +12,7 @@ install:
 	install -m755 -d $(MANDIR)
 	install -m755 -d $(DOCDIR)
 	gzip -c buku.1 > buku.1.gz
-	install -m755 buku $(BINDIR)/buku
+	install -m755 buku.py $(BINDIR)/buku
 	install -m644 buku.1.gz $(MANDIR)
 	install -m644 README.md $(DOCDIR)
 	rm -f buku.1.gz
