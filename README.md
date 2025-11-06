@@ -139,8 +139,8 @@ To remove, run:
 
 `buku` is a standalone utility. From the containing directory, run:
 
-    $ chmod +x buku
-    $ ./buku
+    $ chmod +x buku.py
+    $ ./buku.py
 
 ### Shell completion
 
