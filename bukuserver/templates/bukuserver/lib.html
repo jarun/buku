@@ -143,12 +143,11 @@
 {% macro page_size_custom() %}
   <script>
     $(document).ready(function() {
-      const SIZES = [20, 50, 100];  // hardcoded list; see page_size_form() in admin/model/layout.html
       let pageSize = url => new URL(url || location.host).searchParams.get('page_size');
       $(`.nav.nav-tabs .dropdown-menu`).each(function () {
         let _sizes = $(`a.dropdown-item`, this).map(function () {return pageSize(this.href)}).get();
-        if (SIZES.every((x, i) => x == _sizes[i]))
-          $('a', this).last().clone().text({{ _('custom')|tojson }}).attr('href', `#`).on('click', () => {
+        if (_sizes.length > 2 && _sizes.length == new Set(_sizes).size)  // 3+ links; each link has different pagesize
+          $('a', this).last().clone().text({{ _('custom')|tojson }}).removeClass('active').attr('href', `#`).on('click', () => {
             let page = prompt({{ _('Set custom page size (empty for default)')|tojson }}, pageSize(location) || '');
             if (Number(page) || (page == "")) {
               let search = new URL(location).searchParams;

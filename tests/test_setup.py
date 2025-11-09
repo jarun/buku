@@ -13,20 +13,12 @@ def setup_obj(monkeypatch):
 
     return setup
 
+_reqs = lambda path: [s for s in pathlib.Path(path).read_text(encoding='utf8', errors='surrogateescape').splitlines()
+                      if not s.startswith('#') and s != 'setuptools']
+
 
 def test_bukuserver_requirement(setup_obj):
-    assert [
-        x
-        for x in pathlib.Path("bukuserver/requirements.txt").read_text(encoding="utf8", errors="surrogateescape").splitlines()
-        if "flask-reverse-proxy-fix" not in x
-    ] == setup_obj.server_require
-
+    assert sorted(_reqs('bukuserver/requirements.txt')) == sorted(setup_obj.server_require)
 
 def test_buku_requirement(setup_obj):
-    assert sorted(
-        [
-            x
-            for x in pathlib.Path("requirements.txt").read_text(encoding="utf8", errors="surrogateescape").splitlines()
-            if not x.startswith('#') and x != 'setuptools'
-        ]
-    ) == sorted(setup_obj.install_requires)
+    assert sorted(_reqs('requirements.txt')) == sorted(setup_obj.install_requires)

@@ -36,6 +36,8 @@ $ # regular/venv install
 $ pip3 install "buku[server]"
 $ # pipx install
 $ pipx install "buku[server]"
+$ # with locales
+$ pipx install "buku[server,locales]"
 ```
 
 #### From source
@@ -45,6 +47,8 @@ $ git clone https://github.com/jarun/buku
 $ cd buku
 $ # regular/venv install
 $ pip3 install ".[server]"
+$ # with locales
+$ pip3 install ".[server,locales]"
 ```
 
 #### Using Docker
@@ -134,7 +138,7 @@ _**²**_ if input is invalid, the default value will be used if defined
 
 _**³**_ `BUKUSERVER_DB_FILE` can be a DB name (plain filename without extension; cannot contain `.`). The specified DB with `.db` extension is located in default DB directory (which you can override with `BUKU_DEFAULT_DBDIR`).
 
-_**⁴**_ `BUKUSERVER_LOCALE` requires either `flask_babel` or `flask_babelex` installed
+_**⁴**_ `BUKUSERVER_LOCALE` requires buku to be installed with `[locales]`
 
 _**⁵**_ the value for `BUKUSERVER_REVERSE_PROXY_PATH` is recommended to include preceding slash and not have trailing slash (i.e. use `/foo` not `/foo/`)
 

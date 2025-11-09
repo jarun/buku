@@ -10,6 +10,8 @@ with open('buku.py', encoding='utf-8') as f:
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
+server_locales_require = ['Flask-Admin[translation]']
+
 tests_require = [
     'attrs>=17.4.0',
     'beautifulsoup4>=4.6.0',
@@ -27,13 +29,12 @@ tests_require = [
     'setuptools>=41.0.1',
     'vcrpy>=1.13.0',
     'lxml',
-    'flask_babel',
-]
+] + server_locales_require
 
 
 server_require = [
     "arrow>=1.2.2",
-    "Flask-Admin>=1.6.1,<2",
+    "Flask-Admin>=2.0.0",
     "flask-paginate>=2022.1.8",
     "Flask-WTF>=1.0.1",
     "Flask>=2.2.2",
@@ -72,6 +73,7 @@ setup(
     extras_require={
         "tests": tests_require + server_require,
         "server": server_require,
+        "locales": server_locales_require,
         "docs": [
             "myst-parser>=0.17.0",
             "sphinx-rtd-theme>=1.0.0",
