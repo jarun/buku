@@ -16,12 +16,10 @@ test-template: &test-template
         command: |
           apt update && apt install -y --no-install-recommends git
           pip install --upgrade pip
-          pip install --upgrade setuptools flake8 pylint
     - checkout
     - run: &deps
         command: |
-          pip install -e .[tests]
-          pip install -r requirements.txt
+          pip install -e . --group dev
     - run:
         command:
           python3 -m pytest ./tests/test_*.py --cov buku -vv --durations=0 -c ./tests/pytest.ini
