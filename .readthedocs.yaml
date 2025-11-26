@@ -26,7 +26,5 @@ sphinx:
 # Optionally declare the Python requirements required to build your docs
 python:
   install:
-  - method: pip
-    path: .
-    extra_requirements:
-    - docs
+  - pip install --upgrade pip
+  - pip install .[locales,server] --group docs
