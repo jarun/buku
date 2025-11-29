@@ -4283,6 +4283,7 @@ def gen_headers():
     MYHEADERS = {
         'Accept-Encoding': 'gzip,deflate',
         'User-Agent': USER_AGENT,
+        'Sec-Fetch-Mode': 'navigate',
         'Accept': '*/*',
         'Cookie': '',
         'DNT': '1'
