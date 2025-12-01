@@ -104,11 +104,12 @@ def test_gen_headers():
     import buku
 
     exp_myheaders = {
-        "Accept-Encoding": "gzip,deflate",
-        "User-Agent": buku.USER_AGENT,
-        "Accept": "*/*",
-        "Cookie": "",
-        "DNT": "1",
+        'Accept-Encoding': 'gzip,deflate',
+        'User-Agent': buku.USER_AGENT,
+        'Sec-Fetch-Mode': 'navigate',
+        'Accept': '*/*',
+        'Cookie': '',
+        'DNT': '1',
     }
     buku.gen_headers()
     assert buku.MYPROXY is None
