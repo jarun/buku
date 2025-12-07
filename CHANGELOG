@@ -1,3 +1,22 @@
+buku v5.1
+2025-12-07
+
+- auto-import from Brave Browser
+- `amd64` docker image (will be built starting from next release)
+- sorting bookmarks by absence/presence of a specific tag
+- reordering all bookmarks in DB (based on specified sorting)
+- support overriding default URI scheme for `browse()` (@meonkeys)
+- include a `Sec-Fetch-Mode` header when fetching a webpage (in case the website admin cares about that)
+- source: renaming main file to `buku.py` (which is the name it gets installed as)
+- packaging: migrating from `setup.py` to `pyproject.toml` (@branchvincent)
+- packaging: installing the manpage into `pipx` venv (@branchvincent)
+- Python: adding v3.14, removing v3.9
+- API: improved BukuCrypt
+- Bukuserver: Swagger-based interactive documentation for the web-API
+- Bukuserver: option to change initial value of Fetch checkbox in Create Bookmark form
+- Bukuserver: migrate from Bootstrap v3 to v4
+- migrate to the upcoming flask-admin v2 (see #753)
+
 buku v5.0
 2025-04-37
 

@@ -63,7 +63,7 @@ try:
 except ImportError:
     TypedDict = None  # type: ignore
 
-__version__ = '5.0'
+__version__ = '5.1'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
 __license__ = 'GPLv3'
 
@@ -129,7 +129,7 @@ FIELD_FILTER = {
 ALL_FIELDS = ('id', 'url', 'title', 'desc', 'tags')
 JSON_FIELDS = {'id': 'index', 'url': 'uri', 'desc': 'description'}
 
-USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0'
+USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:145.0) Gecko/20100101 Firefox/145.0'
 MYHEADERS = None  # Default dictionary of headers
 MYPROXY = None  # Default proxy
 TEXT_BROWSERS = ['elinks', 'links', 'links2', 'lynx', 'w3m', 'www-browser']
