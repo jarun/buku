@@ -257,7 +257,7 @@ class BukuCrypt:
 
         self.iterations, self.password, self.replace = iterations, password, replace
         self.dbfile = dbfile or os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')
-        self.encfile = encfile or (dbfile + '.enc')
+        self.encfile = encfile or (self.dbfile + '.enc')
 
         self._db_exists = os.path.exists(self.dbfile)
         self._enc_exists = os.path.exists(self.encfile)

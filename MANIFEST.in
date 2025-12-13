@@ -3,5 +3,6 @@ include tests/test_bukuDb/Bookmarks
 recursive-include tests *.py
 recursive-include tests/test_bukuDb *.yaml
 recursive-include auto-completion *
+recursive-include bukuserver/apidocs *
 recursive-include bukuserver/templates *
 recursive-include bukuserver/static *
