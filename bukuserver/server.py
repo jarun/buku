@@ -87,6 +87,12 @@ def create_app(db_file=None):
     app.config['BUKUSERVER_AUTOFETCH'] = \
         get_bool_from_env_var('BUKUSERVER_AUTOFETCH', True)
     app.config['BUKUSERVER_DB_FILE'] = db_file
+    # Mitigate Host header poisoning: when set, url_for(..., _external=True) uses
+    # this instead of the client-supplied Host header. Recommended for production
+    # and when behind a reverse proxy (e.g. BUKUSERVER_SERVER_NAME=example.com:443).
+    server_name = os.getenv('BUKUSERVER_SERVER_NAME')
+    if server_name:
+        app.config['SERVER_NAME'] = server_name
     reverse_proxy_path = os.getenv('BUKUSERVER_REVERSE_PROXY_PATH')
     if reverse_proxy_path:
         if not reverse_proxy_path.startswith('/'):
