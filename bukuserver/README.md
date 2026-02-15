@@ -128,6 +128,7 @@ _**Important:** all of them have a shared prefix_ **`BUKUSERVER_`**.
 | AUTOFETCH | initial Fetch value in Create form | boolean<em>¹</em> [default: `true`] |
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean<em>¹</em> [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path<em>⁵</em> | string |
+| SERVER_NAME | canonical host:port for URL generation<em>⁶</em> | string (e.g. `example.com:443`) |
 | THEME | [GUI theme](https://bootswatch.com/4) | string [default: `default`] (`slate` is a good pick for dark mode) |
 | LOCALE | GUI language<em>⁴</em> (partial support) | string [default: `en`] |
 | DEBUG | debug mode (verbose logging etc.) | boolean<em>¹</em> [default: `false`] |
@@ -141,6 +142,8 @@ _**³**_ `BUKUSERVER_DB_FILE` can be a DB name (plain filename without extension
 _**⁴**_ `BUKUSERVER_LOCALE` requires buku to be installed with `[locales]`
 
 _**⁵**_ the value for `BUKUSERVER_REVERSE_PROXY_PATH` is recommended to include preceding slash and not have trailing slash (i.e. use `/foo` not `/foo/`)
+
+_**⁶**_ `BUKUSERVER_SERVER_NAME` mitigates [Host header injection](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/17-Testing_for_Host_Header_Injection). When set, absolute URLs (e.g. bookmarklet) use this value instead of the client-supplied Host. **Recommended for production and reverse proxy deployments.**
 
 
 #### How to specify environment variables
