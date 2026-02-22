@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-<a href="https://asciinema.org/a/137065"><img src="https://asciinema.org/a/137065.svg" alt="buku in action!" width="734"/></a>
+<a href="https://github.com/user-attachments/assets/a65950a9-3c82-4c6d-9184-dead83f9c759"><img src="https://github.com/user-attachments/assets/6688d1eb-e268-4b00-8e8f-044803c3040f" alt="buku in action!" width="734"/></a>
 </p>
 
 <p align="center"><i>buku in action!</i></p>
