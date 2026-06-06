@@ -1,5 +1,6 @@
 from unittest import mock
 import os
+from typing import Optional, Set
 
 from urllib3 import HTTPResponse
 
@@ -20,7 +21,7 @@ def _add_rec(db, *args, **kw):
     """Use THIS instead of db.add_rec() UNLESS you want to wait for unnecessary network requests."""
     return db.add_rec(*args, fetch=False, **kw)
 
-def _tagset(s):
+def _tagset(s: Optional[str]) -> Set[str]:
     return set(x for x in str(s or '').lower().split(',') if x)
 
 def append(buffer, text):

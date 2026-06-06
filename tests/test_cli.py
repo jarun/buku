@@ -39,18 +39,31 @@ def exit():
 
 
 def test_version(BukuDb, piped_input, capsys):
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as exc_info:
         buku.main(['--version'])
+    assert exc_info.value.code == 0
     assert capsys.readouterr().out.splitlines() == [buku.__version__]
 
 def test_usage(BukuDb, piped_input, monkeypatch, capsys):
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as exc_info:
         buku.main(['--unknown'], program_name='buku')
     BukuDb.assert_not_called()
+    assert exc_info.value.code == 2
     assert capsys.readouterr().err.splitlines() == [
         'usage: buku [OPTIONS] [KEYWORD [KEYWORD ...]]',
         'buku: error: unrecognized arguments: --unknown',
     ]
+
+@pytest.mark.parametrize('value,msg', [
+    ('2', 'invalid choice:'),
+    ('foo', 'invalid int value:'),
+])
+def test_immutable_invalid(BukuDb, piped_input, capsys, value, msg):
+    with pytest.raises(SystemExit) as exc_info:
+        buku.main(['--add', 'https://example.com', '--immutable', value], program_name='buku')
+    BukuDb.assert_not_called()
+    assert exc_info.value.code == 2
+    assert msg in capsys.readouterr().err
 
 @pytest.mark.parametrize('argv', [['--help'], ['foo', 'bar', '--help']])
 def test_help(BukuDb, exit, piped_input, argv):
