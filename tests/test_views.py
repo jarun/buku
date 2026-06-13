@@ -204,7 +204,7 @@ def test_create_and_fetch(bukudb, monkeypatch, client, fetch, title, desc):
 @pytest.mark.gui
 @pytest.mark.slow
 @pytest.mark.parametrize('redirect, uri, args', [
-    ('_add_another', '/bookmark/new/', {}),
+    ('_add_another', '/bookmark/new/', {'url': '/bookmark/'}),
     ('_continue_editing', '/bookmark/edit/', {'id': '1', 'url': '/bookmark/'}),
 ])
 def test_create_redirect(client, redirect, uri, args):
