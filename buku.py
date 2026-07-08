@@ -4695,7 +4695,7 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             prompt_suffix = ''
             if bdb.dbfile != os.path.realpath(os.path.join(BukuDb.get_default_dbdir(), 'bookmarks.db')):
                 prompt_suffix = (f'[{bdb.dbname}] ' if not bdb.colorize else
-                                 f'\001\x1b[7\002m[{bdb.dbname}]\001\x1b[0m\002 ')
+                                 f'\001\x1b[7m\002[{bdb.dbname}]\001\x1b[0m\002 ')
             nav = read_in(PROMPTMSG + prompt_suffix)
             if not nav:
                 nav = read_in(PROMPTMSG + prompt_suffix)
@@ -6154,7 +6154,7 @@ POSITIONAL ARGUMENTS:
         setup_logger(LOGGER)
 
         # Enable prompt with reverse video
-        PROMPTMSG = '\001\x1b[7\002mbuku (? for help)\001\x1b[0m\002 '
+        PROMPTMSG = '\001\x1b[7m\002buku (? for help)\001\x1b[0m\002 '
 
     # Enable browser output in case of a text based browser
     if os.getenv('BROWSER') in TEXT_BROWSERS:
