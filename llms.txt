@@ -1,0 +1,24 @@
+# buku
+
+> A powerful command-line bookmark manager and personal "mini-web." Add, tag, search (regex/deep/tag-based), edit, import/export, and browse bookmarks from a portable, mergeable SQLite database — plus an optional web UI (bukuserver).
+
+## Getting Started
+
+- [Installation](https://github.com/jarun/buku#installation): `pip3 install buku`, package managers, release packages, or from source.
+- [Quickstart](https://github.com/jarun/buku#quickstart): Set `EDITOR`/`VISUAL`, auto-import from browsers (`--ai`), add/list bookmarks.
+- [Command-line options](https://github.com/jarun/buku#command-line-options): Full reference for general, edit, search, encryption, and "power toy" options.
+- [man page](https://github.com/jarun/buku/blob/master/buku.1): `man buku` for the same reference with examples, installed alongside the CLI.
+
+## Usage
+
+- [Examples](https://github.com/jarun/buku#examples): 47 worked examples covering add/update/delete, tag search (ANY/ALL/exclude), import/export formats, encryption, random/ordered output, and fzf integration.
+- [Automation](https://github.com/jarun/buku#automation): Scripting interactive workflows with `expect`.
+- [Shell completion](https://github.com/jarun/buku#shell-completion): Bash, Fish, and Zsh completion scripts in `auto-completion/`.
+
+## Optional
+
+- [bukuserver (web UI + HTTP API)](https://github.com/jarun/buku/tree/master/bukuserver#readme): Browsable front-end and API for personal use.
+- [Python API docs](https://buku.readthedocs.io/en/latest/?badge=latest): Using buku as a library.
+- [Wiki: Operational notes, System integration, Colors](https://github.com/jarun/buku/wiki): Internal details and integration guides.
+- [Related projects](https://github.com/jarun/buku#related-projects): Browser extension, Emacs interface, rofi/dmenu front-ends, and more.
+- [License](https://github.com/jarun/buku/blob/master/LICENSE): GPLv3.
