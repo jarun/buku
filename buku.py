@@ -6011,11 +6011,11 @@ POSITIONAL ARGUMENTS:
         title='POWER TOYS',
         description='''    --ai                 auto-import bookmarks from web browsers
                          Firefox, Chrome, Chromium, Vivaldi, Vivaldi
-                         Internal, Brave, Edge (Firefox profile can be
-                         specified using  environment variable
-                         FIREFOX_PROFILE; Firefox profiles directory can
-                         be specified using environment variable
-                         FIREFOX_PROFILES_DIR)
+                         Internal, Brave, Edge
+                         (Firefox profile can be specified using
+                         environment variable FIREFOX_PROFILE;
+                         Firefox profiles directory can be specified using
+                         environment variable FIREFOX_PROFILES_DIR)
     -e, --export file    export bookmarks to Firefox format HTML
                          export XBEL, if file ends with '.xbel'
                          export Markdown, if file ends with '.md'
