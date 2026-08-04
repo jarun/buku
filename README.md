@@ -60,7 +60,7 @@ To get started right away, jump to the [Quickstart](#quickstart) section. `buku`
 ### Features
 
 - Store bookmarks with auto-fetched title, tags and description
-- Auto-import from Firefox, Google Chrome, Chromium, Vivaldi, Brave, and MS Edge
+- Auto-import from Firefox, Google Chrome, Chromium, Vivaldi, Vivaldi Beta (Internal), Brave, and MS Edge
 - Open bookmarks and search results in browser
 - Browse cached page from the Wayback Machine
 - Text editor integration
@@ -227,7 +227,8 @@ ENCRYPTION OPTIONS:
 
 POWER TOYS:
       --ai                 auto-import bookmarks from web browsers
-                           Firefox, Chrome, Chromium, Vivaldi, Brave, Edge
+                           Firefox, Chrome, Chromium, Vivaldi, Vivaldi
+                           Internal, Brave, Edge
                            (Firefox profile can be specified using
                            environment variable FIREFOX_PROFILE;
                            Firefox profiles directory can be specified using

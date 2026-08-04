@@ -2902,6 +2902,7 @@ class BukuDb:
             gc_bm_db_path = '~/.config/google-chrome/Default/Bookmarks'
             cb_bm_db_path = '~/.config/chromium/Default/Bookmarks'
             vi_bm_db_path = '~/.config/vivaldi/Default/Bookmarks'
+            vs_bm_db_path = '~/.config/vivaldi-internal/Default/Bookmarks'
             br_bm_db_path = '~/.config/BraveSoftware/Brave-Browser/Default/Bookmarks'
             me_bm_db_path = '~/.config/microsoft-edge/Default/Bookmarks'
             _xdg_config = os.getenv('XDG_CONFIG_HOME') or '~/.config'
@@ -2910,6 +2911,7 @@ class BukuDb:
             gc_bm_db_path = '~/Library/Application Support/Google/Chrome/Default/Bookmarks'
             cb_bm_db_path = '~/Library/Application Support/Chromium/Default/Bookmarks'
             vi_bm_db_path = '~/Library/Application Support/Vivaldi/Default/Bookmarks'
+            vs_bm_db_path = '~/Library/Application Support/Vivaldi Internal/Default/Bookmarks'
             br_bm_db_path = '~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Bookmarks'
             me_bm_db_path = '~/Library/Application Support/Microsoft Edge/Default/Bookmarks'
             default_ff_folders = ['~/Library/Application Support/Firefox']
@@ -2917,6 +2919,7 @@ class BukuDb:
             gc_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Google/Chrome/User Data/Default/Bookmarks')
             cb_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Chromium/User Data/Default/Bookmarks')
             vi_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Vivaldi/User Data/Default/Bookmarks')
+            vs_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Vivaldi Internal/User Data/Default/Bookmarks')
             br_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/BraveSoftware/Brave-Browser/User Data/Default/Bookmarks')
             me_bm_db_path = os.path.expandvars('%LOCALAPPDATA%/Microsoft/Edge/User Data/Default/Bookmarks')
             default_ff_folders = [os.path.expandvars('%APPDATA%/Mozilla/Firefox/')]
@@ -2944,7 +2947,7 @@ class BukuDb:
             resp = 'y'
 
             chrome_based = {'Google Chrome': gc_bm_db_path, 'Chromium': cb_bm_db_path, 'Vivaldi': vi_bm_db_path,
-                            'Brave': br_bm_db_path}
+                            'Vivaldi Internal': vs_bm_db_path, 'Brave': br_bm_db_path}
             for name, path in chrome_based.items():
                 try:
                     if os.path.isfile(os.path.expanduser(path)):
@@ -6007,7 +6010,8 @@ POSITIONAL ARGUMENTS:
     power_grp = argparser.add_argument_group(
         title='POWER TOYS',
         description='''    --ai                 auto-import bookmarks from web browsers
-                         Firefox, Chrome, Chromium, Vivaldi, Brave, Edge
+                         Firefox, Chrome, Chromium, Vivaldi, Vivaldi
+                         Internal, Brave, Edge
                          (Firefox profile can be specified using
                          environment variable FIREFOX_PROFILE;
                          Firefox profiles directory can be specified using
