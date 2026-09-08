@@ -350,6 +350,9 @@ PROMPT KEYS:
 3. Auto-import bookmarks from your browser(s). Please quit the relevant browsers beforehand to ensure the databases are not locked.
 
        b --ai
+
+   For Chrome, Chromium, Vivaldi (including Internal), and Brave, auto-import reads both plaintext `Bookmarks` and `AccountBookmarks` files when available. Encrypted bookmark files are not supported; export bookmarks as HTML from the browser and import the exported file with `buku -i bookmarks.html` instead.
+
 4. Manually add a bookmark (for hands-on).
 
        b -w
