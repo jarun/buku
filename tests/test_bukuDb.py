@@ -2,6 +2,7 @@
 #
 # Unit test cases for buku
 #
+import json
 import math
 import os
 import re
@@ -1629,6 +1630,104 @@ def test_load_chrome_database(bukuDb, chrome_db, add_pt):
         with open(res_yaml_file, "w", encoding="utf8", errors="surrogateescape") as f:
             yaml.dump(call_args_list_dict, f)
         print("call args list dict dumped to:{}".format(res_yaml_file))
+
+
+@pytest.fixture()
+def chromium_profile(tmp_path, monkeypatch):
+    monkeypatch.setenv('HOME', str(tmp_path))
+    monkeypatch.setenv('XDG_CONFIG_HOME', str(tmp_path / '.config'))
+    monkeypatch.setattr('buku.sys.platform', 'linux')
+
+    def create(browser='google-chrome'):
+        path = tmp_path / '.config' / browser / 'Default'
+        path.mkdir(parents=True)
+        return path
+
+    return create
+
+
+def write_chrome_bookmarks(path, names):
+    children = [{'type': 'url', 'name': name, 'url': f'https://example.com/{name}'} for name in names]
+    data = {'version': 1, 'roots': {'bookmark_bar': {'name': 'Bookmarks bar', 'children': children}}}
+    path.write_text(json.dumps(data), encoding='utf-8')
+
+
+@pytest.mark.parametrize('browser', ['google-chrome', 'chromium', 'vivaldi', 'vivaldi-internal', 'BraveSoftware/Brave-Browser'])
+@pytest.mark.parametrize('filenames', [(), ('Bookmarks',), ('AccountBookmarks',), ('Bookmarks', 'AccountBookmarks')])
+def test_auto_import_chromium_bookmark_files(bukuDb, chromium_profile, browser, filenames, capsys):
+    profile = chromium_profile(browser)
+    # Encrypted files are not plaintext input, including when no plaintext files exist.
+    (profile / 'EncryptedAccountBookmarks').write_bytes(b'not JSON')
+    (profile / 'EncryptedAccountBookmarks2').write_bytes(b'not JSON')
+    for filename in filenames:
+        write_chrome_bookmarks(profile / filename, [filename])
+    bdb = bukuDb()
+
+    with mock.patch('buku.fetch_data', side_effect=AssertionError('auto-import must stay offline')):
+        bdb.auto_import_from_browser()
+
+    assert {rec[1] for rec in bdb.get_rec_all()} == {f'https://example.com/{filename}' for filename in filenames}
+    assert 'Could not import' not in capsys.readouterr().out
+
+
+def test_auto_import_chromium_duplicate_urls(bukuDb, chromium_profile):
+    profile = chromium_profile()
+    write_chrome_bookmarks(profile / 'Bookmarks', ['shared', 'local'])
+    write_chrome_bookmarks(profile / 'AccountBookmarks', ['shared', 'account'])
+    account_file = profile / 'AccountBookmarks'
+    account_data = json.loads(account_file.read_text(encoding='utf-8'))
+    account_data['roots']['bookmark_bar']['name'] = 'Account folder'
+    account_data['roots']['bookmark_bar']['children'][0]['name'] = 'Account title'
+    account_file.write_text(json.dumps(account_data), encoding='utf-8')
+    bdb = bukuDb()
+    bdb.auto_import_from_browser()
+
+    assert {rec[1] for rec in bdb.get_rec_all()} == {f'https://example.com/{name}' for name in ['shared', 'local', 'account']}
+    shared = bdb.get_rec_by_id(bdb.get_rec_id('https://example.com/shared'))
+    assert shared[2] == 'shared'
+    assert _tagset(shared[3]) == {'bookmarks bar'}
+
+
+@pytest.mark.parametrize('import_answer', ['y', 'n'])
+def test_auto_import_chromium_prompt_once(bukuDb, chromium_profile, import_answer):
+    profile = chromium_profile()
+    for filename in ['Bookmarks', 'AccountBookmarks']:
+        write_chrome_bookmarks(profile / filename, [filename])
+    bdb = bukuDb(chatty=True)
+    with mock.patch('builtins.input', side_effect=['n', 'n', import_answer]) as read_input:
+        bdb.auto_import_from_browser()
+
+    assert read_input.call_args_list == [
+        mock.call('Generate auto-tag (YYYYMonDD)? (y/n): '),
+        mock.call('Add parent folder names as tags? (y/n): '),
+        mock.call('Import bookmarks from Google Chrome? (y/n): '),
+    ]
+    assert len(bdb.get_rec_all()) == (2 if import_answer == 'y' else 0)
+
+
+@pytest.mark.parametrize('invalid_filename', ['Bookmarks', 'AccountBookmarks'])
+def test_auto_import_chromium_invalid_file_keeps_other_source(bukuDb, chromium_profile, invalid_filename, capsys):
+    profile = chromium_profile()
+    for filename in ['Bookmarks', 'AccountBookmarks']:
+        if filename == invalid_filename:
+            (profile / filename).write_text('not JSON', encoding='utf-8')
+        else:
+            write_chrome_bookmarks(profile / filename, ['valid'])
+    bdb = bukuDb()
+    bdb.auto_import_from_browser()
+
+    assert [rec[1] for rec in bdb.get_rec_all()] == ['https://example.com/valid']
+    assert 'Could not import bookmarks from Google Chrome' in capsys.readouterr().out
+
+
+def test_auto_import_chromium_empty_account_roots(bukuDb, chromium_profile, capsys):
+    profile = chromium_profile()
+    (profile / 'AccountBookmarks').write_text('{"version": 1, "roots": {}}', encoding='utf-8')
+    bdb = bukuDb()
+    bdb.auto_import_from_browser()
+
+    assert bdb.get_rec_all() == []
+    assert 'Could not import' not in capsys.readouterr().out
 
 
 @pytest.fixture()

@@ -226,6 +226,8 @@ Decrypt (unlock) the DB file with
 .TP
 .BI \--ai
 Auto-import bookmarks from Firefox, Google Chrome, Chromium, Vivaldi, Vivaldi Internal, Brave, and MS Edge browsers. (Firefox profile can be specified using environment variable FIREFOX_PROFILE; Firefox profiles directory can be specified using environment variable FIREFOX_PROFILES_DIR.)
+.br
+For Chrome, Chromium, Vivaldi (including Internal), and Brave, both plaintext Bookmarks and AccountBookmarks files are imported when available. Encrypted bookmark files are not supported; export bookmarks as HTML from the browser and import the exported file with buku -i bookmarks.html instead.
 .TP
 .BI \-e " " \--export " file"
 Export bookmarks to Firefox bookmarks formatted HTML. Works with all search options.

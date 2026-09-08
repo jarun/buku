@@ -2950,14 +2950,19 @@ class BukuDb:
                             'Vivaldi Internal': vs_bm_db_path, 'Brave': br_bm_db_path}
             for name, path in chrome_based.items():
                 try:
-                    if os.path.isfile(os.path.expanduser(path)):
+                    profile = os.path.dirname(os.path.expanduser(path))
+                    bookmarks_databases = [os.path.join(profile, filename) for filename in ('Bookmarks', 'AccountBookmarks')]
+                    bookmarks_databases = [filename for filename in bookmarks_databases if os.path.isfile(filename)]
+                    if bookmarks_databases:
                         if self.chatty:
                             resp = input(f'Import bookmarks from {name}? (y/n): ')
                         if resp == 'y':
-                            bookmarks_database = os.path.expanduser(path)
-                            if not os.path.exists(bookmarks_database):
-                                raise FileNotFoundError
-                            self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+                            for bookmarks_database in bookmarks_databases:
+                                try:
+                                    self.load_chrome_database(bookmarks_database, newtag, add_parent_folder_as_tag)
+                                except Exception as e:
+                                    LOGERR(e)
+                                    print(f'Could not import bookmarks from {name}')
                 except Exception as e:
                     LOGERR(e)
                     print(f'Could not import bookmarks from {name}')
