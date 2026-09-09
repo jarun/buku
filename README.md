@@ -240,6 +240,9 @@ POWER TOYS:
                            export Orgfile, if file ends with '.org'
                            format: *[[url][title]] :tags:
                            export rss feed if file ends with '.rss'/'.atom'
+                           export CSV, if file ends with '.csv'
+                           columns: url, title, tags, desc
+                           export plain URL list, if file ends with '.txt'
                            export buku DB, if file ends with '.db'
                            combines with search results, if opted
       -i, --import file    import bookmarks from file

@@ -2633,6 +2633,10 @@ class BukuDb:
         exported to a XBEL file.
         If destination file name ends with '.rss'/'.atom' bookmarks are
         exported to an RSS file.
+        If destination file name ends with '.csv' bookmarks are
+        exported to a CSV file (columns: url, title, tags, desc).
+        If destination file name ends with '.txt' bookmarks are
+        exported to a plain text file, one URL per line.
         Otherwise, bookmarks are exported to a Firefox bookmarks.html
         formatted file.
 
@@ -2715,6 +2719,14 @@ class BukuDb:
                 outfp.write(res['data'])
             elif filepath.endswith('.rss') or filepath.endswith('.atom'):
                 res = convert_bookmark_set(resultset, 'rss', old)
+                count += res['count']
+                outfp.write(res['data'])
+            elif filepath.endswith('.csv'):
+                res = convert_bookmark_set(resultset, 'csv', old)
+                count += res['count']
+                outfp.write(res['data'])
+            elif filepath.endswith('.txt'):
+                res = convert_bookmark_set(resultset, 'txt', old)
                 count += res['count']
                 outfp.write(res['data'])
             else:
@@ -3458,7 +3470,7 @@ def convert_bookmark_set(
     Parameters
     ----------
         bookmark_set: bookmark set
-        export_type: one of supported type: markdown, html, org, XBEL
+        export_type: one of supported type: markdown, html, org, xbel, rss, csv, txt
         old: cached values of deleted records/replaced URLs to save
 
     Returns
@@ -3466,7 +3478,7 @@ def convert_bookmark_set(
         converted data and count of converted bookmark set
     """
     import html
-    assert export_type in ['markdown', 'html', 'org', 'xbel', 'rss']
+    assert export_type in ['markdown', 'html', 'org', 'xbel', 'rss', 'csv', 'txt']
     #  compatibility
     resultset = bookmark_vars(bookmark_set)
     old = old or {}
@@ -3562,6 +3574,22 @@ def convert_bookmark_set(
             count += 1
 
         out += '    </DL><p>\n</DL><p>'
+    elif export_type == 'csv':
+        import csv
+        import io
+
+        buf = io.StringIO()
+        writer = csv.writer(buf, lineterminator='\n')
+        writer.writerow(['url', 'title', 'tags', 'desc'])
+        for row in resultset:
+            writer.writerow([row.url, title(row), row.tags, row.desc or ''])
+            count += 1
+
+        out = buf.getvalue()
+    elif export_type == 'txt':
+        for row in resultset:
+            out += row.url + '\n'
+            count += 1
 
     return {'data': out, 'count': count}
 
@@ -6023,6 +6051,9 @@ POSITIONAL ARGUMENTS:
                          export Orgfile, if file ends with '.org'
                          format: *[[url][title]] :tags:
                          export rss feed if file ends with '.rss'/'.atom'
+                         export CSV, if file ends with '.csv'
+                         columns: url, title, tags, desc
+                         export plain URL list, if file ends with '.txt'
                          export buku DB, if file ends with '.db'
                          combines with search results, if opted
     -i, --import file    import bookmarks from file

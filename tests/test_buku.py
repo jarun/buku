@@ -1036,6 +1036,19 @@ def test_copy_to_clipboard(platform, params):
             '    </bookmark>\n'
             '</xbel>'
         ],
+        [
+            'csv',
+            'url,title,tags,desc\n'
+            'http://example.com,,,\n'
+            'http://example.org,,"bar,baz,foo",\n'
+            'http://google.com,Google,"bar,baz,foo",\n',
+        ],
+        [
+            'txt',
+            'http://example.com\n'
+            'http://example.org\n'
+            'http://google.com\n',
+        ],
     ],
 )
 def test_convert_bookmark_set(export_type, exp_res, monkeypatch):

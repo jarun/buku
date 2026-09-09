@@ -18,7 +18,7 @@ is a command-line utility to store, tag, search and organize bookmarks.
   * Powerful search options (regex, substring...)
   * Continuous search with on the fly mode switch
   * Portable, merge-able database to sync between systems
-  * Import/export bookmarks from/to HTML, XBEL, Markdown, RSS/Atom or Orgfile
+  * Import/export bookmarks from/to HTML, XBEL, Markdown, RSS/Atom, Orgfile, CSV or plain text
   * Smart tag management using redirection (>>, >, <<)
   * Multi-threaded full DB refresh
   * Manual encryption support
@@ -245,6 +245,14 @@ has extension '.org' Orgfile format: * [[url][title]], 1 entry per line.
 RSS is used if
 .I file
 has extension '.rss'/'.atom' RSS format: <entry> per bookmark with <title>, <link>, <category>, <content> elements
+.br
+CSV is used if
+.I file
+has extension '.csv'. Columns: url, title, tags, desc.
+.br
+A plain URL list is used if
+.I file
+has extension '.txt', 1 URL per line.
 .br
 A buku database is generated if
 .I file
