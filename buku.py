@@ -59,7 +59,7 @@ from bs4.dammit import EncodingDetector
 from urllib3.util import Retry, make_headers
 
 try:
-    from mypy_extensions import TypedDict
+    from typing import TypedDict
 except ImportError:
     TypedDict = None  # type: ignore
 
