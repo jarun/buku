@@ -47,7 +47,7 @@ from enum import Enum
 from itertools import chain
 from functools import total_ordering
 from subprocess import DEVNULL, PIPE, Popen
-from typing import Any, Dict, List, Optional, Tuple, NamedTuple, TypeAlias, TypeVar
+from typing import Dict, List, Optional, Tuple, NamedTuple, TypedDict, TypeAlias, TypeVar
 from collections.abc import Sequence, Set, Callable
 from warnings import warn
 import xml.etree.ElementTree as ET
@@ -57,11 +57,6 @@ import urllib3
 from bs4 import BeautifulSoup
 from bs4.dammit import EncodingDetector
 from urllib3.util import Retry, make_headers
-
-try:
-    from mypy_extensions import TypedDict
-except ImportError:
-    TypedDict = None  # type: ignore
 
 __version__ = '5.1'
 __author__ = 'Arun Prakash Jana <engineerarun@gmail.com>'
@@ -3443,7 +3438,7 @@ PROMPT KEYS:
 # ----------------
 
 
-ConverterResult = TypedDict('ConverterResult', {'data': str, 'count': int}) if TypedDict else Dict[str, Any]
+ConverterResult = TypedDict('ConverterResult', {'data': str, 'count': int})
 
 
 def convert_tags_to_org_mode_tags(tags: str) -> str:
@@ -3461,7 +3456,7 @@ def convert_tags_to_org_mode_tags(tags: str) -> str:
 def convert_bookmark_set(
         bookmark_set: List[BookmarkVar],
         export_type: str,
-        old: Optional[Dict[str, str | BookmarkVar]] = None) -> ConverterResult:  # type: ignore
+        old: Optional[Dict[str, str | BookmarkVar]] = None) -> ConverterResult:
     """Convert list of bookmark set into multiple data format.
 
     Parameters
