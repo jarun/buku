@@ -213,11 +213,11 @@ def test_prep_tag_search(taglist, exp_res):
 
 @pytest.mark.parametrize(
     "nav, is_editor_valid_retval, edit_rec_retval",
-    product(
+    list(product(
         ["w", [None, None, 1], [None, None, "string"]],
         [True, False],
         [[mock.Mock(), mock.Mock(), mock.Mock(), mock.Mock()], None],
-    ),
+    )),
 )
 def test_edit_at_prompt(nav, is_editor_valid_retval, edit_rec_retval):
     """test func."""
@@ -311,7 +311,7 @@ def test_browse(url, opened_url, platform):
             get_func_retval.open.assert_called_once_with(opened_url, new=2)
 
 
-@pytest.mark.parametrize("status_code, latest_release", product([200, 404], [True, False]))
+@pytest.mark.parametrize("status_code, latest_release", list(product([200, 404], [True, False])))
 def test_check_upstream_release(status_code, latest_release):
     """test func."""
     resp = mock.Mock()
@@ -405,12 +405,12 @@ def test_is_editor_valid(editor, exp_res):
 
 @pytest.mark.parametrize(
     "url, title_in, tags_in, desc",
-    product(
+    list(product(
         [None, "example.com"],
         [None, "", "title"],
         [None, "", "-", "tag1,tag2", ",tag1,tag2,", ",,,,,"],
         [None, "", "-", "description"],
-    ),
+    )),
 )
 def test_to_temp_file_content(url, title_in, tags_in, desc):
     """test func."""
@@ -482,7 +482,7 @@ def test_edit_rec():
         assert res == m_ptfc.return_value
 
 
-@pytest.mark.parametrize("argv, pipeargs, isatty", product(["argv"], [None, []], [True, False]))
+@pytest.mark.parametrize("argv, pipeargs, isatty", list(product(["argv"], [None, []], [True, False])))
 def test_piped_input(argv, pipeargs, isatty):
     """test func."""
     with mock.patch("buku.sys") as m_sys:

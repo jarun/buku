@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 
 
-@pytest.mark.parametrize("platform, file", product(['win32', 'linux'], [None, mock.Mock()]))
+@pytest.mark.parametrize("platform, file", list(product(['win32', 'linux'], [None, mock.Mock()])))
 def test_program_info(platform, file):
     """test method."""
     with mock.patch('buku.sys') as m_sys:

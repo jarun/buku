@@ -65,7 +65,6 @@ tests = [
     "Click>=7.0",
     "flake8>=3.4.1",
     "hypothesis>=6.0.0",
-    "mypy-extensions==0.4.1",
     "pylint>=1.7.2",
     "pytest-cov",
     "pytest-recording>=0.12.1",
