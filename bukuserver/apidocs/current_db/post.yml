@@ -1,0 +1,65 @@
+Switch current DB to the specified one.
+Available when the server is running with `BUKUSERVER_DB_FILE_SWITCH` enabled.
+
+Any DB names containing directory separator are rejected unconditionally.
+Attempting new DB creation (i.e. using a valid name not in DB list) results in a "not found" response.
+---
+#POST /api/current_db  name=
+
+tags: [Util]
+consumes: ['application/x-www-form-urlencoded']
+
+parameters:
+  - name: name
+    in: formData
+    required: true
+    type: string
+    description: "Filename without `.db` extension; can't include directory separator. In `*-existing` mode, needs to be in the 'available' list."
+
+responses:
+  200:
+    description: Switched successfully
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - properties:
+            name:
+              type: string
+              description: Current DB name after the operation
+              example: "bookmarks"
+            path:
+              type: string
+              description: Resolved location of DB file (for debugging purposes)
+              example: '/db/file/location/bookmarks.db'
+
+  400:
+    description: Ill-formed request
+    schema:
+      $ref: '#/definitions/Response:IllFormedRequest'
+
+  404:
+    description: DB not found (in `*-existing` mode)
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Failure'
+        - properties:
+            message:
+              example: "DB not found."
+            path:
+              type: string
+              description: Resolved location of DB file (for debugging purposes)
+              example: '/db/file/location/bookmarks.db'
+
+  409:
+    description: Failed to switch databases
+    schema:
+      $ref: '#/definitions/Response:Failure'
+
+  422:
+    description: Invalid request data/DB name
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:InputNotValid'
+        - properties:
+            message:
+              example: "Invalid DB name."

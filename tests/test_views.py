@@ -15,6 +15,7 @@ from werkzeug.datastructures import MultiDict
 from buku import BukuDb
 from bukuserver import server
 from bukuserver.views import BookmarkModelView, TagModelView, filter_key
+from bukuserver.util import UrlRenderMode
 from tests.util import mock_fetch, _add_rec
 
 
@@ -64,14 +65,14 @@ def bukudb(dbfile):
         os.remove(dbfile)
 
 @pytest.fixture
-def tmv_instance(bukudb):
+def tmv_instance(bukudb, app):
     """define tag model view instance"""
-    return TagModelView(bukudb)
+    return TagModelView()
 
 @pytest.fixture
-def bmv_instance(bukudb):
+def bmv_instance(bukudb, app):
     """define tag model view instance"""
-    return BookmarkModelView(bukudb)
+    return BookmarkModelView()
 
 
 @pytest.mark.parametrize('idx, char', [('', ''), (0, '0'), (9, '9'), (10, 'A'), (35, 'Z'), (36, 'a'), (61, 'z')])
@@ -82,7 +83,7 @@ def test_filter_key(idx, char):
 
 @pytest.mark.parametrize('disable_favicon', [False, True])
 def test_bookmark_model_view(bukudb, disable_favicon, app):
-    inst = BookmarkModelView(bukudb)
+    inst = BookmarkModelView()
     model = Namespace(description="randomdesc", id=1, tags="tags1", title="Example Domain", url="http://example.com")
     app.config["BUKUSERVER_DISABLE_FAVICON"] = disable_favicon
     with app.test_request_context():
@@ -104,10 +105,10 @@ def test_tag_model_view_get_list_empty_db(tmv_instance):
         ["usage_count", True, [], (0, [])],
     ],
 )
-def test_tag_model_view_get_list(tmv_instance, sort_field, sort_desc, filters, exp_res):
-    _add_rec(tmv_instance.bukudb, 'http://example.com/1.jpg', tags_in='t1,t2,t3')
-    _add_rec(tmv_instance.bukudb, 'http://example.com/2.jpg', tags_in='t2,t3')
-    _add_rec(tmv_instance.bukudb, 'http://example.com/3.jpg', tags_in='t3')
+def test_tag_model_view_get_list(bukudb, tmv_instance, sort_field, sort_desc, filters, exp_res):
+    _add_rec(bukudb, 'http://example.com/1.jpg', tags_in='t1,t2,t3')
+    _add_rec(bukudb, 'http://example.com/2.jpg', tags_in='t2,t3')
+    _add_rec(bukudb, 'http://example.com/3.jpg', tags_in='t3')
     res = tmv_instance.get_list(0, sort_field, sort_desc, None, filters)
     assert res == exp_res
 
@@ -312,20 +313,20 @@ def test_env_per_page(bukudb, app, client, total, per_page, pages, last_page):
 @pytest.mark.slow
 @pytest.mark.parametrize('new_tab', [False, True, None])
 @pytest.mark.parametrize('favicons', [False, True, None])
-@pytest.mark.parametrize('mode', ['full', 'netloc', 'netloc-tag', None])
+@pytest.mark.parametrize('mode', [None, UrlRenderMode.FULL, UrlRenderMode.NETLOC, UrlRenderMode.NETLOC_TAG])
 def test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab):
     _test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab, 'http://example.com', 'example.com', 'Sample site')
 
-@pytest.mark.parametrize('url, netloc, title', [
-    ('http://example.com', 'example.com', ''),
-    ('javascript:void(0)', '', 'Sample site'),
-    ('javascript:void(0)', '', ''),
+@pytest.mark.parametrize('url, netloc, title, escaped_url', [
+    ('http://example.com#"><em>INJECTION!</em>', 'example.com', '', 'http://example.com#&quot;&gt;&lt;em&gt;INJECTION!&lt;/em&gt;'),
+    ('javascript:void(0)', '', 'Sample site', ''),
+    ('javascript:void(0)', '', '', ''),
 ])
-@pytest.mark.parametrize('mode', ['full', 'netloc', 'netloc-tag'])
-def test_env_entry_render_params_blanks(bukudb, app, client, mode, url, netloc, title):
-    _test_env_entry_render_params(bukudb, app, client, mode, True, True, url, netloc, title)
+@pytest.mark.parametrize('mode', [UrlRenderMode.FULL, UrlRenderMode.NETLOC, UrlRenderMode.NETLOC_TAG])
+def test_env_entry_render_params_blanks(bukudb, app, client, mode, url, netloc, title, escaped_url):
+    _test_env_entry_render_params(bukudb, app, client, mode, True, True, url, netloc, title, escaped_url)
 
-def _test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab, url, netloc, title):
+def _test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab, url, netloc, title, escaped_url=None):
     desc, tags = 'Foo bar baz', ',bar,baz,foo,'
     _add_rec(bukudb, url, title, tags, desc)
     _tags = tags.strip(',').split(',')
@@ -341,19 +342,21 @@ def _test_env_entry_render_params(bukudb, app, client, mode, favicons, new_tab, 
     target = '' if not new_tab else ' target="_blank"'
     icon = '' if not favicons else (netloc and f'<img class="favicon" src="http://www.google.com/s2/favicons?domain={netloc}"/> ')
     urltext = title or '&lt;EMPTY TITLE&gt;'
-    _title = (urltext if not netloc and mode in ('full', None) else f'<a href="{url}"{target}>{urltext}</a>')
-    prefix = f'<td class="col-entry"> {icon}<span class="title" title="{url}">{_title}</span>'
+    _url = escaped_url or url
+    _title = (urltext if not netloc and mode in (UrlRenderMode.FULL, None) else f'<a href="{_url}"{target}>{urltext}</a>')
+    prefix = f'<td class="col-entry"> {icon}<span class="title" title="{_url}">{_title}</span>'
     tags = [f'<a class="btn badge badge-secondary" href="/bookmark/?flt0_tags_contain={s}">{s}</a>' for s in _tags]
-    netloc_tag = ('' if mode == 'netloc' or not netloc else
+    netloc_tag = ('' if mode is UrlRenderMode.NETLOC or not netloc else
                   f'<a class="btn badge badge-success" href="/bookmark/?flt0_url_netloc_match={netloc}">netloc:{netloc}</a>')
     suffix = f'<div class="tag-list">{netloc_tag}{"".join(tags)}</div><div class="description">{desc}</div> </td>'
-    if mode == 'netloc':
+    if mode is UrlRenderMode.NETLOC:
         _netloc = netloc and f'<span class="netloc"> (<a href="/bookmark/?flt0_url_netloc_match={netloc}">{netloc}</a>)</span>'
         assert cell == prefix + _netloc + suffix
-    elif mode == 'netloc-tag':
+    elif mode is UrlRenderMode.NETLOC_TAG:
         assert cell == prefix + suffix
     else:
-        assert cell == f'{prefix}<span class="link"><a href="{url}"{target}>{url}</a></span>{suffix}'
+        _url_with_quotes = _url.replace('&quot;', '"')  # appears to be a quirky output optimization
+        assert cell == f'{prefix}<span class="link"><a href="{_url}"{target}>{_url_with_quotes}</a></span>{suffix}'
 
 
 readonly = env_fixture('BUKUSERVER_READONLY', params=[False, True, None])

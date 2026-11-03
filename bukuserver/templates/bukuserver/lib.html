@@ -6,6 +6,10 @@
   {%- endwith %}
 {%- endmacro %}
 
+{% macro style(filename) %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='bukuserver/css/'+filename) }}"/>
+{% endmacro %}
+
 {% macro script(filename) %}
   <script src="{{ url_for('static', filename='bukuserver/js/'+filename) }}"></script>
 {% endmacro %}
@@ -34,6 +38,7 @@
 {% macro brand_dbname(nohover=False) %}
   <style>
     .dbname {font-weight: bold;  font-family: monospace;  cursor: help}
+    .dbname.dbselector {cursor: pointer}
     .navbar-brand .dbname {font-size: medium}
     body:not(.popup) .navbar-brand {text-align: center}
     body.popup .navbar-brand .dbname, body:not(.popup) .popup.dbname {display: none}
@@ -46,10 +51,21 @@
     {% endif %}
   </style>
   <script>{
-    let _dbname = (cls='') => `<div class="dbname ${cls}" title="${ {{dbfile|tojson}} }">${ {{dbname|tojson}} }</div>`;
+    let _selector = {% if DB_SWITCH %}"dbselector "{% else %}""{% endif %};
+    let _title = {{dbfile|tojson}} + (_selector && ('\n' + {{ _('(click/right-click to switch)')|tojson }}));
+    let _dbname = (cls='') => `<div class="dbname ${_selector}${cls}" title="${_title}">${ {{dbname|tojson}} }</div>`;
     addEventListener('load', () => {$('.navbar-brand').html((_, s) => s + _dbname());
                                     $('.navbar-collapse').html((_, s) => s + _dbname('popup navbar-brand'))});
   }</script>
+  {% if DB_SWITCH %}
+    {{ style('modal.css') }}
+    <script>
+      const CURRENT_DB = {title: {{ _('Switching DB file')|tojson }},
+                          get: {{ url_for('current_db')|tojson }},
+                          set: {{ url_for('switch_db')|tojson }}};
+    </script>
+    {{ script('db_select_menu.js') }}
+  {% endif %}
 {% endmacro %}
 
 {% macro focus(location='body') %}

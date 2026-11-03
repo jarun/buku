@@ -1,0 +1,32 @@
+Get information on the currently used DB file (and available DB files within the same directory).
+Available when the server is running with `BUKUSERVER_DB_FILE_SWITCH` enabled.
+---
+#GET /api/current_db
+
+tags: [Util]
+
+responses:
+  200:
+    description: Current/available DB files information
+    schema:
+      allOf:
+        - $ref: '#/definitions/Response:Success'
+        - type: object
+          properties:
+            name:
+              type: string
+              example: 'bookmarks'
+              description: "DB currently used by the server (without '.db' extension)"
+            filename:
+              type: string
+              example: 'bookmarks.db'
+              description: "Bookmark DB file name"
+            dir:
+              type: string
+              example: '/db/file/location'
+              description: "Bookmark DB directory"
+            available:
+              type: array
+              items: {type: string}
+              example: ['bookmarks', 'games', 'read']
+              description: "DB names available for selection"

@@ -4,6 +4,8 @@
 import os
 import sys
 import importlib.metadata
+from enum import Enum
+from typing import Optional, TypeVar
 from urllib.parse import urlsplit, urlunsplit, parse_qs
 
 import click
@@ -14,7 +16,7 @@ from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
 from flasgger import Swagger
 
-from buku import BukuDb, __version__
+from buku import __version__
 
 try:
     from .middleware import ReverseProxyPrefixFix
@@ -22,9 +24,11 @@ except ImportError:
     from bukuserver.middleware import ReverseProxyPrefixFix
 
 try:
-    from . import api, views, util, _p, _l, gettext, ngettext
+    from . import api, views, util, _p, _l, gettext, ngettext, DB
+    from .util import DbSwitchMode, UrlRenderMode
 except ImportError:
-    from bukuserver import api, views, util, _p, _l, gettext, ngettext
+    from bukuserver import api, views, util, _p, _l, gettext, ngettext, DB
+    from bukuserver.util import DbSwitchMode, UrlRenderMode
 
 FLASK_VERSION = importlib.metadata.version('flask')
 
@@ -32,7 +36,14 @@ FLASK_VERSION = importlib.metadata.version('flask')
 _BOOL_VALUES = {'true': True, '1': True, 'false': False, '0': False}
 def get_bool_from_env_var(key: str, default_value: bool = False) -> bool:
     """Get bool value from env var."""
-    return _BOOL_VALUES.get(os.getenv(key, '').lower(), default_value)
+    return _BOOL_VALUES.get((os.getenv(key) or '').lower(), default_value)
+
+E = TypeVar('E', bound=Enum)
+def get_enum_from_env_var(key: str, enum: E, default_value: Optional[E] = None) -> E:
+    try:
+        return enum[(os.getenv(key) or '').upper().replace('-', '_')]
+    except KeyError:
+        return default_value
 
 
 def init_locale(app, context_processor=lambda: {}):
@@ -66,17 +77,15 @@ def after_request(response):
 def create_app(db_file=None):
     """create app."""
     app = Flask(__name__)
-    db_file = os.getenv('BUKUSERVER_DB_FILE') or db_file
-    if db_file and not os.path.dirname(db_file) and not os.path.splitext(db_file)[1]:
-        db_file = os.path.join(BukuDb.get_default_dbdir(), db_file + '.db')
+    db_file = DB.path(os.getenv('BUKUSERVER_DB_FILE') or db_file)
     os.environ.setdefault('FLASK_DEBUG', ('1' if get_bool_from_env_var('BUKUSERVER_DEBUG') else '0'))
     per_page = int(os.getenv('BUKUSERVER_PER_PAGE', str(views.DEFAULT_PER_PAGE)))
     per_page = per_page if per_page > 0 else views.DEFAULT_PER_PAGE
     app.config['BUKUSERVER_PER_PAGE'] = per_page
-    url_render_mode = os.getenv('BUKUSERVER_URL_RENDER_MODE', views.DEFAULT_URL_RENDER_MODE)
-    if url_render_mode not in ('full', 'netloc', 'netloc-tag'):
-        url_render_mode = views.DEFAULT_URL_RENDER_MODE
-    app.config['BUKUSERVER_URL_RENDER_MODE'] = url_render_mode
+    db_switch_mode = get_enum_from_env_var('BUKUSERVER_DB_FILE_SWITCH', DbSwitchMode, views.DEFAULT_DB_SWITCH_MODE)
+    app.config['BUKUSERVER_DB_FILE_SWITCH'] = db_switch_mode
+    app.config['BUKUSERVER_URL_RENDER_MODE'] = \
+        get_enum_from_env_var('BUKUSERVER_URL_RENDER_MODE', UrlRenderMode, views.DEFAULT_URL_RENDER_MODE)
     app.config['SECRET_KEY'] = os.getenv('BUKUSERVER_SECRET_KEY') or os.urandom(24)
     app.config['BUKUSERVER_READONLY'] = \
         get_bool_from_env_var('BUKUSERVER_READONLY')
@@ -101,13 +110,12 @@ def create_app(db_file=None):
             print('Warning: reverse proxy path should not include trailing slash')
         app.config['REVERSE_PROXY_PATH'] = reverse_proxy_path
         ReverseProxyPrefixFix(app)
-    bukudb = BukuDb(dbfile=db_file)
     theme = (os.getenv('BUKUSERVER_THEME') or 'default').lower()
     app.config['BUKUSERVER_LOCALE'] = os.getenv('BUKUSERVER_LOCALE') or 'en'
     _dir = os.path.dirname(os.path.realpath(__file__))
     app.config['SWAGGER'] = {'title': 'Bukuserver API', 'doc_dir': os.path.join(_dir, 'apidocs')}
     app.app_context().push()
-    setattr(flask.g, 'bukudb', bukudb)
+    DB.init(db_file)
     init_locale(app)
     app.before_request(before_request)
     app.after_request(after_request)
@@ -115,10 +123,10 @@ def create_app(db_file=None):
     @app.shell_context_processor
     def shell_context():
         """Shell context definition."""
-        return {'app': app, 'bukudb': bukudb}
+        return {'app': app, 'bukudb': DB.bukudb}
 
+    app.jinja_env.globals.update(_p=_p, DB_SWITCH=db_switch_mode is not DbSwitchMode.DISABLED)
     app.jinja_env.filters.update(util.JINJA_FILTERS)
-    app.jinja_env.globals.update(_p=_p, dbfile=bukudb.dbfile, dbname=bukudb.dbname)
 
     admin = Admin(
         app, name='buku server', theme=Bootstrap4Theme(swatch=theme),
@@ -140,6 +148,8 @@ def create_app(db_file=None):
     app.add_url_rule('/api/bookmarks/<int:start_index>/<int:end_index>',
                      view_func=api.ApiBookmarkRangeView.as_view('bookmark_range'), methods=['GET', 'PUT', 'DELETE'])
     app.add_url_rule('/api/bookmarks/search', view_func=api.ApiBookmarkSearchView.as_view('bookmarks_search'), methods=['GET', 'DELETE'])
+    if db_switch_mode is not DbSwitchMode.DISABLED:
+        app.add_url_rule('/api/current_db', view_func=api.ApiCurrentDbView.as_view('current_db'), methods=['GET', 'POST'])
     app.add_url_rule('/api/network_handle', 'network_handle', api.handle_network, methods=['POST'])
     app.add_url_rule('/api/fetch_data', 'fetch_data', api.fetch_data, methods=['POST'])
 
@@ -149,9 +159,11 @@ def create_app(db_file=None):
         return redirect(url_for('static', filename='bukuserver/favicon.svg'), code=301)  # permanent redirect
 
     app.add_url_rule('/bookmarklet', 'bookmarklet', api.bookmarklet_redirect, methods=['GET'])
-    admin.add_view(views.BookmarkModelView(bukudb, _l('Bookmarks')))
-    admin.add_view(views.TagModelView(bukudb, _l('Tags')))
-    admin.add_view(views.StatisticView(bukudb, _l('Statistic'), endpoint='statistic'))
+    if db_switch_mode is not DbSwitchMode.DISABLED:
+        app.add_url_rule('/switch_db', 'switch_db', api.switch_db_and_redirect, methods=['POST'])
+    admin.add_view(views.BookmarkModelView(_l('Bookmarks')))
+    admin.add_view(views.TagModelView(_l('Tags')))
+    admin.add_view(views.StatisticView(_l('Statistic'), endpoint='statistic'))
     return app
 
 

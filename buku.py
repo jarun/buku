@@ -380,6 +380,21 @@ class SortKey:
         return ('+' if self.ascending else '-') + repr(self.value)
 
 
+class DbFile(NamedTuple):  # field order determines natural sorting order
+    name: str
+    dir: Optional[str]
+    file: str
+    is_current: bool = False
+
+    @property
+    def path(self) -> str:
+        return self.dir and os.path.join(self.dir, self.file)
+
+    @staticmethod
+    def make(file, dir=None, name=None, is_current=False) -> DbFile:
+        return DbFile(file=file, dir=dir, is_current=is_current, name=name or file.removesuffix('.db'))
+
+
 class FetchResult(NamedTuple):
     url: str                            # resulting URL after following PERMANENT redirects
     title: str = ''
@@ -582,6 +597,10 @@ class BukuDb:
     @property
     def dbfile(self) -> str:
         return next(path for _, name, path in self.conn.execute('PRAGMA database_list') if name == 'main')
+
+    @property
+    def db_dir_and_file(self) -> tuple[str, str]:
+        return os.path.split(self.dbfile)
 
     @property
     def dbname(self) -> str:
@@ -4625,6 +4644,28 @@ def show_taglist(obj):
             count += 1
         print()
 
+def dbs_list(dir: Optional[str] = None, current: Optional[str] = None, bdb: Optional[BukuDb] = None) -> list[DbFile]:
+    """Produces a list of DBs in specified path; can be invoked with a BukuDb instance or with a DB path.
+
+    Parameters
+    ----------
+    dir : str, optional
+        Location for databases search (falls back to bdb location, then to BukuDb.get_default_dbdir()).
+    current : str, optional
+        Filename of current database, without path (for populating is_current).
+    bdb : BukuDb instance, optional
+        A valid instance of BukuDb class. Used to extract DB dir/file if the former is not supplied.
+
+    Returns
+    -------
+    list[DbFile]
+        List of sorted DB files in specified/derived directory.
+    """
+    if not dir:
+        dir, current = bdb.db_dir_and_file if bdb else (BukuDb.get_default_dbdir(), current)
+    return sorted(DbFile.make(dir=dir, file=s, is_current=s == current)
+                  for s in os.listdir(dir) if s.endswith('.db') and os.path.isfile(os.path.join(dir, s)))
+
 
 def prompt(obj, results, noninteractive=False, deep=False, listtags=False, suggest=False, num=10, markers=False, order=['+id']):
     """Show each matching result from a search and prompt.
@@ -4881,11 +4922,11 @@ def prompt(obj, results, noninteractive=False, deep=False, listtags=False, sugge
             continue
 
         if (nav+' ').startswith('DB '):
-            dbpath, dbfile = os.path.split(bdb.dbfile)
+            dbpath, dbfile = bdb.db_dir_and_file
             if nav == 'DB':
                 print(f'Available DB files (in {dbpath}):')
-                for s in sorted(s for s in os.listdir(dbpath) if s.endswith('.db')):
-                    print(('*' if s == dbfile else ' '), s.removesuffix('.db'))
+                for db in dbs_list(dbpath, dbfile):
+                    print(('*' if db.is_current else ' '), db.name)
             else:
                 s = os.path.expanduser(re.sub(r'^DB\s+', '', nav))
                 path = os.path.join(dbpath, (s if s != '~.' else BukuDb.get_default_dbdir()))  # relative to current dir

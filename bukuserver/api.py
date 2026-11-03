@@ -3,27 +3,30 @@
 """Server module."""
 import collections
 import typing as T
-from contextlib import contextmanager
+import os.path
+import json
+from http import HTTPStatus
 
-import flask
-from flask import current_app, redirect, request, url_for
+from flask import current_app as app, redirect, request, url_for, flash
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 from flasgger import swag_from
 
 import buku
-from buku import BukuDb
+from buku import BukuDb, dbs_list
 
 try:
-    from . import _
-    from response import Response
-    from forms import (TAG_RE, ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm,
-                       ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm, ApiBookmarksReorderForm)
+    from . import _, DB
+    from .response import Response
+    from .forms import (TAG_RE, ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm,
+                        ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm, ApiBookmarksReorderForm,
+                        ApiCurrentDbForm)
 except ImportError:
-    from bukuserver import _
+    from bukuserver import _, DB
     from bukuserver.response import Response
     from bukuserver.forms import (TAG_RE, ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm,
-                                  ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm, ApiBookmarksReorderForm)
+                                  ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm, ApiBookmarksReorderForm,
+                                  ApiCurrentDbForm)
 
 
 _parse_bool = lambda x: str(x).lower() == 'true'
@@ -39,19 +42,6 @@ def entity(bookmark, index=False):
     if not index:
         data.pop('index')
     return data
-
-
-@contextmanager
-def get_bukudb():
-    """get bukudb instance"""
-    bukudb = getattr(flask.g, 'bukudb', None)
-    if bukudb:
-        yield bukudb
-    else:
-        db_file = current_app.config.get('BUKUSERVER_DB_FILE', None)
-        bukudb = BukuDb(dbfile=db_file)
-        yield bukudb
-        bukudb.close()
 
 
 def search_tag(
@@ -101,7 +91,7 @@ def _fetch_data(convert):
     try:
         return Response.SUCCESS(data=convert(buku.fetch_data(form.url.data)))
     except Exception as e:
-        current_app.logger.debug(str(e))
+        app.logger.debug(str(e))
         return Response.FAILURE()
 
 @swag_from('./apidocs/network_handle/post.yml')
@@ -117,7 +107,7 @@ def fetch_data():
 @swag_from('./apidocs/bookmarks_refresh/post.yml', endpoint='bookmarks_refresh')
 @swag_from('./apidocs/bookmark_refresh/post.yml', endpoint='bookmark_refresh')
 def refresh_bookmark(index: T.Optional[int]):
-    with get_bukudb() as bdb:
+    with DB.get() as bdb:
         if index and not bdb.get_rec_by_id(index):
             return Response.BOOKMARK_NOT_FOUND()
         result_flag = bdb.refreshdb(index or None, request.form.get('threads', 4))
@@ -132,31 +122,60 @@ def reorder_bookmarks():
     if not form.validate():
         return Response.invalid(form.errors)
     try:
-        with get_bukudb() as bdb:
+        with DB.get() as bdb:
             bdb.reorder(form.order.data)
         return Response.SUCCESS()
     except Exception as e:
-        current_app.logger.exception(str(e))
+        app.logger.exception(str(e))
         return Response.FAILURE()
 
 
 get_tiny_url = swag_from('./apidocs/tiny_url/get.yml')(lambda index: Response.REMOVED())
 
 
+class ApiCurrentDbView(MethodView):
+    def get(self):
+        data = DB.metadata()
+        data.update(available=[x.name for x in dbs_list(data['dir'])])
+        return Response.SUCCESS(data=data)
+
+    def post(self):
+        form = ApiCurrentDbForm(request.form)
+        if not form.validate():
+            return Response.INPUT_NOT_VALID(data={'errors': form.errors})
+        db_switch_mode = app.config['BUKUSERVER_DB_FILE_SWITCH']
+        return ApiCurrentDbView.switch_db(form.name.data, allow_new=db_switch_mode.allow_new)
+
+    @staticmethod
+    def switch_db(name, *, allow_new=False):
+        if not name or os.path.dirname(name):
+            app.logger.error(f'invalid DB name: {repr(name)}')
+            return Response.DB_NAME_NOT_VALID()
+        dbpath = DB.path(name)
+        if not allow_new and not os.path.isfile(dbpath):
+            return Response.DB_NOT_FOUND(data={'path': dbpath})
+        try:
+            bdb = DB.init(dbpath)
+            return Response.SUCCESS(data={'name': bdb.dbname, 'path': bdb.dbfile})
+        except Exception as e:
+            app.logger.error(e)
+            return Response.FAILURE(data={'error': 'Failed to switch databases.'})
+
+
 @swag_from('./apidocs/tags/get.yml')
 def get_all_tags():
-    with get_bukudb() as bdb:
+    with DB.get() as bdb:
         return Response.SUCCESS(data={"tags": search_tag(db=bdb, limit=5)[0]})
 
 class ApiTagView(MethodView):
     def get(self, tag: str):
-        with get_bukudb() as bukudb:
-            if not TAG_RE.match(tag):
-                return Response.TAG_NOT_VALID()
-            tag = tag.lower().strip()
+        if not TAG_RE.match(tag):
+            return Response.TAG_NOT_VALID()
+        tag = tag.lower().strip()
+        with DB.get() as bukudb:
             tags = search_tag(db=bukudb, stag=tag)
-            return (Response.TAG_NOT_FOUND() if tag not in tags[1] else
-                    Response.SUCCESS(data={"name": tag, "usage_count": tags[1][tag]}))
+        return (Response.TAG_NOT_FOUND() if tag not in tags[1] else
+                Response.SUCCESS(data={"name": tag, "usage_count": tags[1][tag]}))
 
     def put(self, tag: str):
         if not TAG_RE.match(tag):
@@ -167,7 +186,7 @@ class ApiTagView(MethodView):
             return Response.INVALID_REQUEST()
         if not form.validate():
             return Response.invalid(form.errors)
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             tag = tag.lower().strip()
             tags = search_tag(db=bukudb, stag=tag)
             if tag not in tags[1]:
@@ -181,7 +200,7 @@ class ApiTagView(MethodView):
     def delete(self, tag: str):
         if not TAG_RE.match(tag):
             return Response.TAG_NOT_VALID()
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             tag = tag.lower().strip()
             tags = search_tag(db=bukudb, stag=tag)
             return (Response.TAG_NOT_FOUND() if tag not in tags[1] else
@@ -190,11 +209,11 @@ class ApiTagView(MethodView):
 
 class ApiBookmarksView(MethodView):
     def get(self):
-        with get_bukudb() as bukudb:
-            order = request.args.getlist('order')
+        order = request.args.getlist('order')
+        with DB.get() as bukudb:
             all_bookmarks = bukudb.get_rec_all(order=order)
-            return Response.SUCCESS(data={'bookmarks': [entity(bookmark, index=order)
-                                                        for bookmark in all_bookmarks]})
+        return Response.SUCCESS(data={'bookmarks': [entity(bookmark, index=order)
+                                                    for bookmark in all_bookmarks]})
 
     def post(self):
         try:
@@ -203,26 +222,26 @@ class ApiBookmarksView(MethodView):
             return Response.INVALID_REQUEST()
         if not form.validate():
             return Response.invalid(form.errors)
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             index = bukudb.add_rec(
                 form.url.data,
                 form.title.data,
                 form.tags_str,
                 form.description.data,
                 fetch=form.fetch.data)
-            return Response.from_flag(index is not None, data=index and {'index': index})
+        return Response.from_flag(index is not None, data=index and {'index': index})
 
     def delete(self):
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             return Response.from_flag(bukudb.cleardb(confirm=False))
 
 
 class ApiBookmarkView(MethodView):
     def get(self, index: int):
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             bookmark = bukudb.get_rec_by_id(index)
-            return (Response.BOOKMARK_NOT_FOUND() if bookmark is None else
-                    Response.SUCCESS(data=entity(bookmark)))
+        return (Response.BOOKMARK_NOT_FOUND() if bookmark is None else
+                Response.SUCCESS(data=entity(bookmark)))
 
     def put(self, index: int):
         try:
@@ -231,7 +250,7 @@ class ApiBookmarkView(MethodView):
             return Response.INVALID_REQUEST()
         if not form.validate():
             return Response.invalid(form.errors)
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             if not bukudb.get_rec_by_id(index):
                 return Response.BOOKMARK_NOT_FOUND()
             if not form.has_data:
@@ -241,14 +260,14 @@ class ApiBookmarkView(MethodView):
             return Response.from_flag(success)
 
     def delete(self, index: int):
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             return (Response.BOOKMARK_NOT_FOUND() if not bukudb.get_rec_by_id(index) else
                     Response.from_flag(bukudb.delete_rec(index, retain_order=True)))
 
 
 class ApiBookmarkRangeView(MethodView):
     def get(self, start_index: int, end_index: int):
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             max_index = bukudb.get_max_id() or 0
             if start_index > end_index or end_index > max_index:
                 return Response.RANGE_NOT_VALID()
@@ -257,7 +276,7 @@ class ApiBookmarkRangeView(MethodView):
             return Response.SUCCESS(data=result)
 
     def put(self, start_index: int, end_index: int):
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             max_index = bukudb.get_max_id() or 0
             if start_index > end_index or end_index > max_index:
                 return Response.RANGE_NOT_VALID()
@@ -288,7 +307,7 @@ class ApiBookmarkRangeView(MethodView):
             return Response.SUCCESS()
 
     def delete(self, start_index: int, end_index: int):
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             max_index = bukudb.get_max_id() or 0
             if start_index > end_index or end_index > max_index:
                 return Response.RANGE_NOT_VALID()
@@ -301,18 +320,18 @@ class ApiBookmarkSearchView(MethodView):
         form = ApiBookmarkSearchForm(request.args)
         if not form.validate():
             return Response.INPUT_NOT_VALID(data={'errors': form.errors})
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             result = [entity(bookmark, index=True) for bookmark in bukudb.searchdb(**form.data)]
-            current_app.logger.debug('total bookmarks:{}'.format(len(result)))
-            return Response.SUCCESS(data={'bookmarks': result})
+        app.logger.debug('total bookmarks:{}'.format(len(result)))
+        return Response.SUCCESS(data={'bookmarks': result})
 
     def delete(self):
         form = ApiBookmarkSearchForm(request.form)
         if not form.validate():
             return Response.INPUT_NOT_VALID(data={'errors': form.errors})
-        with get_bukudb() as bukudb:
+        with DB.get() as bukudb:
             deleted, failed, indices = 0, 0, {x.id for x in bukudb.searchdb(**form.data)}
-            current_app.logger.debug('total bookmarks:{}'.format(len(indices)))
+            app.logger.debug('total bookmarks:{}'.format(len(indices)))
             for index in sorted(indices, reverse=True):
                 if bukudb.delete_rec(index, retain_order=True):
                     deleted += 1
@@ -322,14 +341,22 @@ class ApiBookmarkSearchView(MethodView):
 
 
 def bookmarklet_redirect():
-    url = request.args.get('url')
-    title = request.args.get('title')
-    description = request.args.get('description')
-    tags = request.args.get('tags')
-    fetch = request.args.get('fetch')
+    url = request.values.get('url')
+    title = request.values.get('title')
+    description = request.values.get('description')
+    tags = request.values.get('tags')
+    fetch = request.values.get('fetch')
 
-    with get_bukudb() as bukudb:
+    with DB.get() as bukudb:
         rec_id = bukudb.get_rec_id(url)
-        goto = (url_for('bookmark.edit_view', id=rec_id, popup=True) if rec_id else
-                url_for('bookmark.create_view', link=url, title=title, description=description, tags=tags, fetch=fetch, popup=True))
-        return redirect(goto)
+    goto = (url_for('bookmark.edit_view', id=rec_id, popup=True) if rec_id else
+            url_for('bookmark.create_view', link=url, title=title, description=description, tags=tags, fetch=fetch, popup=True))
+    return redirect(goto)
+
+
+def switch_db_and_redirect():
+    db_switch_mode = app.config['BUKUSERVER_DB_FILE_SWITCH']
+    response, status, _ = ApiCurrentDbView.switch_db(request.values.get('name'), allow_new=db_switch_mode.allow_new)
+    if status != HTTPStatus.OK.value:
+        flash(json.loads(response.get_data(True)).get('message') + f' (name=\'{request.form.get("name")}\')', 'error')
+    return (bookmarklet_redirect() if 'url' in request.values else redirect(request.referrer))

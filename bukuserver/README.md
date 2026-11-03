@@ -123,14 +123,15 @@ _**Important:** all of them have a shared prefix_ **`BUKUSERVER_`**.
 | SECRET_KEY | [flask secret key](https://flask.palletsprojects.com/config/#SECRET_KEY) | string [default: random value] |
 | URL_RENDER_MODE | url render mode | `full`, `netloc` or `netloc-tag` [default: `full`] |
 | DB_FILE | full path to db file<em>³</em> | path string [default: standard path for buku] |
+| DB_FILE_SWITCH | db file switching mode<em>⁴</em> | `disabled`, `same-dir` or `same-dir-existing`<em>⁴</em> [default: `disabled`] |
 | READONLY | read-only mode | boolean<em>¹</em> [default: `false`] |
 | DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean<em>¹</em> [default: `true`] ([here's why](#why-favicons-are-disabled-by-default))|
 | AUTOFETCH | initial Fetch value in Create form | boolean<em>¹</em> [default: `true`] |
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean<em>¹</em> [default: `false`] |
-| REVERSE_PROXY_PATH | reverse proxy path<em>⁵</em> | string |
-| SERVER_NAME | canonical host:port for URL generation<em>⁶</em> | string (e.g. `example.com:443`) |
+| REVERSE_PROXY_PATH | reverse proxy path<em>⁶</em> | string |
+| SERVER_NAME | canonical host:port for URL generation<em>⁷</em> | string (e.g. `example.com:443`) |
 | THEME | [GUI theme](https://bootswatch.com/4) | string [default: `default`] (`slate` is a good pick for dark mode) |
-| LOCALE | GUI language<em>⁴</em> (partial support) | string [default: `en`] |
+| LOCALE | GUI language<em>⁵</em> (partial support) | string [default: `en`] |
 | DEBUG | debug mode (verbose logging etc.) | boolean<em>¹</em> [default: `false`] |
 
 _**¹**_ valid boolean values are `true`, `false`, `1`, `0` (case-insensitive).
@@ -139,11 +140,13 @@ _**²**_ if input is invalid, the default value will be used if defined
 
 _**³**_ `BUKUSERVER_DB_FILE` can be a DB name (plain filename without extension; cannot contain `.`). The specified DB with `.db` extension is located in default DB directory (which you can override with `BUKU_DEFAULT_DBDIR`).
 
-_**⁴**_ `BUKUSERVER_LOCALE` requires buku to be installed with `[locales]`
+_**⁴**_ setting `BUKUSERVER_DB_FILE_SWITCH` (to any non-`disabled` value) enables functionality of switching DB files at runtime. `*-existing` suffix disables creation of _new_ DB files via API.
 
-_**⁵**_ the value for `BUKUSERVER_REVERSE_PROXY_PATH` is recommended to include preceding slash and not have trailing slash (i.e. use `/foo` not `/foo/`)
+_**⁵**_ `BUKUSERVER_LOCALE` requires buku to be installed with `[locales]`
 
-_**⁶**_ `BUKUSERVER_SERVER_NAME` mitigates [Host header injection](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/17-Testing_for_Host_Header_Injection). When set, absolute URLs (e.g. bookmarklet) use this value instead of the client-supplied Host. **Recommended for production and reverse proxy deployments.**
+_**⁶**_ the value for `BUKUSERVER_REVERSE_PROXY_PATH` is recommended to include preceding slash and not have trailing slash (i.e. use `/foo` not `/foo/`)
+
+_**⁷**_ `BUKUSERVER_SERVER_NAME` mitigates [Host header injection](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/17-Testing_for_Host_Header_Injection). When set, absolute URLs (e.g. bookmarklet) use this value instead of the client-supplied Host. **Recommended for production and reverse proxy deployments.**
 
 
 #### How to specify environment variables
