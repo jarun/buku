@@ -12,8 +12,8 @@ from urllib.parse import urlparse
 
 import pytest
 
-from buku import DELIM, FIELD_FILTER, ALL_FIELDS, SortKey, FetchResult, is_int, prep_tag_search, \
-                 print_rec_with_filter, get_netloc, extract_auth, parse_range, split_by_marker
+from buku import DELIM, FIELD_FILTER, ALL_FIELDS, SortKey, FetchResult, DbFile, is_int, prep_tag_search, \
+                 print_rec_with_filter, get_netloc, extract_auth, parse_range, split_by_marker, dbs_list
 
 
 def check_import_html_results_contains(result, expected_result):
@@ -1146,3 +1146,25 @@ def test_SortKey():
 
     custom_order = lambda s: (SortKey(len(s), ascending=False), SortKey(s, ascending=True))
     assert sorted(['foo', 'bar', 'baz', 'quux'], key=custom_order) == ['quux', 'bar', 'baz', 'foo']
+
+
+@pytest.mark.parametrize('with_bdb', [True, False])
+@pytest.mark.parametrize('current', ['bar.db', 'bar', None])  # only 'bar.db' should match
+@pytest.mark.parametrize('dir', ['/foo/bar/baz', None])
+@mock.patch('os.path.isfile', side_effect=lambda s: not s.endswith('/poorly-named-directory.db'))
+@mock.patch('os.listdir', return_value=('foo.db', 'bar.db', 'baz.ini', 'qux', 'quux.db', 'poorly-named-directory.db'))
+@mock.patch('buku.BukuDb.get_default_dbdir', return_value='/default/dbdir/path')
+def test_dbs_list(_default_dbdir, _listdir, _is_file, with_bdb, dir, current):
+    _current, _dir = current, dir or _default_dbdir.return_value
+    valid_dbs = sorted(['foo', 'bar', 'quux'])  # ignoring files without .db extension
+    wrap = mock.Mock()
+    wrap.attach_mock(_listdir, 'os.listdir')
+    wrap.attach_mock(_default_dbdir, 'BukuDb.get_default_dbdir')
+    bdb = None if not with_bdb else mock.NonCallableMock()
+    if with_bdb:
+        bdb.db_dir_and_file = ('/custom/location/', 'foo.db')
+        if not dir:
+            _dir, _current = bdb.db_dir_and_file
+    expected = [DbFile(dir=_dir, name=s, file=f'{s}.db', is_current=_current == f'{s}.db') for s in valid_dbs]
+    assert dbs_list(dir=dir, current=current, bdb=bdb) == expected
+    assert wrap.mock_calls == ([] if dir or bdb else [mock.call.BukuDb.get_default_dbdir()]) + [mock.call.os.listdir(_dir)]

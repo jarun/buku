@@ -7,6 +7,7 @@ from wtforms.fields import BooleanField, FieldList, URLField, StringField, TextA
 from wtforms.validators import DataRequired, InputRequired, Length, Regexp, StopValidation
 from buku import DELIM, taglist_str
 from bukuserver import _, _l, LazyString
+from bukuserver.util import is_filename_valid
 
 _parse_bool = lambda x: str(x).lower() == 'true'
 
@@ -15,6 +16,10 @@ TAG_RE = re.compile(r'^[^,]*[^,\s]+[^,]*$')
 def optional_none(form, field):
     if field.data is None:
         raise StopValidation()
+
+def valid_file_chars_only(form, field):
+    if not is_filename_valid(field.data):
+        raise StopValidation(_('The value cannot contain characters disallowed in a filesystem path.'))
 
 def is_string(form, field):
     if not isinstance(field.data, str):
@@ -79,6 +84,10 @@ class BookmarkForm(FlaskForm):
 class SwapForm(FlaskForm):
     id1 = HiddenField(filters=[int])
     id2 = HiddenField(filters=[int])
+
+
+class ApiCurrentDbForm(Form):
+    name = StringField(validators=[DataRequired(), valid_file_chars_only])
 
 
 class ApiFetchDataForm(Form):

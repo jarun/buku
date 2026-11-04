@@ -13,9 +13,11 @@ class Response(Enum):
     INVALID_REQUEST = (HTTPStatus.BAD_REQUEST, "Ill-formed request.")             # 400
     INPUT_NOT_VALID = (HTTPStatus.UNPROCESSABLE_ENTITY, "Input data not valid.")  # 422
     TAG_NOT_VALID = (HTTPStatus.UNPROCESSABLE_ENTITY, "Invalid tag.")             # 422
+    DB_NAME_NOT_VALID = (HTTPStatus.UNPROCESSABLE_ENTITY, "Invalid DB name.")     # 422
     BOOKMARK_NOT_FOUND = (HTTPStatus.NOT_FOUND, "Bookmark not found.")            # 404
     RANGE_NOT_VALID = (HTTPStatus.NOT_FOUND, "Range not valid.")                  # 404
     TAG_NOT_FOUND = (HTTPStatus.NOT_FOUND, "Tag not found.")                      # 404
+    DB_NOT_FOUND = (HTTPStatus.NOT_FOUND, "DB not found.")                        # 404
 
     @staticmethod
     def invalid(errors):

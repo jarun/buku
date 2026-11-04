@@ -24,19 +24,20 @@ import buku
 
 try:
     from . import filters as bs_filters
-    from . import forms, _, _l, _lp
+    from . import forms, _, _l, _lp, DB
     from .filters import BookmarkField, FilterType
-    from .util import chunks, sorted_counter
+    from .util import DbSwitchMode, UrlRenderMode, chunks, sorted_counter
 except ImportError:
     from bukuserver import filters as bs_filters  # type: ignore
-    from bukuserver import forms, _, _l, _lp
+    from bukuserver import forms, _, _l, _lp, DB
     from bukuserver.filters import BookmarkField, FilterType  # type: ignore
-    from bukuserver.util import chunks, sorted_counter
+    from bukuserver.util import DbSwitchMode, UrlRenderMode, chunks, sorted_counter
 
 
 COLORS = ['#F7464A', '#46BFBD', '#FDB45C', '#FEDCBA', '#ABCDEF', '#DDDDDD',
           '#ABCABC', '#4169E1', '#C71585', '#FF4500', '#FEDCBA', '#46BFBD']
-DEFAULT_URL_RENDER_MODE = 'full'
+DEFAULT_DB_SWITCH_MODE = DbSwitchMode.DISABLED
+DEFAULT_URL_RENDER_MODE = UrlRenderMode.FULL
 DEFAULT_PER_PAGE = 10
 LOG = logging.getLogger('bukuserver.views')
 
@@ -109,7 +110,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         if id and ok:
             session['saved'] = id
         else:
-            raise ValueError(_('Duplicate URL') if self.model.bukudb.get_rec_id(url) not in [id, None] else
+            raise ValueError(_('Duplicate URL') if DB.bukudb.get_rec_id(url) not in [id, None] else
                              _('Rejected by the database'))
 
     def _create_ajax_loader(self, name, options):
@@ -128,18 +129,18 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         url_for_index_view_netloc = None
         if netloc:
             url_for_index_view_netloc = get_index_view_url(flt0_url_netloc_match=netloc)
-        _title = (escape(title) if self.url_render_mode == 'full' and (not netloc or not parsed_url.scheme) else
+        _title = (escape(title) if self.url_render_mode is UrlRenderMode.FULL and (not netloc or not parsed_url.scheme) else
                   link(title, model.url, new_tab=new_tab))
-        res += [f'<span class="title" title="{model.url}">{_title}</span>']
-        if self.url_render_mode == 'netloc' and url_for_index_view_netloc:
+        res += [f'<span class="title" title="{escape(model.url)}">{_title}</span>']
+        if self.url_render_mode is UrlRenderMode.NETLOC and url_for_index_view_netloc:
             res += [f'<span class="netloc"> ({link(netloc, url_for_index_view_netloc)})</span>']
         if not parsed_url.scheme:
             res += [f'<span class="link">{escape(model.url)}</span>']
-        elif self.url_render_mode == 'full':
+        elif self.url_render_mode is UrlRenderMode.FULL:
             res += [f'<span class="link">{link(model.url, model.url, new_tab=new_tab)}</span>']
         tag_links = []
-        if netloc and self.url_render_mode != 'netloc' and url_for_index_view_netloc:
-            tag_links += [link(f'netloc:{netloc}', url_for_index_view_netloc, badge='success')]
+        if netloc and self.url_render_mode is not UrlRenderMode.NETLOC and url_for_index_view_netloc:
+            tag_links += [link(f'netloc:{escape(netloc)}', url_for_index_view_netloc, badge='success')]
         for tag in filter(None, model.tags.split(',')):
             tag_links += [link(tag, get_index_view_url(flt0_tags_contain=tag.strip()), badge='secondary')]
         res += [f'<div class="tag-list">{"".join(tag_links)}</div>']
@@ -189,11 +190,9 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     extra_js = ['/static/bukuserver/js/' + it for it in ('last_page.js', 'filters_fix.js')]
     last_page = expose('/last-page')(last_page)
 
-    def __init__(self, bukudb: buku.BukuDb, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         readonly_check(self)
-        self.bukudb = bukudb
-        custom_model = types.SimpleNamespace(bukudb=bukudb, __name__='bookmark')
-        super().__init__(custom_model, *args, **kwargs)
+        super().__init__(types.SimpleNamespace(__name__='bookmark'), *args, **kwargs)
 
     @property
     def url_render_mode(self):
@@ -234,7 +233,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             for key, item in (("title_in", model.title), ("desc", model.description)):
                 if item.strip():
                     kwargs[key] = item
-            vars(model)['id'] = self.model.bukudb.add_rec(**kwargs)
+            vars(model)['id'] = DB.bukudb.add_rec(**kwargs)
             self._saved(model.id, model.url)
         except Exception as ex:
             if not self.handle_view_exception(ex):
@@ -248,7 +247,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     def delete_model(self, model):
         try:
             self.on_model_delete(model)
-            res = self.bukudb.delete_rec(model.id, retain_order=True)
+            res = DB.bukudb.delete_rec(model.id, retain_order=True)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 msg = _('Failed to delete record.')
@@ -259,7 +258,6 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         return res
 
     def _from_filters(self, filters):
-        bukudb = self.bukudb
         order = bs_filters.BookmarkOrderFilter.value(self._filters, filters)
         buku_filters = [x for x in filters if x[1] == 'buku']
         if buku_filters:
@@ -272,16 +270,16 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
                 kwargs = self._filters[mode_id.pop()].params
             except IndexError:
                 kwargs = {}
-            bookmarks = bukudb.searchdb(keywords, order=order, **kwargs)
+            bookmarks = DB.bukudb.searchdb(keywords, order=order, **kwargs)
         else:
-            bookmarks = bukudb.get_rec_all(order=order)
+            bookmarks = DB.bukudb.get_rec_all(order=order)
         return self._apply_filters(bookmarks or [], filters)
 
     @expose('/reorder', methods=['POST'])
     def refresh(self):
         filters = json.loads(request.form['filters'])
         order = bs_filters.BookmarkOrderFilter.value(self._filters, filters)
-        self.bukudb.reorder(order)
+        DB.bukudb.reorder(order)
         flash(_('Reordered bookmarks in DB'), 'success')
         return redirect(url_for('.index_view'))
 
@@ -302,7 +300,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             bookmarks = self._from_filters(self._get_list_filter_args())
             bookmark = bookmarks and random.choice(bookmarks)
         else:
-            bookmark = self.model.bukudb.get_rec_by_id(id)
+            bookmark = DB.bukudb.get_rec_by_id(id)
         if not bookmark:
             return None
         bm_sns = types.SimpleNamespace(id=None, url=None, title=None, tags=None, description=None)
@@ -317,7 +315,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
     @expose('/swap', methods=['POST'])
     def swap(self):
         form = forms.SwapForm()
-        self.bukudb.swap_recs(form.id1.data, form.id2.data)
+        DB.bukudb.swap_recs(form.id1.data, form.id2.data)
         # Prevent open redirect: validate URL is relative
         redirect_url = request.form.get('url', url_for('bookmark.index_view'))
         if redirect_url.startswith('//') or '://' in redirect_url:
@@ -420,7 +418,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
         try:
             form.populate_obj(model)
             self._on_model_change(form, model, False)
-            res = self.bukudb.update_rec(
+            res = DB.bukudb.update_rec(
                 model.id,
                 url=model.url,
                 title_in=model.title,
@@ -462,14 +460,12 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
 
     def _refresh(self):
         app.logger.info('Refreshing tags cache')
-        self.refreshed, self.all_tags = arrow.now(), self.bukudb.get_tag_all()
+        self.refreshed, self.dbname, self.all_tags = arrow.now(), DB.metadata()['name'], DB.bukudb.get_tag_all()
 
-    def __init__(self, bukudb, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         readonly_check(self)
-        self.bukudb = bukudb
         self._refresh()
-        custom_model = types.SimpleNamespace(bukudb=bukudb, __name__='tag')
-        super().__init__(custom_model, *args, **kwargs)
+        super().__init__(types.SimpleNamespace(__name__='tag'), *args, **kwargs)
 
     @property
     def page_size(self):
@@ -513,6 +509,8 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
     ) -> Tuple[int, List[types.SimpleNamespace]]:
         app.logger.debug('search: %s', search)
         if (arrow.now() - self.refreshed).seconds > 60:  # automatic refresh if more than a minute passed since last one
+            self._refresh()
+        elif self.dbname != DB.metadata()['name']:  # automatic refresh if cached tags are from different DB
             self._refresh()
         else:
             app.logger.debug('Tags cache refreshed %ss ago', (arrow.now() - self.refreshed).seconds)
@@ -573,7 +571,7 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
         res = None
         try:
             self.on_model_delete(model)
-            res = self.bukudb.delete_tag_at_index(0, model.name, chatty=False)
+            res = DB.bukudb.delete_tag_at_index(0, model.name, chatty=False)
             self._refresh()
         except Exception as ex:
             if not self.handle_view_exception(ex):
@@ -591,7 +589,7 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
             self._on_model_change(form, model, False)
             names = {s for s in re.split(r'\s*,\s*', model.name.lower().strip()) if s}
             assert names, 'Tag name cannot be blank.'  # deleting a tag should be done via a Delete button
-            self.bukudb.replace_tag(original_name, names)
+            DB.bukudb.replace_tag(original_name, names)
             self._refresh()
         except Exception as ex:
             if not self.handle_view_exception(ex):
@@ -607,18 +605,18 @@ class TagModelView(BaseModelView, ApplyFiltersMixin):
 
 
 class StatisticView(BaseView):  # pylint: disable=too-few-public-methods
-    _data = None
+    _data = _dbfile = None
     extra_css = ['/static/bukuserver/css/modal.css']
 
-    def __init__(self, bukudb, *args, **kwargs):
-        self.bukudb = bukudb
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     @expose("/", methods=("GET", "POST"))
     def index(self):
         data = StatisticView._data
-        if not data or request.method == 'POST':
-            all_bookmarks = self.bukudb.get_rec_all()
+        bukudb = DB.bukudb
+        if not data or request.method == 'POST' or self._dbfile != bukudb.dbfile:
+            all_bookmarks = bukudb.get_rec_all()
             netlocs = [buku.get_netloc(x.url) or '' for x in all_bookmarks]
             tags = [s for x in all_bookmarks for s in x.taglist]
             titles = [x.title for x in all_bookmarks]
