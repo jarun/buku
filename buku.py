@@ -1596,7 +1596,8 @@ class BukuDb:
                 _clauses = []
                 for param in params:
                     if deep:
-                        _clauses += [field + " LIKE ('%' || ? || '%')"]
+                        _clauses += [field + " LIKE ('%' || ? || '%') ESCAPE '`'"]
+                        param = like_escape(param)
                     else:
                         _clauses += [field + ' REGEXP ?']
                         param = border(field, param[0]) + re.escape(param) + border(field, param[-1])
@@ -1716,15 +1717,16 @@ class BukuDb:
 
         if search_operator == 'AND':
             query = ('SELECT id, url, metadata, tags, desc, flags FROM bookmarks WHERE (' +
-                     f' {search_operator} '.join("tags LIKE '%' || ? || '%'" for tag in qargs) +
+                     f' {search_operator} '.join("tags LIKE '%' || ? || '%' ESCAPE '`'" for tag in qargs) +
                      ')' + ('' if not excluded_tags else ' AND tags NOT REGEXP ?') +
                      f' ORDER BY {_order}')
         else:
             query = ('SELECT id, url, metadata, tags, desc, flags FROM (SELECT *, ' +
-                     ' + '.join("CASE WHEN tags LIKE '%' || ? || '%' THEN 1 ELSE 0 END" for tag in qargs) +
+                     ' + '.join("CASE WHEN tags LIKE '%' || ? || '%' ESCAPE '`' THEN 1 ELSE 0 END" for tag in qargs) +
                      ' AS score FROM bookmarks WHERE score > 0' +
                      ('' if not excluded_tags else ' AND tags NOT REGEXP ?') +
                      f' ORDER BY score DESC, {_order})')
+        qargs = [like_escape(tag) for tag in qargs]
         if excluded_tags:
             qargs += [excluded_tags]
 

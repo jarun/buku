@@ -1231,6 +1231,29 @@ def test_list_tags(capsys, bukuDb):
     assert err == ""
 
 
+@pytest.mark.parametrize('keyword, expected', [('50%', [1]), ('a_b', [2]), ('%', [1]), ('_', [2]), ('`', [3])])
+def test_searchdb_deep_treats_like_wildcards_literally(bukuDb, keyword, expected):
+    bdb = bukuDb()
+    _add_rec(bdb, "http://one.com", "50% off", parse_tags(["x"]), "")
+    _add_rec(bdb, "http://two.com", "a_b", parse_tags(["x"]), "")
+    _add_rec(bdb, "http://three.com", "back`tick", parse_tags(["x"]), "")
+    _add_rec(bdb, "http://four.com", "500 axb", parse_tags(["x"]), "")
+
+    assert [r[0] for r in bdb.searchdb([keyword], deep=True)] == expected
+
+
+@pytest.mark.parametrize('tags, expected', [('a_b', [1]), ('50%', [3]), ('a_b,axb', [1, 2]), ('b + c', [4])])
+def test_search_by_tag_treats_like_wildcards_literally(bukuDb, tags, expected):
+    bdb = bukuDb()
+    _add_rec(bdb, "http://one.com", "", parse_tags(["a_b"]), "")
+    _add_rec(bdb, "http://two.com", "", parse_tags(["axb"]), "")
+    _add_rec(bdb, "http://three.com", "", parse_tags(["50%"]), "")
+    _add_rec(bdb, "http://four.com", "", parse_tags(["b,c"]), "")
+    _add_rec(bdb, "http://five.com", "", parse_tags(["500"]), "")
+
+    assert sorted(r[0] for r in bdb.search_by_tag(tags)) == expected
+
+
 def test_compactdb(bukuDb):
     bdb = bukuDb()
 
@@ -1925,20 +1948,21 @@ def test_search_tokens(bukuDb, keyword, params, expected):
      [r'foo, bar?, , baz']*4, 'metadata REGEXP ? OR url REGEXP ? OR desc REGEXP ? OR tags REGEXP ?'),
     (False, [], [], ''),
     (False, [('desc', False, 'foo, bar?, , baz')], [r'\bfoo,\ bar\?,\ ,\ baz\b'], 'desc REGEXP ?'),
-    (False, [('desc', True, 'foo, bar?, , baz')], ['foo, bar?, , baz'], "desc LIKE ('%' || ? || '%')"),
+    (False, [('desc', True, 'foo, bar?, , baz')], ['foo, bar?, , baz'], "desc LIKE ('%' || ? || '%') ESCAPE '`'"),
     (False, [('tags', False, 'bar?', 'baz', 'foo')], [r',bar\?,', r',baz,', r',foo,'],
      '(tags REGEXP ? AND tags REGEXP ? AND tags REGEXP ?)'),
     (False, [('tags', True, 'bar?', 'baz', 'foo')], ['bar?', 'baz', 'foo'],
-     "(tags LIKE ('%' || ? || '%') AND tags LIKE ('%' || ? || '%') AND tags LIKE ('%' || ? || '%'))"),
+     "(tags LIKE ('%' || ? || '%') ESCAPE '`' AND tags LIKE ('%' || ? || '%') ESCAPE '`' AND tags LIKE ('%' || ? || '%') ESCAPE '`')"),
     (False, [('metadata', False, 'foo, bar?, , baz'), ('url', False, 'foo, bar?, , baz'),
              ('desc', False, 'foo, bar?, , baz'), ('tags', False, 'bar?', 'baz', 'foo')],
      [r'\bfoo,\ bar\?,\ ,\ baz\b']*3 + [r',bar\?,', r',baz,', r',foo,'],
      'metadata REGEXP ? OR url REGEXP ? OR desc REGEXP ? OR (tags REGEXP ? AND tags REGEXP ? AND tags REGEXP ?)'),
+    (False, [('desc', True, '50%_`off')], ['50`%`_``off'], "desc LIKE ('%' || ? || '%') ESCAPE '`'"),
     (False, [('metadata', True, 'foo, bar?, , baz'), ('url', True, 'foo, bar?, , baz'),
              ('desc', True, 'foo, bar?, , baz'), ('tags', True, 'bar?', 'baz', 'foo')],
      ['foo, bar?, , baz']*3 + ['bar?', 'baz', 'foo'],
-     "metadata LIKE ('%' || ? || '%') OR url LIKE ('%' || ? || '%') OR desc LIKE ('%' || ? || '%')"
-     " OR (tags LIKE ('%' || ? || '%') AND tags LIKE ('%' || ? || '%') AND tags LIKE ('%' || ? || '%'))"),
+     "metadata LIKE ('%' || ? || '%') ESCAPE '`' OR url LIKE ('%' || ? || '%') ESCAPE '`' OR desc LIKE ('%' || ? || '%') ESCAPE '`'"
+     " OR (tags LIKE ('%' || ? || '%') ESCAPE '`' AND tags LIKE ('%' || ? || '%') ESCAPE '`' AND tags LIKE ('%' || ? || '%') ESCAPE '`')"),
 ])
 def test_search_clause(bukuDb, regex, tokens, args, clauses):
     assert bukuDb()._search_clause(tokens, regex=regex) == (clauses, args)
