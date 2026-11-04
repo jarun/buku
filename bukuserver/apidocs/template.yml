@@ -48,15 +48,6 @@ definitions:
             example: 42
             description: "If omitted (in a list), implies natural order (i.e. enumerated starting from 1)"
 
-  'Form:Bookmark':
-    allOf:
-      - $ref: '#/definitions/Data:Bookmark'
-      - properties:
-          fetch:
-            type: boolean
-            example: false
-            description: "'true' enables fetching unspecified data (e.g. title) from the URL"
-
   'Form:Tags':
     type: object
     properties:

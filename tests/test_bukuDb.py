@@ -892,7 +892,7 @@ def test_update_rec_fetch(bukuDb, caplog, url_in, title_in, tags_in, url_redirec
     # for the URL override
     custom_url = {'fetch_status': 200, 'title': 'Fetched Title', 'desc': 'Fetched description.'}
 
-    def custom_fetch(url, http_head=False):
+    def custom_fetch(url, http_head=False, permit_ip=True):
         data = dict(urls.get(url, custom_url))
         _url = data.pop('url', url)
         return FetchResult(url_in or _url, **data)

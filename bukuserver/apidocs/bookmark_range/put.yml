@@ -23,8 +23,8 @@ parameters:
       type: object
       description: "Each key is the respective bookmark index. _**All**_ bookmarks in the range must be present. (Indices outside of the range are ignored.)"
       additionalProperties:
-        $ref: '#/definitions/Form:Bookmark'
-      example: {1: {title: "SLASHDOT"}, 2: {}, 3: {tags: ['old', 'news'], del_tags: false}, 4: {fetch: true}}
+        $ref: '#/definitions/Data:Bookmark'
+      example: {1: {title: "SLASHDOT"}, 2: {}, 3: {tags: ['old', 'news'], del_tags: false}}
 
 responses:
   200:

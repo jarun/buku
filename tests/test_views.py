@@ -184,21 +184,25 @@ def test_bookmarklet_view(bukudb, client, exists, uri, tab, args):
     (None, 'Some title', ''),
     (None, '', 'Some description'),
 ])
-def test_create_and_fetch(bukudb, monkeypatch, client, fetch, title, desc):
-    query = {'link': 'http://example.com', 'title': title, 'description': desc, 'tags': 'foo, bar, baz'}
-    _title, _desc = 'Fetched title', 'Fetched description'
+@pytest.mark.parametrize('fetch_by_ip', [True, False, None])
+def test_create_and_fetch(bukudb, monkeypatch, fetch_by_ip, app, client, fetch, title, desc):
+    query = {'link': 'http://127.0.0.1:80', 'title': title, 'description': desc, 'tags': 'foo, bar, baz'}
+    _title, _desc = ('Fetched title', 'Fetched description') if fetch_by_ip else ('', '')
     if fetch is not None:
         query['fetch'] = 'on' if fetch else ''
+    if fetch_by_ip is not None:
+        app.config.update({'BUKUSERVER_FETCH_BY_IP': fetch_by_ip})
+    _fetch = (fetch or fetch is None) and fetch_by_ip
 
-    with mock_fetch(title=_title, desc=_desc):
+    with mock_fetch(title=_title, desc=_desc, bad=not fetch_by_ip):
         response = client.post('/bookmark/new/', data=query, follow_redirects=True)
     dom = assert_response(response, '/bookmark/')
     assert_success_alert(dom, edit=False)
     [bookmark] = bukudb.get_rec_all()
     assert_bookmark(bookmark, {
         'link': query['link'], 'tags': ',bar,baz,foo,',
-        'title': (title or _title) if fetch or fetch is None else title,  # defaults to True
-        'description': (desc or _desc) if fetch or fetch is None else desc,
+        'title': (title or _title) if _fetch else title,  # defaults to True
+        'description': (desc or _desc) if _fetch else desc,
     })
 
 

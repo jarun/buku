@@ -1,5 +1,7 @@
 Fetch data from URL (i.e. to test parsing functionality)
 `[DEPRECATED]` prefer **/api/fetch_data**
+
+IP-based URLs are treated as invalid unless `BUKUSERVER_FETCH_BY_IP` is enabled.
 ---
 #POST /api/network_handle  url=
 

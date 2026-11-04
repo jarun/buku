@@ -227,7 +227,7 @@ class BookmarkModelView(BaseModelView, ApplyFiltersMixin):
             self._on_model_change(form, model, True)
             if not model.url:
                 raise ValueError(_('url invalid: %(url)s', url=model.url))
-            kwargs = {'url': model.url, 'fetch': model.fetch}
+            kwargs = {'url': model.url, 'fetch': model.fetch, 'permit_ip': app_param('FETCH_BY_IP')}
             if model.tags.strip():
                 kwargs["tags_in"] = buku.parse_tags([model.tags])
             for key, item in (("title_in", model.title), ("desc", model.description)):

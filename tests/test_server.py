@@ -205,6 +205,12 @@ def test_api_bookmark_refresh(client, api_url):
         Response.SUCCESS,
         {'bad url': 1, 'recognized mime': 0, 'tags': '', 'title': ''}
     ),
+    (
+        {'data': {'url': 'http://192.168.1.1'}},  # IPs are disallowed by default
+        {'bad': True},
+        Response.SUCCESS,
+        {'bad url': 1, 'recognized mime': 0, 'tags': '', 'title': ''}
+    ),
 ])
 @pytest.mark.parametrize('endpoint', ['/api/fetch_data', '/api/network_handle'])
 def test_api_fetch_data(client, endpoint, kwargs, kwmock, exp_res, data):

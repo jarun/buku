@@ -66,10 +66,13 @@ def test_get_netloc(url, netloc):
 @pytest.mark.parametrize('url, exp_res', [
     ['http://example.com', False],
     ['example.com/#foo/bar', False],
+    ['example.com:80/#foo/bar', False],
     ['ftp://ftp.somedomain.org', False],
     ['http://examplecom.', True],   # ends with a '.'
+    ['http://examplecom.:80', True],   # ends with a '.'
     ['http://.example.com', True],  # starts with a '.'
     ['http://example.com.', True],  # ends with a '.'
+    ['http://example.com.:80', True],  # ends with a '.'
     ['about:newtab', True],
     ['chrome://version/', True],    # contains no '.'
     ['javascript:void(0.0)', True],
@@ -80,8 +83,17 @@ def test_get_netloc(url, netloc):
 def test_is_bad_url(url, exp_res):
     import buku
 
-    res = buku.is_bad_url(url)
+    res, res_noip = (buku.is_bad_url(url, permit_ip=x) for x in [True, False])
     assert res == exp_res
+    assert res_noip == exp_res
+
+@pytest.mark.parametrize('permit_ip', [True, False])
+@pytest.mark.parametrize('ip_url', ['127.0.0.1', 'http://127.0.0.1:80', 'http://127.0.0.1:5000/bookmark/'])
+def test_is_bad_url_permit_ip(ip_url, permit_ip):
+    import buku
+
+    res = buku.is_bad_url(ip_url, permit_ip=permit_ip)
+    assert res == (not permit_ip)
 
 
 @pytest.mark.parametrize(
