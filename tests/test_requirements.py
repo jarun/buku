@@ -1,13 +1,8 @@
 import pathlib
-import sys
+import tomllib
 from typing import Any
 
 import pytest
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
 
 ROOT_DIR = pathlib.Path(__file__).parents[1]
 
