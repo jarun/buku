@@ -1239,10 +1239,10 @@ def test_searchdb_deep_treats_like_wildcards_literally(bukuDb, keyword, expected
     _add_rec(bdb, "http://three.com", "back`tick", parse_tags(["x"]), "")
     _add_rec(bdb, "http://four.com", "500 axb", parse_tags(["x"]), "")
 
-    assert [r[0] for r in bdb.searchdb([keyword], deep=True)] == expected
+    assert [r.id for r in bdb.searchdb([keyword], deep=True)] == expected
 
 
-@pytest.mark.parametrize('tags, expected', [('a_b', [1]), ('50%', [3]), ('a_b,axb', [1, 2]), ('b + c', [4])])
+@pytest.mark.parametrize('tags, expected', [('a_b', {1}), ('50%', {3}), ('a_b,axb', {1, 2}), ('b + c', {4})])
 def test_search_by_tag_treats_like_wildcards_literally(bukuDb, tags, expected):
     bdb = bukuDb()
     _add_rec(bdb, "http://one.com", "", parse_tags(["a_b"]), "")
@@ -1251,7 +1251,7 @@ def test_search_by_tag_treats_like_wildcards_literally(bukuDb, tags, expected):
     _add_rec(bdb, "http://four.com", "", parse_tags(["b,c"]), "")
     _add_rec(bdb, "http://five.com", "", parse_tags(["500"]), "")
 
-    assert sorted(r[0] for r in bdb.search_by_tag(tags)) == expected
+    assert {r.id for r in bdb.search_by_tag(tags)} == expected
 
 
 def test_compactdb(bukuDb):
