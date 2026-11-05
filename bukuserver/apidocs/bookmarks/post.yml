@@ -11,10 +11,14 @@ parameters:
     description: "The URL must not be present in the database"
     schema:
       allOf:
-        - $ref: '#/definitions/Form:Bookmark'
+        - $ref: '#/definitions/Data:Bookmark'
         - properties:
             url:
               required: true
+            fetch:
+              type: boolean
+              example: false
+              description: "'true' enables fetching unspecified data (e.g. title) from the URL"
 
 responses:
   200:

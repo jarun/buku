@@ -13,7 +13,7 @@ def mock_http(body=None, **kwargs):
 def mock_fetch(custom=None, **kwargs):
     _url = kwargs.pop('url', None)
     status = kwargs.pop('fetch_status', (None if kwargs.get('bad') else 200))
-    fn = lambda url, http_head=False: FetchResult(_url or url, fetch_status=status, **kwargs)
+    fn = lambda url, http_head=False, permit_ip=True: FetchResult(_url or url, fetch_status=status, **kwargs)
     return mock.patch('buku.fetch_data', side_effect=custom or fn)
 
 def _add_rec(db, *args, **kw):

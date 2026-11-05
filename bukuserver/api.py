@@ -89,7 +89,8 @@ def _fetch_data(convert):
     if not form.validate():
         return Response.INPUT_NOT_VALID(data={'errors': form.errors})
     try:
-        return Response.SUCCESS(data=convert(buku.fetch_data(form.url.data)))
+        permit_ip = app.config['BUKUSERVER_FETCH_BY_IP']
+        return Response.SUCCESS(data=convert(buku.fetch_data(form.url.data, permit_ip=permit_ip)))
     except Exception as e:
         app.logger.debug(str(e))
         return Response.FAILURE()
@@ -228,7 +229,8 @@ class ApiBookmarksView(MethodView):
                 form.title.data,
                 form.tags_str,
                 form.description.data,
-                fetch=form.fetch.data)
+                fetch=form.fetch.data,
+                permit_ip=app.config['BUKUSERVER_FETCH_BY_IP'])
         return Response.from_flag(index is not None, data=index and {'index': index})
 
     def delete(self):
@@ -256,7 +258,8 @@ class ApiBookmarkView(MethodView):
             if not form.has_data:
                 return Response.SUCCESS()  # noop
             success = bukudb.update_rec(index, url=form.url.data, title_in=form.title.data,
-                                        tags_in=form.tags_str, desc=form.description.data)
+                                        tags_in=form.tags_str, desc=form.description.data,
+                                        permit_ip=app.config['BUKUSERVER_FETCH_BY_IP'])
             return Response.from_flag(success)
 
     def delete(self, index: int):
@@ -298,7 +301,8 @@ class ApiBookmarkRangeView(MethodView):
                                  'url': form.url.data,
                                  'title_in': form.title.data,
                                  'tags_in': form.tags_in,
-                                 'desc': form.description.data}]
+                                 'desc': form.description.data,
+                                 'permit_ip': app.config['BUKUSERVER_FETCH_BY_IP']}]
             if errors:
                 return Response.invalid(errors)
             for update in updates:

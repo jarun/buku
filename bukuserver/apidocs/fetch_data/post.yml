@@ -1,4 +1,5 @@
 Fetch data from URL (i.e. to test parsing functionality)
+IP-based URLs are treated as invalid unless `BUKUSERVER_FETCH_BY_IP` is enabled.
 ---
 #POST /api/fetch_data  url=
 

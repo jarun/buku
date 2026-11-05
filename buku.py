@@ -801,7 +801,8 @@ class BukuDb:
             tag_error: bool | str = False,
             del_error: Optional[IntSet] = None,
             tags_fetch: bool = True,
-            tags_except: Optional[str] = None) -> int:
+            tags_except: Optional[str] = None,
+            permit_ip: bool = True) -> int:
         """Add a new bookmark.
 
         Parameters
@@ -836,6 +837,8 @@ class BukuDb:
         del_error : int{} | range, optional
             Do not add the bookmark if HTTP response status is in the given set or range.
             Also prevents the bookmark from being added on a network error.
+        permit_ip : bool
+            Determines whether IPs are permitted as hostnames (True by default).
 
         Returns
         -------
@@ -856,7 +859,7 @@ class BukuDb:
 
         if fetch:
             # Fetch data
-            result = fetch_data(url)
+            result = fetch_data(url, permit_ip=permit_ip)
             if result.bad:
                 print('Malformed URL\n')
             elif result.mime:
@@ -1043,7 +1046,8 @@ class BukuDb:
             tag_error: bool | str = False,
             del_error: Optional[IntSet] = None,
             export_on: Optional[IntSet] = None,
-            retain_order: bool = False) -> bool:
+            retain_order: bool = False,
+            permit_ip: bool = True) -> bool:
         """Update an existing record at (each) index.
 
         Update all records if index is 0 or empty, and url is not specified.
@@ -1084,6 +1088,8 @@ class BukuDb:
         retain_order : bool
             If True, bookmark deletion will not result in their order being changed
             (multiple indices will be updated instead).
+        permit_ip : bool
+            Determines whether IPs are permitted as hostnames (True by default).
 
         Returns
         -------
@@ -1139,7 +1145,7 @@ class BukuDb:
         if url and title_in is None:
             network_test = False
             _url = url or self.get_rec_by_id(index).url
-            result = fetch_data(_url)
+            result = fetch_data(_url, permit_ip=permit_ip)
             if result.bad:
                 print('Malformed URL')
             elif result.mime:
@@ -1258,7 +1264,8 @@ class BukuDb:
             custom_url: Optional[str] = None,
             custom_tags: Optional[str] = None,
             delay_delete: bool = False,
-            retain_order: bool = False) -> bool:
+            retain_order: bool = False,
+            permit_ip: bool = True) -> bool:
         """Refresh ALL (or specified) records in the database.
 
         Fetch title for each bookmark from the web and update the records.
@@ -1300,6 +1307,8 @@ class BukuDb:
         retain_order : bool
             If True, bookmark deletion will not result in their order being changed
             (multiple indices will be updated instead).
+        permit_ip : bool
+            Determines whether IPs are permitted as hostnames (True by default).
 
         Returns
         -------
@@ -1378,7 +1387,7 @@ class BukuDb:
                     else:
                         break
 
-                result = fetch_data(custom_url or url, http_head=(flags & FLAG_IMMUTABLE) > 0)
+                result = fetch_data(custom_url or url, permit_ip=permit_ip, http_head=(flags & FLAG_IMMUTABLE) > 0)
                 _count += 1
 
                 with cond:
@@ -4080,8 +4089,9 @@ def get_netloc(url):
     """Get the netloc token, or None."""
 
     try:
-        netloc = urlparse(url).netloc
-        if not netloc and not urlparse(url).scheme:
+        parsed = urlparse(url)
+        netloc = parsed.netloc
+        if not netloc and (not parsed.scheme or re.match(r'^\d+($|/)', parsed.path)):
             # Try to prepend '//' and get netloc
             netloc = urlparse('//' + url).netloc
         return netloc or None
@@ -4090,7 +4100,7 @@ def get_netloc(url):
         return None
 
 
-def is_bad_url(url):
+def is_bad_url(url, *, permit_ip=True):
     """Check if URL is malformed.
 
     .. Note:: This API is not bulletproof but works in most cases.
@@ -4099,6 +4109,8 @@ def is_bad_url(url):
     ----------
     url : str
         URL to scan.
+    permit_ip : bool
+        Determines whether IPs are permitted as hostnames (True by default).
 
     Returns
     -------
@@ -4110,14 +4122,19 @@ def is_bad_url(url):
     if not netloc:
         return True
 
-    LOGDBG('netloc: %s', netloc)
+    hostname, port = re.match(r'^(.*?)(:(\d+))?$', netloc).group(1, 3)
+    LOGDBG('netloc: %s, hostname: %s', netloc, hostname)
+
+    # valid hostnames cannot be dotted-decimals (RFC-1123)
+    if not permit_ip and all(s.isdigit() for s in hostname.split('.')):
+        return True
 
     # netloc cannot start or end with a '.'
-    if netloc.startswith('.') or netloc.endswith('.'):
+    if hostname.startswith('.') or hostname.endswith('.'):
         return True
 
     # netloc should have at least one '.'
-    return '.' not in netloc
+    return '.' not in hostname
 
 
 def is_nongeneric_url(url):
@@ -4382,7 +4399,8 @@ def network_handler(
 
 def fetch_data(
         url: str,
-        http_head: bool = False
+        http_head: bool = False,
+        permit_ip: bool = True,
 ) -> FetchResult:
     """Handle server connection and redirections.
 
@@ -4392,6 +4410,8 @@ def fetch_data(
         URL to fetch.
     http_head : bool
         If True, send only HTTP HEAD request. Default is False.
+    permit_ip : bool
+        Determines whether IPs are permitted as hostnames (True by default).
 
     Returns
     -------
@@ -4406,7 +4426,7 @@ def fetch_data(
     page_keys = ''
     exception = False
 
-    if is_nongeneric_url(url) or is_bad_url(url):
+    if is_nongeneric_url(url) or is_bad_url(url, permit_ip=permit_ip):
         return FetchResult(url, bad=True)
 
     if is_ignored_mime(url) or http_head:

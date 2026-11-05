@@ -127,6 +127,7 @@ _**Important:** all of them have a shared prefix_ **`BUKUSERVER_`**.
 | READONLY | read-only mode | boolean<em>¹</em> [default: `false`] |
 | DISABLE_FAVICON | disable bookmark [favicons](https://wikipedia.org/wiki/Favicon) | boolean<em>¹</em> [default: `true`] ([here's why](#why-favicons-are-disabled-by-default))|
 | AUTOFETCH | initial Fetch value in Create form | boolean<em>¹</em> [default: `true`] |
+| FETCH_BY_IP | permit fetching URLs with IP-based hostnames? | boolean<em>¹</em> [default: `false`] |
 | OPEN_IN_NEW_TAB | url link open in new tab | boolean<em>¹</em> [default: `false`] |
 | REVERSE_PROXY_PATH | reverse proxy path<em>⁶</em> | string |
 | SERVER_NAME | canonical host:port for URL generation<em>⁷</em> | string (e.g. `example.com:443`) |

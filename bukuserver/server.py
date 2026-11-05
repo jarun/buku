@@ -95,6 +95,8 @@ def create_app(db_file=None):
         get_bool_from_env_var('BUKUSERVER_OPEN_IN_NEW_TAB')
     app.config['BUKUSERVER_AUTOFETCH'] = \
         get_bool_from_env_var('BUKUSERVER_AUTOFETCH', True)
+    app.config['BUKUSERVER_FETCH_BY_IP'] = \
+        get_bool_from_env_var('BUKUSERVER_FETCH_BY_IP', False)
     app.config['BUKUSERVER_DB_FILE'] = db_file
     # Mitigate Host header poisoning: when set, url_for(..., _external=True) uses
     # this instead of the client-supplied Host header. Recommended for production

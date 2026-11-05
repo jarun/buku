@@ -15,7 +15,7 @@ parameters:
     required: true
     description: "The URL must not be present in any other bookmark"
     schema:
-      $ref: '#/definitions/Form:Bookmark'
+      $ref: '#/definitions/Data:Bookmark'
 
 responses:
   200:
