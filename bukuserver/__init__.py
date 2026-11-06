@@ -47,7 +47,9 @@ def _make_db_holder():
             return (s if not s or os.path.dirname(s) else self.path_from_name(s, lock=lock))
 
         def _init(self, dbpath: str, *, lock=True):
-            dbpath = self.path(dbpath, lock=lock)
+            db, dbpath = self._db, self.path(dbpath, lock=lock)
+            if db and not db.is_closed and db.dbfile == dbpath:  # same DB => noop
+                return db
             flask.current_app.logger.debug(f'Instantiating DB connection for file: {dbpath}')
             return buku.BukuDb(dbfile=dbpath)
 

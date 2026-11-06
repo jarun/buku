@@ -4,10 +4,8 @@
 import collections
 import typing as T
 import os.path
-import json
-from http import HTTPStatus
 
-from flask import current_app as app, redirect, request, url_for, flash
+from flask import current_app as app, redirect, request, url_for
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 from flasgger import swag_from
@@ -18,12 +16,14 @@ from buku import BukuDb, dbs_list
 try:
     from . import _, DB
     from .response import Response
+    from .util import DbSwitchMode
     from .forms import (TAG_RE, ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm,
                         ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm, ApiBookmarksReorderForm,
                         ApiCurrentDbForm)
 except ImportError:
     from bukuserver import _, DB
     from bukuserver.response import Response
+    from bukuserver.util import DbSwitchMode
     from bukuserver.forms import (TAG_RE, ApiBookmarkCreateForm, ApiBookmarkEditForm, ApiBookmarkRangeEditForm,
                                   ApiBookmarkSearchForm, ApiTagForm, ApiFetchDataForm, ApiBookmarksReorderForm,
                                   ApiCurrentDbForm)
@@ -144,16 +144,18 @@ class ApiCurrentDbView(MethodView):
         form = ApiCurrentDbForm(request.form)
         if not form.validate():
             return Response.INPUT_NOT_VALID(data={'errors': form.errors})
-        db_switch_mode = app.config['BUKUSERVER_DB_FILE_SWITCH']
-        return ApiCurrentDbView.switch_db(form.name.data, allow_new=db_switch_mode.allow_new)
+        return ApiCurrentDbView.switch_db(form.name.data)
 
     @staticmethod
-    def switch_db(name, *, allow_new=False):
+    def switch_db(name, *, mode=None):
+        mode = mode or app.config['BUKUSERVER_DB_FILE_SWITCH']
+        if not mode or mode is DbSwitchMode.DISABLED:
+            return Response.FAILURE(data={'error': 'Operation is disabled.'})
         if not name or os.path.dirname(name):
             app.logger.error(f'invalid DB name: {repr(name)}')
             return Response.DB_NAME_NOT_VALID()
         dbpath = DB.path(name)
-        if not allow_new and not os.path.isfile(dbpath):
+        if not mode.allow_new and not os.path.isfile(dbpath):
             return Response.DB_NOT_FOUND(data={'path': dbpath})
         try:
             bdb = DB.init(dbpath)
@@ -356,11 +358,3 @@ def bookmarklet_redirect():
     goto = (url_for('bookmark.edit_view', id=rec_id, popup=True) if rec_id else
             url_for('bookmark.create_view', link=url, title=title, description=description, tags=tags, fetch=fetch, popup=True))
     return redirect(goto)
-
-
-def switch_db_and_redirect():
-    db_switch_mode = app.config['BUKUSERVER_DB_FILE_SWITCH']
-    response, status, _ = ApiCurrentDbView.switch_db(request.values.get('name'), allow_new=db_switch_mode.allow_new)
-    if status != HTTPStatus.OK.value:
-        flash(json.loads(response.get_data(True)).get('message') + f' (name=\'{request.form.get("name")}\')', 'error')
-    return (bookmarklet_redirect() if 'url' in request.values else redirect(request.referrer))
