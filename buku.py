@@ -487,6 +487,7 @@ class BukuDb:
         self.chatty = chatty
         self.colorize = colorize
         self.conn, self.cur = BukuDb.initdb(dbfile, self.chatty)
+        self._is_closed = False
         self.lock = threading.RLock()  # repeatable lock, only blocks *concurrent* access
         self._to_export = None  # type: Optional[Dict[str, str | BookmarkVar]]
         self._to_delete = None  # type: Optional[int | Sequence[int] | Set[int] | range]
@@ -605,6 +606,10 @@ class BukuDb:
     @property
     def dbname(self) -> str:
         return os.path.basename(self.dbfile).removesuffix('.db')
+
+    @property
+    def is_closed(self) -> bool:
+        return self._is_closed
 
     def _fetch(self, query: str, *args, lock: bool = True) -> List[BookmarkVar]:
         if not lock:
@@ -3293,6 +3298,7 @@ n: don't add parent folder as tag
             try:
                 self.cur.close()
                 self.conn.close()
+                self._is_closed = True
             except Exception:
                 # ignore errors here, we're closing down
                 pass

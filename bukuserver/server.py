@@ -62,6 +62,9 @@ def init_locale(app, context_processor=lambda: {}):
 def before_request():
     _post_popup = request.headers.get('Content-Type') != 'application/json' and request.form.get('popup')
     flask.g.popup = request.args.get('popup') or _post_popup
+    mode = flask.current_app.config.get('BUKUSERVER_DB_FILE_SWITCH', views.DEFAULT_DB_SWITCH_MODE)
+    if mode is not DbSwitchMode.DISABLED and not request.path.startswith('/api/') and request.args.get('db'):
+        api.ApiCurrentDbView.switch_db(request.args.get('db'), mode=mode)
 
 # applying popup= to the redirect URL
 def after_request(response):
@@ -161,8 +164,6 @@ def create_app(db_file=None):
         return redirect(url_for('static', filename='bukuserver/favicon.svg'), code=301)  # permanent redirect
 
     app.add_url_rule('/bookmarklet', 'bookmarklet', api.bookmarklet_redirect, methods=['GET'])
-    if db_switch_mode is not DbSwitchMode.DISABLED:
-        app.add_url_rule('/switch_db', 'switch_db', api.switch_db_and_redirect, methods=['POST'])
     admin.add_view(views.BookmarkModelView(_l('Bookmarks')))
     admin.add_view(views.TagModelView(_l('Tags')))
     admin.add_view(views.StatisticView(_l('Statistic'), endpoint='statistic'))

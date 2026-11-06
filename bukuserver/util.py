@@ -1,6 +1,6 @@
 from collections import Counter
 from urllib.parse import urlparse
-from enum import Enum, auto
+from enum import StrEnum, auto
 import sys
 import re
 
@@ -23,13 +23,13 @@ def sorted_counter(keys, *, min_count=0):
     return Counter({k: v for k, v in sorted(data.items()) if v > min_count})
 
 
-UrlRenderMode = Enum('UrlRenderMode', ['FULL', 'NETLOC', 'NETLOC_TAG'])
+UrlRenderMode = StrEnum('UrlRenderMode', ['FULL', 'NETLOC', 'NETLOC_TAG'])
 
-class DbSwitchMode(Enum):
+class DbSwitchMode(StrEnum):
     DISABLED = auto()
     SAME_DIR = auto()
     SAME_DIR_EXISTING = auto()
 
     @property
     def allow_new(self):
-        return not self.name.endswith('_EXISTING')
+        return self.name != 'DISABLED' and not self.name.endswith('_EXISTING')

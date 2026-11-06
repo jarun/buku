@@ -46,8 +46,8 @@
     {% if nohover %}
     body:not(.popup) .navbar-brand {padding-top: 0;  padding-bottom: 0;  margin-top: -.625rem;  margin-bottom: -.625rem}
     {% else %}
-    body:not(.popup) .navbar-brand:hover {padding-top: 0;  padding-bottom: 0;  margin-top: -.625rem;  margin-bottom: -.625rem}
-    body:not(.popup) .navbar-brand:not(:hover) .dbname {display: none}
+    body:not(.popup) .navbar-brand:is(:hover, .db-param) {padding-top: 0;  padding-bottom: 0;  margin-top: -.625rem;  margin-bottom: -.625rem}
+    body:not(.popup) .navbar-brand:not(:hover):not(.db-param) .dbname {display: none}
     {% endif %}
   </style>
   <script>{
@@ -60,9 +60,13 @@
   {% if DB_SWITCH %}
     {{ style('modal.css') }}
     <script>
-      const CURRENT_DB = {title: {{ _('Switching DB file')|tojson }},
-                          get: {{ url_for('current_db')|tojson }},
-                          set: {{ url_for('switch_db')|tojson }}};
+      const CURRENT_DB = Object.freeze({
+        api: {{ url_for('current_db')|tojson }},
+        bookmarklet: {{ url_for('bookmarklet')|tojson }},
+        title: {{ _('Switching DB file')|forceescape|tojson }},
+        retainCaption: {{ _('Retain in URL to re-apply on page load')|forceescape|tojson }},
+        retainTooltip: {{ _('Use this for DB-specific [in-browser] bookmarks or to switch DBs quickly by refreshing the page')|forceescape|tojson }},
+      });
     </script>
     {{ script('db_select_menu.js') }}
   {% endif %}

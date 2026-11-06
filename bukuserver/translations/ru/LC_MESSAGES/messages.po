@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: /home/lex/Work/buku/bukuserver/api.py:287
+#: /home/lex/Work/buku/bukuserver/api.py:296
 msgid "Input required."
 msgstr "Введите данные."
 
@@ -154,7 +154,7 @@ msgid "Title"
 msgstr "Название"
 
 #: /home/lex/Work/buku/bukuserver/forms.py:79
-#: /home/lex/Work/buku/bukuserver/server.py:165
+#: /home/lex/Work/buku/bukuserver/server.py:168
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:30
 #: /home/lex/Work/buku/bukuserver/views.py:176
 msgid "Tags"
@@ -169,12 +169,12 @@ msgstr "Описание"
 msgid "Delete tags list from existing tags"
 msgstr "Удалить список тегов из существующих"
 
-#: /home/lex/Work/buku/bukuserver/server.py:164
+#: /home/lex/Work/buku/bukuserver/server.py:167
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:29
 msgid "Bookmarks"
 msgstr "Закладки"
 
-#: /home/lex/Work/buku/bukuserver/server.py:166
+#: /home/lex/Work/buku/bukuserver/server.py:169
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:31
 msgid "Statistic"
 msgstr "Статистика"
@@ -393,66 +393,74 @@ msgstr "ПОЛНОЕ"
 msgid "(click/right-click to switch)"
 msgstr "(левая/правая кнопка мыши: поменять)"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:63
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:66
 msgid "Switching DB file"
 msgstr "Смена файла БД"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:81
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:67
+msgid "Retain in URL to re-apply on page load"
+msgstr "Включить в URL для переоткрытия при загрузке страницы"
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:68
+msgid "Use this for DB-specific [in-browser] bookmarks or to switch DBs quickly by refreshing the page"
+msgstr "Используйте для создания закладок [в браузере] привязанных к конкретному файлу БД, или для быстрой смены файлов БД обновлением страницы"
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:85
 msgid "Collect missing data (+extra tags) by fetching & parsing the webpage"
 msgstr "Собрать недостающие данные (+дополнительные теги) из скачанной страницы"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:85
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:89
 msgid "Fetch"
 msgstr "Взять со страницы"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:134
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:138
 msgctxt "tags"
 msgid "name"
 msgstr "тег"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:134
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:138
 msgctxt "tags"
 msgid "usage count"
 msgstr "число закладок"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:135
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:139
 msgctxt "bookmarks"
 msgid "index"
 msgstr "номер"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:135
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:139
 msgctxt "bookmarks"
 msgid "url"
 msgstr "ссылка"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:135
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:139
 msgctxt "bookmarks"
 msgid "title"
 msgstr "название"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:136
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:140
 msgctxt "bookmarks"
 msgid "tags"
 msgstr "теги"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:136
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:140
 msgctxt "bookmarks"
 msgid "order"
 msgstr "порядок"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:138
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:142
 msgid "Delete record"
 msgstr "Удалить запись"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:166
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:170
 msgid "custom"
 msgstr "другой"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:167
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:171
 msgid "Set custom page size (empty for default)"
 msgstr "Введите новый размер страницы (пустой = по умолчанию)"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:173
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:177
 msgid "Invalid page size"
 msgstr "Некорректный размер страницы"
 

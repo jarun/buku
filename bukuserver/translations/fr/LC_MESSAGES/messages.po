@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: /home/lex/Work/buku/bukuserver/api.py:287
+#: /home/lex/Work/buku/bukuserver/api.py:296
 msgid "Input required."
 msgstr ""
 
@@ -154,7 +154,7 @@ msgid "Title"
 msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/forms.py:79
-#: /home/lex/Work/buku/bukuserver/server.py:165
+#: /home/lex/Work/buku/bukuserver/server.py:168
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:30
 #: /home/lex/Work/buku/bukuserver/views.py:176
 msgid "Tags"
@@ -169,12 +169,12 @@ msgstr ""
 msgid "Delete tags list from existing tags"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/server.py:164
+#: /home/lex/Work/buku/bukuserver/server.py:167
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:29
 msgid "Bookmarks"
 msgstr "Signets"
 
-#: /home/lex/Work/buku/bukuserver/server.py:166
+#: /home/lex/Work/buku/bukuserver/server.py:169
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/home.html:31
 msgid "Statistic"
 msgstr "Statistique"
@@ -393,66 +393,74 @@ msgstr ""
 msgid "(click/right-click to switch)"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:63
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:66
 msgid "Switching DB file"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:81
-msgid "Collect missing data (+extra tags) by fetching & parsing the webpage"
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:67
+msgid "Retain in URL to re-apply on page load"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:68
+msgid "Use this for DB-specific [in-browser] bookmarks or to switch DBs quickly by refreshing the page"
 msgstr ""
 
 #: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:85
+msgid "Collect missing data (+extra tags) by fetching & parsing the webpage"
+msgstr ""
+
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:89
 msgid "Fetch"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:134
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:138
 msgctxt "tags"
 msgid "name"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:134
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:138
 msgctxt "tags"
 msgid "usage count"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:135
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:139
 msgctxt "bookmarks"
 msgid "index"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:135
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:139
 msgctxt "bookmarks"
 msgid "url"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:135
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:139
 msgctxt "bookmarks"
 msgid "title"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:136
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:140
 msgctxt "bookmarks"
 msgid "tags"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:136
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:140
 msgctxt "bookmarks"
 msgid "order"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:138
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:142
 msgid "Delete record"
 msgstr "Supprimer l'enregistrement"
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:166
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:170
 msgid "custom"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:167
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:171
 msgid "Set custom page size (empty for default)"
 msgstr ""
 
-#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:173
+#: /home/lex/Work/buku/bukuserver/templates/bukuserver/lib.html:177
 msgid "Invalid page size"
 msgstr ""
 
