@@ -5617,6 +5617,8 @@ def edit_rec(editor, url, title_in, tags_in, desc):
             LOGDBG('Edited content written to %s', tmpfile)
 
         cmd = editor.split(' ')
+        # on Windows, subprocess only finds .exe files by itself; this also finds e.g. code.cmd
+        cmd[0] = shutil.which(cmd[0]) or cmd[0]
         cmd += (tmpfile,)
         subprocess.call(cmd)
 
