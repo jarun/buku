@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import signal
+import sys
 import unittest
 from itertools import product
 from textwrap import dedent
@@ -492,6 +493,24 @@ def test_edit_rec():
 
         res = buku.edit_rec(editor, *args)
         assert res == m_ptfc.return_value
+
+
+@pytest.mark.skipif(sys.platform != 'win32', reason='only Windows needs help finding non-.exe editors')
+@pytest.mark.parametrize('extension', ['.cmd', '.bat'])
+def test_edit_rec_non_exe_editor_on_path(tmp_path, monkeypatch, extension):
+    """The editor is found on PATH even when it isn't an .exe, like code.cmd."""
+    import buku
+
+    editor = tmp_path / ('fake-editor' + extension)
+    editor.touch()
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+
+    with mock.patch('subprocess.call', return_value=0) as m_call:
+        res = buku.edit_rec('fake-editor', 'https://example.com', 'title', ',tag,', 'desc')
+
+    assert res is not None, f'failed to access {editor}'
+    command = m_call.call_args.args[0]
+    assert os.path.normcase(command[0]) == os.path.normcase(str(editor))
 
 
 @pytest.mark.parametrize("argv, pipeargs, isatty", list(product(["argv"], [None, []], [True, False])))
