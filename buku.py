@@ -2438,8 +2438,8 @@ class BukuDb:
 
         # Update bookmarks with original tag
         with self.lock:
-            query = 'SELECT id, tags FROM bookmarks WHERE tags LIKE ?'
-            self.cur.execute(query, ('%' + orig + '%',))
+            query = "SELECT id, tags FROM bookmarks WHERE tags LIKE ? ESCAPE '`'"
+            self.cur.execute(query, ('%' + like_escape(orig) + '%',))
             results = self.cur.fetchall()
             if results:
                 query = 'UPDATE bookmarks SET tags = ? WHERE id = ?'
