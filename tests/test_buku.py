@@ -1092,6 +1092,23 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
         assert exp_res == res["data"]
 
 
+@pytest.mark.parametrize('export_type, importer', [('markdown', 'import_md'), ('org', 'import_org')])
+def test_convert_bookmark_set_multiline_title(tmpdir, export_type, importer):
+    import buku
+
+    bms = [(1, 'http://example.com', 'line one\nline two', ',foo,', '', 0),
+           (2, 'http://example.org', 'line one\r\n  line two', ',foo,', '', 0),
+           (3, 'http://google.com', 'Google', ',foo,', '', 0)]
+    p = tmpdir.join('export')
+    p.write(buku.convert_bookmark_set(bms, export_type=export_type)['data'])
+    res = list(getattr(buku, importer)(p.strpath, None))
+    assert [x[:2] for x in res] == [  # (url, title)
+        ('http://example.com', 'line one line two'),
+        ('http://example.org', 'line one line two'),
+        ('http://google.com', 'Google'),
+    ]
+
+
 @pytest.mark.parametrize(
     "tags,data",
     [
