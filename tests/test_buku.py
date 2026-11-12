@@ -1092,6 +1092,17 @@ def test_convert_bookmark_set(export_type, exp_res, monkeypatch):
         assert exp_res == res["data"]
 
 
+def test_convert_bookmark_set_html_escapes():
+    from buku import convert_bookmark_set
+
+    bms = [(1, "https://www.google.com/search?q=a&hl=en", "<input>: A & B", ",html,", 'Use "open"', 0)]
+    res = convert_bookmark_set(bms, export_type="html")
+
+    assert 'HREF="https://www.google.com/search?q=a&amp;hl=en"' in res["data"]
+    assert ">&lt;input&gt;: A &amp; B</A>" in res["data"]
+    assert "<DD>Use &quot;open&quot;" in res["data"]
+
+
 @pytest.mark.parametrize(
     "tags,data",
     [

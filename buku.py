@@ -3593,12 +3593,12 @@ def convert_bookmark_set(
             '    <DL><p>\n'.format(timestamp))
 
         for row in resultset:
-            out += '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (row.url, timestamp, timestamp)
+            out += '        <DT><A HREF="%s" ADD_DATE="%s" LAST_MODIFIED="%s"' % (html.escape(row.url), timestamp, timestamp)
             if row.tags:
-                out += ' TAGS="' + row.tags + '"'
-            out += '>{}</A>\n'.format(title(row))
+                out += ' TAGS="' + html.escape(row.tags) + '"'
+            out += '>{}</A>\n'.format(html.escape(title(row)))
             if row.desc:
-                out += '        <DD>' + row.desc + '\n'
+                out += '        <DD>' + html.escape(row.desc) + '\n'
             count += 1
 
         out += '    </DL><p>\n</DL><p>'
