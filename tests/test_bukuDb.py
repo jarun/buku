@@ -723,6 +723,27 @@ class TestBukuDb(unittest.TestCase):
         # assert table has been dropped
         assert self.bdb.get_rec_by_id(0) is None
 
+    def test_replace_tag_escapes_like_wildcards(self):
+        # _ and % in a tag must not act as SQL LIKE wildcards in the
+        # replace_tag SELECT, or unrelated rows report "Index N updated" (see #920)
+        import io
+        from contextlib import redirect_stdout
+
+        for url, title, tags in [
+            ["https://a.example/1", "1", "a_b"],
+            ["https://a.example/2", "2", "a%b"],
+            ["https://a.example/3", "3", "axb"],
+            ["https://a.example/4", "4", "a1b"],
+        ]:
+            _add_rec(self.bdb, url, title_in=title, tags_in=tags)
+
+        out = io.StringIO()
+        with mock.patch("builtins.input", return_value="y"), redirect_stdout(out):
+            self.bdb.replace_tag("a_b", ["replaced"])
+        self.assertEqual(out.getvalue().strip(), "Index 1 updated")
+        self.assertEqual(_tagset(self.bdb.get_rec_by_id(1).tags_raw), {"replaced"})
+        self.assertEqual(_tagset(self.bdb.get_rec_by_id(3).tags_raw), {"axb"})
+
     def test_replace_tag(self):
         indices = []
         for bookmark in self.bookmarks:
