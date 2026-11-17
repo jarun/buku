@@ -3517,11 +3517,14 @@ def convert_bookmark_set(
                 ' (DELETED)' if _old == row else '')
         return (row.title or '') + _add
 
+    def oneline_title(row):  # line-based formats can't have line breaks in the title
+        return re.sub(r'\s*[\r\n]\s*', ' ', title(row))
+
     count = 0
     out = ''
     if export_type == 'markdown':
         for row in resultset:
-            _title = title(row)
+            _title = oneline_title(row)
             out += (f'- <{row.url}>' if not _title else f'- [{_title}]({row.url})')
 
             if row.tags:
@@ -3532,7 +3535,7 @@ def convert_bookmark_set(
             count += 1
     elif export_type == 'org':
         for row in resultset:
-            _title = title(row)
+            _title = oneline_title(row)
             out += (f'* [[{row.url}]]' if not _title else f'* [[{row.url}][{_title}]]')
             out += convert_tags_to_org_mode_tags(row.tags_raw)
             count += 1
