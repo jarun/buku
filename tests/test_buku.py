@@ -555,6 +555,17 @@ def test_sigint_handler(capsys):
         assert err == "\nInterrupted.\n"
 
 
+def test_fetch_data_survives_poolmanager_failure():
+    """A malformed proxy URL (or any PoolManager construction failure) must
+    not crash with UnboundLocalError; the designed graceful fallback returns
+    FetchResult(url) so the bookmark is still added without fetched metadata."""
+    import buku
+
+    with mock.patch("buku.get_PoolManager", side_effect=ValueError("invalid proxy")):
+        res = buku.fetch_data("https://example.com/")
+    assert res == FetchResult("https://example.com/")
+
+
 @pytest.mark.vcr("tests/vcr_cassettes/test_fetch_data_with_url.yaml")
 @pytest.mark.parametrize(
     "url, exp_res",

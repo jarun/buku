@@ -4443,6 +4443,7 @@ def fetch_data(
     if not MYHEADERS:
         gen_headers()
 
+    manager = None
     try:
         manager = get_PoolManager()
 
