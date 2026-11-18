@@ -1131,6 +1131,17 @@ def test_convert_bookmark_set_html_escapes():
     assert "<DD>Use &quot;open&quot;" in res["data"]
 
 
+def test_convert_bookmark_set_rss_is_valid_xml():
+    import xml.etree.ElementTree as ET
+    from buku import convert_bookmark_set
+
+    bms = [(1, "https://example.com/a?x=1&y=2", "<input>: A & B", ",html,", "note", 0)]
+    feed = ET.fromstring(convert_bookmark_set(bms, export_type="rss")["data"])
+
+    ns = {"a": "http://www.w3.org/2005/Atom"}
+    assert feed.find("a:entry/a:title", ns).text == "<input>: A & B"
+
+
 @pytest.mark.parametrize(
     "tags,data",
     [
