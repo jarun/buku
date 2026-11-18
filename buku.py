@@ -3977,7 +3977,7 @@ def import_xbel(html_soup: BeautifulSoup, add_parent_folder_as_tag: bool, newtag
         title_tag = tag.title.string
 
         desc = None
-        comment_tag = tag.find_next_sibling('desc')
+        comment_tag = tag.find('desc')
 
         if comment_tag:
             desc = comment_tag.find(text=True, recursive=False)
