@@ -1120,6 +1120,17 @@ def test_convert_bookmark_set_multiline_title(tmpdir, export_type, importer):
     ]
 
 
+def test_import_xbel_keeps_description():
+    from bs4 import BeautifulSoup
+
+    from buku import import_xbel
+
+    xbel = ('<xbel version="1.0"><bookmark href="https://example.com/a">'
+            '<title>A page</title><desc>note about a</desc></bookmark></xbel>')
+    res = list(import_xbel(BeautifulSoup(xbel, "html.parser"), False, None))
+    assert res[0][3] == "note about a"
+
+
 def test_convert_bookmark_set_html_escapes():
     from buku import convert_bookmark_set
 
