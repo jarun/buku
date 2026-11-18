@@ -3569,7 +3569,8 @@ def convert_bookmark_set(
 
         for row in resultset:
             out += '    <entry>\n'
-            out += '        <title>' + title(row) + '</title>\n'
+            _title = html.escape(title(row)).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
+            out += '        <title>%s</title>\n' % _title
             _url = html.escape(row.url).encode('ascii', 'xmlcharrefreplace').decode('utf-8')
             out += '        <link href="%s" rel="alternate" type="text/html"/>\n' % _url
             out += '        <id>%s</id>\n' % row.id
