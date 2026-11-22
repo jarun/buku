@@ -791,10 +791,19 @@ class BukuDb:
             Whether to ignore case when applying order (True by default).
         """
         with self.lock:
-            sorted_urls = [x.url for x in self.get_rec_all(lock=False, order=order, ignore_case=ignore_case)]
+            sorted_records = self.get_rec_all(lock=False, order=order, ignore_case=ignore_case)
+            if not sorted_records:
+                return
+
+            self.cur.execute('CREATE TEMP TABLE IF NOT EXISTS _buku_reorder_map ('
+                             'old_id INTEGER PRIMARY KEY, new_id INTEGER NOT NULL)')
+            self.cur.execute('DELETE FROM _buku_reorder_map')
+            self.cur.executemany('INSERT INTO _buku_reorder_map(old_id, new_id) VALUES (?, ?)',
+                                 [(record.id, new_id) for new_id, record in enumerate(sorted_records, start=1)])
             self.cur.execute('UPDATE bookmarks SET id = -id')
-            for idx, url in enumerate(sorted_urls, start=1):
-                self.cur.execute('UPDATE bookmarks SET id = ? WHERE url = ?', (idx, url))
+            self.cur.execute('UPDATE bookmarks SET id = ('
+                             'SELECT new_id FROM _buku_reorder_map WHERE old_id = -bookmarks.id)')
+            self.cur.execute('DROP TABLE _buku_reorder_map')
             self.conn.commit()
 
     def add_rec(
