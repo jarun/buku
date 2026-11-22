@@ -179,7 +179,6 @@ GENERAL OPTIONS:
                            if no arguments:
                            - delete results when used with search
                            - otherwise delete all bookmarks
-      --vacuum             reclaim unused database space
       --retain-order       prevents reordering after deleting a bookmark
       -h, --help           show this information and exit
       -v, --version        show the program version and exit
@@ -290,8 +289,10 @@ POWER TOYS:
       --suggest            show similar tags when adding bookmarks
       --tacit              reduce verbosity, skip some confirmations
       --nostdin            do not wait for input (must be first arg)
-      --threads N          max network connections in full refresh
+      --threads N          max network connections in full refresh/check
                            default N=4, min N=1, max N=10
+      --dead               report unreachable bookmark URLs
+      --vacuum             reclaim unused database space
       -V                   check latest upstream version available
       -g, --debug          show debug information and verbose logs
 

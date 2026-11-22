@@ -51,6 +51,7 @@ _buku () {
         --tag
         --tag-error
         --tag-redirect
+        --dead
         --threads
         --title
         -u --update
