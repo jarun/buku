@@ -1659,6 +1659,8 @@ class BukuDb:
             regex: bool = False,
             markers: bool = False,
             order: List[str] = ['+id'],
+            _where_clauses: Optional[List[str]] = None,
+            _where_args: Optional[List[str]] = None,
     ) -> List[BookmarkVar]:
         """Search DB for entries where tags, URL, or title fields match keywords.
 
@@ -1697,27 +1699,34 @@ class BukuDb:
         if not qargs:
             return []
 
+        _where_clauses = _where_clauses or []
+        _where_args = _where_args or []
+        extra_where = ''.join(f' AND ({clause})' for clause in _where_clauses)
+
         _count = lambda x: f'CASE WHEN {x} THEN 1 ELSE 0 END'
         if regex:
             query = ('SELECT id, url, metadata, tags, desc, flags\nFROM (SELECT *, (' +
                      '\n    + '.join(map(_count, clauses)) +
-                     f') AS score\n  FROM bookmarks WHERE score > 0 ORDER BY score DESC, {_order})')
+                     f') AS score\n  FROM bookmarks WHERE score > 0{extra_where} ORDER BY score DESC, {_order})')
         elif all_keywords:
             if keywords == ['blank']:
-                qargs, query = [DELIM], "SELECT * FROM bookmarks WHERE metadata = '' OR tags = ?"
+                qargs, where = [DELIM], "metadata = '' OR tags = ?"
             elif keywords == ['immutable']:
-                qargs, query = [], 'SELECT * FROM bookmarks WHERE flags & 1 == 1'
+                qargs, where = [], 'flags & 1 == 1'
             else:
-                query = 'SELECT id, url, metadata, tags, desc, flags FROM bookmarks WHERE ' + '\n  AND '.join(clauses)
-            query += f'\nORDER BY {_order}'
+                where = '\n  AND '.join(clauses)
+            if _where_clauses:
+                where = f'({where}){extra_where}'
+            query = f'SELECT * FROM bookmarks WHERE {where}\nORDER BY {_order}'
         elif not all_keywords:
             query = ('SELECT id, url, metadata, tags, desc, flags\nFROM (SELECT *, (' +
                      '\n    + '.join(map(_count, clauses)) +
-                     f') AS score\n  FROM bookmarks WHERE score > 0 ORDER BY score DESC, {_order})')
+                     f') AS score\n  FROM bookmarks WHERE score > 0{extra_where} ORDER BY score DESC, {_order})')
         else:
             LOGERR('Invalid search option')
             return []
 
+        qargs += _where_args
         LOGDBG('query: "%s", args: %s', query, qargs)
 
         try:
@@ -1820,9 +1829,43 @@ class BukuDb:
             List of search results.
         """
 
-        results = self.searchdb(keywords, all_keywords=all_keywords, deep=deep, regex=regex, markers=markers, order=order)
-        results = (results if not stag else filter_from(results, self.search_by_tag(''.join(stag))))
-        return self.exclude_results_from_search(results, without, deep=deep, markers=markers)
+        where_clauses, where_args = [], []
+        if stag:
+            tag_query = ''.join(stag)
+            if tag_query in ('', DELIM):
+                return []
+            tags, operator, excluded_tags = prep_tag_search(tag_query)
+            if operator is None:
+                LOGERR("Cannot use both '+' and ',' in same search")
+                return []
+
+            where_clauses.append(' {} '.format(operator).join(
+                "tags LIKE '%' || ? || '%' ESCAPE '`'" for _ in tags))
+            where_args.extend(like_escape(tag) for tag in tags)
+            if excluded_tags:
+                where_clauses.append('tags NOT REGEXP ?')
+                where_args.append(excluded_tags)
+
+        excluded_keywords = []
+        for keyword in without or []:
+            tokens = self._search_tokens(keyword, deep=deep, markers=markers)
+            clause, args = self._search_clause(tokens)
+            if clause and args:
+                excluded_keywords.append(f'({clause})')
+                where_args.extend(args)
+        if excluded_keywords:
+            where_clauses.append('NOT (' + ' OR '.join(excluded_keywords) + ')')
+
+        return self.searchdb(
+            keywords,
+            all_keywords=all_keywords,
+            deep=deep,
+            regex=regex,
+            markers=markers,
+            order=order,
+            _where_clauses=where_clauses,
+            _where_args=where_args,
+        )
 
     def exclude_results_from_search(self, search_results, without, deep=False, markers=False):
         """Excludes records that match keyword search using without parameters

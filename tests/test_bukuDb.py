@@ -2025,15 +2025,29 @@ def test_searchdb(bukuDb, keywords, params, expected):
     assert [x.url for x in bdb.searchdb(keywords, **params)] == expected
 
 
-@pytest.mark.parametrize('keyword_results, stag_results, exp_res', [
-    ([], [], []),
-    (["item1"], ["item1", "item2"], ["item1"]),
-    (["item2"], ["item1"], []),
-])
-def test_search_keywords_and_filter_by_tags(bukuDb, keyword_results, stag_results, exp_res):
-    with mock.patch('buku.BukuDb.searchdb', return_value=keyword_results):
-        with mock.patch('buku.BukuDb.search_by_tag', return_value=stag_results):
-            assert exp_res == bukuDb().search_keywords_and_filter_by_tags(['keywords'], stag=['stag'])
+def test_search_keywords_and_filter_by_tags(bukuDb):
+    bdb = bukuDb()
+    for url, title, tags in [
+        ('https://one.example', 'Common alpha', 'alpha,red'),
+        ('https://two.example', 'Common beta', 'beta,blue'),
+        ('https://three.example', 'Common skip', 'alpha,skip'),
+        ('https://four.example', 'Other alpha', 'alpha,red'),
+    ]:
+        _add_rec(bdb, url, title, parse_tags([tags]), '')
+
+    statements = []
+    bdb.conn.set_trace_callback(statements.append)
+    results = bdb.search_keywords_and_filter_by_tags(
+        ['Common'], stag=['alpha, beta'], without=['skip'])
+    assert [record.id for record in results] == [1, 2]
+    assert sum(statement.lstrip().upper().startswith('SELECT') for statement in statements) == 1
+
+    statements.clear()
+    results = bdb.search_keywords_and_filter_by_tags(
+        ['Common'], all_keywords=True, stag=['alpha + red'])
+    assert [record.id for record in results] == [1]
+    assert sum(statement.lstrip().upper().startswith('SELECT') for statement in statements) == 1
+    assert bdb.search_keywords_and_filter_by_tags(['Common'], stag=['']) == []
 
 
 @pytest.mark.parametrize('search_results, exclude_results, exp_res', [
