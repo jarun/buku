@@ -56,6 +56,7 @@ _buku () {
         -u --update
         --url
         --url-redirect
+        --vacuum
         -V
         -v --version
         -w --write

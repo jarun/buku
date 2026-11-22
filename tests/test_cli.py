@@ -329,3 +329,10 @@ def test_custom_db(_BukuCrypt, BukuDb, stdin, db, action):
                       mock.call.bdb.print_rec(None, order=[])]
         calls += [mock.call.bdb.close_quit(0)]
     assert wrap.mock_calls == calls
+
+
+def test_vacuum(BukuDb, bdb):
+    with pytest.raises(SystemExit):
+        buku.main(['--nostdin', '--vacuum'])
+    bdb.vacuum.assert_called_once_with()
+    bdb.close_quit.assert_called_once_with(0)

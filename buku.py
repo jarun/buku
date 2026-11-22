@@ -774,6 +774,12 @@ class BukuDb:
         with self.lock:
             return self.get_max_id(lock=False)
 
+    def vacuum(self):
+        """Reclaim unused database space."""
+        with self.lock:
+            self.conn.commit()
+            self.cur.execute('VACUUM')
+
     def reorder(self, order: List[str], *, ignore_case=True):
         """Change indices of all records in DB to match the specified order.
 
@@ -790,7 +796,6 @@ class BukuDb:
             for idx, url in enumerate(sorted_urls, start=1):
                 self.cur.execute('UPDATE bookmarks SET id = ? WHERE url = ?', (idx, url))
             self.conn.commit()
-            self.cur.execute('VACUUM')
 
     def add_rec(
             self,
@@ -1503,7 +1508,6 @@ class BukuDb:
                 for id in sorted(set(self._to_delete), reverse=True):
                     self.delete_rec(id, delay_commit=True, chatty=False, retain_order=retain_order)
                 self.conn.commit()
-                self.cur.execute('VACUUM')
         self._to_delete = None
 
     def edit_update_rec(self, index, immutable=None):
@@ -1905,7 +1909,6 @@ class BukuDb:
                     msg = f'Index {max_id} moved to {index}'
                 if not delay_commit:
                     self.conn.commit()
-                    self.cur.execute('VACUUM')
             if self.chatty:
                 print(msg)
 
@@ -2044,7 +2047,6 @@ class BukuDb:
                     self.compactdb(low, upto=high, delay_commit=True, retain_order=retain_order)
                     if not delay_commit:
                         self.conn.commit()
-                        self.cur.execute('VACUUM')
             except IndexError:
                 LOGERR('No matching index')
                 return False
@@ -2074,7 +2076,6 @@ class BukuDb:
                         self.compactdb(index, delay_commit=True, retain_order=retain_order)
                         if not delay_commit:
                             self.conn.commit()
-                            self.cur.execute('VACUUM')
                     else:
                         LOGERR('No matching index %d', index)
                         return False
@@ -2123,7 +2124,6 @@ class BukuDb:
                 # Commit at every 200th removal, counting from the end
                 if pos % 200 == 0:
                     self.conn.commit()
-                    self.cur.execute('VACUUM')
 
         return True
 
@@ -2147,7 +2147,6 @@ class BukuDb:
                 self.cur.execute('DELETE FROM bookmarks')
                 if not delay_commit:
                     self.conn.commit()
-                    self.cur.execute('VACUUM')
             return True
         except Exception as e:
             LOGERR('delete_rec_all(): %s', e)
@@ -5991,6 +5990,7 @@ POSITIONAL ARGUMENTS:
                          if no arguments:
                          - delete results when used with search
                          - otherwise delete all bookmarks
+    --vacuum             reclaim unused database space
     --retain-order       prevents reordering after deleting a bookmark
     -h, --help           show this information and exit
     -v, --version        show the program version and exit''')
@@ -5999,6 +5999,7 @@ POSITIONAL ARGUMENTS:
     addarg('-u', '--update', nargs='*', help=hide)
     addarg('-w', '--write', nargs='?', const=get_system_editor(), help=hide)
     addarg('-d', '--delete', nargs='*', help=hide)
+    addarg('--vacuum', action='store_true', help=hide)
     addarg('--retain-order', action='store_true', default=False, help=hide)
     addarg('-h', '--help', action='store_true', help=hide)
     addarg('-v', '--version', action='version', version=__version__, help=hide)
@@ -6339,6 +6340,11 @@ POSITIONAL ARGUMENTS:
         bdb = BukuDb(args.json, args.format, not args.tacit, dbfile=_db, colorize=not args.nc, default_scheme=args.default_scheme[0])
     except Exception:
         sys.exit(1)
+
+    if args.vacuum:
+        bdb.vacuum()
+        print('Database vacuumed.')
+        bdb.close_quit(0)
 
     if args.swap:
         index1, index2 = args.swap

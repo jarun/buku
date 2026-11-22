@@ -179,6 +179,7 @@ GENERAL OPTIONS:
                            if no arguments:
                            - delete results when used with search
                            - otherwise delete all bookmarks
+      --vacuum             reclaim unused database space
       --retain-order       prevents reordering after deleting a bookmark
       -h, --help           show this information and exit
       -v, --version        show the program version and exit

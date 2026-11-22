@@ -1306,6 +1306,19 @@ def test_compactdb(bukuDb):
     assert bdb.get_rec_by_id(3) is None
 
 
+def test_vacuum_is_explicit(bukuDb):
+    bdb = bukuDb()
+    _add_rec(bdb, *TEST_BOOKMARKS[0])
+    statements = []
+    bdb.conn.set_trace_callback(statements.append)
+
+    assert bdb.delete_rec(1, chatty=False)
+    assert not any(statement.strip().upper() == "VACUUM" for statement in statements)
+
+    bdb.vacuum()
+    assert sum(statement.strip().upper() == "VACUUM" for statement in statements) == 1
+
+
 @pytest.mark.vcr()
 @pytest.mark.parametrize(
     "low, high, delay_commit, input_retval, exp_res",

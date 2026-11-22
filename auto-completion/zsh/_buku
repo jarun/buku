@@ -54,6 +54,7 @@ args=(
     '(-u --update)'{-u,--update}'[update bookmark]'
     '(--url)--url[set url]:url'
     '(--url-redirect)--url-redirect[update URL on a permanent redirect]'
+    '(--vacuum)--vacuum[reclaim unused database space]'
     '(-V)-V[check latest upstream release]'
     '(-v --version)'{-v,--version}'[show program version]'
     '(-w --write)'{-w,--write}'[open editor]'
