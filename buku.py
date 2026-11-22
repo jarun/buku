@@ -1519,6 +1519,53 @@ class BukuDb:
                 self.conn.commit()
         self._to_delete = None
 
+    def check_unreachable(self, threads: int = 4, permit_ip: bool = True) -> List[Tuple[int, str, str]]:
+        """Return bookmarks with malformed URLs, network failures, or HTTP errors."""
+
+        if threads < 1:
+            raise ValueError('threads must be positive')
+
+        with self.lock:
+            self.cur.execute('SELECT id, url, flags FROM bookmarks ORDER BY id ASC')
+            resultset = self.cur.fetchall()
+
+        if not resultset:
+            return []
+
+        if not MYHEADERS:
+            gen_headers()
+
+        unreachable = []
+        work_lock = threading.Lock()
+
+        def check():
+            while True:
+                with work_lock:
+                    if not resultset:
+                        return
+                    index, url, flags = resultset.pop()
+
+                result = fetch_data(url, permit_ip=permit_ip, http_head=(flags & FLAG_IMMUTABLE) > 0)
+                if result.bad:
+                    reason = 'Malformed URL'
+                elif result.fetch_status is None:
+                    reason = 'Network error'
+                elif result.fetch_status >= 400:
+                    reason = f'HTTP {result.fetch_status}'
+                else:
+                    continue
+
+                with work_lock:
+                    unreachable.append((index, url, reason))
+
+        workers = [threading.Thread(target=check) for _ in range(min(threads, len(resultset)))]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+
+        return sorted(unreachable)
+
     def edit_update_rec(self, index, immutable=None):
         """Edit in editor and update a record.
 
@@ -6042,7 +6089,6 @@ POSITIONAL ARGUMENTS:
                          if no arguments:
                          - delete results when used with search
                          - otherwise delete all bookmarks
-    --vacuum             reclaim unused database space
     --retain-order       prevents reordering after deleting a bookmark
     -h, --help           show this information and exit
     -v, --version        show the program version and exit''')
@@ -6051,7 +6097,6 @@ POSITIONAL ARGUMENTS:
     addarg('-u', '--update', nargs='*', help=hide)
     addarg('-w', '--write', nargs='?', const=get_system_editor(), help=hide)
     addarg('-d', '--delete', nargs='*', help=hide)
-    addarg('--vacuum', action='store_true', help=hide)
     addarg('--retain-order', action='store_true', default=False, help=hide)
     addarg('-h', '--help', action='store_true', help=hide)
     addarg('-v', '--version', action='version', version=__version__, help=hide)
@@ -6204,8 +6249,10 @@ POSITIONAL ARGUMENTS:
     --suggest            show similar tags when adding bookmarks
     --tacit              reduce verbosity, skip some confirmations
     --nostdin            do not wait for input (must be first arg)
-    --threads N          max network connections in full refresh
+    --threads N          max network connections in full refresh/check
                          default N=4, min N=1, max N=10
+    --dead               report unreachable bookmark URLs
+    --vacuum             reclaim unused database space
     -V                   check latest upstream version available
     -g, --debug          show debug information and verbose logs''')
     addarg = power_grp.add_argument
@@ -6235,6 +6282,8 @@ POSITIONAL ARGUMENTS:
     addarg('--tacit', action='store_true', help=hide)
     addarg('--nostdin', action='store_true', help=hide)
     addarg('--threads', type=int, default=4, choices=range(1, 11), help=hide)
+    addarg('--dead', dest='check_unreachable', action='store_true', help=hide)
+    addarg('--vacuum', action='store_true', help=hide)
     addarg('-V', dest='upstream', action='store_true', help=hide)
     addarg('-g', '--debug', action='store_true', help=hide)
     # Undocumented APIs
@@ -6392,6 +6441,15 @@ POSITIONAL ARGUMENTS:
         bdb = BukuDb(args.json, args.format, not args.tacit, dbfile=_db, colorize=not args.nc, default_scheme=args.default_scheme[0])
     except Exception:
         sys.exit(1)
+
+    if args.check_unreachable:
+        unreachable = bdb.check_unreachable(args.threads)
+        if unreachable:
+            for index, url, reason in unreachable:
+                print(f'Index {index}: {reason}: {url}')
+        else:
+            print('No unreachable URLs found.')
+        bdb.close_quit(0)
 
     if args.vacuum:
         bdb.vacuum()

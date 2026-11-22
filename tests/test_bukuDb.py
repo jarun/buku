@@ -1182,6 +1182,36 @@ def test_refreshdb(refreshdb_fixture, title_in, exp_res):
     assert from_db[2] == exp_res, "from_db: {}".format(from_db)
 
 
+def test_check_unreachable(refreshdb_fixture):
+    bdb = refreshdb_fixture
+    urls = [
+        'https://not-found.example',
+        'https://offline.example',
+        'https://malformed.example',
+        'https://available.example',
+    ]
+    for url in urls:
+        _add_rec(bdb, url)
+    before = bdb.get_rec_all()
+    responses = {
+        urls[0]: FetchResult(urls[0], fetch_status=404),
+        urls[1]: FetchResult(urls[1]),
+        urls[2]: FetchResult(urls[2], bad=True),
+        urls[3]: FetchResult(urls[3], fetch_status=200),
+    }
+
+    with mock.patch('buku.fetch_data', side_effect=lambda url, **kwargs: responses[url]) as fetch:
+        unreachable = bdb.check_unreachable(threads=2)
+
+    assert unreachable == [
+        (1, urls[0], 'HTTP 404'),
+        (2, urls[1], 'Network error'),
+        (3, urls[2], 'Malformed URL'),
+    ]
+    assert fetch.call_count == len(urls)
+    assert bdb.get_rec_all() == before
+
+
 @pytest.fixture
 def test_print_caplog(caplog):
     caplog.handler.records.clear()

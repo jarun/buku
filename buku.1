@@ -130,9 +130,6 @@ should be passed. In this case the environment variable EDITOR must be set. The 
 .BI \-d " " \--delete " [...]"
 Delete bookmarks. Accepts space-separated list of indices (e.g. 5 6 23 4 110 45) or a single hyphenated range (e.g. 100-200). Note that range and list don't work together. Deletes search results when combined with search options, if no arguments.
 .TP
-.BI \--vacuum
-Reclaim unused database space and exit. Optimizes the database through defragmentation.
-.TP
 .BI \--retain-order
 When deleting bookmarks, shift indices of multiple records instead of replacing the deleted record with the last one.
 .TP
@@ -231,6 +228,9 @@ Decrypt (unlock) the DB file with
 Auto-import bookmarks from Firefox, Google Chrome, Chromium, Vivaldi, Vivaldi Internal, Brave, and MS Edge browsers. (Firefox profile can be specified using environment variable FIREFOX_PROFILE; Firefox profiles directory can be specified using environment variable FIREFOX_PROFILES_DIR.)
 .br
 For Chrome, Chromium, Vivaldi (including Internal), and Brave, both plaintext Bookmarks and AccountBookmarks files are imported when available. Encrypted bookmark files are not supported; export bookmarks as HTML from the browser and import the exported file with buku -i bookmarks.html instead.
+.TP
+.BI \--dead
+Check all bookmarked URLs and report malformed URLs, network failures and HTTP errors without modifying bookmark records. Use \fB--threads\fR to set the maximum number of parallel connections.
 .TP
 .BI \-e " " \--export " file"
 Export bookmarks to Firefox bookmarks formatted HTML. Works with all search options.
@@ -360,9 +360,12 @@ Show lesser output. Reduces the verbosity of certain operations like add, update
 Do not attempt to read data from standard input e.g. when the program is not executed from a tty.
 .TP
 .BI \--threads
-Maximum number of parallel network connection threads to use during full DB refresh. By default 4 connections are spawned.
+Maximum number of parallel network connection threads to use during full DB refresh or unreachable URL checks. By default 4 connections are spawned.
 .I N
 can range from 1 to 10.
+.TP
+.BI \--vacuum
+Reclaim unused database space and exit. Optimizes the database through defragmentation.
 .TP
 .BI \-V
 Check the latest upstream version available. This is FYI. It is possible the latest upstream released version is still not available in your package manager as the process takes a while.

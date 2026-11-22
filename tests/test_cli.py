@@ -43,6 +43,20 @@ def test_version(BukuDb, piped_input, capsys):
         buku.main(['--version'])
     assert capsys.readouterr().out.splitlines() == [buku.__version__]
 
+
+def test_check_unreachable(BukuDb, bdb, capsys):
+    bdb.check_unreachable.return_value = [(2, 'https://example.com/missing', 'HTTP 404')]
+    with pytest.raises(SystemExit):
+        buku.main(['--nostdin', '--dead', '--threads', '2'])
+
+    bdb.check_unreachable.assert_called_once_with(2)
+    bdb.update_rec.assert_not_called()
+    bdb.close_quit.assert_called_once_with(0)
+    assert capsys.readouterr().out.splitlines() == [
+        'Index 2: HTTP 404: https://example.com/missing',
+    ]
+
+
 def test_usage(BukuDb, piped_input, monkeypatch, capsys):
     with pytest.raises(SystemExit):
         buku.main(['--unknown'], program_name='buku')
