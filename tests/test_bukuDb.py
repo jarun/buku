@@ -2025,10 +2025,88 @@ def test_searchdb(bukuDb, keywords, params, expected):
     assert [x.url for x in bdb.searchdb(keywords, **params)] == expected
 
 
+def test_searchdb_fts_falls_back_for_short_any_keyword(bukuDb):
+    bdb = bukuDb()
+    if not bdb._fts_enabled:
+        pytest.skip('FTS5 trigram is unavailable')
+    _add_rec(bdb, 'https://one.example', 'Common result', parse_tags(['red']), '')
+    _add_rec(bdb, 'https://two.example', 'x', parse_tags(['blue']), '')
+    statements = []
+    bdb.conn.set_trace_callback(statements.append)
+
+    assert [record.id for record in bdb.searchdb(['Common', 'x'])] == [1, 2]
+    assert not any('buku_bookmarks_fts MATCH' in statement for statement in statements)
+
+
+def test_searchdb_fts_preserves_unicode_case_matches(bukuDb):
+    bdb = bukuDb()
+    if not bdb._fts_enabled:
+        pytest.skip('FTS5 trigram is unavailable')
+    _add_rec(bdb, 'https://one.example', 'İstanbul guide', parse_tags(['travel']), '')
+    statements = []
+    bdb.conn.set_trace_callback(statements.append)
+
+    assert [record.id for record in bdb.searchdb(['Istanbul'])] == [1]
+    assert any('buku_bookmarks_fts MATCH' in statement for statement in statements)
+
+
+def test_search_by_tag_fts_falls_back_for_unindexed_any_term(bukuDb):
+    bdb = bukuDb()
+    if not bdb._fts_enabled:
+        pytest.skip('FTS5 trigram is unavailable')
+    _add_rec(bdb, 'https://one.example', 'Unicode tag', parse_tags(['jaźń']), '')
+    _add_rec(bdb, 'https://two.example', 'ASCII tag', parse_tags(['test']), '')
+    statements = []
+    bdb.conn.set_trace_callback(statements.append)
+
+    assert [record.id for record in bdb.search_by_tag('jaźń, test')] == [1, 2]
+    assert not any('buku_bookmarks_fts MATCH' in statement for statement in statements)
+
+
+def test_search_keywords_and_filter_by_tags_fts_falls_back_for_unindexed_any_tag(bukuDb):
+    bdb = bukuDb()
+    if not bdb._fts_enabled:
+        pytest.skip('FTS5 trigram is unavailable')
+    _add_rec(bdb, 'https://one.example', 'Needle', parse_tags(['jaźń']), '')
+    _add_rec(bdb, 'https://two.example', 'Needle', parse_tags(['test']), '')
+
+    assert [record.id for record in bdb.search_keywords_and_filter_by_tags(
+        ['Needle'], stag=['jaźń, test'])] == [1, 2]
+
+
+def test_fts_index_backfills_and_tracks_bookmark_updates(tmp_path):
+    dbfile = tmp_path / 'existing.db'
+    conn = sqlite3.connect(dbfile)
+    conn.execute('CREATE TABLE bookmarks (id integer PRIMARY KEY, URL text NOT NULL UNIQUE, '
+                 'metadata text default \'\', tags text default \',\', desc text default \'\', flags integer default 0)')
+    conn.execute('INSERT INTO bookmarks VALUES (?, ?, ?, ?, ?, ?)',
+                 (1, 'https://one.example', 'Needle title', ',oldtag,', 'Description', 0))
+    conn.commit()
+    conn.close()
+
+    bdb = BukuDb(dbfile=dbfile)
+    if not bdb._fts_enabled:
+        bdb.close()
+        pytest.skip('FTS5 trigram is unavailable')
+    assert [record.id for record in bdb.searchdb(['Needle'])] == [1]
+
+    bdb.cur.execute('UPDATE bookmarks SET metadata = ?, tags = ? WHERE id = ?',
+                    ('Updated title', ',newtag,', 1))
+    bdb.conn.commit()
+    assert bdb.searchdb(['Needle']) == []
+    assert [record.id for record in bdb.searchdb(['Updated'])] == [1]
+    assert bdb.search_by_tag('oldtag') == []
+    assert [record.id for record in bdb.search_by_tag('newtag')] == [1]
+
+    assert bdb.delete_rec(1, chatty=False)
+    assert bdb.searchdb(['Updated']) == []
+    bdb.close()
+
+
 def test_search_keywords_and_filter_by_tags(bukuDb):
     bdb = bukuDb()
     for url, title, tags in [
-        ('https://one.example', 'Common alpha', 'alpha,red'),
+        ('https://one.example', 'Common alpha', 'a,alpha,red'),
         ('https://two.example', 'Common beta', 'beta,blue'),
         ('https://three.example', 'Common skip', 'alpha,skip'),
         ('https://four.example', 'Other alpha', 'alpha,red'),
@@ -2048,6 +2126,11 @@ def test_search_keywords_and_filter_by_tags(bukuDb):
     assert [record.id for record in results] == [1]
     assert sum(statement.lstrip().upper().startswith('SELECT') for statement in statements) == 1
     assert bdb.search_keywords_and_filter_by_tags(['Common'], stag=['']) == []
+
+    statements.clear()
+    assert [record.id for record in bdb.search_by_tag('a')] == [1]
+    if bdb._fts_enabled:
+        assert any('buku_bookmarks_fts MATCH' in statement for statement in statements)
 
 
 @pytest.mark.parametrize('search_results, exclude_results, exp_res', [

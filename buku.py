@@ -487,6 +487,14 @@ class BukuDb:
         self.chatty = chatty
         self.colorize = colorize
         self.conn, self.cur = BukuDb.initdb(dbfile, self.chatty)
+        fts_sql = self.cur.execute("SELECT sql FROM sqlite_master WHERE name = 'buku_bookmarks_fts'").fetchone()
+        self._fts_enabled = bool(fts_sql and fts_sql[0] and 'using fts5' in fts_sql[0].lower() and
+                                 'trigram' in fts_sql[0].lower())
+        if self._fts_enabled:
+            try:
+                self.cur.execute('SELECT rowid FROM buku_bookmarks_fts LIMIT 0')
+            except sqlite3.OperationalError:
+                self._fts_enabled = False
         self._is_closed = False
         self.lock = threading.RLock()  # repeatable lock, only blocks *concurrent* access
         self._to_export = None  # type: Optional[Dict[str, str | BookmarkVar]]
@@ -588,6 +596,29 @@ class BukuDb:
                         'tags text default \',\', '
                         'desc text default \'\', '
                         'flags integer default 0)')
+
+            fts_table = cur.execute("SELECT sql FROM sqlite_master WHERE name = 'buku_bookmarks_fts'").fetchone()
+            if not fts_table or 'using fts5' in (fts_table[0] or '').lower():
+                try:
+                    cur.execute("CREATE VIRTUAL TABLE IF NOT EXISTS buku_bookmarks_fts "
+                                "USING fts5(url, metadata, tags, desc, tokenize='trigram')")
+                except sqlite3.OperationalError as e:
+                    if not any(error in str(e).lower() for error in ('no such module: fts5', 'no such tokenizer: trigram')):
+                        raise
+                else:
+                    cur.execute('CREATE TRIGGER IF NOT EXISTS buku_bookmarks_fts_ai AFTER INSERT ON bookmarks '
+                                'BEGIN INSERT INTO buku_bookmarks_fts(rowid, url, metadata, tags, desc) '
+                                'VALUES (new.id, new.URL, new.metadata, new.tags, new.desc); END')
+                    cur.execute('CREATE TRIGGER IF NOT EXISTS buku_bookmarks_fts_ad AFTER DELETE ON bookmarks '
+                                'BEGIN DELETE FROM buku_bookmarks_fts WHERE rowid = old.id; END')
+                    cur.execute('CREATE TRIGGER IF NOT EXISTS buku_bookmarks_fts_au '
+                                'AFTER UPDATE OF id, URL, metadata, tags, desc ON bookmarks '
+                                'BEGIN DELETE FROM buku_bookmarks_fts WHERE rowid = old.id; '
+                                'INSERT INTO buku_bookmarks_fts(rowid, url, metadata, tags, desc) '
+                                'VALUES (new.id, new.URL, new.metadata, new.tags, new.desc); END')
+                    if not fts_table:
+                        cur.execute('INSERT INTO buku_bookmarks_fts(rowid, url, metadata, tags, desc) '
+                                    'SELECT id, URL, metadata, tags, desc FROM bookmarks')
             conn.commit()
         except Exception as e:
             LOGERR('initdb(): %s', e)
@@ -1651,6 +1682,38 @@ class BukuDb:
                 clauses += (_clauses if len(_clauses) < 2 else [f'({" AND ".join(_clauses)})'])
         return ' OR '.join(clauses), args
 
+    def _fts_terms(self, terms):
+        if not self._fts_enabled:
+            return []
+        candidates = []
+        unsafe_casefold = 'iIkKsS'
+        for term in terms:
+            if not term.isascii() or not term.isprintable():
+                continue
+            candidate = next((term[pos:pos + 3] for pos in range(len(term) - 2)
+                              if not any(char in unsafe_casefold for char in term[pos:pos + 3])), None)
+            if candidate and candidate not in candidates:
+                candidates.append(candidate)
+        return candidates
+
+    def _fts_candidate(self, terms, require_all=False):
+        candidates = []
+        missing_candidate = False
+        for term in terms:
+            term_candidate = self._fts_terms([term])
+            if not term_candidate:
+                missing_candidate = True
+            else:
+                candidates.extend(term_candidate)
+        if require_all and missing_candidate:
+            return None
+
+        phrases = ['"' + term.replace('"', '""') + '"' for term in dict.fromkeys(candidates)]
+        if not phrases:
+            return None
+        return ('id IN (SELECT rowid FROM buku_bookmarks_fts WHERE buku_bookmarks_fts MATCH ?)',
+                ' OR '.join(phrases))
+
     def searchdb(
             self,
             keywords: List[str],
@@ -1689,18 +1752,30 @@ class BukuDb:
             List of search results.
         """
         _order = self._order(order)
-        clauses, qargs = [], []
+        clauses, qargs, candidate_groups = [], [], []
         for keyword in keywords:
             tokens = self._search_tokens(keyword, deep=deep, markers=markers)
             clause, args = self._search_clause(tokens, regex=regex)
             if clause and args:
                 clauses += [f'({clause})']
                 qargs += args
+                candidate_groups.append(self._fts_terms(param for token in tokens for param in token[2:]))
         if not qargs:
             return []
 
-        _where_clauses = _where_clauses or []
-        _where_args = _where_args or []
+        _where_clauses = list(_where_clauses or [])
+        _where_args = list(_where_args or [])
+        if not regex and not (all_keywords and keywords in (['blank'], ['immutable'])):
+            if all_keywords:
+                candidate_terms = [term for group in candidate_groups for term in group]
+            elif candidate_groups and all(candidate_groups):
+                candidate_terms = [term for group in candidate_groups for term in group]
+            else:
+                candidate_terms = []
+            candidate = self._fts_candidate(candidate_terms, require_all=not all_keywords)
+            if candidate:
+                _where_clauses.insert(0, candidate[0])
+                _where_args.insert(0, candidate[1])
         extra_where = ''.join(f' AND ({clause})' for clause in _where_clauses)
 
         _count = lambda x: f'CASE WHEN {x} THEN 1 ELSE 0 END'
@@ -1770,18 +1845,21 @@ class BukuDb:
         LOGDBG('search_operator: %s', search_operator)
         LOGDBG('excluded_tags: %s', excluded_tags)
 
+        candidate = self._fts_candidate(qargs, require_all=search_operator == 'OR')
+        candidate_clause = f' AND {candidate[0]}' if candidate else ''
         if search_operator == 'AND':
             query = ('SELECT id, url, metadata, tags, desc, flags FROM bookmarks WHERE (' +
                      f' {search_operator} '.join("tags LIKE '%' || ? || '%' ESCAPE '`'" for tag in qargs) +
-                     ')' + ('' if not excluded_tags else ' AND tags NOT REGEXP ?') +
+                     ')' + candidate_clause + ('' if not excluded_tags else ' AND tags NOT REGEXP ?') +
                      f' ORDER BY {_order}')
         else:
             query = ('SELECT id, url, metadata, tags, desc, flags FROM (SELECT *, ' +
                      ' + '.join("CASE WHEN tags LIKE '%' || ? || '%' ESCAPE '`' THEN 1 ELSE 0 END" for tag in qargs) +
                      ' AS score FROM bookmarks WHERE score > 0' +
+                     candidate_clause +
                      ('' if not excluded_tags else ' AND tags NOT REGEXP ?') +
                      f' ORDER BY score DESC, {_order})')
-        qargs = [like_escape(tag) for tag in qargs]
+        qargs = [like_escape(tag) for tag in qargs] + ([candidate[1]] if candidate else [])
         if excluded_tags:
             qargs += [excluded_tags]
 
@@ -1842,6 +1920,10 @@ class BukuDb:
             where_clauses.append(' {} '.format(operator).join(
                 "tags LIKE '%' || ? || '%' ESCAPE '`'" for _ in tags))
             where_args.extend(like_escape(tag) for tag in tags)
+            candidate = self._fts_candidate(tags, require_all=operator == 'OR')
+            if candidate:
+                where_clauses.append(candidate[0])
+                where_args.append(candidate[1])
             if excluded_tags:
                 where_clauses.append('tags NOT REGEXP ?')
                 where_args.append(excluded_tags)
