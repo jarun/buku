@@ -4570,6 +4570,7 @@ def fetch_data(
                 # Remove trailing /
                 url = url[:-1]
                 resp.close()
+                time.sleep(1)
                 continue
             else:
                 page_title, page_desc, page_keys = get_data_from_page(resp)

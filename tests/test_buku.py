@@ -566,6 +566,29 @@ def test_fetch_data_survives_poolmanager_failure():
     assert res == FetchResult("https://example.com/")
 
 
+def test_fetch_data_delays_before_forbidden_retry():
+    import buku
+
+    forbidden = mock.Mock(status=403)
+    success = mock.Mock(status=200)
+    success.retries.history = []
+    manager = mock.Mock()
+    manager.request.side_effect = [forbidden, success]
+
+    with mock.patch("buku.MYHEADERS", {}), \
+            mock.patch("buku.get_PoolManager", return_value=manager), \
+            mock.patch("buku.get_data_from_page", return_value=("title", "", "")), \
+            mock.patch("buku.time.sleep") as sleep:
+        result = buku.fetch_data("https://example.com/")
+
+    assert result.title == "title"
+    assert [call.args[1] for call in manager.request.call_args_list] == [
+        "https://example.com/",
+        "https://example.com",
+    ]
+    sleep.assert_called_once_with(1)
+
+
 @pytest.mark.vcr("tests/vcr_cassettes/test_fetch_data_with_url.yaml")
 @pytest.mark.parametrize(
     "url, exp_res",
