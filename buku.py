@@ -1806,7 +1806,9 @@ class BukuDb:
             if clause and args:
                 clauses += [f'({clause})']
                 qargs += args
-                candidate_groups.append(self._fts_terms(param for token in tokens for param in token[2:]))
+                # each token is an alternative match, so all of them need a term to narrow the search
+                token_terms = [self._fts_terms(token[2:]) for token in tokens]
+                candidate_groups.append([term for terms in token_terms for term in terms] if all(token_terms) else [])
         if not qargs:
             return []
 

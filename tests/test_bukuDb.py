@@ -2080,6 +2080,17 @@ def test_searchdb_fts_preserves_unicode_case_matches(bukuDb):
     assert any('buku_bookmarks_fts MATCH' in statement for statement in statements)
 
 
+@pytest.mark.parametrize('all_keywords', [False, True])
+@pytest.mark.parametrize('keyword', ['c,vim', 'vim,c'])
+def test_searchdb_fts_keeps_tag_matches_for_comma_keyword(bukuDb, keyword, all_keywords):
+    bdb = bukuDb()
+    if not bdb._fts_enabled:
+        pytest.skip('FTS5 trigram is unavailable')
+    _add_rec(bdb, 'https://vim.example', 'Vim tips', parse_tags(['vim,c']), '')
+
+    assert [record.id for record in bdb.searchdb([keyword], all_keywords=all_keywords)] == [1]
+
+
 def test_search_by_tag_fts_falls_back_for_unindexed_any_term(bukuDb):
     bdb = bukuDb()
     if not bdb._fts_enabled:
