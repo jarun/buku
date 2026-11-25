@@ -1293,16 +1293,27 @@ def test_searchdb_deep_treats_like_wildcards_literally(bukuDb, keyword, expected
     assert [r.id for r in bdb.searchdb([keyword], deep=True)] == expected
 
 
+@pytest.mark.parametrize('keyword, kwargs', [
+    ('tag1,tag2', dict(regex=True)),                          # comma in a regex must fail cleanly, not crash (issue #934)
+    ('#,tag1,tag2', dict(regex=True, markers=True)),          # multi-tag marker search with regex must fail
+])
+def test_searchdb_regex_with_comma_and_multi_tags_fails(bukuDb, keyword, kwargs):
+    """Regex search must fail cleanly when a single expression would span
+    multiple tags: tag search applies to individual tags, not the raw tags
+    string (see issue #934 and the review discussion on PR #935)."""
+    bdb = bukuDb()
+    _add_rec(bdb, "http://one.com", "one", parse_tags(["tag1,tag2"]), "")
+    _add_rec(bdb, "http://two.com", "two", parse_tags(["tag3"]), "")
+
+    with pytest.raises(ValueError):
+        bdb.searchdb([keyword], **kwargs)
+
+
 @pytest.mark.parametrize('keyword, kwargs, expected', [
-    ('tag1,tag2', dict(regex=True), {1}),          # comma in a regex must not crash (issue #934)
-    ('#,tag1,tag2', dict(regex=True, markers=True), {1}),  # marker tag search with regex, multi-tag
-    ('#,tag1,tagX', dict(regex=True, markers=True), set()),  # ...no match for a non-matching regex
     ('#,tag1', dict(regex=True, markers=True), {1}),         # single-tag marker search, unchanged
     (r'tag\d', dict(regex=True), {1, 2}),                   # plain regex search, unchanged
 ])
-def test_searchdb_regex_with_comma_and_marker_tags(bukuDb, keyword, kwargs, expected):
-    """Regex search must treat the expression as a raw regex instead of
-    crashing on commas or multi-tag marker tokens (see issue #934)."""
+def test_searchdb_regex_single_tag_unchanged(bukuDb, keyword, kwargs, expected):
     bdb = bukuDb()
     _add_rec(bdb, "http://one.com", "one", parse_tags(["tag1,tag2"]), "")
     _add_rec(bdb, "http://two.com", "two", parse_tags(["tag3"]), "")

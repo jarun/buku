@@ -1681,9 +1681,12 @@ class BukuDb:
 
         args, clauses = [], []
         if regex:
-            for field, deep, param in tokens:
+            for field, deep, *params in tokens:
+                if len(params) > 1:
+                    raise ValueError('regex matching cannot span multiple tags; '
+                                     'tag search applies to individual tags')
                 clauses += [field + ' REGEXP ?']
-                args += [param]
+                args += [params[0]]
         else:
             for field, deep, *params in tokens:
                 _clauses = []
@@ -1738,7 +1741,7 @@ class BukuDb:
         _order = self._order(order)
         clauses, qargs = [], []
         for keyword in keywords:
-            tokens = self._search_tokens(keyword, deep=deep, markers=markers, regex=regex)
+            tokens = self._search_tokens(keyword, deep=deep, markers=markers)
             clause, args = self._search_clause(tokens, regex=regex)
             if clause and args:
                 clauses += [f'({clause})']
