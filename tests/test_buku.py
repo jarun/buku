@@ -692,6 +692,41 @@ def test_import_rss(tmpdir, extension, newtag, exp_res):
     res = list(import_rss(p.strpath, newtag))
     assert res[0] == exp_res
 
+@pytest.mark.parametrize('entry_xml, exp_res', [
+    # entry without <title> is imported with no title
+    ('<entry><link href="http://example.com"/></entry>',
+     ('http://example.com', None, ',', None, 0, True, False)),
+    # <category> without a term attribute does not abort the import
+    ('<entry><title>text1</title><link href="http://example.com"/><category scheme="x"/></entry>',
+     ('http://example.com', 'text1', ',', None, 0, True, False)),
+])
+def test_import_rss_skips_malformed_entries(tmpdir, entry_xml, exp_res):
+    """Entries with missing title or category term do not crash the importer (see issue #932)."""
+    from buku import import_rss
+
+    p = tmpdir.mkdir('importrss').join('test.rss')
+    p.write(
+        '<feed xmlns="http://www.w3.org/2005/Atom">\n'
+        '    <title>Bookmarks</title>\n'
+        '    ' + entry_xml + '\n'
+        '</feed>\n')
+    res = list(import_rss(p.strpath, None))
+    assert res == [exp_res]
+
+def test_import_rss_skips_entries_without_link(tmpdir):
+    """An entry without a usable link cannot become a bookmark (see issue #932)."""
+    from buku import import_rss
+
+    p = tmpdir.mkdir('importrss').join('test.rss')
+    p.write(
+        '<feed xmlns="http://www.w3.org/2005/Atom">\n'
+        '    <title>Bookmarks</title>\n'
+        '    <entry><title>no link here</title></entry>\n'
+        '    <entry><title>ok</title><link href="http://example.com"/></entry>\n'
+        '</feed>\n')
+    res = list(import_rss(p.strpath, None))
+    assert res == [('http://example.com', 'ok', ',', None, 0, True, False)]
+
 @pytest.mark.parametrize('tags, newtag, exp_tags', [
     ('', None, ','), ('', 'new tag', ',new tag,'),
     ('tag1: ::tag2:tag::3:tag4:: :tag:::5: ta g::6:: ', None, ',tag1,:tag2,tag:3,tag4:,tag::5,ta g:6:,'),

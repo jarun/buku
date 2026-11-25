@@ -3834,14 +3834,18 @@ def import_rss(filepath: str, newtag: Optional[str]):
         ns = {'atom': 'http://www.w3.org/2005/Atom'}
         root = ET.fromstring(infp.read())
         for entry in root.findall('atom:entry', ns):
-            title = entry.find('atom:title', ns).text
-            url = entry.find('atom:link', ns).attrib['href']
-            tags = ','.join([tag.attrib['term'] for tag in entry.findall('atom:category', ns)])
+            link = entry.find('atom:link', ns)
+            if link is None or not link.attrib.get('href'):
+                # an entry without a usable link is not a bookmark
+                continue
+            title = entry.find('atom:title', ns)
+            url = link.attrib['href']
+            tags = ','.join([tag.attrib['term'] for tag in entry.findall('atom:category', ns) if 'term' in tag.attrib])
             if newtag is not None:
                 tags = newtag + ',' + tags
             desc = entry.find('atom:content', ns)
             desc = desc.text if desc is not None else None
-            yield (url, title, delim_wrap(tags), desc, 0, True, False)
+            yield (url, title.text if title is not None else None, delim_wrap(tags), desc, 0, True, False)
 
 def import_org(filepath: str, newtag: Optional[str]):
     """Parse bookmark org file.
