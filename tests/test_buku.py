@@ -692,6 +692,46 @@ def test_import_rss(tmpdir, extension, newtag, exp_res):
     res = list(import_rss(p.strpath, newtag))
     assert res[0] == exp_res
 
+@pytest.mark.parametrize('extension', ['.rss', '.atom'])
+def test_import_rss_export_roundtrip(tmpdir, extension):
+    """Description must survive a buku RSS/Atom export -> import round-trip (issue #936)."""
+    from buku import BookmarkVar, convert_bookmark_set, import_rss
+
+    desc = 'desc with & ampersand "quotes" and <angle> chars'
+    data = convert_bookmark_set(
+        [BookmarkVar(1, 'http://example.com', 'title & more', ',tag one,tag two,', desc)],
+        'rss')['data']
+    p = tmpdir.mkdir('roundtrip').join('test' + extension)
+    p.write(data)
+
+    for _ in range(3):  # corruption used to accumulate with every round-trip
+        res = list(import_rss(p.strpath, None))
+        assert res == [('http://example.com', 'title & more', ',tag one,tag two,', desc, 0, True, False)]
+        data = convert_bookmark_set(
+            [BookmarkVar(1, res[0][0], res[0][1], res[0][2], res[0][3])], 'rss')['data']
+        p.write(data)
+
+@pytest.mark.parametrize('content, exp_desc', [
+    (' <![CDATA[ <p>desc with &amp; ampersand</p> ]]> ', 'desc with & ampersand'),
+    (' <![CDATA[ plain text ]]> ', 'plain text'),
+    ('<![CDATA[<p>&lt;b&gt;bold&lt;/b&gt;</p>]]>', '<b>bold</b>'),
+])
+def test_import_rss_html_content(tmpdir, content, exp_desc):
+    """CDATA-wrapped html content must be unwrapped and unescaped on import (issue #936)."""
+    from buku import import_rss
+
+    p = tmpdir.mkdir('htmlcontent').join('test.rss')
+    p.write(
+        '<feed xmlns="http://www.w3.org/2005/Atom">\n'
+        '    <entry>\n'
+        '        <title>text1</title>\n'
+        '        <link href="http://example.com"/>\n'
+        f'        <content type="html">{content}</content>\n'
+        '    </entry>\n'
+        '</feed>\n')
+    res = list(import_rss(p.strpath, None))
+    assert res[0][3] == exp_desc
+
 @pytest.mark.parametrize('tags, newtag, exp_tags', [
     ('', None, ','), ('', 'new tag', ',new tag,'),
     ('tag1: ::tag2:tag::3:tag4:: :tag:::5: ta g::6:: ', None, ',tag1,:tag2,tag:3,tag4:,tag::5,ta g:6:,'),
