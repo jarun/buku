@@ -1738,7 +1738,7 @@ class BukuDb:
         _order = self._order(order)
         clauses, qargs = [], []
         for keyword in keywords:
-            tokens = self._search_tokens(keyword, deep=deep, markers=markers)
+            tokens = self._search_tokens(keyword, deep=deep, markers=markers, regex=regex)
             clause, args = self._search_clause(tokens, regex=regex)
             if clause and args:
                 clauses += [f'({clause})']
