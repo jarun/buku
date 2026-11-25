@@ -6320,7 +6320,11 @@ POSITIONAL ARGUMENTS:
         # Set colors
         if colorstr_env is not None:
             # Someone set BUKU_COLORS.
-            colorstr = colorstr_env
+            try:
+                colorstr = ExtendedArgumentParser.is_colorstr(colorstr_env)
+            except argparse.ArgumentTypeError:
+                LOGERR('Invalid BUKU_COLORS value: %s', colorstr_env)
+                colorstr = 'oKlxm'
         elif args.colorstr is not None:
             colorstr = args.colorstr
         else:
