@@ -2225,7 +2225,6 @@ def normalize_range(db_len, low, high):
     return (n_low, n_high)
 
 
-
 def test_read_in_returns_none_on_eof():
     from buku import read_in
 
