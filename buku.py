@@ -3831,6 +3831,7 @@ def import_rss(filepath: str, newtag: Optional[str]):
     """
 
     with open(filepath, mode='r', encoding='utf-8') as infp:
+        import html
         ns = {'atom': 'http://www.w3.org/2005/Atom'}
         root = ET.fromstring(infp.read())
         for entry in root.findall('atom:entry', ns):
@@ -3839,8 +3840,15 @@ def import_rss(filepath: str, newtag: Optional[str]):
             tags = ','.join([tag.attrib['term'] for tag in entry.findall('atom:category', ns)])
             if newtag is not None:
                 tags = newtag + ',' + tags
-            desc = entry.find('atom:content', ns)
-            desc = desc.text if desc is not None else None
+            content = entry.find('atom:content', ns)
+            desc = content.text if content is not None else None
+            if desc is not None and content.get('type') == 'html':
+                # undo the wrapping and escaping applied on export, so that
+                # export -> import round-trips preserve the description
+                desc = desc.strip()
+                if desc.startswith('<p>') and desc.endswith('</p>'):
+                    desc = desc[3:-4]
+                desc = html.unescape(desc)
             yield (url, title, delim_wrap(tags), desc, 0, True, False)
 
 def import_org(filepath: str, newtag: Optional[str]):
