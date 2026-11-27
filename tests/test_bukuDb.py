@@ -854,6 +854,39 @@ def test_importdb_appends_tags_to_existing_bookmarks(bukuDb):
     assert recs[0].tags_raw == parse_tags(['keep,fromimport'])
 
 
+def test_importdb_appends_tags_to_bookmark_with_id_zero(bukuDb):
+    bdb = bukuDb(chatty=False)
+    bdb.add_rec('http://one.example', 'one', parse_tags(['keep']), fetch=False)
+    bdb.cur.execute('UPDATE bookmarks SET id = 0 WHERE url = ?', ('http://one.example',))
+    bdb.conn.commit()
+
+    with NamedTemporaryFile(suffix='.html', delete=False, mode='w') as infp:
+        infp.write('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p>'
+                   '<DT><A HREF="http://one.example" TAGS="fromimport">dup</A>'
+                   '</DL><p>')
+        import_file = infp.name
+
+    assert bdb.importdb(import_file, tacit=True)
+    os.remove(import_file)
+
+    recs = bdb.get_rec_all()
+    assert len(recs) == 1
+    assert recs[0].id == 0
+    assert recs[0].tags_raw == parse_tags(['keep,fromimport'])
+
+
+def test_add_rec_rejects_duplicate_with_id_zero(bukuDb):
+    bdb = bukuDb(chatty=False)
+    url = 'http://one.example'
+    bdb.add_rec(url, 'one', fetch=False)
+    bdb.cur.execute('UPDATE bookmarks SET id = 0 WHERE url = ?', (url,))
+    bdb.conn.commit()
+
+    assert bdb.get_rec_id(url) == 0
+    assert bdb.add_rec(url, 'duplicate', fetch=False) is None
+    assert len(bdb.get_rec_all()) == 1
+
+
 @pytest.mark.parametrize('status', [None, 200, 302, 308, 404, 500])
 @pytest.mark.parametrize('fetch, url_redirect, tag_redirect, tag_error, del_error', [
     (False, False, False, False, None),                # offline

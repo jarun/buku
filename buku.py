@@ -872,7 +872,7 @@ class BukuDb:
 
         # Ensure that the URL does not exist in DB already
         id = self.get_rec_id(url)
-        if id:
+        if id is not None:
             LOGERR('URL [%s] already exists at index %d', url, id)
             return None
 
@@ -3255,7 +3255,7 @@ n: don't add parent folder as tag
                 add_rec_res = self.add_rec(*item)
                 if not add_rec_res and append_tags_resp == 'y':
                     rec_id = self.get_rec_id(item[0])
-                    if rec_id:
+                    if rec_id is not None:
                         self.append_tag_at_index(rec_id, item[2])
 
             self.conn.commit()
