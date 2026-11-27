@@ -2129,7 +2129,7 @@ class BukuDb:
                         return False
 
                     if self.print_rec(0, low, high, True) is True:
-                        resp = input('Delete these bookmarks? (y/n): ')
+                        resp = read_in('Delete these bookmarks? (y/n): ')
                         if resp != 'y':
                             return False
 
@@ -2163,7 +2163,7 @@ class BukuDb:
                         return False
 
                     if self.print_rec(index) is True:
-                        resp = input('Delete this bookmark? (y/n): ')
+                        resp = read_in('Delete this bookmark? (y/n): ')
                         if resp != 'y':
                             return False
 
@@ -3060,12 +3060,12 @@ class BukuDb:
         ff_bm_db_paths = get_firefox_db_paths(*ff_folders, specified=firefox_profile)
 
         if self.chatty:
-            resp = input('Generate auto-tag (YYYYMonDD)? (y/n): ')
+            resp = read_in('Generate auto-tag (YYYYMonDD)? (y/n): ')
             if resp == 'y':
                 newtag = gen_auto_tag()
             else:
                 newtag = None
-            resp = input('Add parent folder names as tags? (y/n): ')
+            resp = read_in('Add parent folder names as tags? (y/n): ')
         else:
             newtag = None
             resp = 'y'
@@ -3084,7 +3084,7 @@ class BukuDb:
                     LOGDBG('Browser: %s, profile: %s, files: %s', name, profile, files)
                     if files:
                         if self.chatty:
-                            resp = input(f'Import bookmarks from {name}? (y/n): ')
+                            resp = read_in(f'Import bookmarks from {name}? (y/n): ')
                         if resp == 'y':
                             imported = False
                             for s in files:
@@ -3105,7 +3105,7 @@ class BukuDb:
                     if self.chatty:
                         profile = ('' if len(ff_bm_db_paths) < 2 else
                                    f' profile {name} [{idx}/{len(ff_bm_db_paths)}]')
-                        resp = input(f'Import bookmarks from Firefox{profile}? (y/n): ')
+                        resp = read_in(f'Import bookmarks from Firefox{profile}? (y/n): ')
                     if resp == 'y':
                         bookmarks_database = os.path.expanduser(ff_bm_db_path)
                         if not os.path.exists(bookmarks_database):
@@ -3119,7 +3119,7 @@ class BukuDb:
             try:
                 if os.path.isfile(os.path.expanduser(me_bm_db_path)):
                     if self.chatty:
-                        resp = input('Import bookmarks from microsoft edge? (y/n): ')
+                        resp = read_in('Import bookmarks from microsoft edge? (y/n): ')
                     if resp == 'y':
                         bookmarks_database = os.path.expanduser(me_bm_db_path)
                         if not os.path.exists(bookmarks_database):
@@ -3165,9 +3165,9 @@ class BukuDb:
         newtag = None
         append_tags_resp = 'y'
         if not tacit:
-            if input('Generate auto-tag (YYYYMonDD)? (y/n): ') == 'y':
+            if read_in('Generate auto-tag (YYYYMonDD)? (y/n): ') == 'y':
                 newtag = gen_auto_tag()
-            append_tags_resp = input('Append tags when bookmark exist? (y/n): ')
+            append_tags_resp = read_in('Append tags when bookmark exist? (y/n): ')
 
         items = []
         if filepath.endswith('.md'):
@@ -3178,7 +3178,7 @@ class BukuDb:
             items = import_rss(filepath=filepath, newtag=newtag)
         elif filepath.endswith('json'):
             if not tacit:
-                resp = input('Add parent folder names as tags? (y/n): ')
+                resp = read_in('Add parent folder names as tags? (y/n): ')
             else:
                 resp = 'y'
             add_bookmark_folder_as_tag = resp == 'y'
@@ -3207,7 +3207,7 @@ class BukuDb:
             add_parent_folder_as_tag = False
             use_nested_folder_structure = False
             if not tacit:
-                resp = input("""Add bookmark's parent folder as tag?
+                resp = read_in("""Add bookmark's parent folder as tag?
 a: add all parent folders of the bookmark
 n: don't add parent folder as tag
 (a/[n]): """)
@@ -3234,7 +3234,7 @@ n: don't add parent folder as tag
             add_parent_folder_as_tag = False
             use_nested_folder_structure = False
             if not tacit:
-                resp = input("""Add bookmark's parent folder as tag?
+                resp = read_in("""Add bookmark's parent folder as tag?
 y: add single, direct parent folder
 a: add all parent folders of the bookmark
 n: don't add parent folder as tag
@@ -5568,6 +5568,9 @@ def read_in(msg):
         message = input(msg)
     except KeyboardInterrupt:
         print('Interrupted.')
+    except EOFError:
+        # stdin is exhausted or not interactive: decline (treat as "no")
+        print()
 
     enable_sigint_handler()
     return message

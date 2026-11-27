@@ -2306,5 +2306,51 @@ def normalize_range(db_len, low, high):
     return (n_low, n_high)
 
 
+def test_read_in_returns_none_on_eof():
+    from buku import read_in
+
+    with mock.patch('builtins.input', side_effect=EOFError):
+        assert read_in('Proceed? (y/n): ') is None
+
+
+def test_update_all_prompt_eof(bukuDb):
+    """The update-all confirmation must decline gracefully on closed stdin (issue #937)."""
+    bdb = bukuDb()
+    _add_rec(bdb, 'http://example.com', 'title', '', '')
+
+    with mock.patch('builtins.input', side_effect=EOFError):
+        assert bdb.update_rec([], title_in='new title') is False
+
+    assert bdb.get_rec_by_id(1).title == 'title'
+
+
+def test_delete_range_prompt_eof(bukuDb):
+    """The range-delete confirmation must decline gracefully on closed stdin (issue #937)."""
+    bdb = bukuDb(chatty=True)
+    _add_rec(bdb, 'http://one.example', 'title1', '', '')
+    _add_rec(bdb, 'http://two.example', 'title2', '', '')
+
+    with mock.patch('builtins.input', side_effect=EOFError):
+        assert bdb.delete_rec(0, 1, 2, is_range=True) is False
+
+    assert bdb.get_rec_by_id(1).url == 'http://one.example'
+    assert bdb.get_rec_by_id(2).url == 'http://two.example'
+
+
+def test_importdb_prompt_eof(tmpdir, bukuDb):
+    """Import prompts must fall back to their default answers on closed stdin (issue #937)."""
+    bdb = bukuDb()
+    md_file = tmpdir.mkdir('import').join('import.md')
+    md_file.write('- [title](http://example.com)\n')
+
+    with mock.patch('builtins.input', side_effect=EOFError):
+        assert bdb.importdb(md_file.strpath) is True
+
+    rec = bdb.get_rec_by_id(1)
+    assert rec.url == 'http://example.com'
+    assert rec.title == 'title'
+    assert rec.tags_raw == ','  # no auto-generated tag added
+
+
 if __name__ == "__main__":
     unittest.main()
