@@ -1294,8 +1294,8 @@ def test_searchdb_deep_treats_like_wildcards_literally(bukuDb, keyword, expected
 
 
 @pytest.mark.parametrize('keyword, kwargs', [
-    ('tag1,tag2', dict(regex=True)),                          # comma in a regex must fail cleanly, not crash (issue #934)
-    ('#,tag1,tag2', dict(regex=True, markers=True)),          # multi-tag marker search with regex must fail
+    ('tag1,tag2', {"regex": True}),                          # comma in a regex must fail cleanly, not crash (issue #934)
+    ('#,tag1,tag2', {"regex": True, "markers": True}),          # multi-tag marker search with regex must fail
 ])
 def test_searchdb_regex_with_comma_and_multi_tags_fails(bukuDb, keyword, kwargs):
     """Regex search must fail cleanly when a single expression would span
@@ -1310,8 +1310,8 @@ def test_searchdb_regex_with_comma_and_multi_tags_fails(bukuDb, keyword, kwargs)
 
 
 @pytest.mark.parametrize('keyword, kwargs, expected', [
-    ('#,tag1', dict(regex=True, markers=True), {1}),         # single-tag marker search, unchanged
-    (r'tag\d', dict(regex=True), {1, 2}),                   # plain regex search, unchanged
+    ('#,tag1', {"regex": True, "markers": True}, {1}),         # single-tag marker search, unchanged
+    (r'tag\d', {"regex": True}, {1, 2}),                   # plain regex search, unchanged
 ])
 def test_searchdb_regex_single_tag_unchanged(bukuDb, keyword, kwargs, expected):
     bdb = bukuDb()
