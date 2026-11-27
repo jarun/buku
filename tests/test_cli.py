@@ -57,6 +57,19 @@ def test_check_unreachable(BukuDb, bdb, capsys):
     ]
 
 
+@pytest.mark.parametrize('colorstr_env', ['x', '9z9', 'oooooo', 'oxoxo'])
+def test_buku_colors_env(BukuDb, bdb, piped_input, prompt, monkeypatch, caplog, colorstr_env):
+    """An invalid BUKU_COLORS value must not crash startup (issue #938)."""
+    monkeypatch.setenv('BUKU_COLORS', colorstr_env)
+    with pytest.raises(SystemExit):
+        buku.main(['--nostdin'])
+
+    if colorstr_env == 'oxoxo':  # valid: no error, colors applied
+        assert 'Invalid BUKU_COLORS value' not in caplog.text
+    else:  # invalid: clean error message, default colors used
+        assert 'Invalid BUKU_COLORS value: ' + colorstr_env in caplog.text
+
+
 def test_usage(BukuDb, piped_input, monkeypatch, capsys):
     with pytest.raises(SystemExit):
         buku.main(['--unknown'], program_name='buku')
