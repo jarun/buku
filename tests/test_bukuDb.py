@@ -807,6 +807,53 @@ class TestBukuDb(unittest.TestCase):
     # self.fail()
 
 
+def test_importdb_skips_tags_of_rejected_bookmarks(bukuDb, monkeypatch):
+    """Tags of an entry rejected by add_rec (e.g. empty URL) must not be
+    appended to any existing bookmark (see issue #930)."""
+    import buku
+
+    bdb = bukuDb(chatty=False)
+    bdb.add_rec('http://one.example', 'one', parse_tags(['keep']), fetch=False)
+    bdb.add_rec('http://two.example', 'two', parse_tags(['keep']), fetch=False)
+
+    with NamedTemporaryFile(suffix='.html', delete=False, mode='w') as infp:
+        infp.write('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p>'
+                   '<DT><A HREF="" TAGS="junk,evil">broken</A>'
+                   '</DL><p>')
+        import_file = infp.name
+
+    read_in_calls = []
+    monkeypatch.setattr(buku, 'read_in', lambda msg: read_in_calls.append(msg) or 'y')
+
+    assert bdb.importdb(import_file, tacit=True)
+    os.remove(import_file)
+
+    # the rejected entry is skipped: no prompt, no tag appended to any record
+    assert not read_in_calls
+    assert [x.tags_raw for x in bdb.get_rec_all()] == [parse_tags(['keep'])] * 2
+
+
+def test_importdb_appends_tags_to_existing_bookmarks(bukuDb):
+    """Tags of an entry whose URL already exists in the DB are appended to
+    the existing bookmark (unchanged behaviour)."""
+
+    bdb = bukuDb(chatty=False)
+    bdb.add_rec('http://one.example', 'one', parse_tags(['keep']), fetch=False)
+
+    with NamedTemporaryFile(suffix='.html', delete=False, mode='w') as infp:
+        infp.write('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p>'
+                   '<DT><A HREF="http://one.example" TAGS="fromimport">dup</A>'
+                   '</DL><p>')
+        import_file = infp.name
+
+    assert bdb.importdb(import_file, tacit=True)
+    os.remove(import_file)
+
+    recs = bdb.get_rec_all()
+    assert len(recs) == 1
+    assert recs[0].tags_raw == parse_tags(['keep,fromimport'])
+
+
 @pytest.mark.parametrize('status', [None, 200, 302, 308, 404, 500])
 @pytest.mark.parametrize('fetch, url_redirect, tag_redirect, tag_error, del_error', [
     (False, False, False, False, None),                # offline

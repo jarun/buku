@@ -3255,7 +3255,8 @@ n: don't add parent folder as tag
                 add_rec_res = self.add_rec(*item)
                 if not add_rec_res and append_tags_resp == 'y':
                     rec_id = self.get_rec_id(item[0])
-                    self.append_tag_at_index(rec_id, item[2])
+                    if rec_id:
+                        self.append_tag_at_index(rec_id, item[2])
 
             self.conn.commit()
 
