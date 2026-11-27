@@ -854,11 +854,12 @@ def test_importdb_appends_tags_to_existing_bookmarks(bukuDb):
     assert recs[0].tags_raw == parse_tags(['keep,fromimport'])
 
 
-def test_importdb_appends_tags_to_bookmark_with_id_zero(bukuDb):
+def test_importdb_appends_tags_to_bookmark_with_id_zero(bukuDb, monkeypatch):
     bdb = bukuDb(chatty=False)
     bdb.add_rec('http://one.example', 'one', parse_tags(['keep']), fetch=False)
     bdb.cur.execute('UPDATE bookmarks SET id = 0 WHERE url = ?', ('http://one.example',))
     bdb.conn.commit()
+    monkeypatch.setattr('builtins.input', lambda *_: 'y')
 
     with NamedTemporaryFile(suffix='.html', delete=False, mode='w') as infp:
         infp.write('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p>'
