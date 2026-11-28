@@ -12,6 +12,7 @@ _**Note: see [the runner script](https://github.com/jarun/buku/wiki/Bukuserver-%
   - [Using Docker Compose](#using-docker-compose)
 - [Webserver options](#webserver-options)
 - [Configuration](#configuration)
+- [Bookmarklet](#bookmarklet)
 - [API](#api)
 - [Screenshots](#screenshots)
 
@@ -186,6 +187,32 @@ a technique used to identify and track a person's web browsing habits.
   ([English translation](https://www-heise-de.translate.goog/news/Browser-Fingerprinting-Favicons-als-Super-Cookies-5027814.html?_x_tr_sl=de&_x_tr_tl=en&_x_tr_hl=en))
 
 It is important to note that favicon can potentially be exploited in this way.
+
+### Bookmarklet
+
+The bookmarklet opens a popup for saving the page you are reading to your
+running Bukuserver instance.
+
+1. Open the Bukuserver home page in your browser.
+2. Drag the **✚ Add to Buku** link to your browser's bookmarks toolbar.
+3. Visit a page you want to save. Optionally select text to use as its description.
+4. Click **✚ Add to Buku** in the toolbar. Allow the popup if your browser blocks it.
+5. Review the bookmark in the popup and save it.
+
+For a new URL, the form starts with the page URL, title and description.
+Selected text takes precedence over the page's description metadata; descriptions
+longer than 4,000 characters are truncated with an alert. If the URL already
+exists, the popup opens the existing bookmark for editing instead of creating a
+duplicate. The selected text and page metadata do not overwrite that bookmark.
+
+The bookmarklet uses the server's generated address. If
+`BUKUSERVER_SERVER_NAME` is set, that value supplies the host and port; otherwise,
+they come from the request used to load the home page. The generated address must
+be reachable from the browser when you use the bookmarklet. Install it again if
+you change the server address.
+
+For a keyboard-only shortcut, expand **Location Bar (keyboard-only) shortcut**
+on the Bukuserver home page and follow the instructions for your browser.
 
 ### API
 
